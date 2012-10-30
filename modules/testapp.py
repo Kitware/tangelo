@@ -4,15 +4,15 @@ class Handler:
         try:
             response['year'] = int(year)
         except ValueError:
-            pass
+            response['year'] = 'bad year given'
         try:
             response['month'] = int(month)
         except ValueError:
-            pass
+            response['year'] = 'bad month given'
         try:
             response['day'] = int(day)
         except ValueError:
-            pass
+            response['year'] = 'bad day given'
         for k in kwargs:
             response[k] = kwargs[k]
 
