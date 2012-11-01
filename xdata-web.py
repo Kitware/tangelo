@@ -9,7 +9,7 @@ class Server(object):
 <h1>XDATA Web (running over CherryPy)</h1>"""
     
     @cherrypy.expose
-    def app(self, module, *pargs, **kwargs):
+    def service(self, module, *pargs, **kwargs):
         # TODO(choudhury): This method should attempt to load the named module, then invoke it
         # with the given arguments.  However, if the named module is "config" or
         # something similar, the method should instead launch a special "config"
