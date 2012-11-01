@@ -18,9 +18,10 @@ class Server(object):
         # other modules.
         cherrypy.response.headers['Content-type'] = 'text/plain'
 
-        response = "requested app '%s' with positional args " % (module) + str(pargs)
-        response += " and keyword args " + str(kwargs) + "\n"
-        
+        response = ""
+#         response = "requested app '%s' with positional args " % (module) + str(pargs)
+#         response += " and keyword args " + str(kwargs) + "\n"
+
         # Construct import statement.
         import_string = "import modules.%s" % (module)
         try:
