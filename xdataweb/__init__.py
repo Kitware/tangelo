@@ -1,9 +1,15 @@
+import cherrypy
+import sys
+import xdataweb
+
+# current_dir is used by the CherryPy config file to set the root for static
+# file service; sys.path is extended with this path to prevent
+# daemonization of this server (which changes the CWD to "/") from interfering
+# with dynamic module loading.
 import os.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 print current_dir
-
-import cherrypy
-import sys
+sys.path.append(current_dir)
 
 class Server(object):
     @cherrypy.expose
@@ -23,8 +29,6 @@ class Server(object):
         cherrypy.response.headers['Content-type'] = 'text/plain'
 
         response = ""
-#         response = "requested app '%s' with positional args " % (module) + str(pargs)
-#         response += " and keyword args " + str(kwargs) + "\n"
 
         # Construct import statement.
         import_string = "import modules.%s" % (module)
@@ -54,17 +58,3 @@ class Server(object):
 
         # If we reach here, then return the full result of running the module.
         return response
-
-if __name__ == "__main__":
-    port = 80
-    if len(sys.argv) >= 2:
-      try:
-        port = int(sys.argv[1])
-      except ValueError:
-        sys.stderr.write("error: %s is not a valid port number\n" % (sys.argv[1]))
-        sys.exit(1)
-
-    cherrypy.config.update({
-      'server.socket_port' : port
-    })
-    cherrypy.quickstart(Server())
