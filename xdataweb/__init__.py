@@ -35,26 +35,31 @@ class Server(object):
         try:
             exec(import_string)
         except ImportError:
-            response += "\nError: no such module '%s'" % (module)
-            return response
+            return "Error: no such module '%s'" % (module)
+            #response += "\nError: no such module '%s'" % (module)
+            #return response
 
         # Construct a Handler object from the module.
         try:
             handler = eval("modules.%s.Handler()" % (module))
         except AttributeError:
-            response += "\nError: no Handler class defined in module '%s'" % (module)
-            return response
+            return "Error: no Handler class defined in module '%s'" % (module)
+            #response += "\nError: no Handler class defined in module '%s'" % (module)
+            #return response
 
         # Call the go() method of the handler object, passing it the positional
         # and keyword args that came into this method.
         try:
-            response += handler.go(*pargs, **kwargs)
+            return handler.go(*pargs, **kwargs)
+            #response += handler.go(*pargs, **kwargs)
         except AttributeError:
-            response += "\nError: no method go() defined in class Handler in module '%s'" % (module)
-            return response
+            return "Error: no method go() defined in class Handler in module '%s'" % (module)
+            #response += "\nError: no method go() defined in class Handler in module '%s'" % (module)
+            #return response
         except TypeError as e:
-            response += "\nError: " + str(e)
-            return response
+            return "Error: " + str(e)
+            #response += "\nError: " + str(e)
+            #return response
 
         # If we reach here, then return the full result of running the module.
-        return response
+        #return response
