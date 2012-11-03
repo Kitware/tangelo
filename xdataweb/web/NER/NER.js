@@ -26,14 +26,17 @@ function handleFileSelect(evt){
             var reader = new FileReader();
             reader.onload = (function(file){
                 return function(e){
-                    console.log(file.name);
+                    var filename = escape(file.name);
+                    console.log(filename);
 
                     // Grab the text of the file.
                     var text = e.target.result;
 
                     // Create a "preview" bullet point containing a prefix of the file text.
                     var elem = document.createElement("li");
-                    elem.innerHTML = escape(file.name) + ": " + text.slice(0,40) + "...";
+                    elem.innerHTML = "processing " + filename;
+                    elem.setAttribute("id", filename.replace(".","-"));
+                    elem.setAttribute("class", "processing inprogress");
                     $("#blobs").get(0).appendChild(elem);
 
                     // Fire an AJAX call to retrieve the named entities in the document.
@@ -44,10 +47,12 @@ function handleFileSelect(evt){
                         },
                         dataType: 'text',
                         success: function(data){
-                            console.log("success for " + file.name + " - result: " + data);
+                            console.log("success for " + filename + " - result: " + data);
+                            $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("done").get(0).innerHTML = filename + " processed";
                         },
                         error: function(){
-                            console.log("error for " + file.name);
+                            console.log("error for " + filename);
+                            $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("failed").get(0).innerHTML = filename + " processed";
                         }
                     });
                 }
