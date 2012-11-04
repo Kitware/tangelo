@@ -21,7 +21,7 @@ function assembleGraph(){
     // Copy the links over into an array within the graph object.
     g.links = [];
     $.each(NER.links, function(k, v){
-       g.links.push(v);
+        g.links.push(v);
     });
 
     // Do the same for the nodes, but do two additional things:
@@ -45,7 +45,12 @@ function assembleGraph(){
         g.nodes[i] = v;
     });
 
-    console.log(g);
+    return g;
+}
+
+function renderGraph(g){
+    //console.log("renderGraph(): g = " + g.nodes.join(",") + g.links.join(","));
+    console.log("renderGraph(): g = " + JSON.stringify(g));
 }
 
 function handleFileSelect(evt){
@@ -117,15 +122,15 @@ function handleFileSelect(evt){
                         },
                         dataType: 'text',
                         success: function(data){
-                            console.log("success for " + filename + " - result: " + data);
+                            console.log("success for " + filename);
                             $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("done").get(0).innerHTML = filename + " processed";
 
                             // Create an entry for the document itself.
                             NER.nodes[filename] = {
                                 node: filename,
-                                type: "DOCUMENT",
-                                count: 0,
-                                index: NER.counter++
+                        type: "DOCUMENT",
+                        count: 1,
+                        index: NER.counter++
                             };
                             var doc_index = NER.counter - 1;
 
@@ -142,33 +147,33 @@ function handleFileSelect(evt){
                                 if(!NER.nodes.hasOwnProperty(key)){
                                     NER.nodes[key] = {
                                         node: e[1],
-                                        type: e[0],
-                                        count: 1,
-                                        index: NER.counter++
+                                type: e[0],
+                                count: 1,
+                                index: NER.counter++
                                     }
                                 }
                                 else{
                                     NER.nodes[key].count++;
                                 }
-                                var entity_index = NER.nodes[key].index;
+                            var entity_index = NER.nodes[key].index;
 
-                                // Enter a link into the link list, or just
-                                // increase the weight if the link exists
-                                // already.
-                                var link = "(" + entity_index + "," + doc_index + ")";
-                                if(!NER.links.hasOwnProperty(link)){
-                                    NER.links[link] = {
-                                        source: entity_index,
-                                        target: doc_index,
-                                        weight: 1
-                                    };
-                                }
-                                else{
-                                    NER.links[link].weight++;
-                                }
+                            // Enter a link into the link list, or just
+                            // increase the weight if the link exists
+                            // already.
+                            var link = "(" + entity_index + "," + doc_index + ")";
+                            if(!NER.links.hasOwnProperty(link)){
+                                NER.links[link] = {
+                                    source: entity_index,
+                                    target: doc_index,
+                                    weight: 1
+                                };
+                            }
+                            else{
+                                NER.links[link].weight++;
+                            }
                             });
 
-                            console.log(NER.nodes);
+                            //console.log(NER.nodes);
 
                             // Increment the number of successfully processed
                             // files; if the number reaches the number of total
@@ -176,10 +181,11 @@ function handleFileSelect(evt){
                             // assembling the graph.
                             ++NER.files_processed;
                             console.log(NER.files_processed + " of " + NER.num_files + " processed");
-                            console.log(NER.files_processed == NER.num_files);
+
                             if(NER.files_processed == NER.num_files){
                                 console.log("calling assembleGraph()");
-                                assembleGraph();
+                                var graph = assembleGraph();
+                                renderGraph(graph);
                             }
                         },
                         error: function(){
