@@ -1,0 +1,33 @@
+.ok {
+    color: green;
+    font-weight: bold;
+}
+
+.rejected {
+    color: red;
+    font-weight: bold;
+}
+
+.processing.inprogress {
+    color: green;
+    font-style: italic;
+}
+
+.processing.done {
+    color: gray;
+}
+
+.processing.failed {
+    color: red;
+}
+
+circle.node {
+    stroke: #000;
+    stroke-width: 1.5px;
+}
+
+line.link {
+    stroke: #000;
+    stroke-opacity: 0.6;
+}
+
