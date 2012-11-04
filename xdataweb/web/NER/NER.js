@@ -49,6 +49,8 @@ function assembleGraph(){
 }
 
 function renderGraph(g){
+    //console.log(JSON.stringify(g));
+
     var width = 960,
         height = 500;
 
@@ -72,7 +74,7 @@ function renderGraph(g){
         .data(g.links)
       .enter().append("line")
         .attr("class", "link")
-        .style("stroke-width", function(d) { return Math.sqrt(d.weight); });
+        .style("stroke-width", function(d) { return Math.sqrt(d.count); });
 
     var node = svg.selectAll("circle.node")
         .data(g.nodes)
@@ -88,8 +90,8 @@ function renderGraph(g){
     force.on("tick", function(){
         link.attr("x1", function(d) { return d.source.x; })
             .attr("y1", function(d) { return d.source.y; })
-            .attr("x2", function(d) { return d.source.x; })
-            .attr("y2", function(d) { return d.source.y; });
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
 
         node.attr("cx", function(d) { return d.x; })
             .attr("cy", function(d) { return d.y; });
@@ -199,22 +201,22 @@ function handleFileSelect(evt){
                                 else{
                                     NER.nodes[key].count++;
                                 }
-                            var entity_index = NER.nodes[key].index;
+                                var entity_index = NER.nodes[key].index;
 
-                            // Enter a link into the link list, or just
-                            // increase the weight if the link exists
-                            // already.
-                            var link = "(" + entity_index + "," + doc_index + ")";
-                            if(!NER.links.hasOwnProperty(link)){
-                                NER.links[link] = {
-                                    source: entity_index,
-                                    target: doc_index,
-                                    weight: 1
-                                };
-                            }
-                            else{
-                                NER.links[link].weight++;
-                            }
+                                // Enter a link into the link list, or just
+                                // increase the count if the link exists
+                                // already.
+                                var link = "(" + entity_index + "," + doc_index + ")";
+                                if(!NER.links.hasOwnProperty(link)){
+                                    NER.links[link] = {
+                                        source: entity_index,
+                                        target: doc_index,
+                                        count: 1
+                                    };
+                                }
+                                else{
+                                    NER.links[link].count++;
+                                }
                             });
 
                             //console.log(NER.nodes);
