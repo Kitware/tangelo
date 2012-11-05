@@ -5,7 +5,6 @@ var NER = {};
 // uniquely by the "counter" variable.  Once the table is complete, the nodes
 // table can be recast into an array.
 NER.nodes = {};
-//NER.docs = {};
 NER.links = {};
 NER.counter = 0;
 
