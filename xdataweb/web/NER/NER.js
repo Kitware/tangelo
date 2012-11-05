@@ -51,8 +51,8 @@ function assembleGraph(){
 function renderGraph(g){
     //console.log(JSON.stringify(g));
 
-    var width = 960,
-        height = 500;
+    var width = 1000,
+        height = 1000;
 
     var color = d3.scale.category20();
 
@@ -64,6 +64,17 @@ function renderGraph(g){
     var svg = d3.select("#graph").append("svg")
         .attr("width", width)
         .attr("height", height);
+    var stroke_width = 3;
+    svg.append("rect")
+        .attr("x", 0.5*stroke_width)
+        .attr("y", 0.5*stroke_width)
+        .attr("rx", 10)
+        .attr("ry", 10)
+        .attr("width", width - stroke_width)
+        .attr("height", height - stroke_width)
+        .style("fill-opacity", 0.1)
+        .style("stroke", "black")
+        .style("stroke-width", stroke_width);
 
     force
         .nodes(g.nodes)
