@@ -109,6 +109,79 @@ function renderGraph(g){
     });
 }
 
+// This function can be called with a filename to *generate* an AJAX-success
+// callback function to process the contents of some file.  The parameter passed
+// into the generator is so that the callback has access to the name of the file
+// being processed.
+function processFileContents(filename){
+    return function(data){
+        console.log("success for " + filename);
+        $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("done").get(0).innerHTML = filename + " processed";
+
+        // Create an entry for the document itself.
+        NER.nodes[filename] = {
+            node: filename,
+            type: "DOCUMENT",
+            count: 1,
+            index: NER.counter++
+        };
+        var doc_index = NER.counter - 1;
+
+        // Extract the JSON object from the AJAX response.
+        var entities = $.parseJSON(data);
+
+        // Process the entities.
+        $.each(entities, function(i, e){
+            // Place the entity into the global entity list
+            // if not already there.
+            //
+            // Also update the count of this entity.
+            var key = '["' + e[0] + '","' + e[1] + '"]';
+            if(!NER.nodes.hasOwnProperty(key)){
+                NER.nodes[key] = {
+                    node: e[1],
+            type: e[0],
+            count: 1,
+            index: NER.counter++
+                }
+            }
+            else{
+                NER.nodes[key].count++;
+            }
+            var entity_index = NER.nodes[key].index;
+
+            // Enter a link into the link list, or just increase the count if
+            // the link exists already.
+            var link = "(" + entity_index + "," + doc_index + ")";
+            if(!NER.links.hasOwnProperty(link)){
+                NER.links[link] = {
+                    source: entity_index,
+                    target: doc_index,
+                    count: 1
+                };
+            }
+            else{
+                NER.links[link].count++;
+            }
+        });
+
+        //console.log(NER.nodes);
+
+        // Increment the number of successfully processed
+        // files; if the number reaches the number of total
+        // files to process, launch the final step of
+        // assembling the graph.
+        ++NER.files_processed;
+        console.log(NER.files_processed + " of " + NER.num_files + " processed");
+
+        if(NER.files_processed == NER.num_files){
+            console.log("calling assembleGraph()");
+            var graph = assembleGraph();
+            renderGraph(graph);
+        }
+    }
+}
+
 function handleFileSelect(evt){
     // Grab the list of files selected by the user.
     var files = evt.target.files;
@@ -169,6 +242,12 @@ function handleFileSelect(evt){
                     elem.setAttribute("class", "processing inprogress");
                     $("#blobs").get(0).appendChild(elem);
 
+                    // TODO(choudhury): check to see if the file contents were
+                    // already processed, by querying the database for the
+                    // results.  If they are found, retrieve them directly; if
+                    // not, fire the AJAX call below (but db cache the result
+                    // when it finishes!).
+
                     // Fire an AJAX call to retrieve the named entities in the
                     // document.
                     $.ajax({
@@ -177,73 +256,7 @@ function handleFileSelect(evt){
                             text: text
                         },
                         dataType: 'text',
-                        success: function(data){
-                            console.log("success for " + filename);
-                            $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("done").get(0).innerHTML = filename + " processed";
-
-                            // Create an entry for the document itself.
-                            NER.nodes[filename] = {
-                                node: filename,
-                        type: "DOCUMENT",
-                        count: 1,
-                        index: NER.counter++
-                            };
-                            var doc_index = NER.counter - 1;
-
-                            // Extract the JSON object from the AJAX response.
-                            var entities = $.parseJSON(data);
-
-                            // Process the entities.
-                            $.each(entities, function(i, e){
-                                // Place the entity into the global entity list
-                                // if not already there.
-                                //
-                                // Also update the count of this entity.
-                                var key = '["' + e[0] + '","' + e[1] + '"]';
-                                if(!NER.nodes.hasOwnProperty(key)){
-                                    NER.nodes[key] = {
-                                        node: e[1],
-                                type: e[0],
-                                count: 1,
-                                index: NER.counter++
-                                    }
-                                }
-                                else{
-                                    NER.nodes[key].count++;
-                                }
-                                var entity_index = NER.nodes[key].index;
-
-                                // Enter a link into the link list, or just
-                                // increase the count if the link exists
-                                // already.
-                                var link = "(" + entity_index + "," + doc_index + ")";
-                                if(!NER.links.hasOwnProperty(link)){
-                                    NER.links[link] = {
-                                        source: entity_index,
-                                        target: doc_index,
-                                        count: 1
-                                    };
-                                }
-                                else{
-                                    NER.links[link].count++;
-                                }
-                            });
-
-                            //console.log(NER.nodes);
-
-                            // Increment the number of successfully processed
-                            // files; if the number reaches the number of total
-                            // files to process, launch the final step of
-                            // assembling the graph.
-                            ++NER.files_processed;
-                            console.log(NER.files_processed + " of " + NER.num_files + " processed");
-
-                            if(NER.files_processed == NER.num_files){
-                                console.log("calling assembleGraph()");
-                                var graph = assembleGraph();
-                                renderGraph(graph);
-                            }
-                        },
+                        success: processFileContents(filename),
                         error: function(){
                             console.log("error for " + filename);
                             $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("failed").get(0).innerHTML = filename + " processed";
