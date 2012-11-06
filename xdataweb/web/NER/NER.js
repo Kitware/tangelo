@@ -95,7 +95,7 @@ function renderGraph(g){
         .call(force.drag);
 
     node.append("title")
-        .text(function(d) { return d.node; }); // TODO(choudhury): the field "node" should be renamed to "name".
+        .text(function(d) { return d.name; });
 
     force.on("tick", function(){
         link.attr("x1", function(d) { return d.source.x; })
@@ -133,7 +133,7 @@ function processFileContents(filename, file_hash){
 
         // Create an entry for the document itself.
         NER.nodes[filename] = {
-            node: filename,
+            name: filename,
             type: "DOCUMENT",
             count: 1,
             index: NER.counter++
@@ -152,10 +152,10 @@ function processFileContents(filename, file_hash){
             var key = '["' + e[0] + '","' + e[1] + '"]';
             if(!NER.nodes.hasOwnProperty(key)){
                 NER.nodes[key] = {
-                    node: e[1],
-            type: e[0],
-            count: 1,
-            index: NER.counter++
+                    name: e[1],
+                    type: e[0],
+                    count: 1,
+                    index: NER.counter++
                 }
             }
             else{
