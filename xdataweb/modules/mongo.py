@@ -42,6 +42,9 @@ class Handler:
             # Convert to JSON and return the result.
             return bson.json_util.dumps(results)
         else:
+            # Convert the JSON object "data" to a Python object.
+            pydata = bson.json_util.loads(data)
+
             # Apply the schema to an insert request.
             coll.insert({'file_hash': file_hash, 'data': data})
 

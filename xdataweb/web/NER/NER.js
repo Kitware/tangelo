@@ -113,10 +113,20 @@ function renderGraph(g){
 // callback function to process the contents of some file.  The parameter passed
 // into the generator is so that the callback has access to the name of the file
 // being processed.
-function processFileContents(filename){
+function processFileContents(filename, store){
     return function(data){
         console.log("success for " + filename);
         $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("done").get(0).innerHTML = filename + " processed";
+
+        // If the "store" parameter is set to true, store the data in the
+        // database (caching it for future retrieval).
+        if(store){
+            // TODO(choudhury): insert the record in the database.
+            console.log("store is true");
+        }
+        else{
+            console.log("store is false");
+        }
 
         // Create an entry for the document itself.
         NER.nodes[filename] = {
@@ -242,24 +252,46 @@ function handleFileSelect(evt){
                     elem.setAttribute("class", "processing inprogress");
                     $("#blobs").get(0).appendChild(elem);
 
+                    var file_hash = CryptoJS.MD5(text).toString();
+                    console.log("Checking hash for " + filename + "...");
+
                     // TODO(choudhury): check to see if the file contents were
                     // already processed, by querying the database for the
                     // results.  If they are found, retrieve them directly; if
                     // not, fire the AJAX call below (but db cache the result
                     // when it finishes!).
-
-                    // Fire an AJAX call to retrieve the named entities in the
-                    // document.
                     $.ajax({
-                        url: '/service/NER',
+                        url: '/service/mongo/xdata/ner-cache',
                         data: {
-                            text: text
+                            file_hash: file_hash
                         },
-                        dataType: 'text',
-                        success: processFileContents(filename),
-                        error: function(){
-                            console.log("error for " + filename);
-                            $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("failed").get(0).innerHTML = filename + " processed";
+                        success: function(data){
+                            // Check the response - if it is blank, launch the
+                            // second AJAX call to directly compute the NER set,
+                            // and store it in the database.
+                            if(data == '[]'){
+                                console.log("hash for " + filename + " not found in DB, recomputing");
+                                $.ajax({
+                                    url: '/service/NER',
+                                    data: {
+                                        text: text
+                                    },
+                                    dataType: 'text',
+                                    success: processFileContents(filename, true),
+                                    error: function(){
+                                        console.log("error for " + filename);
+                                        $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("failed").get(0).innerHTML = filename + " processed";
+                                    }
+                                });
+                            }
+                            else{
+                                console.log("hash for " + filename + " found in DB!");
+
+                                // The call to processFileContents() generates a
+                                // function; the second invocation calls that
+                                // function to actually process the data.
+                                processFileContents(filename, false)(data);
+                            }
                         }
                     });
                 }
