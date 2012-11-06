@@ -1,0 +1,14 @@
+#!/bin/sh
+
+cmd=`readlink -f $0`
+dir=`dirname ${cmd}`
+pidfile=${dir}/xdataweb.pid
+
+if [ -e xdataweb.pid ]; then
+    # Grab the recorded pid and kill it.
+    pid=`cat ${pidfile}`
+    kill -9 ${pid}
+
+    # Remove the pid file.
+    rm ${pidfile}
+fi
