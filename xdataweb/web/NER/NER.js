@@ -113,19 +113,22 @@ function renderGraph(g){
 // callback function to process the contents of some file.  The parameter passed
 // into the generator is so that the callback has access to the name of the file
 // being processed.
-function processFileContents(filename, store){
+function processFileContents(filename, file_hash){
     return function(data){
         console.log("success for " + filename);
         $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("done").get(0).innerHTML = filename + " processed";
 
         // If the "store" parameter is set to true, store the data in the
         // database (caching it for future retrieval).
-        if(store){
-            // TODO(choudhury): insert the record in the database.
-            console.log("store is true");
-        }
-        else{
-            console.log("store is false");
+        if(file_hash !== undefined){
+            // Fire an AJAX call that will install the computed data in the DB.
+            $.ajax({
+                url: '/service/mongo/xdata/ner-cache',
+                data: {
+                    file_hash: file_hash,
+                    data: data
+                },
+            });
         }
 
         // Create an entry for the document itself.
@@ -255,10 +258,10 @@ function handleFileSelect(evt){
                     var file_hash = CryptoJS.MD5(text).toString();
                     console.log("Checking hash for " + filename + "...");
 
-                    // TODO(choudhury): check to see if the file contents were
-                    // already processed, by querying the database for the
-                    // results.  If they are found, retrieve them directly; if
-                    // not, fire the AJAX call below (but db cache the result
+                    // Check to see if the file contents were already processed,
+                    // by querying the database for the results.  If they are
+                    // found, retrieve them directly; if not, fire the AJAX call
+                    // below to compute the results (but db cache the result
                     // when it finishes!).
                     $.ajax({
                         url: '/service/mongo/xdata/ner-cache',
@@ -277,7 +280,7 @@ function handleFileSelect(evt){
                                         text: text
                                     },
                                     dataType: 'text',
-                                    success: processFileContents(filename, true),
+                                    success: processFileContents(filename, file_hash),
                                     error: function(){
                                         console.log("error for " + filename);
                                         $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("failed").get(0).innerHTML = filename + " processed";
@@ -286,11 +289,19 @@ function handleFileSelect(evt){
                             }
                             else{
                                 console.log("hash for " + filename + " found in DB!");
+                                // The data returned from the DB is in MongoDB
+                                // format.  Read it into a JSON object, then
+                                // extract the payload.
+                                var jsdata = $.parseJSON(data);
+
+                                // TODO(choudhury): error checking.  Make sure
+                                // that "jsdata" has only a single element, etc.
 
                                 // The call to processFileContents() generates a
-                                // function; the second invocation calls that
+                                // function (in which the file_hash parameter is
+                                // OMITTED); the second invocation calls that
                                 // function to actually process the data.
-                                processFileContents(filename, false)(data);
+                                processFileContents(filename)(jsdata[0].data);
                             }
                         }
                     });
