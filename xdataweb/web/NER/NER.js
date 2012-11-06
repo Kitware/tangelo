@@ -90,7 +90,7 @@ function renderGraph(g){
         .data(g.nodes)
       .enter().append("circle")
         .attr("class", "node")
-        .attr("r", 5) // TODO(choudhury): make the radius dependent on the node count.
+        .attr("r", function(d) { return 5*Math.sqrt(d.count); })
         .style("fill", function(d) { return color(d.type); })
         .call(force.drag);
 
