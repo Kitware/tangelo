@@ -5,12 +5,12 @@ class Handler:
     def __init__(self):
         self.conn = None
 
-    def go(self, dbname, collname, schema=None):
+    def go(self, dbname, collname, file_hash=None, data=None):
         # If no schema was passed in, give an error.
         #
         # TODO(choudhury): see comment below about error codes, etc.
-        if schema == None:
-            return ""
+        if file_hash == None:
+            return "no file hash!"
 
         # Try to establish a connection to the MongoDB server.
         #
@@ -28,18 +28,22 @@ class Handler:
 
         # Extract the requested database and collection.
         db = self.conn[dbname]
-        coll = db.collname
+        coll = db[collname]
 
-        # Convert the schema into a Python object (it should come in as JSON).
-        try:
-            pyschema = bson.json_util.loads(schema)
-        except ValueError:
-            # TODO(choudhury): once again, see above comment for how to truly
-            # handle error conditions.
-            return ""
+        # If no data field was specified, treat this as a read request.
+        if data == None:
+            # Create a search schema for finding the record with the appropriate
+            # hash.
+            schema = {'file_hash' : file_hash}
 
-        # Apply the schema to retrieve documents.
-        results = [d for d in coll.find(pyschema)]
+            # Apply the schema to retrieve documents.
+            results = [d for d in coll.find(schema)]
 
-        # Convert to JSON and return the result.
-        return bson.json_util.dumps(results)
+            # Convert to JSON and return the result.
+            return bson.json_util.dumps(results)
+        else:
+            # Apply the schema to an insert request.
+            coll.insert({'file_hash': file_hash, 'data': data})
+
+            # Return a success code.
+            return "ok"
