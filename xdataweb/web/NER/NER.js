@@ -128,7 +128,7 @@ function processFileContents(filename, file_hash){
                 data: {
                     file_hash: file_hash,
                     data: data
-                },
+                }
             });
         }
 
@@ -157,7 +157,7 @@ function processFileContents(filename, file_hash){
                     type: e[0],
                     count: 1,
                     index: NER.counter++
-                }
+                };
             }
             else{
                 NER.nodes[key].count++;
@@ -193,7 +193,7 @@ function processFileContents(filename, file_hash){
             var graph = assembleGraph();
             renderGraph(graph);
         }
-    }
+    };
 }
 
 function handleFileSelect(evt){
@@ -308,7 +308,7 @@ function handleFileSelect(evt){
                             }
                         }
                     });
-                }
+                };
             })(f);
 
             reader.readAsText(f);
@@ -319,4 +319,4 @@ function handleFileSelect(evt){
 
 window.onload = function(){
     document.getElementById('docs').addEventListener('change', handleFileSelect, false);
-}
+};
