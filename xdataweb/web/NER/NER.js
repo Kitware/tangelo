@@ -123,6 +123,7 @@ function processFileContents(filename, file_hash){
         if(file_hash !== undefined){
             // Fire an AJAX call that will install the computed data in the DB.
             $.ajax({
+                type: 'POST',
                 url: '/service/mongo/xdata/ner-cache',
                 data: {
                     file_hash: file_hash,
@@ -264,6 +265,7 @@ function handleFileSelect(evt){
                     // below to compute the results (but db cache the result
                     // when it finishes!).
                     $.ajax({
+                        type: 'POST',
                         url: '/service/mongo/xdata/ner-cache',
                         data: {
                             file_hash: file_hash
@@ -275,6 +277,7 @@ function handleFileSelect(evt){
                             if(data == '[]'){
                                 console.log("hash for " + filename + " not found in DB, recomputing");
                                 $.ajax({
+                                    type: 'POST',
                                     url: '/service/NER',
                                     data: {
                                         text: text
