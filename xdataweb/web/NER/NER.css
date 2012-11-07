@@ -31,3 +31,15 @@ line.link {
     stroke-opacity: 0.6;
 }
 
+body {
+    font-family: 'Marcellus', Serif;
+    background: #bcb;
+}
+
+h1 {
+    font-family: 'EB Garamond', Serif;
+}
+
+.filename {
+    font-family: 'Inconsolata', Monospace;
+}

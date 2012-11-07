@@ -71,7 +71,7 @@ function renderGraph(g){
         .attr("ry", 10)
         .attr("width", width - stroke_width)
         .attr("height", height - stroke_width)
-        .style("fill-opacity", 0.1)
+        .style("fill", "#ddd")
         .style("stroke", "black")
         .style("stroke-width", stroke_width);
 
@@ -236,7 +236,7 @@ function handleFileSelect(evt){
             msg = "rejected";
             using = false;
         }
-        output.push('<li><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ') - ', f.size, ' bytes ', f.type == 'text/plain' ? '<span class=ok>(ok)</span>' : '<span class="rejected">(rejected)</span>');
+        output.push('<li><span class="filename"><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ')</span> - ', f.size, ' bytes ', f.type == 'text/plain' ? '<span class=ok>(ok)</span>' : '<span class="rejected">(rejected)</span>');
 
         if(using){
             var reader = new FileReader();
