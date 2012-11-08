@@ -1,6 +1,3 @@
-/*jshint undef:true */
-/*global $:true,d3:true,escape:true,console:true,FileReader:true */
-
 //Top-level container object for this js file.
 var NER = {};
 
