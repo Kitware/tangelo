@@ -48,34 +48,35 @@ function assembleGraph(){
 }
 
 function renderGraph(g){
-    //console.log(JSON.stringify(g));
-
-    var width = 1000,
-        height = 1000;
+    //var width = 1000,
+        //height = 1000;
 
     var color = d3.scale.category20();
+
+
+    //var svg = d3.select("#graph").append("svg")
+    var svg = d3.select("#graph");
+        //.attr("width", width)
+        //.attr("height", height);
+    //var stroke_width = 3;
+/*    svg.append("rect")*/
+        //.attr("x", 0.5*stroke_width)
+        //.attr("y", 0.5*stroke_width)
+        //.attr("rx", 10)
+        //.attr("ry", 10)
+        //.attr("width", width - stroke_width)
+        //.attr("height", height - stroke_width)
+        //.style("fill", "#ddd")
+        //.style("stroke", "black")
+        /*.style("stroke-width", stroke_width);*/
+
+    var width = svg.attr("width"),
+        height = svg.attr("height");
 
     var force = d3.layout.force()
         .charge(-120)
         .linkDistance(30)
-        .size([width, height]);
-
-    var svg = d3.select("#graph").append("svg")
-        .attr("width", width)
-        .attr("height", height);
-    var stroke_width = 3;
-    svg.append("rect")
-        .attr("x", 0.5*stroke_width)
-        .attr("y", 0.5*stroke_width)
-        .attr("rx", 10)
-        .attr("ry", 10)
-        .attr("width", width - stroke_width)
-        .attr("height", height - stroke_width)
-        .style("fill", "#ddd")
-        .style("stroke", "black")
-        .style("stroke-width", stroke_width);
-
-    force
+        .size([width, height])
         .nodes(g.nodes)
         .links(g.links)
         .start();
