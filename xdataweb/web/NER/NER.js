@@ -1,4 +1,7 @@
-// Top-level container object for this js file.
+/*jshint undef:true */
+/*global $:true,d3:true,escape:true,console:true,FileReader:true */
+
+//Top-level container object for this js file.
 var NER = {};
 
 // "nodes" is a table of entity names, mapping to an array position generated
@@ -107,6 +110,83 @@ function renderGraph(g){
             .attr("cy", function(d) { return d.y; });
 
     });
+}
+
+function processFile(filename, id){
+    return function(e){
+        //var filename = escape(file.name);
+        console.log(filename);
+
+        // Grab the text of the file.
+        var text = e.target.result;
+
+        // Create a "progress" bullet point describing the current
+        // AJAX state of this file.
+
+        //var elem = document.createElement("li");
+        //elem.innerHTML = "processing " + filename;
+        //elem.setAttribute("id", filename.replace(".","-"));
+        //elem.setAttribute("class", "processing inprogress");
+        //$("#blobs").get(0).appendChild(elem);
+
+        // Mark the appropriate list item as being processed.
+        var li = d3.select("#" + id);
+        li.html(li.html() + " processing")
+            .classed("processing inprogress", true);
+
+        var file_hash = CryptoJS.MD5(text).toString();
+        console.log("Checking hash for " + filename + "...");
+
+        // Check to see if the file contents were already processed,
+        // by querying the database for the results.  If they are
+        // found, retrieve them directly; if not, fire the AJAX call
+        // below to compute the results (but db cache the result
+        // when it finishes!).
+        $.ajax({
+            type: 'POST',
+            url: '/service/mongo/xdata/ner-cache',
+            data: {
+                file_hash: file_hash
+            },
+            success: function(data){
+                // Check the response - if it is blank, launch the
+                // second AJAX call to directly compute the NER set,
+                // and store it in the database.
+                if(data == '[]'){
+                    console.log("hash for " + filename + " not found in DB, recomputing");
+                    $.ajax({
+                        type: 'POST',
+                        url: '/service/NER',
+                        data: {
+                            text: text
+                        },
+                        dataType: 'text',
+                        success: processFileContents(filename, id, file_hash),
+                        error: function(){
+                            console.log("error for " + filename);
+                            $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("failed").get(0).innerHTML = filename + " processed";
+                        }
+                    });
+                }
+                else{
+                    console.log("hash for " + filename + " found in DB!");
+                    // The data returned from the DB is in MongoDB
+                    // format.  Read it into a JSON object, then
+                    // extract the payload.
+                    var jsdata = $.parseJSON(data);
+
+                    // TODO(choudhury): error checking.  Make sure
+                    // that "jsdata" has only a single element, etc.
+
+                    // The call to processFileContents() generates a
+                    // function (in which the file_hash parameter is
+                    // OMITTED); the second invocation calls that
+                    // function to actually process the data.
+                    processFileContents(filename, id)(jsdata[0].data);
+                }
+            }
+        });
+    };
 }
 
 // This function can be called with a filename to *generate* an AJAX-success
@@ -231,6 +311,8 @@ function handleFileSelect(evt){
         // with a mime-type of text/*, as well as those with unspecified type
         // (assume the user knows what they are doing in such a case).
         var using = null;
+        var status = null;
+        var msg = null;
         if(f.type == '(n/a)'){
             status = "accepted";
             msg = "ok, assuming text";
@@ -257,83 +339,7 @@ function handleFileSelect(evt){
 
         if(using){
             var reader = new FileReader();
-            reader.onload = (function(file){
-                return function(e){
-                    var filename = escape(file.name);
-                    var id = filename.replace(".", "-");
-                    console.log(filename);
-
-                    // Grab the text of the file.
-                    var text = e.target.result;
-
-                    // Create a "progress" bullet point describing the current
-                    // AJAX state of this file.
-
-                    //var elem = document.createElement("li");
-                    //elem.innerHTML = "processing " + filename;
-                    //elem.setAttribute("id", filename.replace(".","-"));
-                    //elem.setAttribute("class", "processing inprogress");
-                    //$("#blobs").get(0).appendChild(elem);
-
-                    // Mark the appropriate list item as being processed.
-                    li.html(li.html() + " processing")
-                        .classed("processing inprogress", true);
-
-                    var file_hash = CryptoJS.MD5(text).toString();
-                    console.log("Checking hash for " + filename + "...");
-
-                    // Check to see if the file contents were already processed,
-                    // by querying the database for the results.  If they are
-                    // found, retrieve them directly; if not, fire the AJAX call
-                    // below to compute the results (but db cache the result
-                    // when it finishes!).
-                    $.ajax({
-                        type: 'POST',
-                        url: '/service/mongo/xdata/ner-cache',
-                        data: {
-                            file_hash: file_hash
-                        },
-                        success: function(data){
-                            // Check the response - if it is blank, launch the
-                            // second AJAX call to directly compute the NER set,
-                            // and store it in the database.
-                            if(data == '[]'){
-                                console.log("hash for " + filename + " not found in DB, recomputing");
-                                $.ajax({
-                                    type: 'POST',
-                                    url: '/service/NER',
-                                    data: {
-                                        text: text
-                                    },
-                                    dataType: 'text',
-                                    success: processFileContents(filename, id, file_hash),
-                                    error: function(){
-                                        console.log("error for " + filename);
-                                        $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("failed").get(0).innerHTML = filename + " processed";
-                                    }
-                                });
-                            }
-                            else{
-                                console.log("hash for " + filename + " found in DB!");
-                                // The data returned from the DB is in MongoDB
-                                // format.  Read it into a JSON object, then
-                                // extract the payload.
-                                var jsdata = $.parseJSON(data);
-
-                                // TODO(choudhury): error checking.  Make sure
-                                // that "jsdata" has only a single element, etc.
-
-                                // The call to processFileContents() generates a
-                                // function (in which the file_hash parameter is
-                                // OMITTED); the second invocation calls that
-                                // function to actually process the data.
-                                processFileContents(filename, id)(jsdata[0].data);
-                            }
-                        }
-                    });
-                };
-            })(f);
-
+            reader.onload = processFile(filename, id);
             reader.readAsText(f);
         }
     }
