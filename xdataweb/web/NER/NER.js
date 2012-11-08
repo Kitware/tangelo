@@ -113,10 +113,16 @@ function renderGraph(g){
 // callback function to process the contents of some file.  The parameter passed
 // into the generator is so that the callback has access to the name of the file
 // being processed.
-function processFileContents(filename, file_hash){
+function processFileContents(filename, id, file_hash){
     return function(data){
         console.log("success for " + filename);
-        $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("done").get(0).innerHTML = filename + " processed";
+        //$("#" + filename.replace(".","-")).removeClass("inprogress").addClass("done").get(0).innerHTML = filename + " processed";
+
+        console.log("id = #" + id);
+        var li = d3.select("#" + id)
+            .classed("inprogress", false)
+            .classed("processing done", true)
+            .html('<span class=filename>' + filename + '</span> processed');
 
         // If the "store" parameter is set to true, store the data in the
         // database (caching it for future retrieval).
@@ -217,6 +223,10 @@ function handleFileSelect(evt){
     for(var i=0; i<files.length; i++){
         var f = files[i];
 
+        // Create globally usable names to use to refer to the current file.
+        var filename = escape(f.name);
+        var id = filename.replace(".", "-");
+
         // Decide whether to process a selected file or not - accept everything
         // with a mime-type of text/*, as well as those with unspecified type
         // (assume the user knows what they are doing in such a case).
@@ -236,13 +246,21 @@ function handleFileSelect(evt){
             msg = "rejected";
             using = false;
         }
-        output.push('<li><span class="filename"><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ')</span> - ', f.size, ' bytes ', f.type == 'text/plain' ? '<span class=ok>(ok)</span>' : '<span class="rejected">(rejected)</span>');
+        //output.push('<li><span class="filename"><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ')</span> - ', f.size, ' bytes ', f.type == 'text/plain' ? '<span class=ok>(ok)</span>' : '<span class="rejected">(rejected)</span>');
+
+        // Create a list item element to represent the file.  Tag it with an id
+        // so it can be updated later.
+        var li = d3.select("#file-info").append("li");
+        li.attr("id", id)
+            .classed("rejected", !using)
+            .html('<span class="filename">' + filename + "(" + (f.type || 'n/a') + ')</span> - ' + f.size + ' bytes ' + (using ? '<span class=ok>(ok)</span>' : '<span class=rejected>(rejected)</span>') );
 
         if(using){
             var reader = new FileReader();
             reader.onload = (function(file){
                 return function(e){
                     var filename = escape(file.name);
+                    var id = filename.replace(".", "-");
                     console.log(filename);
 
                     // Grab the text of the file.
@@ -250,11 +268,16 @@ function handleFileSelect(evt){
 
                     // Create a "progress" bullet point describing the current
                     // AJAX state of this file.
-                    var elem = document.createElement("li");
-                    elem.innerHTML = "processing " + filename;
-                    elem.setAttribute("id", filename.replace(".","-"));
-                    elem.setAttribute("class", "processing inprogress");
-                    $("#blobs").get(0).appendChild(elem);
+
+                    //var elem = document.createElement("li");
+                    //elem.innerHTML = "processing " + filename;
+                    //elem.setAttribute("id", filename.replace(".","-"));
+                    //elem.setAttribute("class", "processing inprogress");
+                    //$("#blobs").get(0).appendChild(elem);
+
+                    // Mark the appropriate list item as being processed.
+                    li.html(li.html() + " processing")
+                        .classed("processing inprogress", true);
 
                     var file_hash = CryptoJS.MD5(text).toString();
                     console.log("Checking hash for " + filename + "...");
@@ -283,7 +306,7 @@ function handleFileSelect(evt){
                                         text: text
                                     },
                                     dataType: 'text',
-                                    success: processFileContents(filename, file_hash),
+                                    success: processFileContents(filename, id, file_hash),
                                     error: function(){
                                         console.log("error for " + filename);
                                         $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("failed").get(0).innerHTML = filename + " processed";
@@ -304,7 +327,7 @@ function handleFileSelect(evt){
                                 // function (in which the file_hash parameter is
                                 // OMITTED); the second invocation calls that
                                 // function to actually process the data.
-                                processFileContents(filename)(jsdata[0].data);
+                                processFileContents(filename, id)(jsdata[0].data);
                             }
                         }
                     });
@@ -314,7 +337,7 @@ function handleFileSelect(evt){
             reader.readAsText(f);
         }
     }
-    document.getElementById('file-info').innerHTML = '<ul>' + output.join('') + '</ul>';
+    //document.getElementById('file-info').innerHTML = '<ul>' + output.join('') + '</ul>';
 }
 
 window.onload = function(){

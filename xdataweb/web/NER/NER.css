@@ -1,13 +1,34 @@
-.ok {
+/* Directives for general styling - greenish background, nice serif font for
+ * text, really nice serif font for headers.  *
+ */
+body {
+    font-family: 'Marcellus', Serif;
+    background: #bcb;
+}
+
+h1 {
+    font-family: 'EB Garamond', Serif;
+}
+
+.filename {
+    font-family: 'Inconsolata', Monospace;
+}
+
+/* These are used to indicate whether a file will be included in NER processing
+ * or not.
+ */
+span.ok {
     color: green;
     font-weight: bold;
 }
 
-.rejected {
+span.rejected {
     color: red;
     font-weight: bold;
 }
 
+/* These indicate the current progress of NER processing.
+ */
 .processing.inprogress {
     color: green;
     font-style: italic;
@@ -21,6 +42,8 @@
     color: red;
 }
 
+/* SVG directives for drawing the graph.
+ */
 circle.node {
     stroke: #000;
     stroke-width: 1.5px;
@@ -29,17 +52,4 @@ circle.node {
 line.link {
     stroke: #000;
     stroke-opacity: 0.6;
-}
-
-body {
-    font-family: 'Marcellus', Serif;
-    background: #bcb;
-}
-
-h1 {
-    font-family: 'EB Garamond', Serif;
-}
-
-.filename {
-    font-family: 'Inconsolata', Monospace;
 }
