@@ -48,27 +48,9 @@ function assembleGraph(){
 }
 
 function renderGraph(g){
-    //var width = 1000,
-        //height = 1000;
-
     var color = d3.scale.category20();
 
-
-    //var svg = d3.select("#graph").append("svg")
     var svg = d3.select("#graph");
-        //.attr("width", width)
-        //.attr("height", height);
-    //var stroke_width = 3;
-/*    svg.append("rect")*/
-        //.attr("x", 0.5*stroke_width)
-        //.attr("y", 0.5*stroke_width)
-        //.attr("rx", 10)
-        //.attr("ry", 10)
-        //.attr("width", width - stroke_width)
-        //.attr("height", height - stroke_width)
-        //.style("fill", "#ddd")
-        //.style("stroke", "black")
-        /*.style("stroke-width", stroke_width);*/
 
     var width = svg.attr("width"),
         height = svg.attr("height");
@@ -106,7 +88,6 @@ function renderGraph(g){
 
         node.attr("cx", function(d) { return d.x; })
             .attr("cy", function(d) { return d.y; });
-
     });
 }
 
