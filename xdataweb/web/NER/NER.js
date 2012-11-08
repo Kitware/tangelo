@@ -328,7 +328,6 @@ function handleFileSelect(evt){
             msg = "rejected";
             using = false;
         }
-        //output.push('<li><span class="filename"><strong>', escape(f.name), '</strong> (', f.type || 'n/a', ')</span> - ', f.size, ' bytes ', f.type == 'text/plain' ? '<span class=ok>(ok)</span>' : '<span class="rejected">(rejected)</span>');
 
         // Create a list item element to represent the file.  Tag it with an id
         // so it can be updated later.
@@ -343,7 +342,15 @@ function handleFileSelect(evt){
             reader.readAsText(f);
         }
     }
-    //document.getElementById('file-info').innerHTML = '<ul>' + output.join('') + '</ul>';
+
+    // Remove the "rejected" list items by fading them away.
+    d3.selectAll("li.rejected")
+        .transition()
+        .delay(1000)
+        .duration(2000)
+        .style("opacity", 0.0)
+        .style("height", "0px")
+        .remove();
 }
 
 window.onload = function(){
