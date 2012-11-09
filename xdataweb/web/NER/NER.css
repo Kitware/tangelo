@@ -4,10 +4,14 @@
 body {
     font-family: 'Marcellus', Serif;
     background: #bcb;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 h1 {
     font-family: 'EB Garamond', Serif;
+    text-align: center;
 }
 
 .filename {
@@ -41,12 +45,12 @@ span.rejected {
 /* These indicate the current progress of NER processing.
  */
 .processing.inprogress {
-    color: green;
+    color: gray;
     font-style: italic;
 }
 
 .processing.done {
-    color: gray;
+    color: black;
 }
 
 .processing.failed {
