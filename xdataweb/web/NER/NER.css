@@ -27,6 +27,7 @@ td {
 ul {
     margin: 0 0 0 1em;
     padding: 0px;
+    text-align: left;
 }
 
 /* These are used to indicate whether a file will be included in NER processing
