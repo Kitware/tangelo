@@ -58,6 +58,19 @@ span.rejected {
     color: red;
 }
 
+/* A rounded-corner panel for printing information on
+ */
+
+.placard {
+    border:1px solid black;
+    border-radius: 10px 10px 10px 10px;
+
+    /* TODO(choudhury): figure out how to make the element opaque, rather than
+     * hard-coding a color here
+     */
+    background: #9a9;
+}
+
 /* SVG directives for drawing the graph.
  */
 circle.node {
