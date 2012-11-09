@@ -60,7 +60,6 @@ span.rejected {
 
 /* A rounded-corner panel for printing information on
  */
-
 .placard {
     border:1px solid black;
     border-radius: 10px 10px 10px 10px;
