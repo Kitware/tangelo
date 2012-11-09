@@ -24,8 +24,13 @@
         <td style="height:50%">
             <h3>Graph</h3>
             <ul class="buttons flush">
-                <li><input type=checkbox>Scale nodes by frequency
-                <li><input type=checkbox>Thicken links by frequency
+                <li>
+                <input type=checkbox id=nodefreq onchange="alert('hello');">
+                <label for=nodefreq>Scale nodes by frequency</label>
+
+                <li>
+                <input type=checkbox id=linkfreq>
+                <label for=linkfreq>Thicken links by frequency</label>
             </ul>
         </td>
     </tr>
