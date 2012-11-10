@@ -1,4 +1,129 @@
-//Top-level container object for this js file.
+
+var graph = (function(){
+    // Data making up the graph.
+    var nodes = {};
+    var links = {};
+
+    // A counter to help uniquely identify incoming data from different sources.
+    var counter = 0;
+
+    // Configuration parameters for graph rendering.
+    var config = {
+        // Whether to make the radius of each node proportional to the number of
+        // times it occurs in the corpus.
+        nodeScale: false,
+
+        // Whether to thicken a link proportionally to the number of times it
+        // occurs in the corpus.
+        linkScale: false 
+    };
+
+    var color = d3.scale.category20();
+
+    var svg = d3.select("#graph");
+
+    var width = svg.attr("width"),
+        height = svg.attr("height");
+
+    return {
+        assemble: function(nodedata, linkdata){
+            // Copy links over into private links array.
+            $.each(linkdata, function(k,v){
+                links.push(v);
+            });
+
+            // Do the same for the nodes, but do two additional things:
+            //
+            // 1. When extracting an object from the NER.nodes table, remove the "index"
+            //    property, as it will no longer be needed after final placement of the
+            //    node.
+            //
+            // 2. Place the node object into the place in the array indexed by that
+            //    "index" property.  This ensures that the references in the link list
+            //    are to the proper nodes.
+            //
+            // Start by creating an empty array of length equal to the number of total
+            // entities.
+            nodes = Array(Object.keys(nodedata).length);
+
+            // Now plop each entity into its proper place.
+            $.each(nodedata, function(k,v){
+                var i = v.index;
+                delete v.index;
+                nodes[i] = v;
+            });
+        },
+
+        render: function(){
+            var force = d3.layout.force()
+                .charge(-120)
+                .linkDistance(30)
+                .size([width, height])
+                .nodes(nodes)
+                .links(links)
+                .start();
+
+            var link = svg.selectAll("line.link")
+                .data(links)
+                .enter().append("line")
+                .classed("link", true)
+                .style("stroke-width", linkScalingFunction());
+
+            var node = svg.selectAll("circle.node")
+                .data(nodes)
+                .enter().append("circle")
+                .classed("node", true)
+                .attr("r", nodeScalingFunction())
+                .style("fill", function(d) { return color(d.type); })
+                .call(force.drag);
+
+            node.append("title")
+                .text(function(d) { return d.name; });
+
+            force.on("tick", function(){
+                link.attr("x1", function(d) { return d.source.x; })
+                    .attr("y1", function(d) { return d.source.y; })
+                    .attr("x2", function(d) { return d.target.x; })
+                    .attr("y2", function(d) { return d.target.y; });
+
+                node.attr("cx", function(d) { return d.x; })
+                    .attr("cy", function(d) { return d.y; });
+            });
+        },
+
+        updateConfig: function(){
+            // Sweep through the configuration elements and set the boolean
+            // flags appropriately.
+            var check = $("#nodefreq")[0];
+            config.nodeScale = check.checked;
+
+            check = $("#linkfreq")[0];
+            config.linkScale = check.checked;        
+        },
+
+        nodeScalingFunction: function(){
+            if(config.nodeScale){
+                return function(d) { return 5*Math.sqrt(d.count); };
+            }
+            else{
+                return 5;
+            }
+        },
+
+        linkScalingFunction: function(){
+            if(config.linkScale){
+                return function(d) { return Math.sqrt(d.count); };
+            }
+            else{
+                return 1;
+            }
+        }
+    };
+})();
+
+
+
+///Top-level container object for this js file.
 var NER = {};
 
 // "nodes" is a table of entity names, mapping to an array position generated
@@ -17,83 +142,83 @@ NER.files_processed = 0;
 // added to in different situations ("processing" to "processed", etc.).
 NER.filenames = {};
 
-function assembleGraph(){
-    // Create a graph object.
-    var g = {};
+/*function assembleGraph(){*/
+    //// Create a graph object.
+    //var g = {};
 
-    // Copy the links over into an array within the graph object.
-    g.links = [];
-    $.each(NER.links, function(k, v){
-        g.links.push(v);
-    });
+    //// Copy the links over into an array within the graph object.
+    //g.links = [];
+    //$.each(NER.links, function(k, v){
+        //g.links.push(v);
+    //});
 
-    // Do the same for the nodes, but do two additional things:
-    //
-    // 1. When extracting an object from the NER.nodes table, remove the "index"
-    //    property, as it will no longer be needed after final placement of the
-    //    node.
-    //
-    // 2. Place the node object into the place in the array indexed by that
-    //    "index" property.  This ensures that the references in the link list
-    //    are to the proper nodes.
-    //
-    // Start by creating an empty array of length equal to the number of total
-    // entities.
-    g.nodes = Array(Object.keys(NER.nodes).length);
+    //// Do the same for the nodes, but do two additional things:
+    ////
+    //// 1. When extracting an object from the NER.nodes table, remove the "index"
+    ////    property, as it will no longer be needed after final placement of the
+    ////    node.
+    ////
+    //// 2. Place the node object into the place in the array indexed by that
+    ////    "index" property.  This ensures that the references in the link list
+    ////    are to the proper nodes.
+    ////
+    //// Start by creating an empty array of length equal to the number of total
+    //// entities.
+    //g.nodes = Array(Object.keys(NER.nodes).length);
 
-    // Now plop each entity into its proper place.
-    $.each(NER.nodes, function(k, v){
-        var i = v.index;
-        delete v.index;
-        g.nodes[i] = v;
-    });
+    //// Now plop each entity into its proper place.
+    //$.each(NER.nodes, function(k, v){
+        //var i = v.index;
+        //delete v.index;
+        //g.nodes[i] = v;
+    //});
 
-    return g;
-}
+    //return g;
+//}
 
-function renderGraph(g){
-    var color = d3.scale.category20();
+//function renderGraph(g){
+    //var color = d3.scale.category20();
 
-    var svg = d3.select("#graph");
+    //var svg = d3.select("#graph");
 
-    var width = svg.attr("width"),
-        height = svg.attr("height");
+    //var width = svg.attr("width"),
+        //height = svg.attr("height");
 
-    var force = d3.layout.force()
-        .charge(-120)
-        .linkDistance(30)
-        .size([width, height])
-        .nodes(g.nodes)
-        .links(g.links)
-        .start();
+    //var force = d3.layout.force()
+        //.charge(-120)
+        //.linkDistance(30)
+        //.size([width, height])
+        //.nodes(g.nodes)
+        //.links(g.links)
+        //.start();
 
-    var link = svg.selectAll("line.link")
-        .data(g.links)
-        .enter().append("line")
-        .attr("class", "link")
-        .style("stroke-width", function(d) { return Math.sqrt(d.count); });
+    //var link = svg.selectAll("line.link")
+        //.data(g.links)
+        //.enter().append("line")
+        //.attr("class", "link")
+        //.style("stroke-width", function(d) { return Math.sqrt(d.count); });
 
-    var node = svg.selectAll("circle.node")
-        .data(g.nodes)
-        .enter().append("circle")
-        .attr("class", "node")
-        .attr("r", function(d) { return 5*Math.sqrt(d.count); })
-        .style("fill", function(d) { return color(d.type); })
-        .call(force.drag);
+    //var node = svg.selectAll("circle.node")
+        //.data(g.nodes)
+        //.enter().append("circle")
+        //.attr("class", "node")
+        //.attr("r", function(d) { return 5*Math.sqrt(d.count); })
+        //.style("fill", function(d) { return color(d.type); })
+        //.call(force.drag);
 
-    node.append("title")
-        .text(function(d) { return d.name; });
+    //node.append("title")
+        //.text(function(d) { return d.name; });
 
-    force.on("tick", function(){
-        link.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
+    //force.on("tick", function(){
+        //link.attr("x1", function(d) { return d.source.x; })
+        //.attr("y1", function(d) { return d.source.y; })
+        //.attr("x2", function(d) { return d.target.x; })
+        //.attr("y2", function(d) { return d.target.y; });
 
-    node.attr("cx", function(d) { return d.x; })
-        .attr("cy", function(d) { return d.y; });
-    });
-}
+    //node.attr("cx", function(d) { return d.x; })
+        //.attr("cy", function(d) { return d.y; });
+    //});
+//}
 
 function processFile(filename, id){
 return function(e){
@@ -259,13 +384,17 @@ return function(data){
 
     if(NER.files_processed == NER.num_files){
         console.log("calling assembleGraph()");
-        var graph = assembleGraph();
-        renderGraph(graph);
+/*        var graph = assembleGraph();*/
+        /*renderGraph(graph);*/
+
+        graph.assemble();
+        graph.render();
     }
 };
 }
 
 function handleFileSelect(evt){
+    console.log("hello?");
 // Grab the list of files selected by the user.
 var files = evt.target.files;
 
@@ -338,5 +467,6 @@ d3.selectAll("li.rejected")
 }
 
 window.onload = function(){
+    console.log("hello");
     document.getElementById('docs').addEventListener('change', handleFileSelect, false);
 };
