@@ -268,7 +268,8 @@ function processFileContents(filename, id, file_hash){
             /*        var graph = assembleGraph();*/
             /*renderGraph(graph);*/
 
-            graph.assemble();
+            graph.assemble(NER.nodes, NER.links);
+            console.log("here");
             graph.render();
         }
     };
@@ -352,8 +353,8 @@ window.onload = function(){
     
     graph = (function(){
         // Data making up the graph.
-        var nodes = {};
-        var links = {};
+        var nodes = [];
+        var links = [];
 
         // A counter to help uniquely identify incoming data from different sources.
         var counter = 0;
@@ -378,10 +379,15 @@ window.onload = function(){
 
         return {
             assemble: function(nodedata, linkdata){
+                console.log("inside assemble()");
+
                 // Copy links over into private links array.
                 $.each(linkdata, function(k,v){
+                    //console.log("key: " + k);
                     links.push(v);
                 });
+
+                console.log("one");
 
                 // Do the same for the nodes, but do two additional things:
                 //
@@ -403,9 +409,13 @@ window.onload = function(){
                     delete v.index;
                     nodes[i] = v;
                 });
+
+                console.log("leaving assemble()");
             },
 
                 render: function(){
+                    console.log("inside render()");
+
                     var force = d3.layout.force()
                         .charge(-120)
                         .linkDistance(30)
@@ -418,13 +428,15 @@ window.onload = function(){
                         .data(links)
                         .enter().append("line")
                         .classed("link", true)
-                        .style("stroke-width", linkScalingFunction());
+                        .style("stroke-width", this.linkScalingFunction());
 
-                    var node = svg.selectAll("circle.node")
+                     console.log("here");
+
+                   var node = svg.selectAll("circle.node")
                         .data(nodes)
                         .enter().append("circle")
                         .classed("node", true)
-                        .attr("r", nodeScalingFunction())
+                        .attr("r", this.nodeScalingFunction())
                         .style("fill", function(d) { return color(d.type); })
                         .call(force.drag);
 
@@ -440,6 +452,8 @@ window.onload = function(){
                     node.attr("cx", function(d) { return d.x; })
                         .attr("cy", function(d) { return d.y; });
                     });
+
+                    console.log("leaving render()");
                 },
 
                 updateConfig: function(){
