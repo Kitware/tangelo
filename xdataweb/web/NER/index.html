@@ -25,11 +25,11 @@
             <h3>Graph</h3>
             <ul class="buttons flush">
                 <li>
-                <input type=checkbox id=nodefreq onchange="alert('hello');">
+                <input type=checkbox id=nodefreq onchange="graph.updateConfig(); graph.applyConfig();">
                 <label for=nodefreq>Scale nodes by frequency</label>
 
                 <li>
-                <input type=checkbox id=linkfreq onchange="alert('hello');">
+                <input type=checkbox id=linkfreq onchange="graph.updateConfig(); graph.applyConfig()">
                 <label for=linkfreq>Thicken links by frequency</label>
             </ul>
         </td>

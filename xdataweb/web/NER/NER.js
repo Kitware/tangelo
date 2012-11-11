@@ -416,6 +416,9 @@ window.onload = function(){
                 render: function(){
                     console.log("inside render()");
 
+                    // Make sure the config is up-to-date.
+                    this.updateConfig();
+
                     var force = d3.layout.force()
                         .charge(-120)
                         .linkDistance(30)
@@ -464,6 +467,20 @@ window.onload = function(){
 
                     check = $("#linkfreq")[0];
                     config.linkScale = check.checked;        
+                },
+
+                applyConfig: function(){
+                    // Reset the attributes on the nodes and links according to
+                    // the current config settings.
+                    svg.selectAll("line.link")
+                        .transition()
+                        .duration(2000)
+                        .style("stroke-width", this.linkScalingFunction());
+
+                    svg.selectAll("circle.node")
+                        .transition()
+                        .duration(1000)
+                        .attr("r", this.nodeScalingFunction());
                 },
 
                 nodeScalingFunction: function(){
