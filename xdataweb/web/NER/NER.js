@@ -2,8 +2,6 @@
 // onready method, as it depends on elements being loaded in the page.
 var graph = null;
 
-
-
 // Top-level container object for this js file.
 var NER = {};
 
@@ -22,84 +20,6 @@ NER.files_processed = 0;
 // This table stores formatted filename information that can be dynamically
 // added to in different situations ("processing" to "processed", etc.).
 NER.filenames = {};
-
-/*function assembleGraph(){*/
-//// Create a graph object.
-//var g = {};
-
-//// Copy the links over into an array within the graph object.
-//g.links = [];
-//$.each(NER.links, function(k, v){
-//g.links.push(v);
-//});
-
-//// Do the same for the nodes, but do two additional things:
-////
-//// 1. When extracting an object from the NER.nodes table, remove the "index"
-////    property, as it will no longer be needed after final placement of the
-////    node.
-////
-//// 2. Place the node object into the place in the array indexed by that
-////    "index" property.  This ensures that the references in the link list
-////    are to the proper nodes.
-////
-//// Start by creating an empty array of length equal to the number of total
-//// entities.
-//g.nodes = Array(Object.keys(NER.nodes).length);
-
-//// Now plop each entity into its proper place.
-//$.each(NER.nodes, function(k, v){
-//var i = v.index;
-//delete v.index;
-//g.nodes[i] = v;
-//});
-
-//return g;
-//}
-
-//function renderGraph(g){
-//var color = d3.scale.category20();
-
-//var svg = d3.select("#graph");
-
-//var width = svg.attr("width"),
-//height = svg.attr("height");
-
-//var force = d3.layout.force()
-//.charge(-120)
-//.linkDistance(30)
-//.size([width, height])
-//.nodes(g.nodes)
-//.links(g.links)
-//.start();
-
-//var link = svg.selectAll("line.link")
-//.data(g.links)
-//.enter().append("line")
-//.attr("class", "link")
-//.style("stroke-width", function(d) { return Math.sqrt(d.count); });
-
-//var node = svg.selectAll("circle.node")
-//.data(g.nodes)
-//.enter().append("circle")
-//.attr("class", "node")
-//.attr("r", function(d) { return 5*Math.sqrt(d.count); })
-//.style("fill", function(d) { return color(d.type); })
-//.call(force.drag);
-
-//node.append("title")
-//.text(function(d) { return d.name; });
-
-//force.on("tick", function(){
-//link.attr("x1", function(d) { return d.source.x; })
-//.attr("y1", function(d) { return d.source.y; })
-//.attr("x2", function(d) { return d.target.x; })
-//.attr("y2", function(d) { return d.target.y; });
-
-//node.attr("cx", function(d) { return d.x; })
-//.attr("cy", function(d) { return d.y; });
-//});
-//}
 
 function processFile(filename, id){
     return function(e){
@@ -264,19 +184,13 @@ function processFileContents(filename, id, file_hash){
         console.log(NER.files_processed + " of " + NER.num_files + " processed");
 
         if(NER.files_processed == NER.num_files){
-            console.log("calling assembleGraph()");
-            /*        var graph = assembleGraph();*/
-            /*renderGraph(graph);*/
-
             graph.assemble(NER.nodes, NER.links);
-            console.log("here");
             graph.render();
         }
     };
 }
 
 function handleFileSelect(evt){
-    console.log("hello?");
     // Grab the list of files selected by the user.
     var files = evt.target.files;
 
@@ -349,8 +263,6 @@ function handleFileSelect(evt){
 }
 
 window.onload = function(){
-    console.log("hello");
-    
     graph = (function(){
         // Data making up the graph.
         var nodes = [];
@@ -379,15 +291,11 @@ window.onload = function(){
 
         return {
             assemble: function(nodedata, linkdata){
-                console.log("inside assemble()");
-
                 // Copy links over into private links array.
                 $.each(linkdata, function(k,v){
                     //console.log("key: " + k);
                     links.push(v);
                 });
-
-                console.log("one");
 
                 // Do the same for the nodes, but do two additional things:
                 //
@@ -409,13 +317,9 @@ window.onload = function(){
                     delete v.index;
                     nodes[i] = v;
                 });
-
-                console.log("leaving assemble()");
             },
 
                 render: function(){
-                    console.log("inside render()");
-
                     // Make sure the config is up-to-date.
                     this.updateConfig();
 
@@ -432,8 +336,6 @@ window.onload = function(){
                         .enter().append("line")
                         .classed("link", true)
                         .style("stroke-width", this.linkScalingFunction());
-
-                     console.log("here");
 
                    var node = svg.selectAll("circle.node")
                         .data(nodes)
@@ -455,8 +357,6 @@ window.onload = function(){
                     node.attr("cx", function(d) { return d.x; })
                         .attr("cy", function(d) { return d.y; });
                     });
-
-                    console.log("leaving render()");
                 },
 
                 updateConfig: function(){
