@@ -140,6 +140,9 @@ function processFileContents(filename, id, file_hash){
         };
         var doc_index = NER.counter - 1;
 
+        // Augment the count for the DOCUMENT type in the type table.
+        NER.types["DOCUMENT"] = NER.types["DOCUMENT"] + 1 || 1;
+
         // Extract the JSON object from the AJAX response.
         var entities = $.parseJSON(data);
 
@@ -151,12 +154,16 @@ function processFileContents(filename, id, file_hash){
             // Also update the count of this entity.
             var key = '["' + e[0] + '","' + e[1] + '"]';
             if(!NER.nodes.hasOwnProperty(key)){
+                // Place the entity into the node table.
                 NER.nodes[key] = {
                     name: e[1],
             type: e[0],
             count: 1,
             index: NER.counter++
                 };
+
+            // Augment the type count.
+            NER.types[e[0]] = NER.types[e[0]] + 1 || 1;
             }
             else{
                 NER.nodes[key].count++;
@@ -188,7 +195,7 @@ function processFileContents(filename, id, file_hash){
         console.log(NER.files_processed + " of " + NER.num_files + " processed");
 
         if(NER.files_processed == NER.num_files){
-            graph.assemble(NER.nodes, NER.links);
+            graph.assemble(NER.nodes, NER.links, NER.types);
             graph.render();
         }
     };
@@ -287,6 +294,7 @@ window.onload = function(){
         };
 
         var color = d3.scale.category20();
+        var legend = d3.select("#color-legend");
 
         var svg = d3.select("#graph");
 
@@ -294,7 +302,7 @@ window.onload = function(){
             height = svg.attr("height");
 
         return {
-            assemble: function(nodedata, linkdata){
+            assemble: function(nodedata, linkdata, typedata){
                 // Copy links over into private links array.
                 $.each(linkdata, function(k,v){
                     //console.log("key: " + k);
@@ -320,6 +328,27 @@ window.onload = function(){
                     var i = v.index;
                     delete v.index;
                     nodes[i] = v;
+                });
+
+                // Log the type counts.
+                console.log(Object.keys(typedata));
+
+                // Loop through the types and place a color swatch in the legend
+                // area for each one.
+
+                //legend.select("td").remove();
+                $.each(typedata, function(t){
+                    var c = color(t);
+                    console.log(t + c);
+
+                    var li = legend.append("li");
+                    li.html('<div style="border:solid black 1px; background:' + c + '; display:inline-block; width:20px;">&nbsp;</div>&nbsp;' + t);
+/*                    li.append("div")*/
+                    //.style("border", "solid black 1px")
+                    //.style("background", c)
+                    //.style("display","inline-block")
+                    //.attr("width", "10px")
+                    /*.html("&nbsp;");*/
                 });
             },
 

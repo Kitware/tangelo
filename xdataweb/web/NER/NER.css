@@ -42,6 +42,10 @@ ul.buttons {
     list-style-type: none;
 }
 
+ul.legend {
+    list-style-type: none;
+}
+
 /* Tables should have left-justified text by default
  */
 table {
