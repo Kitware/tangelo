@@ -435,5 +435,29 @@ window.onload = function(){
         };
     })();
 
+    // Initialize the slider for use in filtering.
+    var sliderInit = function(sliderId, displayId){
+        var slider = $("#" + sliderId);
+        var display = d3.select("#" + displayId);
+
+        var config = {
+            slide: function(e, ui){
+                display.html(ui.value);
+            }
+        };
+
+        return {
+            setConfig: function() { slider.slider(config); },
+            setMax: function(max) { config.max = max; }
+        };
+    };
+
+    NER.nodeSlider = sliderInit("slider", "value");
+    NER.nodeSlider.setConfig();
+
+    // Bootstrap showing the slider value here (none of the callbacks in the
+    // slider API help).
+    d3.select("#value").html($("#slider").slider("value"));
+
     document.getElementById('docs').addEventListener('change', handleFileSelect, false);
 };

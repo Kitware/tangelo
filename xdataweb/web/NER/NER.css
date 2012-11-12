@@ -69,6 +69,14 @@ span.rejected {
     font-weight: bold;
 }
 
+/* Stuff for jquery slider
+ */
+#slider {
+    margin: 5px;
+    width: 80%;
+    float: left;
+}
+
 /* These indicate the current progress of NER processing.
  */
 .processing.inprogress {
