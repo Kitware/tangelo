@@ -338,17 +338,16 @@ window.onload = function(){
 
                 //legend.select("td").remove();
                 $.each(typedata, function(t){
-                    var c = color(t);
-                    console.log(t + c);
+                    var elemtext = d3.select(document.createElement("div"))
+                    .style("border", "solid black 1px")
+                    .style("background", color(t))
+                    .style("display","inline-block")
+                    .style("width", "20px")
+                    .html("&nbsp;")
+                    .node().outerHTML;
 
-                    var li = legend.append("li");
-                    li.html('<div style="border:solid black 1px; background:' + c + '; display:inline-block; width:20px;">&nbsp;</div>&nbsp;' + t);
-/*                    li.append("div")*/
-                    //.style("border", "solid black 1px")
-                    //.style("background", c)
-                    //.style("display","inline-block")
-                    //.attr("width", "10px")
-                    /*.html("&nbsp;");*/
+                    var li = legend.append("li")
+                    .html(elemtext + "&nbsp;" + t);
                 });
             },
 
