@@ -136,7 +136,7 @@ function processFileContents(filename, id, file_hash){
             name: filename,
             type: "DOCUMENT",
             count: 1,
-            index: NER.counter++
+            id: NER.counter++
         };
         var doc_index = NER.counter - 1;
 
@@ -159,7 +159,7 @@ function processFileContents(filename, id, file_hash){
                     name: e[1],
             type: e[0],
             count: 1,
-            index: NER.counter++
+            id: NER.counter++
                 };
 
             // Augment the type count.
@@ -168,7 +168,7 @@ function processFileContents(filename, id, file_hash){
             else{
                 NER.nodes[key].count++;
             }
-        var entity_index = NER.nodes[key].index;
+        var entity_index = NER.nodes[key].id;
 
         // Enter a link into the link list, or just increase the count if
         // the link exists already.
@@ -325,8 +325,7 @@ window.onload = function(){
 
                 // Now plop each entity into its proper place.
                 $.each(nodedata, function(k,v){
-                    var i = v.index;
-                    delete v.index;
+                    var i = v.id;
                     nodes[i] = v;
                 });
 
