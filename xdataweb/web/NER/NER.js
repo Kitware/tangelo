@@ -11,6 +11,7 @@ var NER = {};
 NER.nodes = {};
 NER.links = {};
 NER.counter = 0;
+NER.linkcounter = 0;
 
 // A catalog of NER types found by the analysis.  This will be used to construct
 // the color legend at the top of the graph display.
@@ -27,8 +28,7 @@ NER.filenames = {};
 
 function processFile(filename, id){
     return function(e){
-        //var filename = escape(file.name);
-        console.log(filename);
+        //console.log(filename);
 
         // Grab the text of the file.
         var text = e.target.result;
@@ -48,7 +48,7 @@ function processFile(filename, id){
             .classed("processing inprogress", true);
 
         var file_hash = CryptoJS.MD5(text).toString();
-        console.log("Checking hash for " + filename + "...");
+        //console.log("Checking hash for " + filename + "...");
 
         // Check to see if the file contents were already processed,
         // by querying the database for the results.  If they are
@@ -66,7 +66,7 @@ function processFile(filename, id){
                 // second AJAX call to directly compute the NER set,
                 // and store it in the database.
                 if(data == '[]'){
-                    console.log("hash for " + filename + " not found in DB, recomputing");
+                    //console.log("hash for " + filename + " not found in DB, recomputing");
                     $.ajax({
                         type: 'POST',
                         url: '/service/NER',
@@ -76,13 +76,14 @@ function processFile(filename, id){
                         dataType: 'text',
                         success: processFileContents(filename, id, file_hash),
                         error: function(){
-                            console.log("error for " + filename);
+                            //console.log("error for " + filename);
                             $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("failed").get(0).innerHTML = filename + " processed";
                         }
                     });
                 }
                 else{
-                    console.log("hash for " + filename + " found in DB!");
+                    //console.log("hash for " + filename + " found in DB!");
+
                     // The data returned from the DB is in MongoDB
                     // format.  Read it into a JSON object, then
                     // extract the payload.
@@ -108,10 +109,9 @@ function processFile(filename, id){
 // being processed.
 function processFileContents(filename, id, file_hash){
     return function(data){
-        console.log("success for " + filename);
-        //$("#" + filename.replace(".","-")).removeClass("inprogress").addClass("done").get(0).innerHTML = filename + " processed";
+        //console.log("success for " + filename);
 
-        console.log("id = #" + id);
+        //console.log("id = #" + id);
         var li = d3.select("#" + id)
             .classed("inprogress", false)
             .classed("processing done", true);
@@ -177,8 +177,10 @@ function processFileContents(filename, id, file_hash){
             NER.links[link] = {
                 source: entity_index,
                 target: doc_index,
-                count: 1
+                count: 1,
+                id: NER.linkcounter++
             };
+            //console.log("wtf: " + JSON.stringify(NER.links[link]) );
         }
         else{
             NER.links[link].count++;
@@ -192,11 +194,13 @@ function processFileContents(filename, id, file_hash){
         // files to process, launch the final step of
         // assembling the graph.
         ++NER.files_processed;
-        console.log(NER.files_processed + " of " + NER.num_files + " processed");
+
+        //console.log(NER.files_processed + " of " + NER.num_files + " processed");
 
         if(NER.files_processed == NER.num_files){
             graph.assemble(NER.nodes, NER.links, NER.types, NER.nodeSlider.getValue());
             graph.render();
+            graph.recomputeGraph(NER.nodeSlider.getValue());
         }
     };
 }
@@ -213,7 +217,7 @@ function handleFileSelect(evt){
             NER.num_files++;
         }
     });
-    console.log(NER.num_files + " files to process");
+    //console.log(NER.num_files + " files to process");
 
     // Now run through the files, using a callback to load the content from the
     // proper ones and pass it to an ajax call to perform named-entity
@@ -305,41 +309,27 @@ window.onload = function(){
         var width = svg.attr("width"),
             height = svg.attr("height");
 
+        var force = d3.layout.force()
+            .charge(-120)
+            .linkDistance(30)
+            .size([width, height]);
+
         return {
             assemble: function(nodedata, linkdata, typedata, nodecount_threshold){
-                // Create an empty nodes array, to fill selectively with node
-                // data.
-                nodes = [];
-
-                // Copy the thresholded nodes over to the local array, and
-                // record their index as we go.  Also make a local copy of the
-                // original, unfiltered data.
-                var fixup = {};
+                // Store copies of the incoming data.
+                orignodes = {};
                 $.each(nodedata, function(k,v){
-                    if(v.count >= nodecount_threshold || v.type === "DOCUMENT"){
-                        fixup[v.id] = nodes.length;
-                        nodes.push(v);
-                    }
-
                     orignodes[k] = v;
                 });
 
-                // Copy the link data to the local links array, first checking
-                // to see that both ends of the link are actually present in the
-                // fixup index translation array (i.e., that the node data is
-                // actually present for this threshold value).  Also make a
-                // local copy of the origlinks, unfiltered link data.
+                origlinks = {};
                 $.each(linkdata, function(k,v){
-                    if(fixup.hasOwnProperty(v.source) && fixup.hasOwnProperty(v.target)){
-                        // Use the fixup array to edit the index location of the
-                        // source and target.
-                        v.source = fixup[v.source];
-                        v.target = fixup[v.target];
-                        links.push(v);
-                    }
-
                     origlinks[k] = v;
+                    //console.log("assemble: " + JSON.stringify(v));
                 });
+
+                // Compute the graph connectivity.
+                this.recomputeGraph(nodecount_threshold);
 
                 // Loop through the types and place a color swatch in the legend
                 // area for each one.
@@ -357,35 +347,123 @@ window.onload = function(){
                 });
             },
 
-                render: function(){
-                    // Make sure the config is up-to-date.
-                    this.updateConfig();
+            recomputeGraph: function(nodecount_threshold){
+                console.log("recomputeGraph");
 
-                    var force = d3.layout.force()
-                        .charge(-120)
-                        .linkDistance(30)
-                        .size([width, height])
+                // Copy the thresholded nodes over to the local array, and
+                // record their index as we go.  Also make a local copy of the
+                // original, unfiltered data.
+                nodes = [];
+                var fixup = {};
+                $.each(orignodes, function(k,v){
+                    if(v.count >= nodecount_threshold || v.type === "DOCUMENT"){
+                        fixup[v.id] = nodes.length;
+                        nodes.push(v);
+                    }
+                });
+
+                console.log("There are now " + nodes.length + " nodes");
+
+                // Copy the link data to the local links array, first checking
+                // to see that both ends of the link are actually present in the
+                // fixup index translation array (i.e., that the node data is
+                // actually present for this threshold value).  Also make a
+                // local copy of the origlinks, unfiltered link data.
+                links = [];
+                //console.log("fixup: " + JSON.stringify(fixup));
+                $.each(origlinks, function(k,v){
+                    //console.log("recomputeGraph: " + JSON.stringify(v));
+                    if(fixup.hasOwnProperty(v.source) && fixup.hasOwnProperty(v.target)){
+                        // Use the fixup array to edit the index location of the
+                        // source and target.
+                        v.source = fixup[v.source];
+                        v.target = fixup[v.target];
+                        links.push(v);
+                    }
+                });
+
+                this.updateConfig();
+
+
+                var link = svg.selectAll("line.link")
+                    .data(links, function(d) { console.log("id: " + d.id); return d.id; });
+
+                link.enter().append("line")
+                    .classed("link", true)
+                    .style("stroke-width", this.linkScalingFunction());
+
+                link.exit().remove();
+
+                console.log("link data: " + JSON.stringify(link));
+                console.log("links: " + JSON.stringify(links));
+
+/*                link.exit()*/
+                    //.transition()
+                    //.duration(1000)
+                    //.style("stroke-width", 0.0)
+                    /*.remove();*/
+/*                node.enter().append("circle")*/
+                    //.classed("node", true)
+                    //.attr("r", 0)
+                    //.style("fill", function(d) { return color(d.type); })
+                    //.call(force.drag)
+                    //.transition()
+                    //.duration(1000)
+                    /*.attr("r", this.nodeScalingFunction());*/
+
+                var node = svg.selectAll("circle.node")
+                    .data(nodes, function(d) { return d.id; });
+
+                node.enter().append("circle")
+                    .classed("node", true)
+                    .attr("r", this.nodeScalingFunction())
+                    .attr("cx", width/2)
+                    .attr("cy", height/2)
+                    .style("fill", function(d) { return color(d.type); })
+                    .call(force.drag);
+
+                node.exit()
+                    .transition()
+                    .duration(1000)
+                    .style("opacity", 0.0)
+                    .remove();
+
+                //force.stop().nodes(nodes).links(links).start();
+                this.render();
+            },
+
+                render: function(){
+/*                    // Make sure the config is up-to-date.*/
+                    //this.updateConfig();
+
+                    force.stop()
                         .nodes(nodes)
                         .links(links)
                         .start();
 
-                    var link = svg.selectAll("line.link")
-                        .data(links)
-                        .enter().append("line")
-                        .classed("link", true)
-                        .style("stroke-width", this.linkScalingFunction());
+                    //var link = svg.selectAll("line.link")
+                        //.data(links, function(d) { return d.id; })
+                        //.enter().append("line")
+                        //.classed("link", true)
+                        //.style("stroke-width", this.linkScalingFunction());
 
-                    var node = svg.selectAll("circle.node")
-                        .data(nodes)
-                        .enter().append("circle")
-                        .classed("node", true)
-                        .attr("r", this.nodeScalingFunction())
-                        .style("fill", function(d) { return color(d.type); })
-                        .call(force.drag);
+                    //var node = svg.selectAll("circle.node")
+                        //.data(nodes, function(d) { return d.id; });
+                    
+                    //node.enter().append("circle")
+                        //.classed("node", true)
+                        //.attr("r", this.nodeScalingFunction())
+                        //.style("fill", function(d) { return color(d.type); })
+                        //.call(force.drag);
 
-                    node.append("title")
-                        .text(function(d) { return d.name; });
+//[>                    node.exit()<]
+                        ////.transition()
+                        ////.duration(1000)
+                        ////.style("opacity", 0.0)
+                        ////.remove();
 
+                    var node = svg.selectAll("circle.node");
+                    var link = svg.selectAll("line.link");
                     force.on("tick", function(){
                         link.attr("x1", function(d) { return d.source.x; })
                         .attr("y1", function(d) { return d.source.y; })
@@ -448,7 +526,9 @@ window.onload = function(){
 
         var config = {
             change: function(e, ui){
-                callback(ui.value);
+                if(callback){
+                    callback(ui.value);
+                }
             },
 
             slide: function(e, ui){
@@ -463,7 +543,9 @@ window.onload = function(){
         };
     };
 
-    NER.nodeSlider = sliderInit("slider", "value", function(v) { alert("hello! " + v); });
+    //NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.recomputeGraph(v); graph.render(); });
+    //NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.render(); });
+    NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.recomputeGraph(v); });
     NER.nodeSlider.setConfig();
 
     // Bootstrap showing the slider value here (none of the callbacks in the
