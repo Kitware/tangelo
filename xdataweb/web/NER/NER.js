@@ -341,13 +341,8 @@ window.onload = function(){
                     origlinks[k] = v;
                 });
 
-                // Log the type counts.
-                console.log(Object.keys(typedata));
-
                 // Loop through the types and place a color swatch in the legend
                 // area for each one.
-
-                //legend.select("td").remove();
                 $.each(typedata, function(t){
                     var elemtext = d3.select(document.createElement("div"))
                     .style("border", "solid black 1px")
