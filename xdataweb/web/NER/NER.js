@@ -329,7 +329,7 @@ window.onload = function(){
                 });
 
                 // Compute the graph connectivity.
-                this.recomputeGraph(nodecount_threshold);
+                //this.recomputeGraph(nodecount_threshold);
 
                 // Loop through the types and place a color swatch in the legend
                 // area for each one.
@@ -392,7 +392,7 @@ window.onload = function(){
                     .classed("link", true)
                     .style("stroke-width", this.linkScalingFunction());
 
-                link.exit().remove();
+                //link.exit().remove();
 
                 console.log("link data: " + JSON.stringify(link));
                 console.log("links: " + JSON.stringify(links));
@@ -420,7 +420,11 @@ window.onload = function(){
                     .attr("cx", width/2)
                     .attr("cy", height/2)
                     .style("fill", function(d) { return color(d.type); })
-                    .call(force.drag);
+                    .style("opacity", 0.0)
+                    .call(force.drag)
+                    .transition()
+                    .duration(1000)
+                    .style("opacity", 1.0);
 
                 node.exit()
                     .transition()
@@ -545,7 +549,7 @@ window.onload = function(){
 
     //NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.recomputeGraph(v); graph.render(); });
     //NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.render(); });
-    NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.recomputeGraph(v); });
+    NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.recomputeGraph(v); /*graph.render();*/ });
     NER.nodeSlider.setConfig();
 
     // Bootstrap showing the slider value here (none of the callbacks in the
