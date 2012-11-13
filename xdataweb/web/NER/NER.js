@@ -436,11 +436,15 @@ window.onload = function(){
     })();
 
     // Initialize the slider for use in filtering.
-    var sliderInit = function(sliderId, displayId){
+    var sliderInit = function(sliderId, displayId, callback){
         var slider = $("#" + sliderId);
         var display = d3.select("#" + displayId);
 
         var config = {
+            change: function(e, ui){
+                callback(ui.value);
+            },
+
             slide: function(e, ui){
                 display.html(ui.value);
             }
@@ -448,11 +452,12 @@ window.onload = function(){
 
         return {
             setConfig: function() { slider.slider(config); },
-            setMax: function(max) { config.max = max; }
+            setMax: function(max) { config.max = max; },
+            getValue: function() { return slider.slider("value"); }
         };
     };
 
-    NER.nodeSlider = sliderInit("slider", "value");
+    NER.nodeSlider = sliderInit("slider", "value", function(v) { alert("hello! " + v); });
     NER.nodeSlider.setConfig();
 
     // Bootstrap showing the slider value here (none of the callbacks in the
