@@ -195,7 +195,7 @@ function processFileContents(filename, id, file_hash){
         console.log(NER.files_processed + " of " + NER.num_files + " processed");
 
         if(NER.files_processed == NER.num_files){
-            graph.assemble(NER.nodes, NER.links, NER.types);
+            graph.assemble(NER.nodes, NER.links, NER.types, NER.nodeSlider.getValue());
             graph.render();
         }
     };
@@ -275,6 +275,10 @@ function handleFileSelect(evt){
 
 window.onload = function(){
     graph = (function(){
+        // Original data as passed to this module by a call to assemble().
+        var orignodes = {};
+        var origlinks = {};
+
         // Data making up the graph.
         var nodes = [];
         var links = [];
@@ -302,26 +306,39 @@ window.onload = function(){
             height = svg.attr("height");
 
         return {
-            assemble: function(nodedata, linkdata, typedata){
-                // Copy links over into private links array.
-                $.each(linkdata, function(k,v){
-                    //console.log("key: " + k);
-                    links.push(v);
+            assemble: function(nodedata, linkdata, typedata, nodecount_threshold){
+                // Create an empty nodes array, to fill selectively with node
+                // data.
+                nodes = [];
+
+                // Copy the thresholded nodes over to the local array, and
+                // record their index as we go.  Also make a local copy of the
+                // original, unfiltered data.
+                var fixup = {};
+                $.each(nodedata, function(k,v){
+                    if(v.count >= nodecount_threshold || v.type === "DOCUMENT"){
+                        fixup[v.id] = nodes.length;
+                        nodes.push(v);
+                    }
+
+                    orignodes[k] = v;
                 });
 
-                // Do the same for the nodes, but place the node object into the
-                // place in the array indexed by the "id" property.  This
-                // ensures that the references in the link list are to the
-                // proper nodes.
-                //
-                // Start by creating an empty array of length equal to the
-                // number of total entities.
-                nodes = Array(Object.keys(nodedata).length);
+                // Copy the link data to the local links array, first checking
+                // to see that both ends of the link are actually present in the
+                // fixup index translation array (i.e., that the node data is
+                // actually present for this threshold value).  Also make a
+                // local copy of the origlinks, unfiltered link data.
+                $.each(linkdata, function(k,v){
+                    if(fixup.hasOwnProperty(v.source) && fixup.hasOwnProperty(v.target)){
+                        // Use the fixup array to edit the index location of the
+                        // source and target.
+                        v.source = fixup[v.source];
+                        v.target = fixup[v.target];
+                        links.push(v);
+                    }
 
-                // Now plop each entity into its proper place.
-                $.each(nodedata, function(k,v){
-                    var i = v.id;
-                    nodes[i] = v;
+                    origlinks[k] = v;
                 });
 
                 // Log the type counts.
