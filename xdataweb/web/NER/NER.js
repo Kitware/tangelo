@@ -309,18 +309,13 @@ window.onload = function(){
                     links.push(v);
                 });
 
-                // Do the same for the nodes, but do two additional things:
+                // Do the same for the nodes, but place the node object into the
+                // place in the array indexed by the "id" property.  This
+                // ensures that the references in the link list are to the
+                // proper nodes.
                 //
-                // 1. When extracting an object from the NER.nodes table, remove the "index"
-                //    property, as it will no longer be needed after final placement of the
-                //    node.
-                //
-                // 2. Place the node object into the place in the array indexed by that
-                //    "index" property.  This ensures that the references in the link list
-                //    are to the proper nodes.
-                //
-                // Start by creating an empty array of length equal to the number of total
-                // entities.
+                // Start by creating an empty array of length equal to the
+                // number of total entities.
                 nodes = Array(Object.keys(nodedata).length);
 
                 // Now plop each entity into its proper place.
