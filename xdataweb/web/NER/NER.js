@@ -261,6 +261,9 @@ function handleFileSelect(evt){
 
 window.onload = function(){
     graph = (function(){
+        // Duration of fade-in/fade-out transitions.
+        var fade_time = 500;
+
         // Original data as passed to this module by a call to assemble().
         var orignodes = {};
         var origlinks = {};
@@ -375,13 +378,19 @@ window.onload = function(){
 
                 link.enter().append("line")
                     .classed("link", true)
-                    .attr("x1", 400)
-                    .attr("y1", 400)
-                    .attr("x2", 600)
-                    .attr("y2", 600)
+                    .style("opacity", 0.0)
+                    .style("stroke-width", 0.0)
+                    .transition()
+                    .duration(fade_time)
+                    .style("opacity", 0.5)
                     .style("stroke-width", this.linkScalingFunction());
 
-                link.exit().remove();
+                link.exit()
+                    .transition()
+                    .duration(fade_time)
+                    .style("opacity", 0.0)
+                    .style("stroke-width", 0.0)
+                    .remove();
 
                 var node = d3.select("g#nodes").selectAll("circle.node")
                     .data(nodes, function(d) { return d.id; });
@@ -395,12 +404,12 @@ window.onload = function(){
                     .style("opacity", 0.0)
                     .call(force.drag)
                     .transition()
-                    .duration(1000)
+                    .duration(fade_time)
                     .style("opacity", 1.0);
 
                 node.exit()
                     .transition()
-                    .duration(1000)
+                    .duration(fade_time)
                     .style("opacity", 0.0)
                     .remove();
 
