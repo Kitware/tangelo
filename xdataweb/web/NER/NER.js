@@ -199,8 +199,8 @@ function processFileContents(filename, id, file_hash){
 
         if(NER.files_processed == NER.num_files){
             graph.assemble(NER.nodes, NER.links, NER.types, NER.nodeSlider.getValue());
-            graph.render();
             graph.recomputeGraph(NER.nodeSlider.getValue());
+            graph.render();
         }
     };
 }
@@ -353,7 +353,9 @@ window.onload = function(){
                 // Copy the thresholded nodes over to the local array, and
                 // record their index as we go.  Also make a local copy of the
                 // original, unfiltered data.
-                nodes = [];
+
+                //nodes = [];
+                nodes.length = 0;
                 var fixup = {};
                 $.each(orignodes, function(k,v){
                     if(v.count >= nodecount_threshold || v.type === "DOCUMENT"){
@@ -369,10 +371,21 @@ window.onload = function(){
                 // fixup index translation array (i.e., that the node data is
                 // actually present for this threshold value).  Also make a
                 // local copy of the origlinks, unfiltered link data.
-                links = [];
+
+                //links = [];
+                links.length = 0;
                 //console.log("fixup: " + JSON.stringify(fixup));
-                $.each(origlinks, function(k,v){
-                    //console.log("recomputeGraph: " + JSON.stringify(v));
+                $.each(origlinks, function(k,vv){
+                    var v = {};
+                    for(p in vv){
+                        if(vv.hasOwnProperty(p)){
+                            v[p] = vv[p];
+                        }
+                    }
+
+                    console.log("recomputeGraph: " + JSON.stringify(k));
+                    console.log("    target: " + v.target || "none");
+                    console.log("    source: " + v.source || "none");
                     if(fixup.hasOwnProperty(v.source) && fixup.hasOwnProperty(v.target)){
                         // Use the fixup array to edit the index location of the
                         // source and target.
@@ -385,17 +398,25 @@ window.onload = function(){
                 this.updateConfig();
 
 
+                if(links.length == 0){
+                    console.log("UH OH");
+                }
+
                 var link = svg.selectAll("line.link")
                     .data(links, function(d) { console.log("id: " + d.id); return d.id; });
 
                 link.enter().append("line")
                     .classed("link", true)
+                    .attr("x1", 400)
+                    .attr("y1", 400)
+                    .attr("x2", 600)
+                    .attr("y2", 600)
                     .style("stroke-width", this.linkScalingFunction());
 
-                //link.exit().remove();
+                link.exit().remove();
 
-                console.log("link data: " + JSON.stringify(link));
-                console.log("links: " + JSON.stringify(links));
+/*                console.log("link data: " + JSON.stringify(link));*/
+                /*console.log("links: " + JSON.stringify(links));*/
 
 /*                link.exit()*/
                     //.transition()
@@ -433,7 +454,31 @@ window.onload = function(){
                     .remove();
 
                 //force.stop().nodes(nodes).links(links).start();
-                this.render();
+
+                //this.render();
+
+                force.stop()
+                    .nodes(nodes)
+                    .links(links)
+                    .start();
+
+                console.log("links: " + links);
+                console.log("force links: " + force.links());
+
+                force.on("tick", function(){
+                    console.log("hello");
+                    //console.log(JSON.stringify(link));
+                    link
+                        .attr("x1", function(d) { /*console.log(d);*/ return d.source.x; })
+                        .attr("y1", function(d) { return d.source.y; })
+                        .attr("x2", function(d) { return d.target.x; })
+                        .attr("y2", function(d) { return d.target.y; });
+
+                    node
+                        .attr("cx", function(d) { return d.x; })
+                        .attr("cy", function(d) { return d.y; });
+                    });
+
             },
 
                 render: function(){
