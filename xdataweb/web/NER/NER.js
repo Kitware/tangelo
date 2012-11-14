@@ -370,7 +370,7 @@ window.onload = function(){
 
                 this.updateConfig();
 
-                var link = svg.selectAll("g#links line.link")
+                var link = svg.select("g#links").selectAll("line.link")
                     .data(links, function(d) { return d.id; });
 
                 link.enter().append("line")
@@ -383,7 +383,7 @@ window.onload = function(){
 
                 link.exit().remove();
 
-                var node = svg.selectAll("g#nodes circle.node")
+                var node = d3.select("g#nodes").selectAll("circle.node")
                     .data(nodes, function(d) { return d.id; });
 
                 node.enter().append("circle")
