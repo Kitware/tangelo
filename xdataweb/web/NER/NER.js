@@ -370,7 +370,7 @@ window.onload = function(){
 
                 this.updateConfig();
 
-                var link = svg.selectAll("line.link")
+                var link = svg.selectAll("g#links line.link")
                     .data(links, function(d) { return d.id; });
 
                 link.enter().append("line")
@@ -383,7 +383,7 @@ window.onload = function(){
 
                 link.exit().remove();
 
-                var node = svg.selectAll("circle.node")
+                var node = svg.selectAll("g#nodes circle.node")
                     .data(nodes, function(d) { return d.id; });
 
                 node.enter().append("circle")
@@ -457,8 +457,8 @@ window.onload = function(){
                         ////.style("opacity", 0.0)
                         ////.remove();
 
-                    var node = svg.selectAll("circle.node");
-                    var link = svg.selectAll("line.link");
+                    var node = svg.selectAll("g#nodes circle.node");
+                    var link = svg.selectAll("g#links line.link");
                     force.on("tick", function(){
                         link.attr("x1", function(d) { return d.source.x; })
                         .attr("y1", function(d) { return d.source.y; })
@@ -483,12 +483,12 @@ window.onload = function(){
                 applyConfig: function(){
                     // Reset the attributes on the nodes and links according to
                     // the current config settings.
-                    svg.selectAll("line.link")
+                    svg.selectAll("g#links line.link")
                         .transition()
                         .duration(2000)
                         .style("stroke-width", this.linkScalingFunction());
 
-                    svg.selectAll("circle.node")
+                    svg.selectAll("g#nodes circle.node")
                         .transition()
                         .duration(1000)
                         .attr("r", this.nodeScalingFunction());
