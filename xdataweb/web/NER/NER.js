@@ -28,8 +28,6 @@ NER.filenames = {};
 
 function processFile(filename, id){
     return function(e){
-        //console.log(filename);
-
         // Grab the text of the file.
         var text = e.target.result;
 
@@ -48,7 +46,6 @@ function processFile(filename, id){
             .classed("processing inprogress", true);
 
         var file_hash = CryptoJS.MD5(text).toString();
-        //console.log("Checking hash for " + filename + "...");
 
         // Check to see if the file contents were already processed,
         // by querying the database for the results.  If they are
@@ -66,7 +63,6 @@ function processFile(filename, id){
                 // second AJAX call to directly compute the NER set,
                 // and store it in the database.
                 if(data == '[]'){
-                    //console.log("hash for " + filename + " not found in DB, recomputing");
                     $.ajax({
                         type: 'POST',
                         url: '/service/NER',
@@ -76,17 +72,13 @@ function processFile(filename, id){
                         dataType: 'text',
                         success: processFileContents(filename, id, file_hash),
                         error: function(){
-                            //console.log("error for " + filename);
                             $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("failed").get(0).innerHTML = filename + " processed";
                         }
                     });
                 }
                 else{
-                    //console.log("hash for " + filename + " found in DB!");
-
-                    // The data returned from the DB is in MongoDB
-                    // format.  Read it into a JSON object, then
-                    // extract the payload.
+                    // The data returned from the DB is in MongoDB format.  Read
+                    // it into a JSON object, then extract the payload.
                     var jsdata = $.parseJSON(data);
 
                     // TODO(choudhury): error checking.  Make sure
@@ -109,9 +101,6 @@ function processFile(filename, id){
 // being processed.
 function processFileContents(filename, id, file_hash){
     return function(data){
-        //console.log("success for " + filename);
-
-        //console.log("id = #" + id);
         var li = d3.select("#" + id)
             .classed("inprogress", false)
             .classed("processing done", true);
@@ -180,22 +169,16 @@ function processFileContents(filename, id, file_hash){
                 count: 1,
                 id: NER.linkcounter++
             };
-            //console.log("wtf: " + JSON.stringify(NER.links[link]) );
         }
         else{
             NER.links[link].count++;
         }
         });
 
-        //console.log(NER.nodes);
-
-        // Increment the number of successfully processed
-        // files; if the number reaches the number of total
-        // files to process, launch the final step of
-        // assembling the graph.
+        // Increment the number of successfully processed files; if the number
+        // reaches the number of total files to process, launch the final step
+        // of assembling the graph.
         ++NER.files_processed;
-
-        //console.log(NER.files_processed + " of " + NER.num_files + " processed");
 
         if(NER.files_processed == NER.num_files){
             graph.assemble(NER.nodes, NER.links, NER.types, NER.nodeSlider.getValue());
@@ -217,7 +200,6 @@ function handleFileSelect(evt){
             NER.num_files++;
         }
     });
-    //console.log(NER.num_files + " files to process");
 
     // Now run through the files, using a callback to load the content from the
     // proper ones and pass it to an ajax call to perform named-entity
@@ -325,7 +307,6 @@ window.onload = function(){
                 origlinks = {};
                 $.each(linkdata, function(k,v){
                     origlinks[k] = v;
-                    //console.log("assemble: " + JSON.stringify(v));
                 });
 
                 // Compute the graph connectivity.
@@ -348,8 +329,6 @@ window.onload = function(){
             },
 
             recomputeGraph: function(nodecount_threshold){
-                console.log("recomputeGraph");
-
                 // Copy the thresholded nodes over to the local array, and
                 // record their index as we go.  Also make a local copy of the
                 // original, unfiltered data.
@@ -364,8 +343,6 @@ window.onload = function(){
                     }
                 });
 
-                console.log("There are now " + nodes.length + " nodes");
-
                 // Copy the link data to the local links array, first checking
                 // to see that both ends of the link are actually present in the
                 // fixup index translation array (i.e., that the node data is
@@ -374,7 +351,6 @@ window.onload = function(){
 
                 //links = [];
                 links.length = 0;
-                //console.log("fixup: " + JSON.stringify(fixup));
                 $.each(origlinks, function(k,vv){
                     var v = {};
                     for(p in vv){
@@ -383,9 +359,6 @@ window.onload = function(){
                         }
                     }
 
-                    console.log("recomputeGraph: " + JSON.stringify(k));
-                    console.log("    target: " + v.target || "none");
-                    console.log("    source: " + v.source || "none");
                     if(fixup.hasOwnProperty(v.source) && fixup.hasOwnProperty(v.target)){
                         // Use the fixup array to edit the index location of the
                         // source and target.
@@ -397,13 +370,8 @@ window.onload = function(){
 
                 this.updateConfig();
 
-
-                if(links.length == 0){
-                    console.log("UH OH");
-                }
-
                 var link = svg.selectAll("line.link")
-                    .data(links, function(d) { console.log("id: " + d.id); return d.id; });
+                    .data(links, function(d) { return d.id; });
 
                 link.enter().append("line")
                     .classed("link", true)
@@ -414,23 +382,6 @@ window.onload = function(){
                     .style("stroke-width", this.linkScalingFunction());
 
                 link.exit().remove();
-
-/*                console.log("link data: " + JSON.stringify(link));*/
-                /*console.log("links: " + JSON.stringify(links));*/
-
-/*                link.exit()*/
-                    //.transition()
-                    //.duration(1000)
-                    //.style("stroke-width", 0.0)
-                    /*.remove();*/
-/*                node.enter().append("circle")*/
-                    //.classed("node", true)
-                    //.attr("r", 0)
-                    //.style("fill", function(d) { return color(d.type); })
-                    //.call(force.drag)
-                    //.transition()
-                    //.duration(1000)
-                    /*.attr("r", this.nodeScalingFunction());*/
 
                 var node = svg.selectAll("circle.node")
                     .data(nodes, function(d) { return d.id; });
@@ -462,14 +413,9 @@ window.onload = function(){
                     .links(links)
                     .start();
 
-                console.log("links: " + links);
-                console.log("force links: " + force.links());
-
                 force.on("tick", function(){
-                    console.log("hello");
-                    //console.log(JSON.stringify(link));
                     link
-                        .attr("x1", function(d) { /*console.log(d);*/ return d.source.x; })
+                        .attr("x1", function(d) { return d.source.x; })
                         .attr("y1", function(d) { return d.source.y; })
                         .attr("x2", function(d) { return d.target.x; })
                         .attr("y2", function(d) { return d.target.y; });
