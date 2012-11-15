@@ -407,6 +407,9 @@ window.onload = function(){
                     .duration(fade_time)
                     .style("opacity", 1.0);
 
+                node.append("title")
+                    .text(function(d) { return d.name; });
+
                 node.exit()
                     .transition()
                     .duration(fade_time)
