@@ -3,8 +3,5 @@
 cmd=`readlink -f $0`
 dir=`dirname $cmd`
 
-echo cmd=${cmd}
-echo dir=${dir}
-
 cd $dir
 cherryd2 -d -i xdataweb -c server.conf -p ${dir}/xdataweb.pid
