@@ -396,27 +396,32 @@ window.onload = function(){
                 var node = d3.select("g#nodes").selectAll("circle.node")
                     .data(nodes, function(d) { return d.id; });
 
-/*                node.enter().append("circle")*/
-                    //.classed("node", true)
-                    //.attr("r", this.nodeScalingFunction())
-                    //.attr("cx", width/2)
-                    //.attr("cy", height/2)
-                    //.style("fill", function(d) { return color(d.type); })
-                    //.style("opacity", 0.0)
-                    //.call(force.drag)
-                    //.transition()
-                    //.duration(fade_time)
-                    /*.style("opacity", 1.0);*/
-                node.enter().append("text")
-                    .classed("node", true)
-                    .text(function(d) { return d.name; })
-                    .attr("x", 300)
-                    .attr("y", 300)
-                    .style("fill", "black")
-                    .call(force.drag);
+                if(config.useCircles){
+                    node.enter().append("circle")
+                        .classed("node", true)
+                        .attr("r", this.nodeScalingFunction())
+                        .attr("cx", width/2)
+                        .attr("cy", height/2)
+                        .style("fill", function(d) { return color(d.type); })
+                        .style("opacity", 0.0)
+                        .call(force.drag)
+                        .transition()
+                        .duration(fade_time)
+                        .style("opacity", 1.0);
 
-                node.append("title")
-                    .text(function(d) { return d.name; });
+                    node.append("title")
+                        .text(function(d) { return d.name; });
+
+                }
+                else{
+                    node.enter().append("text")
+                        .classed("node", true)
+                        .text(function(d) { return d.name; })
+                        .attr("x", 300)
+                        .attr("y", 300)
+                        .style("fill", "black")
+                        .call(force.drag);
+                }
 
                 node.exit()
                     .transition()
@@ -436,11 +441,14 @@ window.onload = function(){
                         .attr("x2", function(d) { return d.target.x; })
                         .attr("y2", function(d) { return d.target.y; });
 
-                    node
-/*                        .attr("cx", function(d) { return d.x; })*/
-                        /*.attr("cy", function(d) { return d.y; });*/
-                        .attr("x", function(d) { return d.x; })
+                if(config.useCircles){
+                    node.attr("cx", function(d) { return d.x; })
+                        .attr("cy", function(d) { return d.y; });
+                }
+                else{
+                    node.attr("x", function(d) { return d.x; })
                         .attr("y", function(d) { return d.y; });
+                }
                     });
 
             },
