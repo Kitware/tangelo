@@ -183,6 +183,7 @@ function processFileContents(filename, id, file_hash){
         if(NER.files_processed == NER.num_files){
             graph.assemble(NER.nodes, NER.links, NER.types, NER.nodeSlider.getValue());
             graph.recomputeGraph(NER.nodeSlider.getValue());
+            graph.render();
         }
     };
 }
@@ -325,6 +326,11 @@ window.onload = function(){
                     var li = legend.append("li")
                     .html(elemtext + "&nbsp;" + t);
                 });
+
+                // Read the current state of the option inputs (these might not
+                // be the default values if the user did a "soft" reload of the
+                // page after changing them).
+                this.updateConfig();
             },
 
             recomputeGraph: function(nodecount_threshold){
@@ -362,9 +368,9 @@ window.onload = function(){
                         links.push(v);
                     }
                 });
+            },
 
-                this.updateConfig();
-
+            render: function(){
                 var link = svg.select("g#links").selectAll("line.link")
                     .data(links, function(d) { return d.id; });
 
@@ -495,7 +501,7 @@ window.onload = function(){
         };
     };
 
-    NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.recomputeGraph(v); });
+    NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.recomputeGraph(v); graph.render(); });
     NER.nodeSlider.setConfig();
 
     // Bootstrap showing the slider value here (none of the callbacks in the
