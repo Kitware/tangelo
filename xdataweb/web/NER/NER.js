@@ -311,9 +311,6 @@ window.onload = function(){
                     origlinks[k] = v;
                 });
 
-                // Compute the graph connectivity.
-                //this.recomputeGraph(nodecount_threshold);
-
                 // Loop through the types and place a color swatch in the legend
                 // area for each one.
                 $.each(typedata, function(t){
