@@ -283,7 +283,10 @@ window.onload = function(){
 
           // Whether to thicken a link proportionally to the number of times it
           // occurs in the corpus.
-          linkScale: false 
+          linkScale: false,
+
+         // Whether to use circles to represent nodes, or text objects.
+         useCircles: true
         };
 
         var color = d3.scale.category20();
@@ -450,6 +453,11 @@ window.onload = function(){
 
                     check = $("#linkfreq")[0];
                     config.linkScale = check.checked;        
+
+                    // TODO(choudhury): link the circle/text rendering
+                    // configuration attribute to a checkbox state.
+                    check = $("#usecircles")[0];
+                    config.useCircles = true;
                 },
 
                 applyConfig: function(){
