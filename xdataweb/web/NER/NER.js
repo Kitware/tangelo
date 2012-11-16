@@ -286,7 +286,7 @@ window.onload = function(){
           linkScale: false,
 
          // Whether to use circles to represent nodes, or text objects.
-         useCircles: true
+         useTextLabels: false
         };
 
         var color = d3.scale.category20();
@@ -337,6 +337,10 @@ window.onload = function(){
             },
 
             recompute: function(nodecount_threshold){
+                if(typeof nodecount_threshold === "undefined"){
+                    throw "recompute must be called with a threshold!"
+                }
+
                 // Copy the thresholded nodes over to the local array, and
                 // record their index as we go.  Also make a local copy of the
                 // original, unfiltered data.
@@ -373,6 +377,19 @@ window.onload = function(){
                 });
             },
 
+            reset: function(){
+                // Empty the node and link containers, so they can be recomputed
+                // from scratch.
+                svg.select("g#nodes").selectAll("*").remove();
+                svg.select("g#links").selectAll("*").remove();
+
+                // Recompute the graph connectivity.
+                this.recompute(NER.nodeSlider.getValue());
+
+                // Re-render.
+                this.render();
+            },
+
             render: function(){
                 var link = svg.select("g#links").selectAll("line.link")
                     .data(links, function(d) { return d.id; });
@@ -393,10 +410,22 @@ window.onload = function(){
                     .style("stroke-width", 0.0)
                     .remove();
 
-                var node = d3.select("g#nodes").selectAll("circle.node")
+                // The base selector is "*" to allow for selecting either
+                // "circle" elements or "text" elements (depending on which
+                // rendering mode we are in).
+                var node = d3.select("g#nodes").selectAll("*.node")
                     .data(nodes, function(d) { return d.id; });
 
-                if(config.useCircles){
+                if(config.useTextLabels){
+                    node.enter().append("text")
+                        .classed("node", true)
+                        .text(function(d) { return d.name; })
+                        .attr("x", 300)
+                        .attr("y", 300)
+                        .style("fill", "black")
+                        .call(force.drag);
+                }
+                else{
                     node.enter().append("circle")
                         .classed("node", true)
                         .attr("r", this.nodeScalingFunction())
@@ -411,16 +440,6 @@ window.onload = function(){
 
                     node.append("title")
                         .text(function(d) { return d.name; });
-
-                }
-                else{
-                    node.enter().append("text")
-                        .classed("node", true)
-                        .text(function(d) { return d.name; })
-                        .attr("x", 300)
-                        .attr("y", 300)
-                        .style("fill", "black")
-                        .call(force.drag);
                 }
 
                 node.exit()
@@ -435,25 +454,23 @@ window.onload = function(){
                     .start();
 
                 force.on("tick", function(){
-                    link
-                        .attr("x1", function(d) { return d.source.x; })
-                        .attr("y1", function(d) { return d.source.y; })
-                        .attr("x2", function(d) { return d.target.x; })
-                        .attr("y2", function(d) { return d.target.y; });
+                    link.attr("x1", function(d) { return d.source.x; })
+                    .attr("y1", function(d) { return d.source.y; })
+                    .attr("x2", function(d) { return d.target.x; })
+                    .attr("y2", function(d) { return d.target.y; });
 
-                if(config.useCircles){
-                    node.attr("cx", function(d) { return d.x; })
-                        .attr("cy", function(d) { return d.y; });
+                if(config.useTextLabels){
+                    node.attr("x", function(d) { return d.x; })
+                    .attr("y", function(d) { return d.y; });
                 }
                 else{
-                    node.attr("x", function(d) { return d.x; })
-                        .attr("y", function(d) { return d.y; });
+                    node.attr("cx", function(d) { return d.x; })
+                    .attr("cy", function(d) { return d.y; });
                 }
-                    });
-
+                });
             },
 
-                updateConfig: function(){
+            updateConfig: function(){
                     // Sweep through the configuration elements and set the boolean
                     // flags appropriately.
                     var check = $("#nodefreq")[0];
@@ -462,10 +479,8 @@ window.onload = function(){
                     check = $("#linkfreq")[0];
                     config.linkScale = check.checked;        
 
-                    // TODO(choudhury): link the circle/text rendering
-                    // configuration attribute to a checkbox state.
                     check = $("#usetext")[0];
-                    config.useCircles = !check.checked;
+                    config.useTextLabels = check.checked;
                 },
 
                 applyConfig: function(){
