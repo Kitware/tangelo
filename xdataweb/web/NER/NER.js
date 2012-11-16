@@ -183,7 +183,6 @@ function processFileContents(filename, id, file_hash){
         if(NER.files_processed == NER.num_files){
             graph.assemble(NER.nodes, NER.links, NER.types, NER.nodeSlider.getValue());
             graph.recomputeGraph(NER.nodeSlider.getValue());
-            graph.render();
         }
     };
 }
@@ -416,10 +415,6 @@ window.onload = function(){
                     .style("opacity", 0.0)
                     .remove();
 
-                //force.stop().nodes(nodes).links(links).start();
-
-                //this.render();
-
                 force.stop()
                     .nodes(nodes)
                     .links(links)
@@ -438,49 +433,6 @@ window.onload = function(){
                     });
 
             },
-
-                render: function(){
-/*                    // Make sure the config is up-to-date.*/
-                    //this.updateConfig();
-
-                    force.stop()
-                        .nodes(nodes)
-                        .links(links)
-                        .start();
-
-                    //var link = svg.selectAll("line.link")
-                        //.data(links, function(d) { return d.id; })
-                        //.enter().append("line")
-                        //.classed("link", true)
-                        //.style("stroke-width", this.linkScalingFunction());
-
-                    //var node = svg.selectAll("circle.node")
-                        //.data(nodes, function(d) { return d.id; });
-                    
-                    //node.enter().append("circle")
-                        //.classed("node", true)
-                        //.attr("r", this.nodeScalingFunction())
-                        //.style("fill", function(d) { return color(d.type); })
-                        //.call(force.drag);
-
-//[>                    node.exit()<]
-                        ////.transition()
-                        ////.duration(1000)
-                        ////.style("opacity", 0.0)
-                        ////.remove();
-
-                    var node = svg.selectAll("g#nodes circle.node");
-                    var link = svg.selectAll("g#links line.link");
-                    force.on("tick", function(){
-                        link.attr("x1", function(d) { return d.source.x; })
-                        .attr("y1", function(d) { return d.source.y; })
-                        .attr("x2", function(d) { return d.target.x; })
-                        .attr("y2", function(d) { return d.target.y; });
-
-                    node.attr("cx", function(d) { return d.x; })
-                        .attr("cy", function(d) { return d.y; });
-                    });
-                },
 
                 updateConfig: function(){
                     // Sweep through the configuration elements and set the boolean
@@ -550,9 +502,7 @@ window.onload = function(){
         };
     };
 
-    //NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.recomputeGraph(v); graph.render(); });
-    //NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.render(); });
-    NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.recomputeGraph(v); /*graph.render();*/ });
+    NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.recomputeGraph(v); });
     NER.nodeSlider.setConfig();
 
     // Bootstrap showing the slider value here (none of the callbacks in the
