@@ -393,17 +393,24 @@ window.onload = function(){
                 var node = d3.select("g#nodes").selectAll("circle.node")
                     .data(nodes, function(d) { return d.id; });
 
-                node.enter().append("circle")
+/*                node.enter().append("circle")*/
+                    //.classed("node", true)
+                    //.attr("r", this.nodeScalingFunction())
+                    //.attr("cx", width/2)
+                    //.attr("cy", height/2)
+                    //.style("fill", function(d) { return color(d.type); })
+                    //.style("opacity", 0.0)
+                    //.call(force.drag)
+                    //.transition()
+                    //.duration(fade_time)
+                    /*.style("opacity", 1.0);*/
+                node.enter().append("text")
                     .classed("node", true)
-                    .attr("r", this.nodeScalingFunction())
-                    .attr("cx", width/2)
-                    .attr("cy", height/2)
-                    .style("fill", function(d) { return color(d.type); })
-                    .style("opacity", 0.0)
-                    .call(force.drag)
-                    .transition()
-                    .duration(fade_time)
-                    .style("opacity", 1.0);
+                    .text(function(d) { return d.name; })
+                    .attr("x", 300)
+                    .attr("y", 300)
+                    .style("fill", "black")
+                    .call(force.drag);
 
                 node.append("title")
                     .text(function(d) { return d.name; });
@@ -427,8 +434,10 @@ window.onload = function(){
                         .attr("y2", function(d) { return d.target.y; });
 
                     node
-                        .attr("cx", function(d) { return d.x; })
-                        .attr("cy", function(d) { return d.y; });
+/*                        .attr("cx", function(d) { return d.x; })*/
+                        /*.attr("cy", function(d) { return d.y; });*/
+                        .attr("x", function(d) { return d.x; })
+                        .attr("y", function(d) { return d.y; });
                     });
 
             },
