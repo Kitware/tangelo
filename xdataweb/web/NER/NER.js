@@ -334,8 +334,6 @@ window.onload = function(){
                 // Copy the thresholded nodes over to the local array, and
                 // record their index as we go.  Also make a local copy of the
                 // original, unfiltered data.
-
-                //nodes = [];
                 nodes.length = 0;
                 var fixup = {};
                 $.each(orignodes, function(k,v){
@@ -350,8 +348,6 @@ window.onload = function(){
                 // fixup index translation array (i.e., that the node data is
                 // actually present for this threshold value).  Also make a
                 // local copy of the origlinks, unfiltered link data.
-
-                //links = [];
                 links.length = 0;
                 $.each(origlinks, function(k,vv){
                     var v = {};
