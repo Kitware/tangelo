@@ -297,8 +297,9 @@ window.onload = function(){
         var width = svg.attr("width"),
             height = svg.attr("height");
 
+        var nodeCharge = -120;
+        var textCharge = -600;
         var force = d3.layout.force()
-            .charge(-120)
             .linkDistance(30)
             .size([width, height]);
 
@@ -417,15 +418,33 @@ window.onload = function(){
                     .data(nodes, function(d) { return d.id; });
 
                 if(config.useTextLabels){
-                    node.enter().append("text")
+                    force.charge(textCharge);
+
+                    var cards = node.enter().append("g")
+                        .attr("id", function(d) { return d.id; })
                         .classed("node", true)
-                        .text(function(d) { return d.name; })
-                        .attr("x", 300)
-                        .attr("y", 300)
-                        .style("fill", "black")
                         .call(force.drag);
+
+                    cards.append("text")
+                        .text(function(d) { return d.name; })
+                        .style("fill", "black")
+                        .datum(function(d){
+                            // Augment the selection's data with the bounding
+                            // box of the text elements.
+                            d.bbox = this.getBBox();
+                        });
+
+                    cards.insert("rect", ":first-child")
+                        .attr("width", function(d) { return d.bbox.width; })
+                        .attr("height", function(d) { return d.bbox.height; })
+                        .attr("y", function(d) { return -0.75*d.bbox.height; })
+                        .style("stroke", "black")
+                        .style("stroke-width", "5px")
+                        .style("fill", "black")
+                        .style("opacity", "0.1");
                 }
                 else{
+                    force.charge(nodeCharge);
                     node.enter().append("circle")
                         .classed("node", true)
                         .attr("r", this.nodeScalingFunction())
@@ -460,8 +479,9 @@ window.onload = function(){
                     .attr("y2", function(d) { return d.target.y; });
 
                 if(config.useTextLabels){
-                    node.attr("x", function(d) { return d.x; })
-                    .attr("y", function(d) { return d.y; });
+                    //node.attr("x", function(d) { return d.x; })
+                    //.attr("y", function(d) { return d.y; });
+                    node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
                 }
                 else{
                     node.attr("cx", function(d) { return d.x; })
