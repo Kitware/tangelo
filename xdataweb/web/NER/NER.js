@@ -182,7 +182,7 @@ function processFileContents(filename, id, file_hash){
 
         if(NER.files_processed == NER.num_files){
             graph.assemble(NER.nodes, NER.links, NER.types, NER.nodeSlider.getValue());
-            graph.recomputeGraph(NER.nodeSlider.getValue());
+            graph.recompute(NER.nodeSlider.getValue());
             graph.render();
         }
     };
@@ -333,7 +333,7 @@ window.onload = function(){
                 this.updateConfig();
             },
 
-            recomputeGraph: function(nodecount_threshold){
+            recompute: function(nodecount_threshold){
                 // Copy the thresholded nodes over to the local array, and
                 // record their index as we go.  Also make a local copy of the
                 // original, unfiltered data.
@@ -501,7 +501,7 @@ window.onload = function(){
         };
     };
 
-    NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.recomputeGraph(v); graph.render(); });
+    NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.recompute(v); graph.render(); });
     NER.nodeSlider.setConfig();
 
     // Bootstrap showing the slider value here (none of the callbacks in the
