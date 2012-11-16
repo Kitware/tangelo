@@ -464,8 +464,8 @@ window.onload = function(){
 
                     // TODO(choudhury): link the circle/text rendering
                     // configuration attribute to a checkbox state.
-                    check = $("#usecircles")[0];
-                    config.useCircles = true;
+                    check = $("#usetext")[0];
+                    config.useCircles = !check.checked;
                 },
 
                 applyConfig: function(){
