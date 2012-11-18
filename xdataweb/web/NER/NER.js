@@ -418,7 +418,13 @@ window.onload = function(){
                     .data(nodes, function(d) { return d.id; });
 
                 if(config.useTextLabels){
-                    force.charge(textCharge);
+                    //force.charge(textCharge);
+                    if(config.nodeScale){
+                        force.charge(function(n) { return 2*Math.sqrt(n.count)*textCharge; });
+                    }
+                    else{
+                        force.charge(textCharge);
+                    }
 
                     var scaler = this.nodeScalingFunction();
                     var cards = node.enter().append("g")
@@ -447,7 +453,14 @@ window.onload = function(){
                         .style("fill-opacity", "0.1");
                 }
                 else{
-                    force.charge(nodeCharge);
+                    //force.charge(nodeCharge);
+                    if(config.nodeScale){
+                        force.charge(function(n) { return 2*Math.sqrt(n.count)*nodeCharge; });
+                    }
+                    else{
+                        force.charge(nodeCharge);
+                    }
+
                     node.enter().append("circle")
                         .classed("node", true)
                         .attr("r", this.nodeScalingFunction())
