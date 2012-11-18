@@ -417,15 +417,20 @@ window.onload = function(){
                 var node = d3.select("g#nodes").selectAll("*.node")
                     .data(nodes, function(d) { return d.id; });
 
-                if(config.useTextLabels){
-                    //force.charge(textCharge);
-                    if(config.nodeScale){
-                        force.charge(function(n) { return 2*Math.sqrt(n.count)*textCharge; });
-                    }
-                    else{
-                        force.charge(textCharge);
-                    }
 
+                // Compute the nodal charge based on the type of elements, and
+                // their size.
+                var charge = config.useTextLabels ? textCharge : nodeCharge;
+                if(config.nodeScale){
+                    force.charge(function(n) { return 2*Math.sqrt(n.count)*charge; });
+                }
+                else{
+                    force.charge(charge);
+                }
+
+                // Create appropriate SVG elements to represent the nodes, based
+                // on the current rendering mode.
+                if(config.useTextLabels){
                     var scaler = this.nodeScalingFunction();
                     var cards = node.enter().append("g")
                         .attr("id", function(d) { return d.id; })
@@ -453,14 +458,6 @@ window.onload = function(){
                         .style("fill-opacity", "0.1");
                 }
                 else{
-                    //force.charge(nodeCharge);
-                    if(config.nodeScale){
-                        force.charge(function(n) { return 2*Math.sqrt(n.count)*nodeCharge; });
-                    }
-                    else{
-                        force.charge(nodeCharge);
-                    }
-
                     node.enter().append("circle")
                         .classed("node", true)
                         .attr("r", this.nodeScalingFunction())
