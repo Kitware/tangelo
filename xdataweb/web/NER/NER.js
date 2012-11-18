@@ -420,8 +420,11 @@ window.onload = function(){
                 if(config.useTextLabels){
                     force.charge(textCharge);
 
+                    var scaler = this.nodeScalingFunction();
                     var cards = node.enter().append("g")
                         .attr("id", function(d) { return d.id; })
+                        .attr("scale", function(d) { return "scale(" + scaler(d) + ")";})
+                        .attr("translate", "translate(0,0)")
                         .classed("node", true)
                         .call(force.drag);
 
@@ -439,9 +442,9 @@ window.onload = function(){
                         .attr("height", function(d) { return d.bbox.height; })
                         .attr("y", function(d) { return -0.75*d.bbox.height; })
                         .style("stroke", "black")
-                        .style("stroke-width", "5px")
+                        .style("stroke-width", "1px")
                         .style("fill", "black")
-                        .style("opacity", "0.1");
+                        .style("fill-opacity", "0.1");
                 }
                 else{
                     force.charge(nodeCharge);
@@ -481,7 +484,10 @@ window.onload = function(){
                 if(config.useTextLabels){
                     //node.attr("x", function(d) { return d.x; })
                     //.attr("y", function(d) { return d.y; });
-                    node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+                    node.attr("translate", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
+                    //.attr("transform", function() { return this.getAttribute("scale") + " " + this.getAttribute("translate"); });
+                    .attr("transform", function() { return this.getAttribute("translate") + " " + this.getAttribute("scale"); });
+
                 }
                 else{
                     node.attr("cx", function(d) { return d.x; })
@@ -511,18 +517,31 @@ window.onload = function(){
                         .duration(2000)
                         .style("stroke-width", this.linkScalingFunction());
 
-                    svg.selectAll("g#nodes circle.node")
-                        .transition()
-                        .duration(1000)
-                        .attr("r", this.nodeScalingFunction());
+                    if(config.useTextLabels){
+                        var scaler = this.nodeScalingFunction(); // Capture here because 'this' content is gone when we need to retrieve this function.
+                        svg.selectAll("g#nodes *.node")
+                            .transition()
+                            .duration(1000)
+                            .attr("scale", function(d) { return "scale(" + scaler(d) + ")"; })
+                            .attr("transform", function() { return this.getAttribute("translate") + " " + this.getAttribute("scale"); });
+                            //.attr("transform", function() { return this.getAttribute("translate"); });
+                            //.attr("transform", function() { return this.getAttribute("scale"); });
+                    }
+                    else{
+                        svg.selectAll("g#nodes circle.node")
+                            .transition()
+                            .duration(1000)
+                            .attr("r", this.nodeScalingFunction());
+                    }
                 },
 
                 nodeScalingFunction: function(){
+                    var base = config.useTextLabels ? 1 : 5;
                     if(config.nodeScale){
-                        return function(d) { return 5*Math.sqrt(d.count); };
+                        return function(d) { return base*Math.sqrt(d.count); };
                     }
                     else{
-                        return 5;
+                        return function() { return base; };
                     }
                 },
 
