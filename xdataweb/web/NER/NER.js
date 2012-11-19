@@ -452,10 +452,10 @@ window.onload = function(){
                         .attr("width", function(d) { return d.bbox.width; })
                         .attr("height", function(d) { return d.bbox.height; })
                         .attr("y", function(d) { return -0.75*d.bbox.height; })
-                        .style("stroke", "black")
-                        .style("stroke-width", "1px")
-                        .style("fill", "black")
-                        .style("fill-opacity", "0.1");
+                        .style("stroke", function(d) { return color(d.type); })
+                        .style("stroke-width", "2px")
+                        .style("fill", function(d) { return d.type === "DOCUMENT" ? color("DOCUMENT") : "#e5e5e5"; })
+                        .style("fill-opacity", "0.8");
                 }
                 else{
                     node.enter().append("circle")
