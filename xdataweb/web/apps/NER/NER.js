@@ -598,4 +598,8 @@ window.onload = function(){
     d3.select("#value").html($("#slider").slider("value"));
 
     document.getElementById('docs').addEventListener('change', handleFileSelect, false);
+
+    // TODO(choudhury): this is just testing code - get rid of it at the right
+    // time.
+    var h = histogram.histogram($("svg").get(0), [50, 60]);
 };
