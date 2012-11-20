@@ -3,10 +3,10 @@
 // Global namespace for this file.
 var histogram = {};
 
-histogram.histogram = function(svgelem, translate){
+histogram.histogram = function(svgselector, translate){
     var id = ID.next();
 
-    var g = d3.select(svgelem).append("g")
+    var g = d3.select(svgselector).append("g")
         .attr("id", id);
 
     if(typeof translate !== "undefined"){
