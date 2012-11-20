@@ -1,9 +1,9 @@
-// A histogram object.
+// A bar chart object.
 
 // Global namespace for this file.
-var histogram = {};
+var barchart = {};
 
-histogram.histogram = function(svgselector, translate){
+barchart.barchart = function(svgselector, translate){
     var id = ID.next();
 
     var g = d3.select(svgselector).append("g")

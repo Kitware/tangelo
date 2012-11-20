@@ -601,5 +601,5 @@ window.onload = function(){
 
     // TODO(choudhury): this is just testing code - get rid of it at the right
     // time.
-    var h = histogram.histogram("#graph", [50, 60]);
+    var h = barchart.barchart("#graph", [50, 60]);
 };
