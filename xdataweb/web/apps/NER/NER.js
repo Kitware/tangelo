@@ -601,8 +601,6 @@ window.onload = function(){
 
     // TODO(choudhury): this is just testing code - get rid of it at the right
     // time.
-    //
-    //var h = barchart.barchart("#graph", [50, 60]);
     var h = null;
     d3.tsv("letters.csv", function(rows){
         h = barchart.barchart({
@@ -610,8 +608,8 @@ window.onload = function(){
                 xcolumn: "letter",
                 ycolumn: "frequency",
                 svgselector: "#graph",
-                translate: [50, 60],
-                size: [100, 100]
+                position: [50, 120],
+                size: [200, 300]
         });
     });
 };

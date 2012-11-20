@@ -10,7 +10,7 @@ barchart.barchart = function(options){
     var xcolumn = options.xcolumn;
     var ycolumn = options.ycolumn;
     var svgselector = options.svgselector;
-    var translate = options.translate;
+    var position = options.position;
     var size = options.size;
 
     // Raise exception for missing required options.
@@ -33,17 +33,28 @@ barchart.barchart = function(options){
         .attr("id", id);
 
     // Apply a translation if supplied.
-    if(typeof translate !== "undefined"){
-        g.attr("transform", "translate(" + translate[0] + "," + translate[1] + ")");
+    if(typeof position !== "undefined"){
+        g.attr("transform", "translate(" + position[0] + "," + position[1] + ")");
     }
 
+    // TODO(choudhury): remove this, it's just for debugging.
+    g.append("rect")
+        .style("fill", "white")
+        .style("fill-opacity", 0.0)
+        .style("stroke", "black")
+        .style("stroke-width", "2px")
+        .style("stroke-opacity", 1.0)
+        .attr("width", size[0])
+        .attr("height", size[1]);
+
+    // TODO(choudhury): actual barchart content goes here.
     g.append("circle")
         .style("fill", "green")
         .style("stroke", "black")
         .style("stroke-width", "3px")
-        .attr("cx", 100)
-        .attr("cy", 100)
-        .attr("r", 40);
+        .attr("cx", size[0]/2)
+        .attr("cy", size[1]/2)
+        .attr("r", Math.min(size[0], size[1])/3);
 
 /*    return {*/
         
