@@ -602,14 +602,14 @@ window.onload = function(){
     // TODO(choudhury): this is just testing code - get rid of it at the right
     // time.
     var h = null;
-    d3.tsv("letters.csv", function(rows){
+    d3.csv("letters.csv", function(rows){
         h = barchart.barchart({
                 table: rows,
                 xcolumn: "letter",
                 ycolumn: "frequency",
                 svgselector: "#graph",
                 position: [50, 120],
-                size: [200, 300]
+                size: [600, 300]
         });
     });
 };

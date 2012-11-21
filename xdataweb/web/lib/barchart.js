@@ -61,21 +61,40 @@ barchart.barchart = function(options){
     var gap = barwidth*0.20;
     barwidth = barwidth*0.80;
 
+    console.log(table);
+    console.log("barwidth: " + barwidth);
+    console.log("gap: " + gap);
+
     // TODO(choudhury): Place axes (style properly).
     //
     // TODO(choudhury): Place bars (use y-column data, and x-column data for
     // label).
+    g.selectAll("rect.bar")
+        .data(table, function(d) { return d[xcolumn]; })
+        .enter()
+        .append("rect")
+        .style("fill", "steelblue")
+        .attr("x", function(d, i) { return 0.5*gap + i*(barwidth+gap); })
+        .attr("y", size[1])
+        .attr("width", barwidth)
+        .attr("height", 0.0)
+        .transition()
+        .delay(function(d,i) { return i*50; })
+        .duration(500)
+        .attr("y", 0.0)
+        .attr("height", size[1]);
+
     //
     // TODO(choudhury): Grow bars from 0 height and fade them in from 0 opacity.
 
-    // TODO(choudhury): actual barchart content goes here.
-    g.append("circle")
-        .style("fill", "green")
-        .style("stroke", "black")
-        .style("stroke-width", "3px")
-        .attr("cx", size[0]/2)
-        .attr("cy", size[1]/2)
-        .attr("r", Math.min(size[0], size[1])/3);
+/*    // TODO(choudhury): actual barchart content goes here.*/
+    //g.append("circle")
+        //.style("fill", "green")
+        //.style("stroke", "black")
+        //.style("stroke-width", "3px")
+        //.attr("cx", size[0]/2)
+        //.attr("cy", size[1]/2)
+        /*.attr("r", Math.min(size[0], size[1])/3);*/
 
 /*    return {*/
         
