@@ -607,6 +607,7 @@ window.onload = function(){
                 table: rows,
                 xcolumn: "letter",
                 ycolumn: "frequency",
+                yrange: [0, 0.1],
                 svgselector: "#graph",
                 position: [50, 120],
                 size: [600, 300]
