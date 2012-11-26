@@ -79,7 +79,7 @@ barchart.barchart = function(options){
 
     var yscale = d3.scale.linear()
         .domain(yrange)
-        .range([0,h]);
+        .range([h,0]);
 
     g.selectAll("rect.bar")
         .data(table)
@@ -94,8 +94,8 @@ barchart.barchart = function(options){
         .transition()
         .delay(function(d,i) { return i*50; })
         .duration(300)
-        .attr("y", function(d) { return h - yscale(d[ycolumn]); })
-        .attr("height", function(d) { return yscale(d[ycolumn]); });
+        .attr("y", function(d) { return yscale(d[ycolumn]); })
+        .attr("height", function(d) { return h - yscale(d[ycolumn]); });
 
     g.selectAll("rect.bar")
         .append("title").text(function(d) { return d[ycolumn]; });
