@@ -107,6 +107,8 @@ barchart.barchart = function(options){
         .ticks(1);
 
     g.append("g")
+        .classed("y", true)
+        .classed("axis", true)
         .call(yAxis);
 
 /*    return {*/
