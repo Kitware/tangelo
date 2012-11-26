@@ -603,6 +603,7 @@ window.onload = function(){
     // time.
     var h = null;
     d3.csv("letters.csv", function(rows){
+        rows.sort(function(a,b) { return a.frequency < b.frequency; });
         h = barchart.barchart({
                 table: rows,
                 xcolumn: "letter",
@@ -610,7 +611,8 @@ window.onload = function(){
                 yrange: [0, 0.13],
                 svgselector: "#barchart",
                 position: [3, 3],
-                size: [794, 144]
+                size: [794, 144],
+                border: false
         });
     });
 };

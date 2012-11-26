@@ -38,10 +38,10 @@ barchart.barchart = function(options){
     // Create a margin (use this to style the placement of the chart elements
     // properly).
     var margin = {
-        left: 40,
+        left: 35,
         right: 10,
         top: 10,
-        bottom: 10
+        bottom: 25
     };
 
     // Remove the margins from the sizing parameter.
@@ -67,19 +67,22 @@ barchart.barchart = function(options){
             .attr("height", h);
     }
 
-    // Compute bar and gap widths.
-    //
-    // TODO(choudhury): make the proportion of bar width to be used for the gap
-    // into a parameter.
-    var barwidth = w / table.length;
-    var gap = barwidth*0.20;
-    barwidth = barwidth*0.80;
-
-    console.log(table);
-
+    // Use a continuous scale for the y-axis, mapping from the data range to the
+    // pixel range (invert the mapping to account for SVG's coordinate system).
     var yscale = d3.scale.linear()
         .domain(yrange)
         .range([h,0]);
+
+    // The gaps between bars will be 20% of the width of the bars themselves.
+    var gap_proportion = 0.2;
+
+    // Create an ordinal scale for horizontal placement of the bars.
+    var xscale = d3.scale.ordinal()
+        .domain(table.map(function(d) { return d[xcolumn]; }))
+        .rangeRoundBands([0,w], gap_proportion);
+
+    // Compute the width of the bar.
+    var barwidth = w * (1 - gap_proportion) / xscale.domain().length;
 
     g.selectAll("rect.bar")
         .data(table)
@@ -87,7 +90,7 @@ barchart.barchart = function(options){
         .append("rect")
         .classed("bar", true)
         .style("fill", "darkgreen")
-        .attr("x", function(d, i) { return 0.5*gap + i*(barwidth+gap); })
+        .attr("x", function(d) { return xscale(d[xcolumn]); })
         .attr("y", h)
         .attr("width", barwidth)
         .attr("height", 0.0)
@@ -110,6 +113,17 @@ barchart.barchart = function(options){
         .classed("y", true)
         .classed("axis", true)
         .call(yAxis);
+
+    var xAxis = d3.svg.axis()
+        .scale(xscale)
+        .orient("bottom")
+        .ticks(xscale.domain().length);
+
+    g.append("g")
+        .classed("x", true)
+        .classed("axis", true)
+        .attr("transform", "translate(0," + h + ")")
+        .call(xAxis);
 
 /*    return {*/
         
