@@ -13,7 +13,7 @@ barchart.barchart = function(options){
     var xcolumn = options.xcolumn;
     var ycolumn = options.ycolumn;
     var svgselector = options.svgselector;
-    var position = options.position;
+    var position = options.position || [0,0];
     var size = options.size;
     var yrange = options.yrange;
     var margins = options.margins;
@@ -35,14 +35,25 @@ barchart.barchart = function(options){
     // Create a unique DOM ID for the svg grouper.
     var id = ID.next();
 
+    // Create a margin (use this to style the placement of the chart elements
+    // properly).
+    var margin = {
+        left: 10,
+        right: 10,
+        top: 10,
+        bottom: 10
+    };
+
+    // Remove the margins from the sizing parameter.
+    var w = size[0] - margin.left - margin.right;
+    var h = size[1] - margin.top - margin.bottom;
+
     // Create a group that will hold everything for the chart.
     var g = d3.select(svgselector).append("g")
         .attr("id", id);
 
-    // Apply a translation if supplied.
-    if(typeof position !== "undefined"){
-        g.attr("transform", "translate(" + position[0] + "," + position[1] + ")");
-    }
+    // Apply a translation.
+    g.attr("transform", "translate(" + (position[0] + margin.left) + "," + (position[1] + margin.top) + ")");
 
     // TODO(choudhury): style this according to input params.
     if(border){
@@ -52,15 +63,15 @@ barchart.barchart = function(options){
             .style("stroke", "black")
             .style("stroke-width", "2px")
             .style("stroke-opacity", 1.0)
-            .attr("width", size[0])
-            .attr("height", size[1]);
+            .attr("width", w)
+            .attr("height", h);
     }
 
     // Compute bar and gap widths.
     //
     // TODO(choudhury): make the proportion of bar width to be used for the gap
     // into a parameter.
-    var barwidth = size[0] / table.length;
+    var barwidth = w / table.length;
     var gap = barwidth*0.20;
     barwidth = barwidth*0.80;
 
@@ -68,7 +79,7 @@ barchart.barchart = function(options){
 
     var yscale = d3.scale.linear()
         .domain(yrange)
-        .range([0,1]);
+        .range([0,h]);
 
     g.selectAll("rect.bar")
         .data(table)
@@ -77,14 +88,14 @@ barchart.barchart = function(options){
         .classed("bar", true)
         .style("fill", "darkgreen")
         .attr("x", function(d, i) { return 0.5*gap + i*(barwidth+gap); })
-        .attr("y", size[1])
+        .attr("y", h)
         .attr("width", barwidth)
         .attr("height", 0.0)
         .transition()
         .delay(function(d,i) { return i*50; })
         .duration(300)
-        .attr("y", function(d) { return (1 - yscale(d[ycolumn]))*size[1]; })
-        .attr("height", function(d) { return size[1] - (1 - yscale(d[ycolumn]))*size[1]; });
+        .attr("y", function(d) { return h - yscale(d[ycolumn]); })
+        .attr("height", function(d) { return yscale(d[ycolumn]); });
 
     g.selectAll("rect.bar")
         .append("title").text(function(d) { return d[ycolumn]; });
@@ -96,7 +107,6 @@ barchart.barchart = function(options){
         .ticks(1);
 
     g.append("g")
-        .attr("transform", "translate(100,100)")
         .call(yAxis);
 
 /*    return {*/
