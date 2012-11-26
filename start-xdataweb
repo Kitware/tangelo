@@ -3,5 +3,11 @@
 cmd=`readlink -f $0`
 dir=`dirname $cmd`
 
-cd $dir
-cherryd2 -d -i xdataweb -c server.conf -p ${dir}/xdataweb.pid
+pidfile="${dir}/xdataweb.pid"
+if [ -f "${pidfile}" ]; then
+    echo "error: xdataweb already seems to be running (pid `cat "${pidfile}"`)" >/dev/stderr
+    exit 1
+fi
+
+cd "$dir"
+cherryd2 -d -i xdataweb -c server.conf -p "${pidfile}"

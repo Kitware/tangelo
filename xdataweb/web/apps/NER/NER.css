@@ -114,3 +114,15 @@ line.link {
     stroke: #000;
     stroke-opacity: 0.6;
 }
+
+/* Styling directives for axis labels
+ */
+.axis {
+    shape-rendering: crispEdges;
+    font-family: 'Source Sans Pro';
+}
+
+.y.axis line, .y.axis path, .x.axis line, .x.axis path {
+    fill: none;
+    stroke: #000;
+}
