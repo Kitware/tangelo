@@ -38,7 +38,7 @@ barchart.barchart = function(options){
     // Create a margin (use this to style the placement of the chart elements
     // properly).
     var margin = {
-        left: 10,
+        left: 40,
         right: 10,
         top: 10,
         bottom: 10
