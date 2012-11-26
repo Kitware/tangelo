@@ -607,10 +607,10 @@ window.onload = function(){
                 table: rows,
                 xcolumn: "letter",
                 ycolumn: "frequency",
-                yrange: [0, 0.1],
-                svgselector: "#graph",
-                position: [50, 120],
-                size: [600, 300]
+                yrange: [0, 0.13],
+                svgselector: "#barchart",
+                position: [3, 3],
+                size: [794, 144]
         });
     });
 };

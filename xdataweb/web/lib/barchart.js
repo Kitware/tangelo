@@ -17,7 +17,7 @@ barchart.barchart = function(options){
     var size = options.size;
     var yrange = options.yrange;
     var margins = options.margins;
-    var border = null;
+    var border = options.border;
     var background = null;
 
     // Raise exception for missing required options.
@@ -45,14 +45,16 @@ barchart.barchart = function(options){
     }
 
     // TODO(choudhury): style this according to input params.
-    g.append("rect")
-        .style("fill", "white")
-        .style("fill-opacity", 0.0)
-        .style("stroke", "black")
-        .style("stroke-width", "2px")
-        .style("stroke-opacity", 1.0)
-        .attr("width", size[0])
-        .attr("height", size[1]);
+    if(border){
+        g.append("rect")
+            .style("fill", "white")
+            .style("fill-opacity", 0.0)
+            .style("stroke", "black")
+            .style("stroke-width", "2px")
+            .style("stroke-opacity", 1.0)
+            .attr("width", size[0])
+            .attr("height", size[1]);
+    }
 
     // Compute bar and gap widths.
     //
@@ -77,7 +79,7 @@ barchart.barchart = function(options){
         .enter()
         .append("rect")
         .classed("bar", true)
-        .style("fill", "steelblue")
+        .style("fill", "darkgreen")
         .attr("x", function(d, i) { return 0.5*gap + i*(barwidth+gap); })
         .attr("y", size[1])
         .attr("width", barwidth)
@@ -87,6 +89,9 @@ barchart.barchart = function(options){
         .duration(300)
         .attr("y", function(d) { return (1 - yscale(d[ycolumn]))*size[1]; })
         .attr("height", function(d) { return size[1] - (1 - yscale(d[ycolumn]))*size[1]; });
+
+    g.selectAll("rect.bar")
+        .append("title").text(function(d) { return d[ycolumn]; });
 
 /*    return {*/
         
