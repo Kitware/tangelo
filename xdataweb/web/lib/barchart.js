@@ -65,10 +65,6 @@ barchart.barchart = function(options){
     barwidth = barwidth*0.80;
 
     console.log(table);
-    console.log("barwidth: " + barwidth);
-    console.log("gap: " + gap);
-
-    // TODO(choudhury): Place axes (style properly).
 
     var yscale = d3.scale.linear()
         .domain(yrange)
@@ -92,6 +88,16 @@ barchart.barchart = function(options){
 
     g.selectAll("rect.bar")
         .append("title").text(function(d) { return d[ycolumn]; });
+
+    // TODO(choudhury): Place axes (style properly).
+    var yAxis = d3.svg.axis()
+        .scale(yscale)
+        .orient("left")
+        .ticks(1);
+
+    g.append("g")
+        .attr("transform", "translate(100,100)")
+        .call(yAxis);
 
 /*    return {*/
         
