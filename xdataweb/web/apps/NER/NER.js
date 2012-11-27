@@ -58,18 +58,19 @@ function processFile(filename, id){
             data: {
                 file_hash: file_hash
             },
-            success: function(data){
-                // Check the response - if it is blank, launch the
-                // second AJAX call to directly compute the NER set,
-                // and store it in the database.
-                if(data == '[]'){
+            dataType: "json",
+            success: function(response){
+                // Check the response - if it is an empty list, launch the
+                // second AJAX call to directly compute the NER set, and store
+                // it in the database.
+                if(response.result.length == 0){
                     $.ajax({
                         type: 'POST',
                         url: '/service/NER',
                         data: {
                             text: text
                         },
-                        dataType: 'text',
+                        dataType: 'json',
                         success: processFileContents(filename, id, file_hash),
                         error: function(){
                             $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("failed").get(0).innerHTML = filename + " processed";
@@ -77,18 +78,23 @@ function processFile(filename, id){
                     });
                 }
                 else{
-                    // The data returned from the DB is in MongoDB format.  Read
-                    // it into a JSON object, then extract the payload.
-                    var jsdata = $.parseJSON(data);
+                    // TODO(choudhury): error checking.  Make sure that response
+                    // has only a single element, etc.
 
-                    // TODO(choudhury): error checking.  Make sure
-                    // that "jsdata" has only a single element, etc.
+                    // Convert the Mongo result into an NER result before
+                    // sending it to be processed.  Because the nested list
+                    // comes back from Mongo as a string, parse it into a
+                    // JavaScript object as well.
+                    //
+                    // TODO(choudhury): do error checking - if the "error" field
+                    // of the response is not null, something must be done.
+                    response.result = $.parseJSON(response.result[0].data);
 
-                    // The call to processFileContents() generates a
-                    // function (in which the file_hash parameter is
-                    // OMITTED); the second invocation calls that
-                    // function to actually process the data.
-                    processFileContents(filename, id)(jsdata[0].data);
+                    // The call to processFileContents() generates a function
+                    // (in which the file_hash parameter is OMITTED); the second
+                    // invocation calls that function to actually process the
+                    // data.
+                    processFileContents(filename, id)(response);
                 }
             }
         });
@@ -100,7 +106,10 @@ function processFile(filename, id){
 // into the generator is so that the callback has access to the name of the file
 // being processed.
 function processFileContents(filename, id, file_hash){
-    return function(data){
+    return function(response){
+        // Extract the actual result from the response object.
+        var data = response.result;
+
         var li = d3.select("#" + id)
             .classed("inprogress", false)
             .classed("processing done", true);
@@ -115,7 +124,11 @@ function processFileContents(filename, id, file_hash){
                 url: '/service/mongo/xdata/ner-cache',
                 data: {
                     file_hash: file_hash,
-                data: data
+                    data: JSON.stringify(data)
+                },
+                success: function(resp){
+                    // TODO(choudhury): error checking - make sure the response
+                    // error code is null.
                 }
             });
         }
@@ -132,8 +145,9 @@ function processFileContents(filename, id, file_hash){
         // Augment the count for the DOCUMENT type in the type table.
         NER.types["DOCUMENT"] = NER.types["DOCUMENT"] + 1 || 1;
 
-        // Extract the JSON object from the AJAX response.
-        var entities = $.parseJSON(data);
+        // TODO(choudhury): remove this variable; change all following instances
+        // of "entities" to "data".
+        var entities = data;
 
         // Process the entities.
         $.each(entities, function(i, e){

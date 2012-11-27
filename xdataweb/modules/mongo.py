@@ -1,16 +1,22 @@
 import pymongo
 import bson.json_util
+import json
+import lib.util
 
 class Handler:
     def __init__(self):
         self.conn = None
 
     def go(self, dbname, collname, file_hash=None, data=None):
+        # Construct an empty response object.
+        resp = lib.util.empty_response();
+
         # If no schema was passed in, give an error.
         #
         # TODO(choudhury): see comment below about error codes, etc.
         if file_hash == None:
-            return "no file hash!"
+            resp['error'] = "no file hash"
+            return bson.json_util.dumps(resp)
 
         # Try to establish a connection to the MongoDB server.
         #
@@ -21,26 +27,24 @@ class Handler:
             try:
                 self.conn = pymongo.Connection()
             except pymongo.errors.AutoReconnect as e:
-                # TODO(choudhury): For now, signal error with a blank return
-                # string.  In the future, stuff an error code into the returned
-                # json object (which can simply be None for no error).
-                return ""
+                # TODO(choudhury): the error codes should somehow be more
+                # standardized.
+                resp['error'] = "could not connect to mongo database"
+                return bson.json_util.dumps(resp)
 
         # Extract the requested database and collection.
         db = self.conn[dbname]
         coll = db[collname]
 
-        # If no data field was specified, treat this as a read request.
+        # If no data field was specified, treat this as a read request;
+        # otherwise, write the data to the database.
         if data == None:
             # Create a search schema for finding the record with the appropriate
             # hash.
             schema = {'file_hash' : file_hash}
 
             # Apply the schema to retrieve documents.
-            results = [d for d in coll.find(schema)]
-
-            # Convert to JSON and return the result.
-            return bson.json_util.dumps(results)
+            resp['result'] = [d for d in coll.find(schema)]
         else:
             # Convert the JSON object "data" to a Python object.
             pydata = bson.json_util.loads(data)
@@ -49,4 +53,7 @@ class Handler:
             coll.insert({'file_hash': file_hash, 'data': data})
 
             # Return a success code.
-            return "ok"
+            resp['result'] = "ok"
+
+        # Convert to JSON and return the result.
+        return bson.json_util.dumps(resp)
