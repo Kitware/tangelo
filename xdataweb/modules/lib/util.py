@@ -10,10 +10,10 @@ def empty_response():
 # user from trying to invoke this service.
 class Handler:
     def go(*args, **kwargs):
-        result = result_container();
+        response = empty_response();
 
         # TODO(choudhury): rather than place this string here by hand, it should
         # be put into a collection of standardized message variables.
-        result['error'] = "Invalid service"
+        response['error'] = "Invalid service"
 
-        return json.dumps(result)
+        return json.dumps(response)

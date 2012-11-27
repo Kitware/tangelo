@@ -8,12 +8,12 @@ import lib.util
 class Handler:
     def go(self, text=""):
         # Create an empty result container.
-        result = lib.util.empty_response();
-        result['result'] = [];
+        response = lib.util.empty_response();
+        response['result'] = [];
 
         # If nothing passed in, return an empty result.
         if text == "":
-            return json.dumps(result)
+            return json.dumps(response)
 
         # Otherwise, perform named entity recognition.
         sentences = nltk.sent_tokenize(text)
@@ -23,6 +23,6 @@ class Handler:
         # chunks into strings, and place them in the list of named entities.
         for c in chunks:
             for subtree in filter(lambda x: x.node != 'S', c.subtrees()):
-                result['result'].append( (subtree.node, ' '.join(map(lambda x: x[0], subtree.leaves())) ) )
+                response['result'].append( (subtree.node, ' '.join(map(lambda x: x[0], subtree.leaves())) ) )
 
-        return json.dumps(result)
+        return json.dumps(response)

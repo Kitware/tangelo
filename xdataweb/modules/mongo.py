@@ -9,14 +9,14 @@ class Handler:
 
     def go(self, dbname, collname, file_hash=None, data=None):
         # Construct an empty response object.
-        resp = lib.util.empty_response();
+        response = lib.util.empty_response();
 
         # If no schema was passed in, give an error.
         #
         # TODO(choudhury): see comment below about error codes, etc.
         if file_hash == None:
-            resp['error'] = "no file hash"
-            return bson.json_util.dumps(resp)
+            response['error'] = "no file hash"
+            return bson.json_util.dumps(response)
 
         # Try to establish a connection to the MongoDB server.
         #
@@ -29,8 +29,8 @@ class Handler:
             except pymongo.errors.AutoReconnect as e:
                 # TODO(choudhury): the error codes should somehow be more
                 # standardized.
-                resp['error'] = "could not connect to mongo database"
-                return bson.json_util.dumps(resp)
+                response['error'] = "could not connect to mongo database"
+                return bson.json_util.dumps(response)
 
         # Extract the requested database and collection.
         db = self.conn[dbname]
@@ -44,7 +44,7 @@ class Handler:
             schema = {'file_hash' : file_hash}
 
             # Apply the schema to retrieve documents.
-            resp['result'] = [d for d in coll.find(schema)]
+            response['result'] = [d for d in coll.find(schema)]
         else:
             # Convert the JSON object "data" to a Python object.
             pydata = bson.json_util.loads(data)
@@ -53,7 +53,7 @@ class Handler:
             coll.insert({'file_hash': file_hash, 'data': data})
 
             # Return a success code.
-            resp['result'] = "ok"
+            response['result'] = "ok"
 
         # Convert to JSON and return the result.
-        return bson.json_util.dumps(resp)
+        return bson.json_util.dumps(response)
