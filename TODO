@@ -1,0 +1,6 @@
+Mac issues:
+
+-Cherryd behavior (-d flag doesn't seem to work properly)
+
+-Control scripts aren't portable (readlink has no way to expand
+symlinks/relative paths into absolute paths, as 'readlink -f' does on linux)
