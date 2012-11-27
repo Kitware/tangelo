@@ -108,7 +108,7 @@ function processFile(filename, id){
 function processFileContents(filename, id, file_hash){
     return function(response){
         // Extract the actual result from the response object.
-        var data = response.result;
+        var entities = response.result;
 
         var li = d3.select("#" + id)
             .classed("inprogress", false)
@@ -124,7 +124,7 @@ function processFileContents(filename, id, file_hash){
                 url: '/service/mongo/xdata/ner-cache',
                 data: {
                     file_hash: file_hash,
-                    data: JSON.stringify(data)
+                    data: JSON.stringify(entities)
                 },
                 success: function(resp){
                     // TODO(choudhury): error checking - make sure the response
@@ -144,10 +144,6 @@ function processFileContents(filename, id, file_hash){
 
         // Augment the count for the DOCUMENT type in the type table.
         NER.types["DOCUMENT"] = NER.types["DOCUMENT"] + 1 || 1;
-
-        // TODO(choudhury): remove this variable; change all following instances
-        // of "entities" to "data".
-        var entities = data;
 
         // Process the entities.
         $.each(entities, function(i, e){
