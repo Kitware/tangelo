@@ -5,6 +5,11 @@ import sys
 import pymongo
 
 if __name__ == '__main__':
+    # A convenience generator for padding out short arrays.
+    def nones():
+        while True:
+            yield None
+
     # Parse command line arguments.
     parser = argparse.ArgumentParser(description="Clean and upload CSV data to a Mongo database.")
 
@@ -17,8 +22,8 @@ if __name__ == '__main__':
     parser.add_argument("-i", "--input", nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument("-s", "--strict", action='store_true', help="Exits with error if any action fields do not exist in CSV header row")
 
+    # Use "vars" to get a dictionary of the parsed arguments.
     args = vars(parser.parse_args())
-    #print args
 
     # Extract information from command line args.
     host = args['host']
@@ -34,6 +39,13 @@ if __name__ == '__main__':
     for a in args['action']:
         field = a[0]
         action = a[1]
+
+        # Check that the requested action is valid.
+        if action not in valid_actions:
+            print >>sys.stderr, "%s: error: invalid action '%s'" % (sys.argv[0], action)
+            sys.exit(1)
+
+        # Install the action into the action table.
         actions[field] = {'action' : action}
 
         # If a field is specified as a date, grab the next date format string
@@ -46,16 +58,6 @@ if __name__ == '__main__':
             except IndexError:
                 print >>sys.stderr, "%s: error: not enough date format strings" % (sys.argv[0])
                 sys.exit(1)
-
-    #print actions
-
-#    # Begin reading the input file.
-    ##
-    ## The first line should contain column headers.
-    #cols = infile.readline().strip().split(",")
-    #for i in range(len(cols)):
-        #if (cols[i][0] == '"' and cols[i][-1] == '"') or (cols[i][0] == "'" and cols[i][-1] == "'"):
-            #cols = cols[1:-1]
 
     # Create a CSV reader object.
     reader = csv.reader(infile)
@@ -72,3 +74,30 @@ if __name__ == '__main__':
         if len(missing) > 0:
             print >>sys.stderr, "%s: error: the following action fields were missing from the data file: %s" % (sys.argv[0],", ".join(missing))
             sys.exit(1)
+
+    # Begin reading records.
+    nones = none_generator()
+    for row in reader:
+        # If there are not enough entries in the row, pad it with None to
+        # indicate missing values.
+        if len(row) < len(cols):
+            row.extend(nones)
+
+        # Construct a dict to describe the row in terms of the headers.
+        record = {}
+        entries = zip(cols, row)
+        for e in entries:
+            record[e[0]] = e[1]
+
+        # Perform the requested operations on the appropriate columns.
+        for (k, v) in record:
+            if k in actions:
+                action = actions[k]['action']
+                if action == 'float':
+                    pass
+                elif action == 'int':
+                    pass
+                elif action == 'date':
+                    pass
+                else:
+                    raise RuntimeError("invalid action '%s' encountered during processing")
