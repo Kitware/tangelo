@@ -6,9 +6,12 @@ import pymongo
 
 if __name__ == '__main__':
     # A convenience generator for padding out short arrays.
-    def nones():
+    def none_generator():
         while True:
             yield None
+
+    def strict_mode_msg(progname):
+        print >>sys.stderr, "%s: strict mode, exiting" % (progname)
 
     # Parse command line arguments.
     parser = argparse.ArgumentParser(description="Clean and upload CSV data to a Mongo database.")
@@ -27,13 +30,14 @@ if __name__ == '__main__':
 
     # Extract information from command line args.
     host = args['host']
-    db = args['database']
+    database = args['database']
     collection = args['collection']
     drop = args['drop']
     infile = args['input']
     strict = args['strict']
 
     # Construct a map directing how to process each field of the CSV file.
+    valid_actions = ['float', 'int', 'date']
     i = 0
     actions = {}
     for a in args['action']:
@@ -58,6 +62,26 @@ if __name__ == '__main__':
             except IndexError:
                 print >>sys.stderr, "%s: error: not enough date format strings" % (sys.argv[0])
                 sys.exit(1)
+
+    # Create a connection to the Mongo database.
+    try:
+        conn = pymongo.Connection(host)
+    except pymongo.errors.AutoReconnect as e:
+        print >>sys.stderr, "%s: error: %s" % (sys.argv[0], e.message)
+        sys.exit(1)
+
+    # TODO(choudhury): In strict mode, make sure a database of the requested
+    # name exists, containing a a collection of the requested name.
+
+    # Get a handle to the database.
+    db = conn[database]
+
+    # Drop the collection before starting, if requested.
+    if drop:
+        db.drop_collection(collection)
+
+    # Get a handle to the collection.
+    c = db[collection]
 
     # Create a CSV reader object.
     reader = csv.reader(infile)
@@ -90,14 +114,37 @@ if __name__ == '__main__':
             record[e[0]] = e[1]
 
         # Perform the requested operations on the appropriate columns.
-        for (k, v) in record:
+        for k in record:
             if k in actions:
                 action = actions[k]['action']
                 if action == 'float':
-                    pass
+                    try:
+                        record[k] = float(record[k])
+                    except ValueError:
+                        print >>sys.stderr, "%s: could not convert field '%s' to floating point value" % (sys.argv[0], record[k])
+                        if strict:
+                            strict_mode_msg(sys.argv[0])
+                            sys.exit(1)
                 elif action == 'int':
-                    pass
+                    try:
+                        record[k] = int(record[k])
+                    except ValueError:
+                        print >>sys.stderr, "%s: could not convert field '%s' to floating point value" % (sys.argv[0], record[k])
+                        if strict:
+                            strict_mode_msg(sys.argv[0])
+                            sys.exit(1)
                 elif action == 'date':
-                    pass
+                    try:
+                        record[k] = datetime.datetime.strptime(record[k], action['date-format'])
+                    except ValueError as e:
+                        print >>sys.stderr, "%s: error: could not convert field '%s' to a datetime object: %s" % (sys.argv[0], record[k], e.message)
+                        if strict:
+                            strict_mode_msg(sys.argv[0])
+                            sys.exit(1)
                 else:
                     raise RuntimeError("invalid action '%s' encountered during processing")
+
+        print record
+
+        # Now that the dictionary object is prepped, place it in the database.
+        c.insert(record)
