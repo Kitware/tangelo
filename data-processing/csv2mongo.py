@@ -14,6 +14,7 @@ if __name__ == '__main__':
     parser.add_argument("-a", "--action", action='append', nargs=2, help="a CSV field, and associated action to take ('float','int','date','clean-quotes'")
     parser.add_argument("--date-format", action='append', help="date format string (supply once per 'date' action specified)")
     parser.add_argument("-i", "--input", nargs='?', type=argparse.FileType('r'), default=sys.stdin)
+    parser.add_argument("-s", "--strict", action='store_true', help="Exits with error if any action fields do not exist in CSV header row")
 
     args = vars(parser.parse_args())
     #print args
@@ -24,6 +25,7 @@ if __name__ == '__main__':
     collection = args['collection']
     drop = args['drop']
     infile = args['input']
+    strict = args['strict']
 
     # Construct a map directing how to process each field of the CSV file.
     i = 0
@@ -45,3 +47,27 @@ if __name__ == '__main__':
                 sys.exit(1)
 
     #print actions
+
+#    # Begin reading the input file.
+    ##
+    ## The first line should contain column headers.
+    #cols = infile.readline().strip().split(",")
+    #for i in range(len(cols)):
+        #if (cols[i][0] == '"' and cols[i][-1] == '"') or (cols[i][0] == "'" and cols[i][-1] == "'"):
+            #cols = cols[1:-1]
+
+    # Create a CSV reader object.
+    reader = csv.reader(infile)
+
+    # Read the first line of the input, which should contain column headers.
+    cols = reader.next()
+
+    # Check that action fields all exist, if requested.
+    if strict:
+        missing = []
+        for f in actions.keys():
+            if f not in cols:
+                missing.push(f)
+        if len(missing) > 0:
+            print >>sys.stderr, sys.argv[0] + ": error: the following action fields were missing from the data file: " + ", ".join(missing)
+            sys.exit(1)
