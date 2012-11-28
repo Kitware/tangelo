@@ -44,7 +44,7 @@ if __name__ == '__main__':
                 actions[field]['date-format'] = args['date_format'][i]
                 i = i + 1
             except IndexError:
-                print >>sys.stderr, sys.argv[0] + ": error: not enough date format strings"
+                print >>sys.stderr, "%s: error: not enough date format strings" % (sys.argv[0])
                 sys.exit(1)
 
     #print actions
@@ -70,5 +70,5 @@ if __name__ == '__main__':
             if f not in cols:
                 missing.append(f)
         if len(missing) > 0:
-            print >>sys.stderr, sys.argv[0] + ": error: the following action fields were missing from the data file: " + ", ".join(missing)
+            print >>sys.stderr, "%s: error: the following action fields were missing from the data file: %s" % (sys.argv[0],", ".join(missing))
             sys.exit(1)
