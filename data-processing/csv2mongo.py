@@ -1,4 +1,5 @@
 import argparse
+import csv
 import sys
 
 import pymongo
@@ -67,7 +68,7 @@ if __name__ == '__main__':
         missing = []
         for f in actions.keys():
             if f not in cols:
-                missing.push(f)
+                missing.append(f)
         if len(missing) > 0:
             print >>sys.stderr, sys.argv[0] + ": error: the following action fields were missing from the data file: " + ", ".join(missing)
             sys.exit(1)
