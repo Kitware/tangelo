@@ -2,13 +2,18 @@ import cherrypy
 import nltk
 import nltk.chunk.named_entity
 import json
+import lib.util
 
 # This service performs named entity recognition on input text.
 class Handler:
     def go(self, text=""):
-        # If nothing passed in, return an empty object.
+        # Create an empty result container.
+        response = lib.util.empty_response();
+        response['result'] = [];
+
+        # If nothing passed in, return an empty result.
         if text == "":
-            return json.dumps({})
+            return json.dumps(response)
 
         # Otherwise, perform named entity recognition.
         sentences = nltk.sent_tokenize(text)
@@ -16,9 +21,8 @@ class Handler:
 
         # Now find all tagged chunks that are not whole sentences - gather the leaves of such
         # chunks into strings, and place them in the list of named entities.
-        ne = []
         for c in chunks:
             for subtree in filter(lambda x: x.node != 'S', c.subtrees()):
-                ne.append( (subtree.node, ' '.join(map(lambda x: x[0], subtree.leaves())) ) )
+                response['result'].append( (subtree.node, ' '.join(map(lambda x: x[0], subtree.leaves())) ) )
 
-        return json.dumps(ne)
+        return json.dumps(response)
