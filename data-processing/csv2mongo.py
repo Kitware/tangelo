@@ -15,7 +15,7 @@ if __name__ == '__main__':
     parser.add_argument("--drop", action='store_true', help="whether to drop the specified collection before beginning")
     parser.add_argument("-a", "--action", action='append', nargs=2, help="a CSV field, and associated action to take ('float','int','date','clean-quotes'")
     parser.add_argument("--date-format", action='append', help="date format string (supply once per 'date' action specified)")
-    parser.add_argument("-i", "--input", nargs='?', type=argparse.FileType('r'), default=sys.stdin)
+    parser.add_argument("-i", "--input", nargs='?', type=argparse.FileType('r'), default=sys.stdin, help="input file (defaults to stdin)")
     parser.add_argument("-s", "--strict", action='store_true', help="Exits with error if any action fields do not exist in CSV header row")
     parser.add_argument("-v", "--verbose", action='store_true', help="Print out records as they are processed")
     parser.add_argument("-w", "--warning", action='store_true', help="Print out warnings when they occur")
