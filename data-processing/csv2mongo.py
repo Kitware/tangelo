@@ -19,6 +19,7 @@ if __name__ == '__main__':
     parser.add_argument("-s", "--strict", action='store_true', help="Exits with error if any action fields do not exist in CSV header row")
     parser.add_argument("-v", "--verbose", action='store_true', help="Print out records as they are processed")
     parser.add_argument("-w", "--warning", action='store_true', help="Print out warnings when they occur")
+    parser.add_argument("-p", "--progress", type=int, default=0, help="Print out progress reports at intervals")
 
     # Use "vars" to get a dictionary of the parsed arguments.
     args = vars(parser.parse_args())
@@ -36,6 +37,7 @@ if __name__ == '__main__':
     strict = args['strict']
     verbose = args['verbose']
     warning = args['warning']
+    progress = args['progress']
 
     # Construct a map directing how to process each field of the CSV file.
     valid_actions = ['float', 'int', 'date']
@@ -101,6 +103,7 @@ if __name__ == '__main__':
             sys.exit(1)
 
     # Begin reading records.
+    count = 0
     for row in reader:
         # If there are not enough entries in the row, pad it with None to
         # indicate missing values.
@@ -156,3 +159,12 @@ if __name__ == '__main__':
 
         # Now that the dictionary object is prepped, place it in the database.
         c.insert(record)
+
+        # Print a progress report, if requested.
+        count = count + 1
+        if progress > 0 and i % progress == 0:
+            print >>sys.stderr, "%d records processed" % (count)
+
+    # Print a final count of the number of records processed.
+    if progress > 0:
+        print >>sys.stderr, "complete - %d records processed" % (count)
