@@ -40,10 +40,6 @@ function processFile(filename, id){
         //elem.setAttribute("class", "processing inprogress");
         //$("#blobs").get(0).appendChild(elem);
 
-        // Mark the appropriate list item as being processed.
-        var li = d3.select("#" + id);
-        li.html(NER.filenames[filename] + " processing")
-            .classed("processing inprogress", true);
 
         var file_hash = CryptoJS.MD5(text).toString();
 
@@ -60,10 +56,27 @@ function processFile(filename, id){
             },
             dataType: "json",
             success: function(response){
-                // Check the response - if it is an empty list, launch the
-                // second AJAX call to directly compute the NER set, and store
-                // it in the database.
-                if(response.result.length == 0){
+                // Error checking.
+                if(response.error !== null){
+                    d3.select("#file-info")
+                        .append("li")
+                        .classed("error", true)
+                        .html(response.error)
+                        .style("opacity", 0.0)
+                        .transition()
+                        .duration(1000)
+                        .style("opacity", 1.0);
+                }
+
+                // Mark the appropriate list item as being processed.
+                var li = d3.select("#" + id);
+                li.html(NER.filenames[filename] + " processing")
+                    .classed("processing inprogress", true);
+
+                // Check the response - if it is an empty list, or there was a
+                // database error, launch the second AJAX call to directly
+                // compute the NER set, and store it in the database.
+                if(response.error !== null || response.result.length == 0){
                     $.ajax({
                         type: 'POST',
                         url: '/service/NER',
@@ -119,6 +132,7 @@ function processFileContents(filename, id, file_hash){
         // database (caching it for future retrieval).
         if(file_hash !== undefined){
             // Fire an AJAX call that will install the computed data in the DB.
+            var ok = true;
             $.ajax({
                 type: 'POST',
                 url: '/service/mongo/xdata/ner-cache',
@@ -126,9 +140,21 @@ function processFileContents(filename, id, file_hash){
                     file_hash: file_hash,
                     data: JSON.stringify(entities)
                 },
+                dataType: 'json',
                 success: function(resp){
-                    // TODO(choudhury): error checking - make sure the response
-                    // error code is null.
+                    // If there was an error, continue anyway, as the failure
+                    // would be in writing an entry to the database.
+                    if(resp.error !== null){
+                        console.log("error: " + resp.error);
+/*                        d3.select("#file-info")*/
+                            //.append("li")
+                            //.classed("error", true)
+                            //.html(resp.error)
+                            //.style("opacity", 0.0)
+                            //.transition()
+                            //.duration(1000)
+                            /*.style("opacity", 1.0);*/
+                    }
                 }
             });
         }

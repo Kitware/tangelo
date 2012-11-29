@@ -103,6 +103,12 @@ span.rejected {
     background: #9a9;
 }
 
+/* Error codes show up in red
+ */
+.error {
+    color: red;
+}
+
 /* SVG directives for drawing the graph.
  */
 circle.node {
