@@ -162,7 +162,7 @@ if __name__ == '__main__':
 
         # Print a progress report, if requested.
         count = count + 1
-        if progress > 0 and i % progress == 0:
+        if progress > 0 and count % progress == 0:
             print >>sys.stderr, "%d records processed" % (count)
 
     # Print a final count of the number of records processed.
