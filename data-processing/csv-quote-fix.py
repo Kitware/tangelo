@@ -83,7 +83,7 @@ if __name__ == '__main__':
         # not, it means there is a severe problem in the line that needs to be
         # reported.
         if state != UNQUOTED:
-            print >>sys.stderr, "%s: fatal error on line %d: <<%s>>" % (progname, count, line.strip())
+            print >>sys.stderr, "%s: fatal error on line %d: <<%s>> (final state %d)" % (progname, count, line.strip(), state)
             if stop:
                 sys.exit(1)
 
