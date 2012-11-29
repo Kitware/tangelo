@@ -17,6 +17,8 @@ if __name__ == '__main__':
     parser.add_argument("--date-format", action='append', help="date format string (supply once per 'date' action specified)")
     parser.add_argument("-i", "--input", nargs='?', type=argparse.FileType('r'), default=sys.stdin)
     parser.add_argument("-s", "--strict", action='store_true', help="Exits with error if any action fields do not exist in CSV header row")
+    parser.add_argument("-v", "--verbose", action='store_true', help="Print out records as they are processed")
+    parser.add_argument("-w", "--warning", action='store_true', help="Print out warnings when they occur")
 
     # Use "vars" to get a dictionary of the parsed arguments.
     args = vars(parser.parse_args())
@@ -32,6 +34,8 @@ if __name__ == '__main__':
     drop = args['drop']
     infile = args['input']
     strict = args['strict']
+    verbose = args['verbose']
+    warning = args['warning']
 
     # Construct a map directing how to process each field of the CSV file.
     valid_actions = ['float', 'int', 'date']
@@ -120,7 +124,8 @@ if __name__ == '__main__':
                     try:
                         record[k] = float(record[k])
                     except ValueError:
-                        print >>sys.stderr, "%s: could not convert field '%s' to floating point value" % (progname, record[k])
+                        if strict or warning:
+                            print >>sys.stderr, "%s: warning: could not convert field '%s' to floating point value" % (progname, record[k])
                         if strict:
                             print >>sys.stderr, strict_mode_msg
                             sys.exit(1)
@@ -128,7 +133,8 @@ if __name__ == '__main__':
                     try:
                         record[k] = int(record[k])
                     except ValueError:
-                        print >>sys.stderr, "%s: could not convert field '%s' to floating point value" % (progname, record[k])
+                        if strict or warning:
+                            print >>sys.stderr, "%s: warning: could not convert field '%s' to floating point value" % (progname, record[k])
                         if strict:
                             print >>sys.stderr, strict_mode_msg
                             sys.exit(1)
@@ -137,14 +143,16 @@ if __name__ == '__main__':
                         datefmt = actions[k]['date-format']
                         record[k] = datetime.datetime.strptime(record[k], datefmt)
                     except ValueError as e:
-                        print >>sys.stderr, "%s: error: could not convert field '%s' to a datetime object: %s" % (progname, record[k], e.message)
+                        if strict or warning:
+                            print >>sys.stderr, "%s: warning: could not convert field '%s' to a datetime object: %s" % (progname, record[k], e.message)
                         if strict:
                             print >>sys.stderr, strict_mode_msg
                             sys.exit(1)
                 else:
                     raise RuntimeError("invalid action '%s' encountered during processing" % (action))
 
-        print record
+        if verbose:
+            print record
 
         # Now that the dictionary object is prepped, place it in the database.
         c.insert(record)
