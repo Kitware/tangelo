@@ -6,9 +6,6 @@ import sys
 import pymongo
 
 if __name__ == '__main__':
-    def strict_mode_msg(progname):
-        print >>sys.stderr, "%s: strict mode, exiting" % (progname)
-
     # Parse command line arguments.
     parser = argparse.ArgumentParser(description="Clean and upload CSV data to a Mongo database.")
 
@@ -23,6 +20,10 @@ if __name__ == '__main__':
 
     # Use "vars" to get a dictionary of the parsed arguments.
     args = vars(parser.parse_args())
+
+    # Some named values for convenience.
+    progname = sys.argv[0]
+    strict_mode_msg = "%s: strict mode, exiting" % (progname)
 
     # Extract information from command line args.
     host = args['host']
@@ -42,7 +43,7 @@ if __name__ == '__main__':
 
         # Check that the requested action is valid.
         if action not in valid_actions:
-            print >>sys.stderr, "%s: error: invalid action '%s'" % (sys.argv[0], action)
+            print >>sys.stderr, "%s: error: invalid action '%s'" % (progname, action)
             sys.exit(1)
 
         # Install the action into the action table.
@@ -56,14 +57,14 @@ if __name__ == '__main__':
                 actions[field]['date-format'] = args['date_format'][i]
                 i = i + 1
             except IndexError:
-                print >>sys.stderr, "%s: error: not enough date format strings" % (sys.argv[0])
+                print >>sys.stderr, "%s: error: not enough date format strings" % (progname)
                 sys.exit(1)
 
     # Create a connection to the Mongo database.
     try:
         conn = pymongo.Connection(host)
     except pymongo.errors.AutoReconnect as e:
-        print >>sys.stderr, "%s: error: %s" % (sys.argv[0], e.message)
+        print >>sys.stderr, "%s: error: %s" % (progname, e.message)
         sys.exit(1)
 
     # TODO(choudhury): In strict mode, make sure a database of the requested
@@ -92,7 +93,7 @@ if __name__ == '__main__':
             if f not in cols:
                 missing.append(f)
         if len(missing) > 0:
-            print >>sys.stderr, "%s: error: the following action fields were missing from the data file: %s" % (sys.argv[0],", ".join(missing))
+            print >>sys.stderr, "%s: error: the following action fields were missing from the data file: %s" % (progname,", ".join(missing))
             sys.exit(1)
 
     # Begin reading records.
@@ -119,26 +120,26 @@ if __name__ == '__main__':
                     try:
                         record[k] = float(record[k])
                     except ValueError:
-                        print >>sys.stderr, "%s: could not convert field '%s' to floating point value" % (sys.argv[0], record[k])
+                        print >>sys.stderr, "%s: could not convert field '%s' to floating point value" % (progname, record[k])
                         if strict:
-                            strict_mode_msg(sys.argv[0])
+                            print >>sys.stderr, strict_mode_msg
                             sys.exit(1)
                 elif action == 'int':
                     try:
                         record[k] = int(record[k])
                     except ValueError:
-                        print >>sys.stderr, "%s: could not convert field '%s' to floating point value" % (sys.argv[0], record[k])
+                        print >>sys.stderr, "%s: could not convert field '%s' to floating point value" % (progname, record[k])
                         if strict:
-                            strict_mode_msg(sys.argv[0])
+                            print >>sys.stderr, strict_mode_msg
                             sys.exit(1)
                 elif action == 'date':
                     try:
                         datefmt = actions[k]['date-format']
                         record[k] = datetime.datetime.strptime(record[k], datefmt)
                     except ValueError as e:
-                        print >>sys.stderr, "%s: error: could not convert field '%s' to a datetime object: %s" % (sys.argv[0], record[k], e.message)
+                        print >>sys.stderr, "%s: error: could not convert field '%s' to a datetime object: %s" % (progname, record[k], e.message)
                         if strict:
-                            strict_mode_msg(sys.argv[0])
+                            print >>sys.stderr, strict_mode_msg
                             sys.exit(1)
                 else:
                     raise RuntimeError("invalid action '%s' encountered during processing" % (action))
