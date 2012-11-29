@@ -16,6 +16,7 @@ if __name__ == '__main__':
     parser.add_argument("-o", "--output", nargs='?', type=argparse.FileType('w'), default=sys.stdout, help="output file (defaults to stdout")
     parser.add_argument("-c", "--continue", action='store_true', help="continues processing even upon finding a bad line")
     parser.add_argument("-d", "--debug", action='store_true', help="print out each state change (for debugging purposes)")
+    parser.add_argument("--fix-unexpected-eol", action='store_true', help="places a closing quotation mark at end-of-line when one is expected but missing")
 
     args = vars(parser.parse_args())
 
@@ -24,6 +25,7 @@ if __name__ == '__main__':
     outfile = args['output']
     stop = not args['continue']
     debug = args['debug']
+    fix_unexpected_eol = args['fix_unexpected_eol']
 
     # Convenience variable for error messages.
     progname = sys.argv[0]
@@ -75,9 +77,17 @@ if __name__ == '__main__':
                     if debug:
                         print "Changing to state %s" % (state_name[state])
                 elif c == '\n':
-                    state = UNEXPECTED_EOL
-                    if debug:
-                        print "Changing to state %s" % (state_name[state])
+                    if fix_unexpected_eol:
+                        if debug:
+                            print "Repairing unexpected end-of-line with extra quotation mark!"
+                        out = out + '"'
+                        state = UNQUOTED
+                        if debug:
+                            print "Changing to state %s" % (state_name[state])
+                    else:
+                        state = UNEXPECTED_EOL
+                        if debug:
+                            print "Changing to state %s" % (state_name[state])
                 out = out + c
 
             # In the QUOTED_AGAIN state, the next character always brings us to
