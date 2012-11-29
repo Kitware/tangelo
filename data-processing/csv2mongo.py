@@ -1,15 +1,11 @@
 import argparse
 import csv
+import datetime
 import sys
 
 import pymongo
 
 if __name__ == '__main__':
-    # A convenience generator for padding out short arrays.
-    def none_generator():
-        while True:
-            yield None
-
     def strict_mode_msg(progname):
         print >>sys.stderr, "%s: strict mode, exiting" % (progname)
 
@@ -100,12 +96,11 @@ if __name__ == '__main__':
             sys.exit(1)
 
     # Begin reading records.
-    nones = none_generator()
     for row in reader:
         # If there are not enough entries in the row, pad it with None to
         # indicate missing values.
-        if len(row) < len(cols):
-            row.extend(nones)
+        while len(row) < len(cols):
+            row.append(None)
 
         # Construct a dict to describe the row in terms of the headers.
         record = {}
@@ -115,7 +110,10 @@ if __name__ == '__main__':
 
         # Perform the requested operations on the appropriate columns.
         for k in record:
-            if k in actions:
+            # Test whether the data value is None, because if it is, it means it
+            # was filled in by default to represent a missing value in the
+            # original data.  In such a case, there is no need to process it.
+            if k in actions and record[k] != None:
                 action = actions[k]['action']
                 if action == 'float':
                     try:
@@ -135,14 +133,15 @@ if __name__ == '__main__':
                             sys.exit(1)
                 elif action == 'date':
                     try:
-                        record[k] = datetime.datetime.strptime(record[k], action['date-format'])
+                        datefmt = actions[k]['date-format']
+                        record[k] = datetime.datetime.strptime(record[k], datefmt)
                     except ValueError as e:
                         print >>sys.stderr, "%s: error: could not convert field '%s' to a datetime object: %s" % (sys.argv[0], record[k], e.message)
                         if strict:
                             strict_mode_msg(sys.argv[0])
                             sys.exit(1)
                 else:
-                    raise RuntimeError("invalid action '%s' encountered during processing")
+                    raise RuntimeError("invalid action '%s' encountered during processing" % (action))
 
         print record
 
