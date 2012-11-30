@@ -1,0 +1,19 @@
+/* General styling for the whole website */
+body {
+    font-family: 'Marcellus', Serif;
+    background: #bcb;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'EB Garamond', Serif;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+h3 {
+    text-align: left;
+}
