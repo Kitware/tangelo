@@ -27,6 +27,9 @@ class Server(object):
         # other modules.
         cherrypy.response.headers['Content-type'] = 'text/plain'
 
+        # TODO(choudhury): for reporting errors, construct a response container
+        # to stuff the message in, as the service modules themselves do.
+        #
         # Construct import statement.
         import_string = "import modules.%s" % (module)
         try:
@@ -34,17 +37,21 @@ class Server(object):
         except ImportError:
             return "Error: no such module '%s'" % (module)
 
-        # Construct a Handler object from the module.
-        try:
-            handler = eval("modules.%s.Handler()" % (module))
-        except AttributeError:
+        # Report an error if the module has no Handler object.
+        m = eval("modules.%s" % (module))
+        if 'Handler' not in dir(m):
             return "Error: no Handler class defined in module '%s'" % (module)
+
+        # Construct a Handler object from the imported module.
+        handler = m.Handler()
+
+        # Report an error if the Handler object has no go() method.
+        if 'go' not in dir(handler):
+            return "Error: no method go() defined in class 'Handler' in module '%s'" % (module)
 
         # Call the go() method of the handler object, passing it the positional
         # and keyword args that came into this method.
         try:
             return handler.go(*pargs, **kwargs)
-        except AttributeError:
-            return "Error: no method go() defined in class Handler in module '%s'" % (module)
-        except TypeError as e:
-            return "Error: " + str(e)
+        except Exception as e:
+            return "Error: %s: %s" % (e.__class__.__name__, e.message)
