@@ -120,6 +120,22 @@ function processFile(filename, id){
 // being processed.
 function processFileContents(filename, id, file_hash){
     return function(response){
+        // Check the error code in the AJAX response.  If there is an error,
+        // write the error message in the information window and abort the
+        // operation.
+        if(response.error !== null){
+            d3.select("#file-info")
+                .append("li")
+                .classed("error", true)
+                .html(response.error)
+                .style("opacity", 0.0)
+                .transition()
+                .duration(1000)
+                .style("opacity", 1.0);
+
+            return;
+        }
+
         // Extract the actual result from the response object.
         var entities = response.result;
 
@@ -143,7 +159,8 @@ function processFileContents(filename, id, file_hash){
                 dataType: 'json',
                 success: function(resp){
                     // If there was an error, continue anyway, as the failure
-                    // would be in writing an entry to the database.
+                    // would be in writing an entry to the database, and we
+                    // already have the data in hand.
                     if(resp.error !== null){
                         console.log("error: " + resp.error);
 /*                        d3.select("#file-info")*/
