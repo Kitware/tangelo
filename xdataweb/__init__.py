@@ -27,8 +27,6 @@ class Server(object):
         # other modules.
         cherrypy.response.headers['Content-type'] = 'text/plain'
 
-        response = ""
-
         # Construct import statement.
         import_string = "import modules.%s" % (module)
         try:
