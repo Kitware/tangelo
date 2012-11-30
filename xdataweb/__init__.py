@@ -1,6 +1,16 @@
 import cherrypy
+import json
 import sys
-import xdataweb
+
+# This function defines the structure of a service response.  Each service
+# module should import this function from this package.
+#
+# The payload is contained in the 'result' field, while the 'error' field can
+# indicate that something went wrong.  Posibly more fields could be added in the
+# future.
+def empty_response():
+    return {'result' : None,
+            'error' : None}
 
 # 'current_dir' is used by the CherryPy config file to set the root for static
 # file service.
@@ -24,31 +34,36 @@ class Server(object):
         # other modules.
         cherrypy.response.headers['Content-type'] = 'text/plain'
 
-        # TODO(choudhury): for reporting errors, construct a response container
-        # to stuff the message in, as the service modules themselves do.
-        #
+        # Construct a response container for reporting possible errors, as the
+        # service modules themselves do.
+        response = empty_response()
+
         # Construct import statement.
         import_string = "import modules.%s" % (module)
         try:
             exec(import_string)
         except ImportError:
-            return "Error: no such module '%s'" % (module)
+            response['error'] = "xdataweb: error: no such module '%s'" % (module)
+            return json.dumps(response)
 
         # Report an error if the module has no Handler object.
         m = eval("modules.%s" % (module))
         if 'Handler' not in dir(m):
-            return "Error: no Handler class defined in module '%s'" % (module)
+            response['error'] = "xdataweb: error: no Handler class defined in module '%s'" % (module)
+            return json.dumps(response)
 
         # Construct a Handler object from the imported module.
         handler = m.Handler()
 
         # Report an error if the Handler object has no go() method.
         if 'go' not in dir(handler):
-            return "Error: no method go() defined in class 'Handler' in module '%s'" % (module)
+            response['error'] = "xdataweb: error: no method go() defined in class 'Handler' in module '%s'" % (module)
+            return json.dumps(response)
 
         # Call the go() method of the handler object, passing it the positional
         # and keyword args that came into this method.
         try:
             return handler.go(*pargs, **kwargs)
         except Exception as e:
-            return "Error: %s: %s" % (e.__class__.__name__, e.message)
+            response['error'] = "xdataweb: error: %s: %s" % (e.__class__.__name__, e.message)
+            return json.dumps(response)

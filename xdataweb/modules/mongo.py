@@ -1,7 +1,8 @@
 import pymongo
 import bson.json_util
 import json
-import lib.util
+
+from xdataweb import empty_response
 
 class Handler:
     def __init__(self):
@@ -9,7 +10,7 @@ class Handler:
 
     def go(self, dbname, collname, file_hash=None, data=None):
         # Construct an empty response object.
-        response = lib.util.empty_response();
+        response = empty_response();
 
         # If no schema was passed in, give an error.
         #

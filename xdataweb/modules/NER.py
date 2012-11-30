@@ -2,13 +2,14 @@ import cherrypy
 import nltk
 import nltk.chunk.named_entity
 import json
-import lib.util
+
+from xdataweb import empty_response
 
 # This service performs named entity recognition on input text.
 class Handler:
     def go(self, text=""):
         # Create an empty result container.
-        response = lib.util.empty_response();
+        response = empty_response();
         response['result'] = [];
 
         # If nothing passed in, return an empty result.
