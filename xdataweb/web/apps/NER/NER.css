@@ -1,22 +1,6 @@
-/* Directives for general styling - greenish background, nice serif font for
- * text, really nice serif font for headers.  *
- */
+/* Minimal text in this app, so center it by default */
 body {
-    font-family: 'Marcellus', Serif;
-    background: #bcb;
     text-align: center;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-h1, h2 {
-    font-family: 'EB Garamond', Serif;
-    text-align: center;
-}
-
-h3 {
-    font-family: 'EB Garamond', Serif;
-    text-align: left;
 }
 
 .nomargin {
