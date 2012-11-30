@@ -10,4 +10,4 @@ if [ -f "${pidfile}" ]; then
 fi
 
 cd "$dir"
-cherryd2 -d -i xdataweb -c server.conf -p "${pidfile}"
+cherryd2 -d -i xdataweb -c server.conf -p "${pidfile}" -P "${dir}/xdataweb"

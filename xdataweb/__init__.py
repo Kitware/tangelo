@@ -2,13 +2,10 @@ import cherrypy
 import sys
 import xdataweb
 
-# current_dir is used by the CherryPy config file to set the root for static
-# file service; sys.path is extended with this path to prevent
-# daemonization of this server (which changes the CWD to "/") from interfering
-# with dynamic module loading.
+# 'current_dir' is used by the CherryPy config file to set the root for static
+# file service.
 import os.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(current_dir)
 
 class Server(object):
     @cherrypy.expose
