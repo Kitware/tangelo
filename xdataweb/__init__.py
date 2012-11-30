@@ -20,10 +20,9 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 class Server(object):
     @cherrypy.expose
     def index(self):
-        return """<!doctype html>
-<meta charset=utf-8>
-<h1>XDATA Web (running over CherryPy)</h1>"""
-    
+        # Redirect the user to the actual front page.
+        raise cherrypy.HTTPRedirect("/index.html")
+
     @cherrypy.expose
     def service(self, module, *pargs, **kwargs):
         # TODO(choudhury): This method should attempt to load the named module, then invoke it
