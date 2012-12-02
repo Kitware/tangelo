@@ -20,6 +20,7 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--verbose", action='store_true', help="Print out records as they are processed")
     parser.add_argument("-w", "--warning", action='store_true', help="Print out warnings when they occur")
     parser.add_argument("-p", "--progress", type=int, default=0, help="Print out progress reports at intervals")
+    parser.add_argument("-b", "--bundle-size", type=int, default=1, help="Collect several records for uploading to server all together")
 
     # Use "vars" to get a dictionary of the parsed arguments.
     args = vars(parser.parse_args())
@@ -38,6 +39,7 @@ if __name__ == '__main__':
     verbose = args['verbose']
     warning = args['warning']
     progress = args['progress']
+    bundle_size = args['bundle_size']
 
     # Construct a map directing how to process each field of the CSV file.
     valid_actions = ['float', 'int', 'date']
@@ -105,6 +107,7 @@ if __name__ == '__main__':
 
     # Begin reading records.
     count = 0
+    bundle = []
     for row in reader:
         # If there are not enough entries in the row, pad it with None to
         # indicate missing values.
@@ -158,13 +161,23 @@ if __name__ == '__main__':
         if verbose:
             print record
 
-        # Now that the dictionary object is prepped, place it in the database.
-        c.insert(record)
+        # Store the record in the current bundle.
+        bundle.append(record)
+
+        # If the bundle is full, upload it to the server.
+        if len(bundle) == bundle_size:
+            c.insert(bundle)
+            bundle = []
 
         # Print a progress report, if requested.
         count = count + 1
         if progress > 0 and count % progress == 0:
             print >>sys.stderr, "%d records processed" % (count)
+
+    # If at the end of processing there are any stray records left in a bundle,
+    # upload them now.
+    if len(bundle) > 0:
+        c.insert(bundle)
 
     # Print a final count of the number of records processed.
     if progress > 0:
