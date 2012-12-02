@@ -43,28 +43,29 @@ if __name__ == '__main__':
     valid_actions = ['float', 'int', 'date']
     i = 0
     actions = {}
-    for a in args['action']:
-        field = a[0]
-        action = a[1]
+    if args['action'] is not None:
+        for a in args['action']:
+            field = a[0]
+            action = a[1]
 
-        # Check that the requested action is valid.
-        if action not in valid_actions:
-            print >>sys.stderr, "%s: error: invalid action '%s'" % (progname, action)
-            sys.exit(1)
-
-        # Install the action into the action table.
-        actions[field] = {'action' : action}
-
-        # If a field is specified as a date, grab the next date format string
-        # supplied by the user; bail out with an error if there are no more date
-        # format strings.
-        if action == 'date':
-            try:
-                actions[field]['date-format'] = args['date_format'][i]
-                i = i + 1
-            except IndexError:
-                print >>sys.stderr, "%s: error: not enough date format strings" % (progname)
+            # Check that the requested action is valid.
+            if action not in valid_actions:
+                print >>sys.stderr, "%s: error: invalid action '%s'" % (progname, action)
                 sys.exit(1)
+
+            # Install the action into the action table.
+            actions[field] = {'action' : action}
+
+            # If a field is specified as a date, grab the next date format string
+            # supplied by the user; bail out with an error if there are no more date
+            # format strings.
+            if action == 'date':
+                try:
+                    actions[field]['date-format'] = args['date_format'][i]
+                    i = i + 1
+                except IndexError:
+                    print >>sys.stderr, "%s: error: not enough date format strings" % (progname)
+                    sys.exit(1)
 
     # Create a connection to the Mongo database.
     try:
