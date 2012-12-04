@@ -74,8 +74,16 @@ class Server(object):
         # Redirect to the appropriately named configuration page, or to a "no
         # configuration" information page if it doesn't exist.
         try:
-            return open(current_dir + "/config/%s.html" % (module)).read()
-        except IOError:
+            # Test whether the requested config app file exists.
+            target = current_dir + "/config/%s.html" % (module)
+            os.stat(target)
+
+            # Redirect to the config app page.
+            raise cherrypy.HTTPRedirect(target)
+        except OSError:
             # This code path means the configuration webpage doesn't exist.
+            #
+            # TODO(choudhury): a templating engine would be useful here; look
+            # into Jinja2 (recommended by DJ Deo).
             notfound_text = open(current_dir + "/config/notfound.html").read().replace("[APPNAME]", module)
             return notfound_text
