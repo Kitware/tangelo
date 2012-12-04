@@ -8,6 +8,9 @@ function update(){
     // Store the object in DOM storage.
     console.log("updating with: " + JSON.stringify(config));
     localStorage.setItem('NER', JSON.stringify(config)); 
+
+    // TODO(choudhury):  The page should either reload here, or else the
+    // "current" values should all be updated.
 }
 
 window.onload = function(){
