@@ -2,6 +2,9 @@
 // onready method, as it depends on elements being loaded in the page.
 var graph = null;
 
+// This will be read in upon page load.
+var config = null;
+
 // Top-level container object for this js file.
 var NER = {};
 
@@ -313,6 +316,12 @@ function handleFileSelect(evt){
 }
 
 window.onload = function(){
+    // Read in the configuration parameters.
+    config = JSON.parse(localStorage['NER'] || "{}");
+    config['mongodb-server'] = config['mongodb-server'] || 'localhost';
+
+    console.log("mongodb-server: " + config['mongodb-server']);
+
     graph = (function(){
         // Duration of fade-in/fade-out transitions.
         var fade_time = 500;
