@@ -75,8 +75,8 @@ class Server(object):
         # configuration" information page if it doesn't exist.
         try:
             # Test whether the requested config app file exists.
-            target = current_dir + "/config/%s.html" % (module)
-            os.stat(target)
+            target = "/config/%s.html" % (module)
+            os.stat(current_dir + target)
 
             # Redirect to the config app page.
             raise cherrypy.HTTPRedirect(target)
