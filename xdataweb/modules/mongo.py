@@ -5,10 +5,7 @@ import json
 from xdataweb import empty_response
 
 class Handler:
-    def __init__(self):
-        self.conn = None
-
-    def go(self, dbname, collname, file_hash=None, data=None):
+    def go(self, servername, dbname, collname, file_hash=None, data=None):
         # Construct an empty response object.
         response = empty_response();
 
@@ -19,22 +16,15 @@ class Handler:
             response['error'] = "no file hash"
             return bson.json_util.dumps(response)
 
-        # Try to establish a connection to the MongoDB server.
-        #
-        # TODO(choudhury): currently this assumes the server is running on the
-        # same host, on the default port (27017).  This choice should be
-        # passable to this class, or some other service.
-        if self.conn == None:
-            try:
-                self.conn = pymongo.Connection()
-            except pymongo.errors.AutoReconnect as e:
-                # TODO(choudhury): the error codes should somehow be more
-                # standardized.
-                response['error'] = "could not connect to mongo database"
-                return bson.json_util.dumps(response)
+        # Establish a connection to the MongoDB server.
+        try:
+            conn = pymongo.Connection(servername)
+        except pymongo.errors.AutoReconnect as e:
+            response['error'] = "error: %s" % (e.message)
+            return bson.json_util.dumps(response)
 
         # Extract the requested database and collection.
-        db = self.conn[dbname]
+        db = conn[dbname]
         coll = db[collname]
 
         # If no data field was specified, treat this as a read request;
