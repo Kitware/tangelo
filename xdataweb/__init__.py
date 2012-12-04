@@ -66,3 +66,16 @@ class Server(object):
         except Exception as e:
             response['error'] = "xdataweb: error: %s: %s" % (e.__class__.__name__, e.message)
             return json.dumps(response)
+
+    @cherrypy.expose
+    def config(self, module, *pargs, **kwargs):
+        cherrypy.response.headers['Content-type'] = 'text/html'
+
+        # Redirect to the appropriately named configuration page, or to a "no
+        # configuration" information page if it doesn't exist.
+        try:
+            return open(current_dir + "/config/%s.html" % (module)).read()
+        except IOError:
+            # This code path means the configuration webpage doesn't exist.
+            notfound_text = open(current_dir + "/config/notfound.html").read().replace("[APPNAME]", module)
+            return notfound_text
