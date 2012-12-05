@@ -5,7 +5,7 @@ import sys
 
 import pymongo
 
-if __name__ == '__main__':
+def main():
     # Parse command line arguments.
     parser = argparse.ArgumentParser(description="Clean and upload CSV data to a Mongo database.")
 
@@ -162,7 +162,12 @@ if __name__ == '__main__':
     # Check that action fields all exist, if requested.
     if strict:
         missing = []
-        for f in convert.keys() + date.keys() + location.keys() + hashtag.keys() + list(drop):
+        if location is not None:
+            all_fields = convert.keys() + date.keys() + [location['latfield'], location['longfield']] + hashtag.keys() + list(drop)
+        else:
+            all_fields = convert.keys() + date.keys() + hashtag.keys() + list(drop)
+
+        for f in all_fields:
             if f not in cols:
                 missing.append(f)
 
@@ -297,3 +302,6 @@ if __name__ == '__main__':
     # Print a final count of the number of records processed.
     if progress > 0:
         print >>sys.stderr, "complete - %d records processed" % (count)
+
+if __name__ == '__main__':
+    main()
