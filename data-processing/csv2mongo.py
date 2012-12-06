@@ -116,7 +116,7 @@ def main():
         hashtag[field] = name
 
     # Drop fields.
-    drop = set()
+    drop = []
     # Add the fields to the drop field set.
     for a in drop_fields:
         # Make sure the field doesn't appear in any data conversion
@@ -131,7 +131,7 @@ def main():
             sys.exit(1)
 
         # Place the field name in the drop table.
-        drop.add(a)
+        drop.append(a)
 
     # Create a connection to the Mongo database.
     try:
@@ -266,10 +266,10 @@ def main():
                     # first character being a hashmark.
                     record[hashfield] = filter(lambda x: x[0] == '#', record[k].split())
 
-                # Now that the other processing is done, drop the field from the
-                # record if requested.
-                if k in drop:
-                    del record[k]
+        # Now that the other processing is done, drop the requested fields from
+        # the record before continuiing.
+        for k in drop:
+            del record[k]
 
         if verbose:
             print record
