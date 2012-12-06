@@ -85,5 +85,5 @@ class Server(object):
             #
             # TODO(choudhury): a templating engine would be useful here; look
             # into Jinja2 (recommended by DJ Deo).
-            notfound_text = open(current_dir + "/config/notfound.html").read().replace("[APPNAME]", module)
+            notfound_text = open(current_dir + "/web/config/notfound.html").read().replace("[APPNAME]", module)
             return notfound_text
