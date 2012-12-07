@@ -49,14 +49,8 @@ window.onload = function(){
             .attr("width", this.container.offsetWidth)
             .attr("height", this.container.offsetHeight);
 
-        // Just for fun add a circle to the SVG element.
-        svg.append("circle")
-            .style("fill", "pink")
-            .style("fill-opacity", 0.6)
-            .style("stroke", "red")
-            .attr("cx", this.container.offsetWidth/2)
-            .attr("cy", this.container.offsetHeight/2)
-            .attr("r", 25);
+        svg.append("g")
+            .attr("id", "markers");
 
         // Record the SVG element in the object for later use.
         this.overlay = svg.node();
@@ -65,15 +59,40 @@ window.onload = function(){
     // draw() sizes and places the overlaid SVG element.
     GMap.prototype.draw = function(){
         console.log("draw()!");
+
+        // Just for fun add some circles to the SVG element.
+        var markers = d3.select(this.overlay).select("#markers");
+        markers.selectAll("circle")
+            .remove();
+
+        var that = this;
+        markers.selectAll("circle")
+            .data([1,2,3,4,5,6])
+            .enter()
+            .append("circle")
+            .style("fill", "pink")
+            .style("fill-opacity", 0.6)
+            .style("stroke", "red")
+            .style("opacity", 0.0)
+            .attr("cx", function() { return Math.random() * that.container.offsetWidth; })
+            .attr("cy", function() { return Math.random() * that.container.offsetHeight; })
+            .attr("r", 25)
+            .transition()
+            .duration(500)
+            .style("opacity", 1.0);
     }
 
     // onRemove() destroys the overlay when it is no longer needed.
     GMap.prototype.onRemove = function(){
+        // TODO(choudhury): implement this function by removing the SVG element
+        // from the pane.
         console.log("onRemove()!");
 
     }
 
     GMap.prototype.locations = function(locs){
+        // TODO(choudhury): This function should load the lat/long data in
+        // 'locs' into a property, for drawing as markers later.
         $.each(locs, function(value,index){
             console.log(index + ": " + value);
         });
