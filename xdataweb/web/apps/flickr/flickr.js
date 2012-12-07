@@ -1,3 +1,17 @@
+flickr = {};
+flickr.map = null;
+
+function getLocations(){
+    // TODO(choudhury): replace the following line with code to collect together
+    // the filtering operations from the various UI elements on the page, then
+    // issue a database search command to retrieve the appropriate location
+    // data.
+    flickr.map.locations([10, 20, 30]);
+
+    // After data is reloaded to the map-overlay object, redraw the map.
+    flickr.map.draw();
+}
+
 function GMap(elem, options){
     // Create the map object and place it into the specified container element.
     var map = new google.maps.Map(elem, options);
@@ -11,13 +25,12 @@ function GMap(elem, options){
     this.overlay = null;
 
     this.setMap(map);
-    return {
-        map: map,
-        overlay: this.overlay
-    };
 }
 
 window.onload = function(){
+    // TODO(choudhury): Probably the GMap prototype extension stuff should all
+    // go in its own .js file.
+    //
     // Equip ourselves with the overlay prototype.
     GMap.prototype = new google.maps.OverlayView();
 
@@ -60,6 +73,15 @@ window.onload = function(){
 
     }
 
+    GMap.prototype.locations = function(locs){
+        $.each(locs, function(value,index){
+            console.log(index + ": " + value);
+        });
+    }
+
+    // Attach an action to the "data" button.
+    d3.select("#data-button").node().onclick = getLocations;
+
     // Some options for initializing the google map.
     var options = {
         zoom: 3,
@@ -67,5 +89,5 @@ window.onload = function(){
         mapTypeId: google.maps.MapTypeId.ROADMAP
     };
     var div = d3.select("#map").node();
-    var map = new GMap(div, options);
+    flickr.map = new GMap(div, options);
 }
