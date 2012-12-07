@@ -13,46 +13,49 @@
 <link href=/xdataweb.css rel=stylesheet type=text/css>
 <!--<link href=flickr.css rel=stylesheet type=text/css>-->
 
-<title>Flickr Metadata Maps</title>
-
-<h1>Flickr Metadata Maps</h1>
-
-<p class=centered><a href="/config/flickr" target=_blank>[Configure this app]</a>
-
-<div id="map" style="margin-left:auto; margin-right:auto; width: 80%; height: 500px;"></div>
-
 <style type=text/css>
     td {
         vertical-align: top;
-        border: solid black 1px;
+        text-align: left;
+        //border: solid black 1px;
     }
 </style>
 
+<title>Flickr Metadata Maps</title>
+<h1>Flickr Metadata Maps</h1>
+<p class=centered><a href="/config/flickr" target=_blank>[Configure this app]</a>
+
+<!--<div id="map" style="margin-left:auto; margin-right:auto; width: 80%; height: 500px;"></div>-->
+<div id="map" class=centered style="width:80%; height:500px;"></div>
+
 <table class=centered style="width:70%;">
     <tr>
-        <th></th>
-        <th></th>
-        <th></th>
-    </tr>
-    <tr>
-        <td>
+        <td style="width:33%">
             <h3>Time filter</h3>
             <div id="time-slider"></div>
             <div id="low">0</div>
             <div id="high">0</div>
         </td>
 
-<!--        <td>-->
-            <!--<h3>Space filter</h3>-->
-            <!--<p>Shift click-and-drag to create a rectangular area.<br>-->
-            <!--Ctrl click-and-drag for a circular area.-->
-        <!--</td>-->
-
-        <td>
+        <td style="width:33%">
             <h3>Hashtag filter</h3>
-            <input id=hashtags type=textarea>
+            <textarea id=hashtags rows=4 cols=30>Type in hashtags to filter by here.
+            </textarea>
+        </td>
+
+        <td style="width:33%">
+            <h3>Space filter</h3>
+            <ul>
+                <li>Shift click-and-drag to create a rectangular area.
+                <li>Ctrl click-and-drag for a circular area.
+            </ul>
+        </td>
+    </tr>
+
+    <tr>
+        <td class=centered colspan=3>
+            <input type=button id="data-button" value="Update">
         </td>
     </tr>
 </table>
 
-<input type=button id="data-button" value="Data">
