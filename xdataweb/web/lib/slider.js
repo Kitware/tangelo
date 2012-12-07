@@ -23,29 +23,38 @@ function sliderInit(sliderId, displayId, callback){
     };
 }
 
-function rangeSliderInit(sliderId, lowDisplayId, highDisplayId, callback){
-    var slider = $("#" + sliderId);
-    var lowDisplay = d3.select("#" + lowDisplayId);
-    var highDisplay = d3.select("#" + highDisplayId);
+function rangeSlider(slider, callbacks){
+    // Make the slider element into a jQuery selection.
+    var slider = $(slider);
 
+    // Capture the two callbacks (if these were not specified, they will be
+    // captured as "undefined").
+    var onchange = callbacks.onchange;
+    var onslide = callbacks.onslide;
+
+    // Set up a basic configuration that simply calls the user-supplied
+    // callbacks.
     var config = {
         range: true,
+
         change: function(e, ui){
-            if(callback){
-                callback(ui.values[0], ui.values[1]);
+            if(onchange){
+                onchange(ui.values[0], ui.values[1]);
             }
         },
 
         slide: function(e, ui){
-            lowDisplay.html(ui.values[0]);
-            highDisplay.html(ui.values[1]);
+            if(onslide){
+                onslide(ui.values[0], ui.values[1]);
+            }
         }
     };
 
+    // Return the user an interface object.
     return {
-        setConfig: function() { slider.slider(config); },
-        setMin: function(min) { config.min = min; },
-        setMax: function(max) { config.max = max; },
+        initialize: function() { slider.slider(config); },
+        setMin: function(min) { config.min = min; slider.slider(config); },
+        setMax: function(max) { config.max = max; slider.slider(config); },
         getValue: function() { return slider.slider("values"); }
     };
 }

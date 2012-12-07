@@ -99,8 +99,19 @@ window.onload = function(){
     }
 
     // Create a range slider for slicing by time.
-    var timeslider = rangeSliderInit("time-slider", "low", "high");
-    timeslider.setConfig();
+    var timeslider = rangeSlider(d3.select("#time-slider").node(),
+            {
+                onslide: (function(){
+                    var lowdiv = d3.select("#low");
+                    var highdiv = d3.select("#high");
+
+                    return function(low, high){
+                        lowdiv.html(low);
+                        highdiv.html(high);
+                    };
+                })()
+            });
+    timeslider.initialize();
 
     // Attach an action to the "data" button.
     d3.select("#data-button").node().onclick = getLocations;
