@@ -629,8 +629,23 @@ window.onload = function(){
     })();
 
     // Initialize the slider for use in filtering.
-    NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.recompute(v); graph.render(); });
-    NER.nodeSlider.setConfig();
+    NER.nodeSlider = slider(d3.select("#slider").node(),
+            {
+                onchange: function(v) {
+                    graph.recompute(v);
+                    graph.render();
+                },
+
+                onslide: (function(){
+                    var display = d3.select("#value");
+
+                    return function(v){
+                        display.html(v);
+                    };
+                })()
+            });
+    NER.nodeSlider.setMax(10);
+    NER.nodeSlider.initialize();
 
     // Bootstrap showing the slider value here (none of the callbacks in the
     // slider API help).
