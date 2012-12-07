@@ -4,13 +4,13 @@ body {
     background: #bcb;
 
     /* TODO(choudhury): Should "body" be centered like this by default? */
-    text-align: center;
-    margin-left: auto;
-    margin-right: auto;
+/*    text-align: center;*/
+    /*margin-left: auto;*/
+    /*margin-right: auto;*/
 }
 
 .centered {
-    text-align: center;
+    /*text-align: center;*/
     margin-left: auto;
     margin-right: auto;
 }
