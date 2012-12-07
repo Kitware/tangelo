@@ -629,29 +629,6 @@ window.onload = function(){
     })();
 
     // Initialize the slider for use in filtering.
-    var sliderInit = function(sliderId, displayId, callback){
-        var slider = $("#" + sliderId);
-        var display = d3.select("#" + displayId);
-
-        var config = {
-            change: function(e, ui){
-                if(callback){
-                    callback(ui.value);
-                }
-            },
-
-            slide: function(e, ui){
-                display.html(ui.value);
-            }
-        };
-
-        return {
-            setConfig: function() { slider.slider(config); },
-            setMax: function(max) { config.max = max; },
-            getValue: function() { return slider.slider("value"); }
-        };
-    };
-
     NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.recompute(v); graph.render(); });
     NER.nodeSlider.setConfig();
 
