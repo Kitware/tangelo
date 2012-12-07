@@ -1,0 +1,51 @@
+<!doctype html>
+<meta charset=utf-8>
+<link href="/xdataweb.css" rel=stylesheet type=text/css>
+<link href='http://fonts.googleapis.com/css?family=Marcellus|EB+Garamond|Inconsolata' rel='stylesheet' type='text/css'>
+
+<script type="text/javascript" src="http://d3js.org/d3.v2.min.js"></script>
+
+<script src=flickr-config.js type=text/javascript></script>
+
+<title>Configuration App for Flickr Maps</title>
+
+<h1>Configure Flickr Maps</h1>
+
+<table class="centered">
+    <tr>
+        <th>Option</th>
+        <th>Current Value</th>
+        <th>New value</th>
+    </tr>
+
+    <tr>
+        <td>MongoDB Server</td>
+        <td id=mongodb-server-current></td>
+        <td>
+            <input id=mongodb-server type=text>
+        </td>
+    </tr>
+
+    <tr>
+        <td>MongoDB Database</td>
+        <td id=mongodb-db-current></td>
+        <td>
+            <input id=mongodb-db type=text>
+        </td>
+    </tr>
+
+    <tr>
+        <td>MongoDB Collection</td>
+        <td id=mongodb-coll-current></td>
+        <td>
+            <input id=mongodb-coll type=text>
+        </td>
+    </tr>
+
+    <tr>
+        <td colspan=3>
+            <input type=button value="Save Configuration" onclick="update();">
+            <input type=button value="Close" onclick="window.close();">
+        </td>
+    </tr>
+</table>
