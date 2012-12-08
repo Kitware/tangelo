@@ -39,7 +39,7 @@ class Handler:
         try:
             c = pymongo.Connection(server)[db][coll]
         except pymongo.errors.AutoReconnect:
-            response['error'] = "Could not connection to MongoDB server '%s'" % (server)
+            response['error'] = "Could not connect to MongoDB server '%s'" % (server)
             return xdataweb.dumps(response)
 
         # Perform the requested action.
