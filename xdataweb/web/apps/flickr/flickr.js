@@ -1,6 +1,43 @@
 flickr = {};
 flickr.map = null;
 
+flickr.getMongoDBInfo = function(){
+    // Read in the config options regarding which MongoDB
+    // server/database/collection to use.
+    return { server: localStorage.getItem('flickr:mongodb-server') || 'localhost',
+             db: localStorage.getItem('flickr:mongodb-db') || 'xdata',
+             coll: localStorage.getItem('flickr:mongodb-coll') || 'flickr_paris' };
+}
+
+function getMinMaxDates(){
+    var mongo = flickr.getMongoDBInfo();
+
+    // Query the collection about the earliest and latest dates in the
+    // collection.
+    $.ajax({
+        type: 'POST',
+        url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
+        data: {
+            sort: JSON.stringify([['date', 1]]),
+            limit: 1,
+            fields: JSON.stringify(['date'])
+        },
+        dataType: 'json',
+        success: function(response){
+            // Error checking.
+            if(response.error !== null){
+                d3.select('#low')
+                    .classed("error", true)
+                    .html("Error!");
+                d3.select('#high')
+                    .classed("error", true)
+                    .html(response.error);
+                return;
+           }
+        }
+    });
+}
+
 function getLocations(){
     // TODO(choudhury): replace the following line with code to collect together
     // the filtering operations from the various UI elements on the page, then
@@ -124,4 +161,8 @@ window.onload = function(){
     };
     var div = d3.select("#map").node();
     flickr.map = new GMap(div, options);
+
+    // Get the earliest and latest times in the database, to create a suitable
+    // range for the time slider.
+    getMinMaxDates();
 }
