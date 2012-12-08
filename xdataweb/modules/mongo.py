@@ -11,7 +11,7 @@ def decode(s, argname, resp):
         raise
 
 class Handler:
-    def go(self, server, db, coll, method='find', query=None, limit=1000, fields=None):
+    def go(self, server, db, coll, method='find', query=None, limit=1000, fields=None, sort=None):
         # Create an empty response object.
         response = xdataweb.empty_response()
 
@@ -24,6 +24,7 @@ class Handler:
         try:
             if query is not None: query = decode(query, 'query', response)
             if fields is not None: fields = decode(fields, 'fields', response)
+            if sort is not None: sort = decode(sort, 'sort', response)
         except ValueError:
             return xdataweb.dumps(response)
 
@@ -44,7 +45,7 @@ class Handler:
         # Perform the requested action.
         if method == 'find':
             # Do a find operation with the passed arguments.
-            it = c.find(spec=query, fields=fields, limit=limit)
+            it = c.find(spec=query, fields=fields, limit=limit, sort=sort)
 
             # Create a list of the results.
             results = [x for x in it]
