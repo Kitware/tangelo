@@ -33,7 +33,44 @@ function getMinMaxDates(){
                     .classed("error", true)
                     .html(response.error);
                 return;
-           }
+            }
+
+            // Write the time in the proper slot.
+            console.log(response.result);
+            var early = +response.result[0]['date']['$date'];
+            console.log(early);
+            d3.select('#low')
+                .html(String(new Date(early)));
+        }
+    });
+
+    $.ajax({
+        type: 'POST',
+        url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
+        data: {
+            sort: JSON.stringify([['date', -1]]),
+            limit: 1,
+            fields: JSON.stringify(['date'])
+        },
+        dataType: 'json',
+        success: function(response){
+            // Error checking.
+            if(response.error !== null){
+                d3.select('#low')
+                    .classed("error", true)
+                    .html("Error!");
+                d3.select('#high')
+                    .classed("error", true)
+                    .html(response.error);
+                return;
+            }
+
+            // Write the time in the proper slot.
+            console.log(response.result);
+            var late = +response.result[0]['date']['$date'];
+            console.log(late);
+            d3.select('#high')
+                .html(String(new Date(late)));
         }
     });
 }
