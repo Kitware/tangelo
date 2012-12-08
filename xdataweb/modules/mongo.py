@@ -27,6 +27,13 @@ class Handler:
         except ValueError:
             return xdataweb.dumps(response)
 
+        # Cast the limit value to an int.
+        try:
+            limit = int(limit)
+        except ValueError:
+            response['error'] = "Argument 'limit' ('%s') could not be converted to int." % (limit)
+            return xdataweb.dumps(response)
+
         # Create database connection.
         try:
             c = pymongo.Connection(server)[db][coll]
