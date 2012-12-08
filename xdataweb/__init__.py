@@ -1,3 +1,4 @@
+import bson.json_util
 import cherrypy
 import json
 import sys
@@ -11,6 +12,11 @@ import sys
 def empty_response():
     return {'result' : None,
             'error' : None}
+
+# A convenience function to use in the modules - this avoids having to import
+# the bson module everywhere.
+def dumps(r):
+    return bson.json_util.dumps(r)
 
 # 'current_dir' is used by the CherryPy config file to set the root for static
 # file service.
