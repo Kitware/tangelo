@@ -318,10 +318,6 @@ function handleFileSelect(evt){
 }
 
 window.onload = function(){
-    // Read in the configuration parameters.
-    config = JSON.parse(localStorage['NER'] || "{}");
-    config['mongodb-server'] = config['mongodb-server'] || 'localhost';
-
     graph = (function(){
         // Duration of fade-in/fade-out transitions.
         var fade_time = 500;
