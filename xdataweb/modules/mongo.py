@@ -3,6 +3,13 @@ import pymongo
 
 import xdataweb
 
+def decode(s, argname, resp):
+    try:
+        return json.loads(s)
+    except ValueError as e:
+        resp['error'] = e.message + " (argument '%s' was '%s')" % (argname, s)
+        raise
+
 class Handler:
     def go(self, server, db, coll, method='find', query=None, limit=1000, fields=None):
         # Create an empty response object.
@@ -13,13 +20,12 @@ class Handler:
             response['error'] = "Unsupported MongoDB operation '%s'" % (method)
             return xdataweb.dumps(response)
 
-        # Decode the query string into a Python dictionary.
-        if query is not None:
-            try:
-                query = json.loads(query)
-            except ValueError as e:
-                response['error'] = e.message + " (query was '%s')" % (query)
-                return xdataweb.dumps(response)
+        # Decode the query strings into Python objects.
+        try:
+            if query is not None: query = decode(query, 'query', response)
+            if fields is not None: fields = decode(fields, 'fields', response)
+        except ValueError:
+            return xdataweb.dumps(response)
 
         # Create database connection.
         try:
