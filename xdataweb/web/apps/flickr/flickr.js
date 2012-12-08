@@ -24,23 +24,13 @@ function getMinMaxDates(){
         },
         dataType: 'json',
         success: function(response){
-            // Error checking.
             if(response.error !== null){
-                d3.select('#low')
-                    .classed("error", true)
-                    .html("Error!");
-                d3.select('#high')
-                    .classed("error", true)
-                    .html(response.error);
-                return;
+                // Error condition.
+                console.log("error: could not get minimum time value from database.");
             }
-
-            // Write the time in the proper slot.
-            console.log(response.result);
-            var early = +response.result[0]['date']['$date'];
-            console.log(early);
-            d3.select('#low')
-                .html(String(new Date(early)));
+            else{
+                flickr.timeslider.setMin(+response.result[0]['date']['$date']);
+            }
         }
     });
 
@@ -54,25 +44,13 @@ function getMinMaxDates(){
         },
         dataType: 'json',
         success: function(response){
-            // Error checking.
             if(response.error !== null){
-                d3.select('#low')
-                    .classed("error", true)
-                    .html("Error!");
-                d3.select('#high')
-                    .classed("error", true)
-                    .html(response.error);
-                return;
+                // Error condition.
+                console.log("error: could not get maximum time value from database.");
             }
-
-            // Write the time in the proper slot.
-            console.log(response.result);
-            var late = +response.result[0]['date']['$date'];
-            console.log(late);
-            console.log(new Date(late))
-            console.log(date.toShortString(new Date(late)));
-            d3.select('#high')
-                .html(String(new Date(late)));
+            else{
+                flickr.timeslider.setMax(+response.result[0]['date']['$date']);
+            }
         }
     });
 }
@@ -175,7 +153,7 @@ window.onload = function(){
     }
 
     // Create a range slider for slicing by time.
-    var timeslider = rangeSlider(d3.select("#time-slider").node(),
+    flickr.timeslider = rangeSlider(d3.select("#time-slider").node(),
             {
                 onslide: (function(){
                     var lowdiv = d3.select("#low");
@@ -187,7 +165,7 @@ window.onload = function(){
                     };
                 })()
             });
-    timeslider.initialize();
+    flickr.timeslider.initialize();
 
     // Attach an action to the "data" button.
     d3.select("#data-button").node().onclick = getLocations;
