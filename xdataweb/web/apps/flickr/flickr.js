@@ -69,6 +69,8 @@ function getMinMaxDates(){
             console.log(response.result);
             var late = +response.result[0]['date']['$date'];
             console.log(late);
+            console.log(new Date(late))
+            console.log(date.toShortString(new Date(late)));
             d3.select('#high')
                 .html(String(new Date(late)));
         }
