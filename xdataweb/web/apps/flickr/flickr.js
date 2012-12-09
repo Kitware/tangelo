@@ -189,4 +189,17 @@ window.onload = function(){
     // Get the earliest and latest times in the database, to create a suitable
     // range for the time slider.
     getMinMaxDates();
+
+    // Attach actions to the zoom and unzoom buttons.
+    d3.select("#zoom")
+        .on('click', function(){
+                        d3.select("#unzoom")
+                            .attr("disabled", null);
+                     });
+
+    d3.select("#unzoom")
+        .on('click', function(){
+                        d3.select(this)
+                            .attr("disabled", "disabled");
+                     });
 }
