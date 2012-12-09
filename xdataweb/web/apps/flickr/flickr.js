@@ -191,15 +191,62 @@ window.onload = function(){
     getMinMaxDates();
 
     // Attach actions to the zoom and unzoom buttons.
+    var zoomfunc = (function(){
+        var zoom = d3.select("#zoom");
+        var unzoom = d3.select("#unzoom");
+
+        var stack = [];
+
+        return {
+            zoomer: function(slider){
+                // Return immediately if the handles are already at the bounds.
+                var value = slider.getValue();
+                var bounds = [slider.getMin(), slider.getMax()];
+                if(value[0] == bounds[0] && value[1] == bounds[1]){
+                    return;
+                }
+
+                // Save the current bounds on the stack.
+                stack.push(bounds);
+
+                // Set the bounds of the slider to be its current value range.
+                slider.setMin(value[0]);
+                slider.setMax(value[1]);
+
+                // Activate the unzoom button if this is the first entry in the
+                // stack.
+                if(stack.length === 1){
+                    unzoom.attr("disabled", null);
+                }
+            },
+
+            unzoomer: function(slider){
+                // Make sure this function is not being called when there are no
+                // entries in the stack.
+                if(stack.length === 0){
+                   throw "Logic error: Unzoom button was clicked even though there is nothing to unzoom to.";
+                }
+
+                // Pop a bounds value from the stack, and set it as the bounds
+                // for the slider.
+                var bounds = stack.pop();
+                slider.setMin(bounds[0]);
+                slider.setMax(bounds[1]);
+
+                // If the stack now contains no entries, disable the unzoom
+                // button.
+                if(stack.length === 0){
+                    unzoom.attr("disabled", "disabled");
+                }
+            }
+        };
+    })();
+
     d3.select("#zoom")
-        .on('click', function(){
-                        d3.select("#unzoom")
-                            .attr("disabled", null);
-                     });
+        .data([flickr.timeslider])
+        .on('click', zoomfunc.zoomer);
 
     d3.select("#unzoom")
-        .on('click', function(){
-                        d3.select(this)
-                            .attr("disabled", "disabled");
-                     });
+        .data([flickr.timeslider])
+        .on('click', zoomfunc.unzoomer);
 }

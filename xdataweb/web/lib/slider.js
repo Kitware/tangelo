@@ -64,6 +64,8 @@ function rangeSlider(slider, callbacks){
     // Return the user an interface object.
     return {
         initialize: function() { slider.slider(config); },
+        getMin: function() { return config.min; },
+        getMax: function() { return config.max; },
         setMin: function(min) { config.min = min; slider.slider(config); },
         setMax: function(max) { config.max = max; slider.slider(config); },
         setLowValue: function(v) { slider.slider("values", [v, slider.slider("values")[1]]); },
