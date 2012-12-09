@@ -59,7 +59,7 @@ function getMinMaxDates(){
     });
 }
 
-function getLocations(){
+function retrieveData(){
     // TODO(choudhury): replace the following line with code to collect together
     // the filtering operations from the various UI elements on the page, then
     // issue a database search command to retrieve the appropriate location
@@ -175,7 +175,7 @@ window.onload = function(){
     flickr.timeslider.initialize();
 
     // Attach an action to the "data" button.
-    d3.select("#data-button").node().onclick = getLocations;
+    d3.select("#data-button").node().onclick = retrieveData;
 
     // Some options for initializing the google map.
     var options = {
