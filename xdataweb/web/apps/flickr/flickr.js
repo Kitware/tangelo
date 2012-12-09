@@ -162,8 +162,8 @@ window.onload = function(){
         var highdiv = d3.select("#high");
 
         return function(low, high){
-            lowdiv.html(low);
-            highdiv.html(high);
+            lowdiv.html(new Date(low));
+            highdiv.html(new Date(high));
         };
     })();
 
