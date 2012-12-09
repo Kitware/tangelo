@@ -32,3 +32,8 @@ h3 {
      */
     background: #9a9;
 }
+
+/* Monospace fonts for "data" displays. */
+.data {
+    font-family: monospace;
+}
