@@ -29,7 +29,9 @@ function getMinMaxDates(){
                 console.log("error: could not get minimum time value from database.");
             }
             else{
-                flickr.timeslider.setMin(+response.result[0]['date']['$date']);
+                var val = +response.result[0]['date']['$date'];
+                flickr.timeslider.setMin(val);
+                flickr.timeslider.setLowValue(val);
             }
         }
     });
@@ -49,7 +51,9 @@ function getMinMaxDates(){
                 console.log("error: could not get maximum time value from database.");
             }
             else{
-                flickr.timeslider.setMax(+response.result[0]['date']['$date']);
+                var val = +response.result[0]['date']['$date'];
+                flickr.timeslider.setMax(val);
+                flickr.timeslider.setHighValue(val);
             }
         }
     });
@@ -153,17 +157,20 @@ window.onload = function(){
     }
 
     // Create a range slider for slicing by time.
+    var displayFunc = (function(){
+        var lowdiv = d3.select("#low");
+        var highdiv = d3.select("#high");
+
+        return function(low, high){
+            lowdiv.html(low);
+            highdiv.html(high);
+        };
+    })();
+
     flickr.timeslider = rangeSlider(d3.select("#time-slider").node(),
             {
-                onslide: (function(){
-                    var lowdiv = d3.select("#low");
-                    var highdiv = d3.select("#high");
-
-                    return function(low, high){
-                        lowdiv.html(low);
-                        highdiv.html(high);
-                    };
-                })()
+                onchange: displayFunc,
+                onslide: displayFunc
             });
     flickr.timeslider.initialize();
 

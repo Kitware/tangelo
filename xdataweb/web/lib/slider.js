@@ -66,6 +66,8 @@ function rangeSlider(slider, callbacks){
         initialize: function() { slider.slider(config); },
         setMin: function(min) { config.min = min; slider.slider(config); },
         setMax: function(max) { config.max = max; slider.slider(config); },
+        setLowValue: function(v) { slider.slider("values", [v, slider.slider("values")[1]]); },
+        setHighValue: function(v) { slider.slider("values", [slider.slider("values")[0], v]); },
         getValue: function() { return slider.slider("values"); }
     };
 }
