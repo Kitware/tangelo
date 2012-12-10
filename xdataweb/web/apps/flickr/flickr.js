@@ -114,47 +114,22 @@ window.onload = function(){
     GMap.prototype.onAdd = function(){
         console.log("onAdd()!");
 
-        // Compute the pixel coordinates of the bounds of the "whole world".
-        var proj = this.getProjection();
-        var low = proj.fromLatLngToDivPixel(new google.maps.LatLng(0,0));
-        var high = proj.fromLatLngToDivPixel(new google.maps.LatLng(-85,180));
-
-        console.log(low);
-        console.log(high);
-        var svgwidth = 2*(high.x - low.x);
-        var svgheight = 2*(high.y - low.y);
-        this.svgX = low.x - 0.5*svgwidth;
-        this.svgY = low.y - 0.5*svgheight;
-
-        console.log([this.svgX, this.svgY]);
-        console.log([svgwidth, svgheight]);
-
         // Grab the overlay layer element, wrap it in a D3 selection, and add
         // the SVG element to it.
-        var overlayLayer = this.getPanes().overlayLayer;
-        //var svg = d3.select(overlayLayer).append("svg")
-            //.style("position", "relative")
-            ////.attr("width", this.container.offsetWidth)
-            ////.attr("height", this.container.offsetHeight);
-            //.style("x", 10)
-            //.attr("y", 20)
-            //.attr("width", svgwidth)
-            //.attr("height", svgheight);
-
-        var svg = d3.select(overlayLayer).append("div")
+        this.overlayLayer = this.getPanes().overlayLayer;
+        var svg = d3.select(this.overlayLayer).append("div")
+            .attr("id", "svgcontainer")
             .style("position","relative")
-            .style("left", this.svgX + "px")
-            .style("top", this.svgY + "px")
-            .append("svg")
-            .attr("width", svgwidth)
-            .attr("height", svgheight);
+            .append("svg");
 
-        svg.append("rect")
-            .style("fill-opacity", 0.4)
-            .style("fill", "white")
-            .style("stroke", "black")
-            .attr("width", svg.attr("width"))
-            .attr("height", svg.attr("height"));
+        //// Add a debugging rectangle.
+        //svg.append("rect")
+            //.attr("id", "debugrect")
+            //.style("fill-opacity", 0.4)
+            //.style("fill", "white")
+            //.style("stroke", "black")
+            //.attr("width", svg.attr("width"))
+            //.attr("height", svg.attr("height"));
 
         svg.append("g")
             .attr("id", "markers");
@@ -176,6 +151,39 @@ window.onload = function(){
         // etc., that can occur without warning.
         var proj = this.getProjection();
 
+        // Shift the container div to cover the "whole world".
+        //
+        // First, compute the pixel coordinates of the bounds of the "whole
+        // world".
+        var proj = this.getProjection();
+        var low = proj.fromLatLngToDivPixel(new google.maps.LatLng(0,0));
+        var high = proj.fromLatLngToDivPixel(new google.maps.LatLng(-85,180));
+
+        // TODO(choudhury): rather than throw in this Math.abs(), it would be
+        // much better to figure out exactly when the high and low coordinates
+        // become inverted.
+        var svgwidth = Math.abs(2*(high.x - low.x));
+        var svgheight = 2*(high.y - low.y);
+        this.svgX = low.x - 0.5*svgwidth;
+        this.svgY = low.y - 0.5*svgheight;
+
+        // Move and resize the div element.
+        var div = d3.select(this.overlayLayer).select("#svgcontainer")
+            .style("left", this.svgX + "px")
+            .style("top", this.svgY + "px")
+            .style("width", svgwidth + "px")
+            .style("height", svgheight + "px");
+
+        // Resize the SVG element - now it covers "the whole world".
+        var svg = div.select("svg")
+            .attr("width", svgwidth)
+            .attr("height", svgheight);
+
+        //// Make the rect element track the SVG element.
+        //svg.select("#debugrect")
+            //.attr("width", svg.attr("width"))
+            //.attr("height", svg.attr("height"));
+
         // Compute a data-join with the current list of marker locations.
         //
         // NOTE: the goofy key function here is due to the fact that
@@ -183,6 +191,10 @@ window.onload = function(){
         // underlying pointer, NOT by value.  An easy way to circumvent the
         // restriction is to convert the arrays to JSON strings, and compare
         // those.
+        //
+        // NOTE: also, the mapping function below has to have that form because
+        // proj.fromLatLngToDivPixel is not truly a function, so its
+        // "invocation" must be wrapped in an anonymous applicator function.
         var markers = d3.select(this.overlay)
             .select("#markers")
             .selectAll("circle")
@@ -192,6 +204,9 @@ window.onload = function(){
         // in.  Fade out circles in the exit selection.  There is no need to
         // handle the update selection, as those markers are already visible,
         // and already where they are supposed to be.
+        //
+        // TODO(choudhury): the radius of the marker should depend on the zoom
+        // level - smaller circles at lower zoom levels.
         var that = this;
         markers.enter()
             .append("circle")
