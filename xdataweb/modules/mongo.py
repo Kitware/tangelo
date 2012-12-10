@@ -1,11 +1,11 @@
-import json
+import bson.json_util
 import pymongo
 
 import xdataweb
 
 def decode(s, argname, resp):
     try:
-        return json.loads(s)
+        return bson.json_util.loads(s)
     except ValueError as e:
         resp['error'] = e.message + " (argument '%s' was '%s')" % (argname, s)
         raise

@@ -59,12 +59,7 @@ function getMinMaxDates(){
     });
 }
 
-function retrieveData(){
-    // TODO(choudhury): replace the following code with code to collect together
-    // the filtering operations from the various UI elements on the page, then
-    // issue a database search command to retrieve the appropriate location
-    // data.
-
+function retrieveDataSynthetic(){
     // Generate a few lat/long values in well-known places.
     var chicago = [42.0, -87.5];
     var paris = [48.9, 2.3];
@@ -83,6 +78,73 @@ function retrieveData(){
 
     // After data is reloaded to the map-overlay object, redraw the map.
     flickr.map.draw();
+}
+
+function retrieveData(){
+    // Interrogate the UI elements to build up a query object for the database.
+    //
+    // Get the time slider range.
+    var times = flickr.timeslider.getValue();
+
+    // Construct a query that selects times between the two ends of the slider.
+/*    var timequery = { $and : [{'date' : {$gte : new Date(parseInt(times[0]))}},*/
+                              //{'date' : {$lte : new Date(parseInt(times[1]))}}]
+                    //};
+    var timequery = { $and : [{'date' : {$gte : {"$date" : times[0]}}},
+                              {'date' : {$lte : {"$date" : times[1]}}}]
+                    };
+
+    // Get the hashtag text and split it into several tags.
+    var hashtagText = d3.select("#hashtags").node().value;
+    var hashtags = [];
+    if(hashtagText !== ""){
+        var hashtags = hashtagText.split(/\s+/);
+    }
+    console.log(hashtags);
+
+    // Construct a query to find any entry containing any of these tags.
+    var hashtagquery = {};
+    if(hashtags.length > 0){
+        hashtagquery = { 'hashtags' : {$in : hashtags}};
+    }
+
+    // Stitch all the queries together into a "superquery".
+    var query = {$and : [timequery, hashtagquery]};
+    //var query = hashtagquery;
+    console.log(query);
+    console.log(JSON.stringify(query));
+
+    // Issue the query to the mongo module.
+    var mongo = flickr.getMongoDBInfo();
+    $.ajax({
+        type: 'POST',
+        url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
+        data: {
+            query: JSON.stringify(query)
+        },
+        dataType: 'json',
+        success: function(response){
+            if(response.error !== null){
+                console.log("fatal error: " + response.error);
+                return;
+            }
+
+            // Print out results.
+            console.log(response);
+
+/*
+ *            // TODO(choudhury): Process the retrieved data into the proper form
+ *            // for storing in the map object.
+ *            var locs = null;
+ *
+ *            // Store the retrieved values in the map object.
+ *            flickr.map.locations(locs);
+ *
+ *            // Redraw the map.
+ *            flickr.map.draw();
+ */
+        }
+       });
 }
 
 function GMap(elem, options){
