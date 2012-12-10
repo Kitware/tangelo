@@ -116,13 +116,40 @@ window.onload = function(){
     GMap.prototype.onAdd = function(){
         console.log("onAdd()!");
 
+        // Compute the pixel coordinates of the bounds of the "whole world".
+        var proj = this.getProjection();
+        var low = proj.fromLatLngToDivPixel(new google.maps.LatLng(0,0));
+        var high = proj.fromLatLngToDivPixel(new google.maps.LatLng(-85,180));
+
+        console.log(low);
+        console.log(high);
+        var svgwidth = 2*(high.x - low.x);
+        var svgheight = 2*(high.y - low.y);
+        this.svgX = low.x - 0.5*svgwidth;
+        this.svgY = low.y - 0.5*svgheight;
+
+        console.log([this.svgX, this.svgY]);
+        console.log([svgwidth, svgheight]);
+
         // Grab the overlay layer element, wrap it in a D3 selection, and add
         // the SVG element to it.
         var overlayLayer = this.getPanes().overlayLayer;
-        var svg = d3.select(overlayLayer).append("svg")
-            .style("fill", "white")
-            .attr("width", this.container.offsetWidth)
-            .attr("height", this.container.offsetHeight);
+        //var svg = d3.select(overlayLayer).append("svg")
+            //.style("position", "relative")
+            ////.attr("width", this.container.offsetWidth)
+            ////.attr("height", this.container.offsetHeight);
+            //.style("x", 10)
+            //.attr("y", 20)
+            //.attr("width", svgwidth)
+            //.attr("height", svgheight);
+
+        var svg = d3.select(overlayLayer).append("div")
+            .style("position","relative")
+            .style("left", this.svgX + "px")
+            .style("top", this.svgY + "px")
+            .append("svg")
+            .attr("width", svgwidth)
+            .attr("height", svgheight);
 
         svg.append("rect")
             .style("fill-opacity", 0.4)
@@ -174,8 +201,8 @@ window.onload = function(){
             .style("fill-opacity", 0.6)
             .style("stroke", "red")
             .style("opacity", 0.0)
-            .attr("cx", function(d) { return d.x; })
-            .attr("cy", function(d) { return d.y; })
+            .attr("cx", function(d) { return d.x - that.svgX; })
+            .attr("cy", function(d) { return d.y - that.svgY; })
             .attr("r", 25)
             .transition()
             .duration(500)
@@ -228,7 +255,7 @@ window.onload = function(){
 
     // Some options for initializing the google map.
     var options = {
-        zoom: 3,
+        zoom: 2,
         center: new google.maps.LatLng(65.67, 95.17),
         mapTypeId: google.maps.MapTypeId.ROADMAP
     };
