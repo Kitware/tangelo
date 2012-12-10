@@ -129,20 +129,11 @@ function retrieveData(){
                 return;
             }
 
-            // Print out results.
-            console.log(response);
+            // Store the retrieved values in the map object.
+            flickr.map.locations(response.result);
 
-/*
- *            // TODO(choudhury): Process the retrieved data into the proper form
- *            // for storing in the map object.
- *            var locs = null;
- *
- *            // Store the retrieved values in the map object.
- *            flickr.map.locations(locs);
- *
- *            // Redraw the map.
- *            flickr.map.draw();
- */
+            // Redraw the map.
+            flickr.map.draw();
         }
        });
 }
@@ -176,9 +167,11 @@ window.onload = function(){
     GMap.prototype.onAdd = function(){
         console.log("onAdd()!");
 
-        // Grab the overlay layer element, wrap it in a D3 selection, and add
-        // the SVG element to it.
-        this.overlayLayer = this.getPanes().overlayLayer;
+        // Grab the overlay mouse target element (because it can accept, e.g.,
+        // mouse hover events to show SVG tooltips), wrap it in a D3 selection,
+        // and add the SVG element to it.
+        this.overlayLayer = this.getPanes().overlayMouseTarget;
+
         var svg = d3.select(this.overlayLayer).append("div")
             .attr("id", "svgcontainer")
             .style("position","relative")
@@ -250,26 +243,23 @@ window.onload = function(){
             //.attr("width", svg.attr("width"))
             //.attr("height", svg.attr("height"));
 
-        // Compute a data-join with the current list of marker locations.
-        //
-        // NOTE: the goofy key function here is due to the fact that
-        // JavaScript's equality operator only tests arrays for equality by
-        // underlying pointer, NOT by value.  An easy way to circumvent the
-        // restriction is to convert the arrays to JSON strings, and compare
-        // those.
-        //
-        // NOTE: also, the mapping function below has to have that form because
-        // proj.fromLatLngToDivPixel is not truly a function, so its
-        // "invocation" must be wrapped in an anonymous applicator function.
+        // Process the data by adjoining pixel locations to each entry.
+        var data = this.locs.map(function(d){
+            d.pixelLocation = proj.fromLatLngToDivPixel(new google.maps.LatLng(d.location[0], d.location[1]));
+            return d;
+        });
+
+        // Compute a data join with the current list of marker locations, using
+        // the MongoDB unique id value as the key function.
         var markers = d3.select(this.overlay)
             .select("#markers")
             .selectAll("circle")
-            .data(this.locs.map(function(d) { return proj.fromLatLngToDivPixel(d); }), function(d) { return JSON.stringify(d); });
+            .data(data, function(d) { return d._id.$oid; });
 
-        // For the enter selection, create new circle elements, then fade them
-        // in.  Fade out circles in the exit selection.  There is no need to
-        // handle the update selection, as those markers are already visible,
-        // and already where they are supposed to be.
+        // For the enter selection, create new circle elements, and attach a
+        // title element to each one.  In the update selection (which includes
+        // the newly added circles), set the proper location and fade in new
+        // elements.  Fade out circles in the exit selection.
         //
         // TODO(choudhury): the radius of the marker should depend on the zoom
         // level - smaller circles at lower zoom levels.
@@ -280,9 +270,20 @@ window.onload = function(){
             .style("fill-opacity", 0.6)
             .style("stroke", "red")
             .style("opacity", 0.0)
-            .attr("cx", function(d) { return d.x - that.svgX; })
-            .attr("cy", function(d) { return d.y - that.svgY; })
-            .attr("r", 25)
+            .attr("r", 10)
+            .append("title")
+            .text(function(d){
+                var msg = "";
+                msg += "Time: " + new Date(d.date.$date) + "\n";
+                msg += "Location: (" + d.location[0] + ", " + d.location[1] + ")\n";
+                msg += "Author: " + d.author + "\n";
+                msg += "Description: " + d.title + "\n";
+                return msg;
+            });
+
+        markers
+            .attr("cx", function(d) { return d.pixelLocation.x - that.svgX; })
+            .attr("cy", function(d) { return d.pixelLocation.y - that.svgY; })
             .transition()
             .duration(500)
             .style("opacity", 1.0);
