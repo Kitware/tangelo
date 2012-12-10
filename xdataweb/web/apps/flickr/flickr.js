@@ -82,9 +82,7 @@ function retrieveData(){
     flickr.map.locations(locs);
 
     // After data is reloaded to the map-overlay object, redraw the map.
-    //
     flickr.map.draw();
-    //flickr.map.refresh();
 }
 
 function GMap(elem, options){
@@ -226,10 +224,6 @@ window.onload = function(){
     GMap.prototype.locations = function(locs){
         // TODO(choudhury): it might be better to actually copy the values here.
         this.locs = locs;
-    }
-
-    GMap.prototype.refresh = function(){
-        this.setMap(this.map);
     }
 
     // Create a range slider for slicing by time.
