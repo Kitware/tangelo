@@ -60,42 +60,36 @@ function getMinMaxDates(){
 }
 
 function retrieveData(){
-    // TODO(choudhury): replace the following line with code to collect together
+    // TODO(choudhury): replace the following code with code to collect together
     // the filtering operations from the various UI elements on the page, then
     // issue a database search command to retrieve the appropriate location
     // data.
-    var first = Math.random() > 0.5;
-    var anchor = [0.5, 0.8];
-    var N = 3 + Math.random() * 10;
 
-    locs = [];
+    // Generate a few lat/long values in well-known places.
+    var chicago = [42.0, -87.5];
+    var paris = [48.9, 2.3];
+    var slc = [40.8, -111.9];
+    var albany = [42.7, -73.8];
+    var dhaka = [23.7, 90.4];
+    var rio = [-22.9, -43.2];
+    var wellington = [-41.3, 174.8];
 
-    // Place a single, known value at the start of the array with 50%
-    // probability.
-    if(first){
-        locs.push(anchor);
-    }
-
-    // Place a random number (between 3 and 12) of random points.
-    for(var i=0; i<N; i++){
-        locs.push([Math.random(), Math.random()]);
-    }
-
-    // The known anchor value goes at the end if it didn't go at the beginning.
-    if(!first){
-        locs.push(anchor);
-    }
+    // Take the array of arrays, and map it to an array of google LatLng
+    // objects.
+    var locs = [chicago, paris, slc, albany, dhaka, rio, wellington].map(function(d) { return new google.maps.LatLng(d[0], d[1]); });
 
     // Store the retrieved values.
     flickr.map.locations(locs);
 
     // After data is reloaded to the map-overlay object, redraw the map.
+    //
     flickr.map.draw();
+    //flickr.map.refresh();
 }
 
 function GMap(elem, options){
     // Create the map object and place it into the specified container element.
-    var map = new google.maps.Map(elem, options);
+    this.map = new google.maps.Map(elem, options);
 
     // Record the container element.
     this.container = elem;
@@ -105,7 +99,7 @@ function GMap(elem, options){
     // draw() callback.
     this.overlay = null;
 
-    this.setMap(map);
+    this.setMap(this.map);
 }
 
 window.onload = function(){
@@ -130,6 +124,13 @@ window.onload = function(){
             .attr("width", this.container.offsetWidth)
             .attr("height", this.container.offsetHeight);
 
+        svg.append("rect")
+            .style("fill-opacity", 0.4)
+            .style("fill", "white")
+            .style("stroke", "black")
+            .attr("width", svg.attr("width"))
+            .attr("height", svg.attr("height"));
+
         svg.append("g")
             .attr("id", "markers");
 
@@ -144,6 +145,12 @@ window.onload = function(){
             return;
         }
 
+        // Get the transformation from lat/long to pixel coordinates - the
+        // lat/long data will be "pushed through" it just prior to being drawn.
+        // It is deferred this way to deal with changes in the window size,
+        // etc., that can occur without warning.
+        var proj = this.getProjection();
+
         // Compute a data-join with the current list of marker locations.
         //
         // NOTE: the goofy key function here is due to the fact that
@@ -154,7 +161,7 @@ window.onload = function(){
         var markers = d3.select(this.overlay)
             .select("#markers")
             .selectAll("circle")
-            .data(this.locs, function(d) { return JSON.stringify(d); });
+            .data(this.locs.map(function(d) { return proj.fromLatLngToDivPixel(d); }), function(d) { return JSON.stringify(d); });
 
         // For the enter selection, create new circle elements, then fade them
         // in.  Fade out circles in the exit selection.  There is no need to
@@ -167,8 +174,8 @@ window.onload = function(){
             .style("fill-opacity", 0.6)
             .style("stroke", "red")
             .style("opacity", 0.0)
-            .attr("cx", function(d) { return d[0] * that.container.offsetWidth; })
-            .attr("cy", function(d) { return d[1] * that.container.offsetHeight; })
+            .attr("cx", function(d) { return d.x; })
+            .attr("cy", function(d) { return d.y; })
             .attr("r", 25)
             .transition()
             .duration(500)
@@ -192,6 +199,10 @@ window.onload = function(){
     GMap.prototype.locations = function(locs){
         // TODO(choudhury): it might be better to actually copy the values here.
         this.locs = locs;
+    }
+
+    GMap.prototype.refresh = function(){
+        this.setMap(this.map);
     }
 
     // Create a range slider for slicing by time.
