@@ -167,6 +167,10 @@ window.onload = function(){
         this.svgX = low.x - 0.5*svgwidth;
         this.svgY = low.y - 0.5*svgheight;
 
+        // Adjustment factors to deal with world map wrapping at east and west.
+        this.svgX -= 0;
+        svgwidth += 0;
+
         // Move and resize the div element.
         var div = d3.select(this.overlayLayer).select("#svgcontainer")
             .style("left", this.svgX + "px")
