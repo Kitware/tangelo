@@ -64,7 +64,30 @@ function retrieveData(){
     // the filtering operations from the various UI elements on the page, then
     // issue a database search command to retrieve the appropriate location
     // data.
-    flickr.map.locations([10, 20, 30]);
+    var first = Math.random() > 0.5;
+    var anchor = [0.5, 0.8];
+    var N = 3 + Math.random() * 10;
+
+    locs = [];
+
+    // Place a single, known value at the start of the array with 50%
+    // probability.
+    if(first){
+        locs.push(anchor);
+    }
+
+    // Place a random number (between 3 and 12) of random points.
+    for(var i=0; i<N; i++){
+        locs.push([Math.random(), Math.random()]);
+    }
+
+    // The known anchor value goes at the end if it didn't go at the beginning.
+    if(!first){
+        locs.push(anchor);
+    }
+
+    // Store the retrieved values.
+    flickr.map.locations(locs);
 
     // After data is reloaded to the map-overlay object, redraw the map.
     flickr.map.draw();
@@ -117,27 +140,45 @@ window.onload = function(){
     // draw() sizes and places the overlaid SVG element.
     GMap.prototype.draw = function(){
         console.log("draw()!");
+        if(this.locs === null || typeof this.locs === 'undefined'){
+            return;
+        }
 
-        // Just for fun add some circles to the SVG element.
-        var markers = d3.select(this.overlay).select("#markers");
-        markers.selectAll("circle")
-            .remove();
+        // Compute a data-join with the current list of marker locations.
+        //
+        // NOTE: the goofy key function here is due to the fact that
+        // JavaScript's equality operator only tests arrays for equality by
+        // underlying pointer, NOT by value.  An easy way to circumvent the
+        // restriction is to convert the arrays to JSON strings, and compare
+        // those.
+        var markers = d3.select(this.overlay)
+            .select("#markers")
+            .selectAll("circle")
+            .data(this.locs, function(d) { return JSON.stringify(d); });
 
+        // For the enter selection, create new circle elements, then fade them
+        // in.  Fade out circles in the exit selection.  There is no need to
+        // handle the update selection, as those markers are already visible,
+        // and already where they are supposed to be.
         var that = this;
-        markers.selectAll("circle")
-            .data([1,2,3,4,5,6])
-            .enter()
+        markers.enter()
             .append("circle")
             .style("fill", "pink")
             .style("fill-opacity", 0.6)
             .style("stroke", "red")
             .style("opacity", 0.0)
-            .attr("cx", function() { return Math.random() * that.container.offsetWidth; })
-            .attr("cy", function() { return Math.random() * that.container.offsetHeight; })
+            .attr("cx", function(d) { return d[0] * that.container.offsetWidth; })
+            .attr("cy", function(d) { return d[1] * that.container.offsetHeight; })
             .attr("r", 25)
             .transition()
             .duration(500)
             .style("opacity", 1.0);
+
+        markers.exit()
+            .transition()
+            .duration(500)
+            .style("opacity", 0.0)
+            .remove();
     }
 
     // onRemove() destroys the overlay when it is no longer needed.
@@ -149,11 +190,8 @@ window.onload = function(){
     }
 
     GMap.prototype.locations = function(locs){
-        // TODO(choudhury): This function should load the lat/long data in
-        // 'locs' into a property, for drawing as markers later.
-        $.each(locs, function(value,index){
-            console.log(index + ": " + value);
-        });
+        // TODO(choudhury): it might be better to actually copy the values here.
+        this.locs = locs;
     }
 
     // Create a range slider for slicing by time.
