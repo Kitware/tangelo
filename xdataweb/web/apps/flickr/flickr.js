@@ -116,6 +116,8 @@ function retrieveData(){
 
     // Issue the query to the mongo module.
     var mongo = flickr.getMongoDBInfo();
+    var panel = d3.select("#information")
+                    .html("Querying database...");
     $.ajax({
         type: 'POST',
         url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
@@ -124,10 +126,18 @@ function retrieveData(){
         },
         dataType: 'json',
         success: function(response){
+            // Error check.
             if(response.error !== null){
                 console.log("fatal error: " + response.error);
+                panel
+                    .classed("error", true)
+                    .html("fatal error: " + response.error);
                 return;
             }
+
+            // Report how many results there were.
+            var N = response.result.length;
+            panel.html("Got " + N + " result" + (N === 0 || N > 1 ? "s" : ""));
 
             // Store the retrieved values in the map object.
             flickr.map.locations(response.result);
