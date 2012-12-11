@@ -161,6 +161,8 @@ function GMap(elem, options){
     this.overlay = null;
 
     this.setMap(this.map);
+
+    google.maps.event.addListener(this.map, "drag", this.draw);
 }
 
 window.onload = function(){
@@ -185,16 +187,18 @@ window.onload = function(){
         var svg = d3.select(this.overlayLayer).append("div")
             .attr("id", "svgcontainer")
             .style("position","relative")
+            .style("left", "0px")
+            .style("top", "0px")
             .append("svg");
 
-        //// Add a debugging rectangle.
-        //svg.append("rect")
-            //.attr("id", "debugrect")
-            //.style("fill-opacity", 0.4)
-            //.style("fill", "white")
-            //.style("stroke", "black")
-            //.attr("width", svg.attr("width"))
-            //.attr("height", svg.attr("height"));
+        // Add a debugging rectangle.
+        svg.append("rect")
+            .attr("id", "debugrect")
+            .style("fill-opacity", 0.4)
+            .style("fill", "white")
+            .style("stroke", "black")
+            .attr("width", svg.attr("width"))
+            .attr("height", svg.attr("height"));
 
         svg.append("g")
             .attr("id", "markers");
@@ -207,6 +211,7 @@ window.onload = function(){
     GMap.prototype.draw = function(){
         console.log("draw()!");
         if(this.locs === null || typeof this.locs === 'undefined'){
+            console.log("returning early");
             return;
         }
 
@@ -223,6 +228,13 @@ window.onload = function(){
         var proj = this.getProjection();
         var low = proj.fromLatLngToDivPixel(new google.maps.LatLng(0,0));
         var high = proj.fromLatLngToDivPixel(new google.maps.LatLng(-85,180));
+        var w = this.container.offsetWidth;
+        var h = this.container.offsetHeight;
+        //var topLeft = proj.fromContainerPixelToLatLng({x: 0, y: 0});
+        //var center = flickr.map.map.getCenter();
+        var containerLatLng = proj.fromContainerPixelToLatLng({x: 0, y: 0});
+        var divPixels = proj.fromLatLngToDivPixel(containerLatLng);
+        console.log(divPixels);
 
         // TODO(choudhury): rather than throw in this Math.abs(), it would be
         // much better to figure out exactly when the high and low coordinates
@@ -237,25 +249,37 @@ window.onload = function(){
         svgwidth += 0;
 
         // Move and resize the div element.
-        var div = d3.select(this.overlayLayer).select("#svgcontainer")
-            .style("left", this.svgX + "px")
-            .style("top", this.svgY + "px")
-            .style("width", svgwidth + "px")
-            .style("height", svgheight + "px");
+        var div = d3.select(this.overlayLayer).select("#svgcontainer");
+        //var newLeft = +div.style("left").slice(0,-2) + divPixels.x + "px";
+        //var newTop = +div.style("top").slice(0,-2) + divPixels.y + "px";
+        var newLeft = divPixels.x + "px";
+        var newTop = divPixels.y + "px";
+        console.log(newLeft);
+        console.log(newTop);
+        div
+            .style("left", newLeft)
+            .style("top", newTop)
+            //.style("left", "40px")
+            //.style("top", "10px")
+            .style("width", w + "px")
+            .style("height", h + "px");
 
         // Resize the SVG element - now it covers "the whole world".
-        var svg = div.select("svg")
-            .attr("width", svgwidth)
-            .attr("height", svgheight);
+        var svg = d3.select(this.overlayLayer).select("svg");
+        svg
+            .attr("width", w)
+            .attr("height", h);
 
         //// Make the rect element track the SVG element.
-        //svg.select("#debugrect")
-            //.attr("width", svg.attr("width"))
-            //.attr("height", svg.attr("height"));
+        svg.select("#debugrect")
+            .attr("width", svg.attr("width"))
+            .attr("height", svg.attr("height"));
 
         // Process the data by adjoining pixel locations to each entry.
         var data = this.locs.map(function(d){
             d.pixelLocation = proj.fromLatLngToDivPixel(new google.maps.LatLng(d.location[0], d.location[1]));
+            d.pixelLocation.x -= divPixels.x;
+            d.pixelLocation.y -= divPixels.y;
             return d;
         });
 
@@ -292,8 +316,8 @@ window.onload = function(){
             });
 
         markers
-            .attr("cx", function(d) { return d.pixelLocation.x - that.svgX; })
-            .attr("cy", function(d) { return d.pixelLocation.y - that.svgY; })
+            .attr("cx", function(d) { return d.pixelLocation.x; })
+            .attr("cy", function(d) { return d.pixelLocation.y; })
             .transition()
             .duration(500)
             .style("opacity", 1.0);
