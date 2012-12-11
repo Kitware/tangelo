@@ -116,7 +116,8 @@ function retrieveData(){
         url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
         data: {
             query: JSON.stringify(query),
-            limit: d3.select("#record-limit").node().value
+            limit: d3.select("#record-limit").node().value,
+            sort: JSON.stringify([['date',1]])
         },
         dataType: 'json',
         success: function(response){
@@ -238,26 +239,10 @@ window.onload = function(){
         // First, compute the pixel coordinates of the bounds of the "whole
         // world".
         var proj = this.getProjection();
-        var low = proj.fromLatLngToDivPixel(new google.maps.LatLng(0,0));
-        var high = proj.fromLatLngToDivPixel(new google.maps.LatLng(-85,180));
         var w = this.container.offsetWidth;
         var h = this.container.offsetHeight;
-        //var topLeft = proj.fromContainerPixelToLatLng({x: 0, y: 0});
-        //var center = flickr.map.map.getCenter();
         var containerLatLng = proj.fromContainerPixelToLatLng({x: 0, y: 0});
         var divPixels = proj.fromLatLngToDivPixel(containerLatLng);
-
-        // TODO(choudhury): rather than throw in this Math.abs(), it would be
-        // much better to figure out exactly when the high and low coordinates
-        // become inverted.
-        var svgwidth = Math.abs(2*(high.x - low.x));
-        var svgheight = 2*(high.y - low.y);
-        this.svgX = low.x - 0.5*svgwidth;
-        this.svgY = low.y - 0.5*svgheight;
-
-        // Adjustment factors to deal with world map wrapping at east and west.
-        this.svgX -= 0;
-        svgwidth += 0;
 
         // Move and resize the div element.
         var div = d3.select(this.overlayLayer).select("#svgcontainer");
@@ -269,7 +254,7 @@ window.onload = function(){
             .style("width", w + "px")
             .style("height", h + "px");
 
-        // Resize the SVG element - now it covers "the whole world".
+        // Resize the SVG element to fit the viewport.
         var svg = d3.select(this.overlayLayer).select("svg");
         svg
             .attr("width", w)
