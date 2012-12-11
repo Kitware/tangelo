@@ -2,11 +2,6 @@
 body {
     font-family: 'Marcellus', Serif;
     background: #bcb;
-
-    /* TODO(choudhury): Should "body" be centered like this by default? */
-    text-align: center;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 .centered {
@@ -36,4 +31,9 @@ h3 {
      * hard-coding a color here
      */
     background: #9a9;
+}
+
+/* Monospace fonts for "data" displays. */
+.data {
+    font-family: monospace;
 }

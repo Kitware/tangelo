@@ -1,50 +1,59 @@
-import pymongo
 import bson.json_util
-import json
+import pymongo
 
-from xdataweb import empty_response
+import xdataweb
+
+def decode(s, argname, resp):
+    try:
+        return bson.json_util.loads(s)
+    except ValueError as e:
+        resp['error'] = e.message + " (argument '%s' was '%s')" % (argname, s)
+        raise
 
 class Handler:
-    def go(self, servername, dbname, collname, file_hash=None, data=None):
-        # Construct an empty response object.
-        response = empty_response();
+    def go(self, server, db, coll, method='find', query=None, limit=1000, fields=None, sort=None):
+        # Create an empty response object.
+        response = xdataweb.empty_response()
 
-        # If no schema was passed in, give an error.
-        #
-        # TODO(choudhury): see comment below about error codes, etc.
-        if file_hash == None:
-            response['error'] = "no file hash"
-            return bson.json_util.dumps(response)
+        # Check the requested method.
+        if method not in ['find', 'insert']:
+            response['error'] = "Unsupported MongoDB operation '%s'" % (method)
+            return xdataweb.dumps(response)
 
-        # Establish a connection to the MongoDB server.
+        # Decode the query strings into Python objects.
         try:
-            conn = pymongo.Connection(servername)
-        except pymongo.errors.AutoReconnect as e:
-            response['error'] = "error: %s" % (e.message)
-            return bson.json_util.dumps(response)
+            if query is not None: query = decode(query, 'query', response)
+            if fields is not None: fields = decode(fields, 'fields', response)
+            if sort is not None: sort = decode(sort, 'sort', response)
+        except ValueError:
+            return xdataweb.dumps(response)
 
-        # Extract the requested database and collection.
-        db = conn[dbname]
-        coll = db[collname]
+        # Cast the limit value to an int.
+        try:
+            limit = int(limit)
+        except ValueError:
+            response['error'] = "Argument 'limit' ('%s') could not be converted to int." % (limit)
+            return xdataweb.dumps(response)
 
-        # If no data field was specified, treat this as a read request;
-        # otherwise, write the data to the database.
-        if data == None:
-            # Create a search schema for finding the record with the appropriate
-            # hash.
-            schema = {'file_hash' : file_hash}
+        # Create database connection.
+        try:
+            c = pymongo.Connection(server)[db][coll]
+        except pymongo.errors.AutoReconnect:
+            response['error'] = "Could not connect to MongoDB server '%s'" % (server)
+            return xdataweb.dumps(response)
 
-            # Apply the schema to retrieve documents.
-            response['result'] = [d for d in coll.find(schema)]
+        # Perform the requested action.
+        if method == 'find':
+            # Do a find operation with the passed arguments.
+            it = c.find(spec=query, fields=fields, limit=limit, sort=sort)
+
+            # Create a list of the results.
+            results = [x for x in it]
+
+            # Pack the results into the response object, and return it.
+            response['result'] = results
         else:
-            # Convert the JSON object "data" to a Python object.
-            pydata = bson.json_util.loads(data)
+            raise RuntimeError("illegal method '%s' in module 'mongo'")
 
-            # Apply the schema to an insert request.
-            coll.insert({'file_hash': file_hash, 'data': data})
-
-            # Return a success code.
-            response['result'] = "ok"
-
-        # Convert to JSON and return the result.
-        return bson.json_util.dumps(response)
+        # Return the response object.
+        return xdataweb.dumps(response)

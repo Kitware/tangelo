@@ -55,7 +55,7 @@ function processFile(filename, id){
         // when it finishes!).
         $.ajax({
             type: 'POST',
-            url: '/service/mongo/' + NER.getMongoDBServer() + '/xdata/ner-cache',
+            url: '/service/NERmongo/' + NER.getMongoDBServer() + '/xdata/ner-cache',
             data: {
                 file_hash: file_hash
             },
@@ -156,7 +156,7 @@ function processFileContents(filename, id, file_hash){
             var ok = true;
             $.ajax({
                 type: 'POST',
-                url: '/service/mongo/' + NER.getMongoDBServer() + '/xdata/ner-cache',
+                url: '/service/NERmongo/' + NER.getMongoDBServer() + '/xdata/ner-cache',
                 data: {
                     file_hash: file_hash,
                     data: JSON.stringify(entities)
@@ -318,10 +318,6 @@ function handleFileSelect(evt){
 }
 
 window.onload = function(){
-    // Read in the configuration parameters.
-    config = JSON.parse(localStorage['NER'] || "{}");
-    config['mongodb-server'] = config['mongodb-server'] || 'localhost';
-
     graph = (function(){
         // Duration of fade-in/fade-out transitions.
         var fade_time = 500;
@@ -629,31 +625,23 @@ window.onload = function(){
     })();
 
     // Initialize the slider for use in filtering.
-    var sliderInit = function(sliderId, displayId, callback){
-        var slider = $("#" + sliderId);
-        var display = d3.select("#" + displayId);
+    NER.nodeSlider = slider(d3.select("#slider").node(),
+            {
+                onchange: function(v) {
+                    graph.recompute(v);
+                    graph.render();
+                },
 
-        var config = {
-            change: function(e, ui){
-                if(callback){
-                    callback(ui.value);
-                }
-            },
+                onslide: (function(){
+                    var display = d3.select("#value");
 
-            slide: function(e, ui){
-                display.html(ui.value);
-            }
-        };
-
-        return {
-            setConfig: function() { slider.slider(config); },
-            setMax: function(max) { config.max = max; },
-            getValue: function() { return slider.slider("value"); }
-        };
-    };
-
-    NER.nodeSlider = sliderInit("slider", "value", function(v) { graph.recompute(v); graph.render(); });
-    NER.nodeSlider.setConfig();
+                    return function(v){
+                        display.html(v);
+                    };
+                })()
+            });
+    NER.nodeSlider.setMax(10);
+    NER.nodeSlider.initialize();
 
     // Bootstrap showing the slider value here (none of the callbacks in the
     // slider API help).

@@ -1,0 +1,62 @@
+<!doctype html>
+<meta charset=utf-8>
+<script type="text/javascript" src="flickr.js"></script>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+<script type="text/javascript" src="http://code.jquery.com/ui/1.9.1/jquery-ui.js"></script>
+<script type="text/javascript" src="http://d3js.org/d3.v2.min.js"></script>
+<script type=text/javascript src=/lib/date.js></script>
+<script type=text/javascript src=/lib/slider.js></script>
+<script type=text/javascript src='https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false'></script>
+<link href='http://fonts.googleapis.com/css?family=Marcellus|EB+Garamond|Inconsolata' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700' rel='stylesheet' type='text/css'>
+<link href="http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css" rel=stylesheet type=text/css>
+
+<link href=/xdataweb.css rel=stylesheet type=text/css>
+<!--<link href=flickr.css rel=stylesheet type=text/css>-->
+
+<style type=text/css>
+    td {
+        vertical-align: top;
+        text-align: left;
+        //border: solid black 1px;
+    }
+</style>
+
+<title>Flickr Metadata Maps</title>
+<h1>Flickr Metadata Maps</h1>
+<p class=centered><a href="/config/flickr" target=_blank>[Configure this app]</a>
+
+<!--<div id="map" style="margin-left:auto; margin-right:auto; width: 80%; height: 500px;"></div>-->
+<div id="map" class=centered style="width:80%; height:500px;"></div>
+
+<table class=centered style="width:70%;">
+    <tr>
+        <td style="width:30%">
+            <h3>Time filter</h3>
+            <div id="time-slider"></div>
+            <div class=data id="low"></div>
+            <div class=data id="high"></div>
+            <input type=button id=zoom value="Zoom to range">
+            <input type=button id=unzoom disabled value="Unzoom">
+        </td>
+
+        <td style="width:3%"></td>
+
+        <td style="width:33%">
+            <h3>Hashtag filter</h3>
+            <textarea id=hashtags rows=4 cols=30>#paris</textarea>
+        </td>
+
+        <td class=placard style="width:33%">
+            <h3>Information</h3>
+            <div id=information></div>
+        </td>
+    </tr>
+
+    <tr>
+        <td class=centered colspan=4>
+            <input type=button id="data-button" value="Update">
+        </td>
+    </tr>
+</table>
+

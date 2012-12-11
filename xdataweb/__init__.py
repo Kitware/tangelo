@@ -1,3 +1,4 @@
+import bson.json_util
 import cherrypy
 import json
 import sys
@@ -11,6 +12,11 @@ import sys
 def empty_response():
     return {'result' : None,
             'error' : None}
+
+# A convenience function to use in the modules - this avoids having to import
+# the bson module everywhere.
+def dumps(r):
+    return bson.json_util.dumps(r)
 
 # 'current_dir' is used by the CherryPy config file to set the root for static
 # file service.
@@ -85,5 +91,5 @@ class Server(object):
             #
             # TODO(choudhury): a templating engine would be useful here; look
             # into Jinja2 (recommended by DJ Deo).
-            notfound_text = open(current_dir + "/config/notfound.html").read().replace("[APPNAME]", module)
+            notfound_text = open(current_dir + "/web/config/notfound.html").read().replace("[APPNAME]", module)
             return notfound_text

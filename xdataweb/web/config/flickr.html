@@ -5,11 +5,11 @@
 
 <script type="text/javascript" src="http://d3js.org/d3.v2.min.js"></script>
 
-<script src=NER-config.js type=text/javascript></script>
+<script src=flickr-config.js type=text/javascript></script>
 
-<title>Configuration App for NER</title>
+<title>Configuration App for Flickr Maps</title>
 
-<h1>Configure NER</h1>
+<h1>Configure Flickr Maps</h1>
 
 <table class="centered">
     <tr>
@@ -20,9 +20,25 @@
 
     <tr>
         <td>MongoDB Server</td>
-        <td id="mongodb-server-current"></td>
+        <td id=mongodb-server-current></td>
         <td>
-            <input id="mongodb-server" type=text>
+            <input id=mongodb-server type=text>
+        </td>
+    </tr>
+
+    <tr>
+        <td>MongoDB Database</td>
+        <td id=mongodb-db-current></td>
+        <td>
+            <input id=mongodb-db type=text>
+        </td>
+    </tr>
+
+    <tr>
+        <td>MongoDB Collection</td>
+        <td id=mongodb-coll-current></td>
+        <td>
+            <input id=mongodb-coll type=text>
         </td>
     </tr>
 
