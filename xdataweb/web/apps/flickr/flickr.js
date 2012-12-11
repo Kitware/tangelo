@@ -140,6 +140,7 @@ function retrieveData(){
             panel.html("Got " + N + " result" + (N === 0 || N > 1 ? "s" : ""));
 
             // Store the retrieved values in the map object.
+            console.log(response);
             flickr.map.locations(response.result);
 
             // Redraw the map.
@@ -155,6 +156,9 @@ function GMap(elem, options){
     // Record the container element.
     this.container = elem;
 
+    // Create an empty data array.
+    this.locationData = [];
+
     // Store a null 'overlay' property, which will be filled in with a
     // transparent SVG element when the overlay is sized and placed in the
     // draw() callback.
@@ -162,7 +166,8 @@ function GMap(elem, options){
 
     this.setMap(this.map);
 
-    google.maps.event.addListener(this.map, "drag", this.draw);
+    var that = this;
+    google.maps.event.addListener(this.map, "drag", function() { that.draw(); });
 }
 
 window.onload = function(){
@@ -192,13 +197,13 @@ window.onload = function(){
             .append("svg");
 
         // Add a debugging rectangle.
-        svg.append("rect")
-            .attr("id", "debugrect")
-            .style("fill-opacity", 0.4)
-            .style("fill", "white")
-            .style("stroke", "black")
-            .attr("width", svg.attr("width"))
-            .attr("height", svg.attr("height"));
+        //svg.append("rect")
+            //.attr("id", "debugrect")
+            //.style("fill-opacity", 0.4)
+            //.style("fill", "white")
+            //.style("stroke", "black")
+            //.attr("width", svg.attr("width"))
+            //.attr("height", svg.attr("height"));
 
         svg.append("g")
             .attr("id", "markers");
@@ -210,8 +215,8 @@ window.onload = function(){
     // draw() sizes and places the overlaid SVG element.
     GMap.prototype.draw = function(){
         console.log("draw()!");
-        if(this.locs === null || typeof this.locs === 'undefined'){
-            console.log("returning early");
+        if(this.locationData === null || typeof this.locationData === 'undefined' || this.locationData.length === 0){
+            console.log("returning early: locationData is " + this.locationData);
             return;
         }
 
@@ -271,12 +276,12 @@ window.onload = function(){
             .attr("height", h);
 
         //// Make the rect element track the SVG element.
-        svg.select("#debugrect")
-            .attr("width", svg.attr("width"))
-            .attr("height", svg.attr("height"));
+        //svg.select("#debugrect")
+            //.attr("width", svg.attr("width"))
+            //.attr("height", svg.attr("height"));
 
         // Process the data by adjoining pixel locations to each entry.
-        var data = this.locs.map(function(d){
+        var data = this.locationData.map(function(d){
             d.pixelLocation = proj.fromLatLngToDivPixel(new google.maps.LatLng(d.location[0], d.location[1]));
             d.pixelLocation.x -= divPixels.x;
             d.pixelLocation.y -= divPixels.y;
@@ -337,9 +342,19 @@ window.onload = function(){
 
     }
 
-    GMap.prototype.locations = function(locs){
+    GMap.prototype.locations = function(locationData){
         // TODO(choudhury): it might be better to actually copy the values here.
-        this.locs = locs;
+        //
+        //this.locationData = locationData;
+
+        console.log("clearing this.locationData");
+        this.locationData.length = 0;
+        for(var i=0; i<locationData.length; i++){
+            this.locationData.push(locationData[i]);
+            console.log("adding item: " + locationData[i]);
+            console.log("appeared as: " + this.locationData[this.locationData.length - 1]);
+            console.log("length of this.locationData is " + this.locationData.length);
+        }
     }
 
     // Create a range slider for slicing by time.
@@ -370,6 +385,7 @@ window.onload = function(){
         mapTypeId: google.maps.MapTypeId.ROADMAP
     };
     var div = d3.select("#map").node();
+    console.log("making new map!!");
     flickr.map = new GMap(div, options);
 
     // Get the earliest and latest times in the database, to create a suitable
