@@ -56,20 +56,25 @@
     <tr>
         <td colspan=2>
             <h3>Colormap</h3>
-            <div id="legend"></div>
-            <ul class="buttons flush">
-                <li>
-                <input name=colormap type=radio value=month>
-                <label for=month>Month</label>
+            <div style="float:left;">
+                <ul class="legend flush" id="legend"></ul>
+            </div>
 
-                <li>
-                <input name=colormap type=radio value=day>
-                <label for=day>Day</label>
+            <div>
+                <ul class="buttons flush">
+                    <li>
+                    <input name=colormap type=radio value=month>
+                    <label for=month>Month</label>
 
-                <li>
-                <input name=colormap type=radio value=none checked>
-                <label for=none>None</label>
-            </ul>
+                    <li>
+                    <input name=colormap type=radio value=day>
+                    <label for=day>Day</label>
+
+                    <li>
+                    <input name=colormap type=radio value=none checked>
+                    <label for=none>None</label>
+                </ul>
+            </div>
         </td>
 
         <td>
@@ -88,4 +93,3 @@
         </td>
     </tr>
 </table>
-

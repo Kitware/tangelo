@@ -292,16 +292,55 @@ window.onload = function(){
         // Select a colormapping function based on the radio buttons.
         var that = this;
         var color = (function(){
+            // Empty the color legend div.
+            d3.select("#legend").selectAll("*").remove();
+
+            // Determine which radio button is currently selected.
             var which = $("input[name=colormap]:radio:checked").attr("value");
+
+            // Generate a colormap function to return, and place a color legend
+            // based on it.
             if(which === 'month'){
-                return function(d){
+                var colormap = function(d){
                     return that.monthColor(d.month);
                 };
+
+                $.each(date.month_names, function(i, d){
+                    var elemtext = d3.select(document.createElement("div"))
+                        .style("border", "solid black 1px")
+                        .style("background", colormap({'month': d}))
+                        .style("display", "inline-block")
+                        .style("width", "20px")
+                        .html("&nbsp;")
+                        .node().outerHTML;
+
+                    var li = d3.select("#legend")
+                        .append("li")
+                        .html(elemtext + "&nbsp;" + d);
+                });
+
+                return colormap;
             }
             else if(which === 'day'){
-                return function(d){
+                var colormap = function(d){
                     return that.dayColor(d.day);
                 };
+
+                $.each(date.day_names, function(i, d){
+                    var elemtext = d3.select(document.createElement("div"))
+                        .style("border", "solid black 1px")
+                        .style("background", colormap({'day': d}))
+                        .style("display", "inline-block")
+                        .style("width", "20px")
+                        .html("&nbsp;")
+                        .node().outerHTML;
+
+                    var li = d3.select("#legend")
+                        .append("li")
+                        .html(elemtext + "&nbsp;" + d);
+                });
+
+                return colormap;
             }
             else{
                 return "pink";
