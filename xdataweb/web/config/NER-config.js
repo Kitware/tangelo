@@ -1,5 +1,3 @@
-config = null;
-
 function update(){
     // Read the options into DOM storage.
     localStorage.setItem('NER:mongodb-server', document.getElementById("mongodb-server").value);
