@@ -87,9 +87,6 @@ function retrieveData(){
     var times = flickr.timeslider.getValue();
 
     // Construct a query that selects times between the two ends of the slider.
-/*    var timequery = { $and : [{'date' : {$gte : new Date(parseInt(times[0]))}},*/
-                              //{'date' : {$lte : new Date(parseInt(times[1]))}}]
-                    //};
     var timequery = { $and : [{'date' : {$gte : {"$date" : times[0]}}},
                               {'date' : {$lte : {"$date" : times[1]}}}]
                     };
@@ -100,7 +97,6 @@ function retrieveData(){
     if(hashtagText !== ""){
         var hashtags = hashtagText.split(/\s+/);
     }
-    console.log(hashtags);
 
     // Construct a query to find any entry containing any of these tags.
     var hashtagquery = {};
@@ -110,9 +106,6 @@ function retrieveData(){
 
     // Stitch all the queries together into a "superquery".
     var query = {$and : [timequery, hashtagquery]};
-    //var query = hashtagquery;
-    console.log(query);
-    console.log(JSON.stringify(query));
 
     // Issue the query to the mongo module.
     var mongo = flickr.getMongoDBInfo();
@@ -122,7 +115,8 @@ function retrieveData(){
         type: 'POST',
         url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
         data: {
-            query: JSON.stringify(query)
+            query: JSON.stringify(query),
+            limit: 3000
         },
         dataType: 'json',
         success: function(response){
@@ -139,9 +133,20 @@ function retrieveData(){
             var N = response.result.length;
             panel.html("Got " + N + " result" + (N === 0 || N > 1 ? "s" : ""));
 
+            // Process the data to add some interesting features
+            //
+            // Extract some information from the date.
+            //var data = response.result;
+            var data = response.result.map(function(d){
+                var date = new Date(d.date.$date);
+
+                d.month = date.getMonthName();
+                d.day = date.getDayName();
+                return d;
+            });
+
             // Store the retrieved values in the map object.
-            console.log(response);
-            flickr.map.locations(response.result);
+            flickr.map.locations(data);
 
             // Redraw the map.
             flickr.map.draw();
@@ -163,6 +168,9 @@ function GMap(elem, options){
     // transparent SVG element when the overlay is sized and placed in the
     // draw() callback.
     this.overlay = null;
+
+    this.dayColor = d3.scale.category10();
+    this.monthColor = d3.scale.category20();
 
     this.setMap(this.map);
 
@@ -214,7 +222,7 @@ window.onload = function(){
 
     // draw() sizes and places the overlaid SVG element.
     GMap.prototype.draw = function(){
-        console.log("draw()!");
+        //console.log("draw()!");
         if(this.locationData === null || typeof this.locationData === 'undefined' || this.locationData.length === 0){
             console.log("returning early: locationData is " + this.locationData);
             return;
@@ -239,7 +247,6 @@ window.onload = function(){
         //var center = flickr.map.map.getCenter();
         var containerLatLng = proj.fromContainerPixelToLatLng({x: 0, y: 0});
         var divPixels = proj.fromLatLngToDivPixel(containerLatLng);
-        console.log(divPixels);
 
         // TODO(choudhury): rather than throw in this Math.abs(), it would be
         // much better to figure out exactly when the high and low coordinates
@@ -255,17 +262,11 @@ window.onload = function(){
 
         // Move and resize the div element.
         var div = d3.select(this.overlayLayer).select("#svgcontainer");
-        //var newLeft = +div.style("left").slice(0,-2) + divPixels.x + "px";
-        //var newTop = +div.style("top").slice(0,-2) + divPixels.y + "px";
         var newLeft = divPixels.x + "px";
         var newTop = divPixels.y + "px";
-        console.log(newLeft);
-        console.log(newTop);
         div
             .style("left", newLeft)
             .style("top", newTop)
-            //.style("left", "40px")
-            //.style("top", "10px")
             .style("width", w + "px")
             .style("height", h + "px");
 
@@ -288,6 +289,25 @@ window.onload = function(){
             return d;
         });
 
+        // Select a colormapping function based on the radio buttons.
+        var that = this;
+        var color = (function(){
+            var which = $("input[name=colormap]:radio:checked").attr("value");
+            if(which === 'month'){
+                return function(d){
+                    return that.monthColor(d.month);
+                };
+            }
+            else if(which === 'day'){
+                return function(d){
+                    return that.dayColor(d.day);
+                };
+            }
+            else{
+                return "pink";
+            }
+        })();
+
         // Compute a data join with the current list of marker locations, using
         // the MongoDB unique id value as the key function.
         var markers = d3.select(this.overlay)
@@ -302,18 +322,15 @@ window.onload = function(){
         //
         // TODO(choudhury): the radius of the marker should depend on the zoom
         // level - smaller circles at lower zoom levels.
-        var that = this;
         markers.enter()
             .append("circle")
-            .style("fill", "pink")
-            .style("fill-opacity", 0.6)
-            .style("stroke", "red")
             .style("opacity", 0.0)
             .attr("r", 10)
             .append("title")
             .text(function(d){
+                var date = new Date(d.date.$date);
                 var msg = "";
-                msg += "Time: " + new Date(d.date.$date) + "\n";
+                msg += "Date: " + date.getDayName() + " " + date + "\n";
                 msg += "Location: (" + d.location[0] + ", " + d.location[1] + ")\n";
                 msg += "Author: " + d.author + "\n";
                 msg += "Description: " + d.title + "\n";
@@ -323,6 +340,9 @@ window.onload = function(){
         markers
             .attr("cx", function(d) { return d.pixelLocation.x; })
             .attr("cy", function(d) { return d.pixelLocation.y; })
+            .style("fill", color)
+            .style("fill-opacity", 0.6)
+            .style("stroke", "black")
             .transition()
             .duration(500)
             .style("opacity", 1.0);
@@ -345,16 +365,11 @@ window.onload = function(){
     GMap.prototype.locations = function(locationData){
         // TODO(choudhury): it might be better to actually copy the values here.
         //
-        //this.locationData = locationData;
-
-        console.log("clearing this.locationData");
-        this.locationData.length = 0;
-        for(var i=0; i<locationData.length; i++){
-            this.locationData.push(locationData[i]);
-            console.log("adding item: " + locationData[i]);
-            console.log("appeared as: " + this.locationData[this.locationData.length - 1]);
-            console.log("length of this.locationData is " + this.locationData.length);
-        }
+        this.locationData = locationData;
+        //this.locationData.length = 0;
+        //for(var i=0; i<locationData.length; i++){
+            //this.locationData.push(locationData[i]);
+        //}
     }
 
     // Create a range slider for slicing by time.
@@ -385,8 +400,14 @@ window.onload = function(){
         mapTypeId: google.maps.MapTypeId.ROADMAP
     };
     var div = d3.select("#map").node();
-    console.log("making new map!!");
     flickr.map = new GMap(div, options);
+
+    // Direct the colormap selector radio buttons to redraw the map when they
+    // are clicked.
+    var buttons = document.getElementsByName("colormap");
+    for(var i=0; i<buttons.length; i++){
+        buttons[i].onclick = function(){ flickr.map.draw(); };
+    }
 
     // Get the earliest and latest times in the database, to create a suitable
     // range for the time slider.

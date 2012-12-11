@@ -16,19 +16,6 @@ ul {
     text-align: left;
 }
 
-ul.flush {
-    margin: 0 0 0 1em;
-    padding: 0px;
-}
-
-ul.buttons {
-    list-style-type: none;
-}
-
-ul.legend {
-    list-style-type: none;
-}
-
 /* Tables should have left-justified text by default
  */
 table {

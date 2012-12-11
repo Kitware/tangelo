@@ -10,6 +10,20 @@ body {
     margin-right: auto;
 }
 
+/* List styling */
+ul.flush {
+    margin: 0 0 0 1em;
+    padding: 0px;
+}
+
+ul.buttons {
+    list-style-type: none;
+}
+
+ul.legend {
+    list-style-type: none;
+}
+
 h1, h2, h3, h4, h5, h6 {
     font-family: 'EB Garamond', Serif;
 }
