@@ -116,7 +116,7 @@ function retrieveData(){
         url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
         data: {
             query: JSON.stringify(query),
-            limit: 3000
+            limit: d3.select("#record-limit").node().value
         },
         dataType: 'json',
         success: function(response){
@@ -136,7 +136,6 @@ function retrieveData(){
             // Process the data to add some interesting features
             //
             // Extract some information from the date.
-            //var data = response.result;
             var data = response.result.map(function(d){
                 var date = new Date(d.date.$date);
 
