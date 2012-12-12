@@ -417,9 +417,11 @@ window.onload = function(){
     d3.select("#data-button").node().onclick = retrieveData;
 
     // Some options for initializing the google map.
+    //
+    // Set to Paris, with good view of the Seine.
     var options = {
-        zoom: 2,
-        center: new google.maps.LatLng(65.67, 95.17),
+        zoom: 13,
+        center: new google.maps.LatLng(48.86, 2.33),
         mapTypeId: google.maps.MapTypeId.ROADMAP
     };
     var div = d3.select("#map").node();
