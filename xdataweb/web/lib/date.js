@@ -1,5 +1,6 @@
 date = {};
 date.month_names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+date.day_names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 date.toShortString = function(d){
     // Grab the date.
@@ -22,4 +23,12 @@ date.toShortString = function(d){
 
 Date.prototype.toString = function(){
     return date.toShortString(this);
+}
+
+Date.prototype.getMonthName = function(){
+    return date.month_names[this.getMonth()];
+}
+
+Date.prototype.getDayName = function(){
+    return date.day_names[this.getDay()];
 }

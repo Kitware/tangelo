@@ -1,11 +1,9 @@
-config = null;
-
 function update(){
     // Read the options into DOM storage.
     localStorage.setItem('NER:mongodb-server', document.getElementById("mongodb-server").value);
 
-    // TODO(choudhury):  The page should either reload here, or else the
-    // "current" values should all be updated.
+    // Reload the current values into the display elements.
+    window.onload();
 }
 
 window.onload = function(){

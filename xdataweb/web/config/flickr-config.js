@@ -9,13 +9,18 @@ function tag(s){
 }
 
 function update(){
-    // Read the options into DOM storage.
-    localStorage.setItem('flickr:mongodb-server', document.getElementById("mongodb-server").value);
-    localStorage.setItem('flickr:mongodb-db', document.getElementById("mongodb-db").value);
-    localStorage.setItem('flickr:mongodb-coll', document.getElementById("mongodb-coll").value);
+    // Grab the elements.
+    var server = document.getElementById("mongodb-server");
+    var db = document.getElementById("mongodb-db");
+    var coll = document.getElementById("mongodb-coll");
 
-    // TODO(choudhury):  The page should either reload here, or else the
-    // "current" values should all be updated.
+    // Read the options into DOM storage.
+    localStorage.setItem('flickr:mongodb-server', server.value);
+    localStorage.setItem('flickr:mongodb-db', db.value);
+    localStorage.setItem('flickr:mongodb-coll', coll.value);
+
+    // Reload the current values into the display elements.
+    window.onload();
 }
 
 window.onload = function(){
