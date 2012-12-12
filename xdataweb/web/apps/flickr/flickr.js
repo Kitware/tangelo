@@ -11,6 +11,7 @@ flickr.getMongoDBInfo = function(){
 
 function getMinMaxDates(){
     var mongo = flickr.getMongoDBInfo();
+    var july30 = Date.parse("Jul 30, 2012 01:31:06");
 
     // Query the collection about the earliest and latest dates in the
     // collection.
@@ -31,7 +32,11 @@ function getMinMaxDates(){
             else{
                 var val = +response.result[0]['date']['$date'];
                 flickr.timeslider.setMin(val);
-                flickr.timeslider.setLowValue(val);
+                //flickr.timeslider.setLowValue(val);
+
+                // TODO(choudhury): for XDATA demo.  Remove when no longer
+                // needed.
+                flickr.timeslider.setLowValue(july30);
             }
         }
     });
@@ -273,6 +278,17 @@ window.onload = function(){
             return d;
         });
 
+        // Filter the results by day (if any of the boxes is checked).
+        var days = date.day_names.filter(function(d){
+            return document.getElementById(d).checked;
+        });
+        if(days.length > 0){
+            data = data.filter(function(d) { return days.indexOf(d.day) !== -1; });
+        }
+
+        // Grab the total number of data items.
+        var N = data.length;
+
         // Select a colormapping function based on the radio buttons.
         var that = this;
         var color = (function(){
@@ -280,7 +296,7 @@ window.onload = function(){
             d3.select("#legend").selectAll("*").remove();
 
             // Determine which radio button is currently selected.
-            var which = $("input[name=colormap]:radio:checked").attr("value");
+            var which = $("input[name=colormap]:radio:checked").attr("id");
 
             // Generate a colormap function to return, and place a color legend
             // based on it.
@@ -326,10 +342,52 @@ window.onload = function(){
 
                 return colormap;
             }
+            else if(which == 'rb'){
+                var invert = document.getElementById("invert").checked;
+                var range = invert ? ['blue', 'red'] : ['red', 'blue'];
+                var scale = d3.scale.linear()
+                    .domain([0,N-1])
+                    .range(range);
+
+                return function(d, i){
+                    return scale(i);
+                };
+            }
             else{
                 return "pink";
             }
         })();
+
+        // Select a radius function as well.
+        var radius = (function(){
+            // Determine which radio button is selected.
+            var which = $("input[name=size]:radio:checked").attr("id");
+
+            // Generate a radius function to return.
+            if(which === 'recency'){
+                return function(d, i){
+                    return 5 + 15*(N-1-i)/(N-1);
+                };
+            }
+            else{
+                // Get the size value.
+                var size = parseFloat(d3.select("#size").node().value);
+                if(isNaN(size) || size <= 0.0){
+                    size = 5.0;
+                }
+
+                return size;
+            }
+        })();
+
+        // Get the opacity value.
+        var opacity = parseFloat(d3.select("#opacity").node().value);
+        if(isNaN(opacity) || opacity > 1.0){
+            opacity = 1.0;
+        }
+        else if(opacity < 0.0){
+            opacity = 0.0;
+        }
 
         // Compute a data join with the current list of marker locations, using
         // the MongoDB unique id value as the key function.
@@ -348,7 +406,7 @@ window.onload = function(){
         markers.enter()
             .append("circle")
             .style("opacity", 0.0)
-            .attr("r", 10)
+            .attr("r", 0)
             .append("title")
             .text(function(d){
                 var date = new Date(d.date.$date);
@@ -360,15 +418,25 @@ window.onload = function(){
                 return msg;
             });
 
+        // This is to prevent division by zero if there is only one data
+        // element.
+        if(N === 1){
+            N = 2;
+        }
         markers
             .attr("cx", function(d) { return d.pixelLocation.x; })
             .attr("cy", function(d) { return d.pixelLocation.y; })
             .style("fill", color)
-            .style("fill-opacity", 0.6)
+            //.style("fill-opacity", 0.6)
+            .style("fill-opacity", 1.0)
             .style("stroke", "black")
             .transition()
             .duration(500)
-            .style("opacity", 1.0);
+            //.attr("r", function(d, i) { return 5 + 15*(N-1-i)/(N-1); })
+            .attr("r", radius)
+            //.style("opacity", 1.0);
+            .style("opacity", opacity);
+            //.style("opacity", function(d, i){ return 0.3 + 0.7*i/(N-1); });
 
         markers.exit()
             .transition()
@@ -433,6 +501,26 @@ window.onload = function(){
     for(var i=0; i<buttons.length; i++){
         buttons[i].onclick = function(){ flickr.map.draw(); };
     }
+    var checkbox = document.getElementById("invert");
+    checkbox.onclick = function(){ flickr.map.draw(); };
+
+    // Direct the day filter checkboxes to redraw the map when clicked.
+    var dayboxes = date.day_names.map(function(d) { return document.getElementById(d); });
+    for(var i=0; i<dayboxes.length; i++){
+        dayboxes[i].onclick = function() { flickr.map.draw(); };
+    }
+
+    // Direct the glyph size radio buttons to redraw.
+    buttons = document.getElementsByName("size");
+    for(var i=0; i<buttons.length; i++){
+        buttons[i].onclick = function(){ flickr.map.draw() };
+    }
+
+    // Direct the opacity control to redraw.
+    document.getElementById("opacity").onchange = function(){ flickr.map.draw(); };
+
+    // Direct the size control to redraw.
+    document.getElementById("size").onchange = function(){ flickr.map.draw(); };
 
     // Get the earliest and latest times in the database, to create a suitable
     // range for the time slider.
@@ -497,4 +585,7 @@ window.onload = function(){
     d3.select("#unzoom")
         .data([flickr.timeslider])
         .on('click', zoomfunc.unzoomer);
+
+    // Make a spinner out of the opacity control.
+    //$("#opacity").spinner();
 }
