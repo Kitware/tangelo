@@ -1,0 +1,87 @@
+function {{NAME}}() {
+  
+  var vis = {},
+      scales = {},
+      encoders = {},
+      axes = [],
+      data = {},
+      el = null,
+      dom = null,
+      width = {{WIDTH}},
+      height = {{HEIGHT}},
+      padding = {{PADDING}},
+      duration = 0;
+
+  vis.el = function(value) {
+    if (!arguments.length) return el;
+    el = value;
+    return vis;
+  };
+
+  vis.data = function(value) {
+    if (!arguments.length) return data;
+    data = value;
+    return vis;
+  };
+  
+  vis.width = function(value) {
+    if (!arguments.length) return width;
+    width = value;
+    return vis;
+  };
+
+  vis.height = function(value) {
+    if (!arguments.length) return height;
+    height = value;
+    return vis;
+  };
+
+  vis.padding = function(value) {
+    if (!arguments.length) return padding;
+    padding = value;
+    return vis;
+  };
+
+  vis.duration = function(value) {
+    if (!arguments.length) return duration;
+    duration = value;
+    return vis;
+  };
+
+  vis.init = function() {
+    vis.updateScales();
+{{INIT_ENCODERS}}
+{{INIT_AXES}}
+{{INIT_DOM}}
+    return vis;
+  };
+
+  vis.update = function() {
+    vis.updateAxes();
+    vis.updateMarks();
+    return vis;
+  };
+
+  vis.updateScales = function() {
+{{INIT_SCALES}}
+    return vis;
+  };
+
+  vis.updateAxes = function() {
+{{UPDATE_AXES}}
+    return vis;
+  };
+
+  vis.updateMarks = function() {
+{{UPDATE_MARKS}}
+    return vis;
+  };
+  
+  // for debugging
+  vis.scales = scales;
+  vis.encoders = encoders;
+  vis.axes = axes;
+  
+  return vis;
+}
+

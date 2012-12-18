@@ -1,3 +1,9 @@
+stats = {};
+stats.start = null;
+stats.end = null;
+stats.count = null;
+stats.vistemplate = null;
+
 function static_histogram(bins){
     alert("static_histogram(" + bins + ")");
 }
@@ -6,9 +12,6 @@ window.onload = function(){
     // Load the data.
     //
     // First get the extremes of the data.
-    var start = null;
-    var end = null;
-    var count = null;
     $.ajax({
         url: '/service/mongo/mongo/xdata/flickr_paris',
         data: {
@@ -26,8 +29,8 @@ window.onload = function(){
 
             // Capture the date by extracting the millisecond value and
             // converting it to a numeric type.
-            start = +response.result.data[0].date.$date;
-            console.log("start date: " + start);
+            stats.start = +response.result.data[0].date.$date;
+            console.log("start date: " + stats.start);
 
             // Trigger an AJAX call to get the *latest* date in the dataset.
             $.ajax({
@@ -46,8 +49,8 @@ window.onload = function(){
                     }
 
                     // Capture the date.
-                    end = +response.result.data[0].date.$date;
-                    console.log("end date: " + end);
+                    stats.end = +response.result.data[0].date.$date;
+                    console.log("end date: " + stats.end);
 
                     // Now fire an AJAX call to count the total number of
                     // records.
@@ -66,21 +69,30 @@ window.onload = function(){
                             }
 
                             // Save the count.
-                            count = +response.result.count;
-                            console.log("count: " + count);
+                            stats.count = +response.result.count;
+                            console.log("count: " + stats.count);
                             
-                            // Initialize the buttons.
-                            d3.select("#quartile").node().onclick = function(){
-                                static_histogram(4);
-                            };
+                            // Fire an AJAX call to retrieve the Vega template
+                            // text.
+                            d3.text("/lib/vgd3-template.js.txt", function(text){
+                                // Grab the text.
+                                stats.vistemplate = text;
+                                console.log(stats.vistemplate);
 
-                            d3.select("#decile").node().onclick = function(){
-                                static_histogram(10);
-                            };
+                                // Finally - now that we have all the stuff we
+                                // need - initialize the buttons.
+                                d3.select("#quartile").node().onclick = function(){
+                                    static_histogram(4);
+                                };
 
-                            d3.select("#percentile").node().onclick = function(){
-                                static_histogram(100);
-                            };
+                                d3.select("#decile").node().onclick = function(){
+                                    static_histogram(10);
+                                };
+
+                                d3.select("#percentile").node().onclick = function(){
+                                    static_histogram(100);
+                                };
+                            });
                         }
                     });
                 }
