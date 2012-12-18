@@ -5,7 +5,7 @@ import os.path
 import subprocess
 
 path = os.path.dirname(os.path.abspath(sys.argv[0]))
-stop = path + "/stop-xdataweb.py"
-start = path + "/start-xdataweb.py"
+stop = path + "/stop-xdataweb"
+start = path + "/start-xdataweb"
 subprocess.call([stop])
 subprocess.call([start])
