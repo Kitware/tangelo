@@ -1,6 +1,11 @@
-#!/bin/sh
+#!/usr/bin/env python
 
-cmd=`readlink -f $0`
-dir=`dirname ${cmd}`
+import sys
+import os.path
+import subprocess
 
-${dir}/stop-xdataweb && ${dir}/start-xdataweb
+path = os.path.dirname(os.path.abspath(sys.argv[0]))
+stop = path + "/stop-xdataweb.py"
+start = path + "/start-xdataweb.py"
+subprocess.call([stop])
+subprocess.call([start])

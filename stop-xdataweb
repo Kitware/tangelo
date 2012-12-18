@@ -1,14 +1,12 @@
-#!/bin/sh
+#!/usr/bin/env python
+import sys
+import os
+import signal
 
-cmd=`readlink -f $0`
-dir=`dirname ${cmd}`
-pidfile=${dir}/xdataweb.pid
-
-if [ -e xdataweb.pid ]; then
-    # Grab the recorded pid and kill it.
-    pid=`cat ${pidfile}`
-    kill -9 ${pid}
-
-    # Remove the pid file.
-    rm ${pidfile}
-fi
+path = os.path.dirname(os.path.abspath(sys.argv[0]))
+pidfile = path + "/xdataweb.pid"
+if os.path.exists(pidfile):
+    f = file(pidfile)
+    pid = f.read()
+    os.kill(int(pid), signal.SIGKILL)
+    os.remove(pidfile)
