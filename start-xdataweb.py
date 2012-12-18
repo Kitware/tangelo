@@ -14,7 +14,7 @@ except subprocess.CalledProcessError:
 path = os.path.dirname(os.path.abspath(sys.argv[0]))
 pidfile = path + "/xdataweb.pid"
 if os.path.exists(pidfile):
-    print "error: xdataweb already seems to be running"
+    print("error: xdataweb already seems to be running", file=sys.stderr)
     sys.exit(1)
 
 os.chdir(path)
