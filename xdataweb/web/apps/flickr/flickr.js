@@ -30,7 +30,7 @@ function getMinMaxDates(){
                 console.log("error: could not get minimum time value from database.");
             }
             else{
-                var val = +response.result[0]['date']['$date'];
+                var val = +response.result.data[0]['date']['$date'];
                 flickr.timeslider.setMin(val);
                 //flickr.timeslider.setLowValue(val);
 
@@ -56,7 +56,7 @@ function getMinMaxDates(){
                 console.log("error: could not get maximum time value from database.");
             }
             else{
-                var val = +response.result[0]['date']['$date'];
+                var val = +response.result.data[0]['date']['$date'];
                 flickr.timeslider.setMax(val);
                 flickr.timeslider.setHighValue(val);
             }
@@ -136,13 +136,13 @@ function retrieveData(){
             }
 
             // Report how many results there were.
-            var N = response.result.length;
+            var N = response.result.data.length;
             panel.html("Got " + N + " result" + (N === 0 || N > 1 ? "s" : ""));
 
             // Process the data to add some interesting features
             //
             // Extract some information from the date.
-            var data = response.result.map(function(d){
+            var data = response.result.data.map(function(d){
                 var date = new Date(d.date.$date);
 
                 d.month = date.getMonthName();

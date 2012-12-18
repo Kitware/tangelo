@@ -50,8 +50,13 @@ class Handler:
             # Create a list of the results.
             results = [x for x in it]
 
+            # Create an object to structure the results.
+            retobj = {}
+            retobj['count'] = it.count()
+            retobj['data'] = results
+
             # Pack the results into the response object, and return it.
-            response['result'] = results
+            response['result'] = retobj
         else:
             raise RuntimeError("illegal method '%s' in module 'mongo'")
 
