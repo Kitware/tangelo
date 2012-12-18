@@ -1,3 +1,7 @@
+function static_histogram(bins){
+    alert("static_histogram(" + bins + ")");
+}
+
 window.onload = function(){
     // Load the data.
     //
@@ -67,22 +71,20 @@ window.onload = function(){
                             
                             // Initialize the buttons.
                             d3.select("#quartile").node().onclick = function(){
-                                alert("quartile");
+                                static_histogram(4);
                             };
 
                             d3.select("#decile").node().onclick = function(){
-                                alert("decile");
+                                static_histogram(10);
                             };
 
                             d3.select("#percentile").node().onclick = function(){
-                                alert("percentile");
+                                static_histogram(100);
                             };
                         }
                     });
                 }
             });
-
-
         }
     });
 };
