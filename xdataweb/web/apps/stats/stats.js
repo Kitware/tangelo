@@ -36,7 +36,7 @@ stats.spec = {
             type: "rect",
             name: "histogram_bars",
             from: "values",
-            properties: {
+            enter: {
                 x1: {scale: "x", field: "bin"},
                 y1: {scale: "y", field: "value"},
                 y2: {scale: "y", value: 0},

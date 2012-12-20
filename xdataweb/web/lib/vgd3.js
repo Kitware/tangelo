@@ -97,11 +97,25 @@ vg.get = function(field) {
       cache = true,
       debug = true;
 
+  function _indent(count) {
+    count = count || 1;
+    while (--count >= 0) indent += "  ";
+  }
+  
+  function _unindent(count) {
+    count = count || 1;
+    indent = indent.slice(0, indent.length-(2*count));
+  }
+
   function check_step() {
     if (step) {
-      x.indent();
+      _indent();
       step = false;
     }
+  }
+  
+  function is_chain() {
+    return chain.length && chain[chain.length-1] >= 0;
   }
   
   x.source = function() {
@@ -122,12 +136,13 @@ vg.get = function(field) {
     }
     chain.pop();
     check_step();
-    return x.unindent();
+    _unindent();
+    return x;
   };
   
   x.decl = function(name, expr) {
     src.push(indent+"var "+name+" = "+expr
-      + (chain.length ? "" : ";") + "\n");
+      + (is_chain() ? "" : ";") + "\n");
     check_step();
     return x;
   };
@@ -155,7 +170,7 @@ vg.get = function(field) {
     var args = Array.prototype.slice.call(arguments, 1)
       .map(function(x) { return vg.isArray(x) ? "["+x+"]" : x; });
     src.push(indent + expr + "(" + args.join(", ") + ")"
-      + (chain.length ? "" : ";") + "\n");
+      + (is_chain() ? "" : ";") + "\n");
     check_step();
     return x;
   };
@@ -173,14 +188,14 @@ vg.get = function(field) {
   };
 
   x.indent = function(count) {
-    count = count || 1;
-    while (--count >= 0) indent += "  ";
+    chain.push(-1);
+    _indent(count);
     return x;
   };
   
   x.unindent = function(count) {
-    count = count || 1;
-    indent = indent.slice(0, indent.length-(2*count));
+    chain.pop();
+    _unindent(count);
     return x;
   };
   
@@ -290,7 +305,9 @@ vg.scale.quant = function(scale, sc) {
   // init domain
   var dom = [null, null];
   if (scale.domain !== undefined) {
-    if (vg.isObject(scale.domain)) {
+    if (vg.isArray(scale.domain)) {
+      dom = scale.domain;
+    } else if (vg.isObject(scale.domain)) {
       var ref = scale.domain,
           dat = "data['"+ref.data+"']",
           get = vg.get({field:ref.field});
@@ -443,7 +460,8 @@ vg.axis = function(axis, index, sc) {
 
 vg.axes.update = function(spec, sc) {
   if (!spec.axes || spec.axes.length==0) return;
-  sc.decl("sel", "duration ? dom.transition(duration) : dom")
+  sc.push("var init = axes.init; axes.init = true;")
+    .decl("sel", "duration && init ? dom.transition(duration) : dom")
     .chain()
     .push("sel.selectAll('g.axis')")
     .push(".attr('transform', function(axis,i) {")
@@ -465,7 +483,7 @@ vg.axes.update = function(spec, sc) {
       .indent()
       .push("axis.scale(scales[axis.scaleName]);")
       .push("var s = d3.select(this);")
-      .push("(duration ? s.transition().duration(duration) : s).call(axis);")
+      .push("(duration && init ? s.transition().duration(duration) : s).call(axis);")
       .unindent()
     .push("})")
     .unchain();
@@ -478,22 +496,54 @@ var vg_axis_orient = {
   "bottom": "bottom",
   "left":   "left",
   "right":  "right"
-};vg.marks = function(spec, sc) {
+};vg.data = function(spec, sc) {
+  (spec.data || []).forEach(function(dat) {
+    vg.datum(dat, sc);
+  });
+};
+
+vg.datum = function(dat, sc) {
+  (dat.transform || []).forEach(function(tx) {
+    var t = vg.data.transform.registry[tx.type];
+    if (!t) throw new Error ("Unrecognized data transform: "+tx.type);
+    t(dat, tx, sc);
+  });
+  // TODO data loading from external source
+};
+
+vg.data.transform = {};
+vg.data.transform.registry = {};
+
+vg.data.transform.register = function(type, transform) {
+  vg.data.transform.registry[type] = transform;
+};vg.data.transform.register("group", function(dat, tx, sc) {
+  var source = "data['"+tx.data+"']";
+  var target = "data['"+dat.name+"']";
+  sc.push(target + " = vg.group(" + source
+    + (tx.keys ? ", ["+tx.keys.map(vg.str).join(", ")+"]" : "")
+    + (tx.sort ? ", ["+tx.sort.map(vg.str).join(", ")+"]" : "")
+    + ");");
+});vg.marks = function(spec, sc) {
+  // build global name map of data sets
+  var dmap = {};
+  (spec.data || []).forEach(function(dat) {
+    dmap[dat.name] = dat;
+  });
   // build global name map of encoders
-  var map = {};
+  var emap = {};
   (spec.encoders || []).forEach(function(enc) {
-    map[enc.name] = enc;
+    emap[enc.name] = enc;
   });
   // generate code for marks
   (spec.marks || []).forEach(function(mark, index) {
     if (index > 0) sc.push();
-    vg.mark(mark, index, map, sc);
+    vg.mark(mark, index, dmap, emap, sc);
   });
 };
 
-vg.mark = function(mark, index, encoderMap, sc) {
+vg.mark = function(mark, index, dataMap, encoderMap, sc) {
   // check if mark type is supported
-  if (vg.mark[mark.type] == undefined) {
+  if (vg.mark.registry[mark.type] == undefined) {
     vg.log("Skipping unsupported mark type: "+mark.type);
     return;
   }
@@ -510,18 +560,26 @@ vg.mark = function(mark, index, encoderMap, sc) {
     });
   });
   
-  // encode mark
+  // generate mark code
   encoders.forEach(function(enc) {
     vg.encoder.start(enc.def, enc.spec, mark, index, sc);
   });
-  vg.mark[mark.type](mark, index, encoders, sc);
+  vg.mark.builder(mark, index, dataMap, encoders, sc);
   encoders.forEach(function(enc) {
     vg.encoder.finish(enc.def, enc.spec, mark, index, sc);
   });
 };
 
 vg.mark.obj = "this.vega";
-
+vg.mark.registry = {};
+vg.mark.reserved = {
+  "x1":     1,
+  "x2":     1,
+  "y1":     1,
+  "y2":     1,
+  "width":  1,
+  "height": 1
+};
 vg.mark.styles = {
   "opacity":       "opacity",
   "fill":          "fill",
@@ -536,62 +594,124 @@ vg.mark.styles = {
   "fontStyle":     "font-style"
 };
 
-vg.mark.spatials = {
-  "x1":          "x",
-  "x2":          "x",
-  "y1":          "y",
-  "y2":          "y",
-  "width":       "width",
-  "height":      "height",
-  "path":        "path",
-  "innerRadius": "innerRadius",
-  "outerRadius": "outerRadius",
-  "startAngle":  "startAngle",
-  "endAngle":    "endAngle",
-  "interpolate": "interpolate",
-  "tension":     "tension"
+vg.mark.register = function(type, def) {
+  vg.mark.registry[type] = def;
+  (def.reserved || []).forEach(function(p) {
+    vg.mark.reserved[p] = 1 + (vg.mark.reserved[p] || 0);
+  });
 };
 
-vg.mark.encode = function(mark, index, encoders, sc) {
-  var name = vg.varname("mark", index),
-      props = mark.properties,
-      obj = vg.mark.obj;
-  
-  sc.push(name+".each(function(d,i) {").indent()
-    .push(obj + " = {x:0, y:0};");
+vg.mark.from = function(from) {
+  var s;
+  if (vg.isArray(from)) {
+    s = "[";
+    from.forEach(function(d, i) {
+      s += (i>0 ? ", " : "") + "data['"+d+"']";
+    });
+    s += "]";
+  } else {
+    s = "data['"+from+"']";
+  }
+  return s;
+};
+
+vg.mark.builder = function(mark, index, data, encoders, sc) {
+  var markName = vg.varname("mark", index),
+      from = vg.mark.from(mark.from),
+      type = mark.type,
+      def = vg.mark.registry[type],
+      key = vg.isArray(mark.from) ? undefined : data[mark.from].key,
+      keyfn = (key !== undefined)
+        ? "function(d) { return d["+vg.str(key)+"]; }"
+        : "null";
+  var encode = /*def.group ? vg.mark.noop :*/ vg.mark.encode;
+
+  // select
+  sc.chain()
+    .decl(markName, "dom.select('.mark-"+index+"')")
+    .call(".selectAll", "'"+def.svg+"'")
+    .call(".data", from, keyfn)
+    .unchain();
+
+  // enter
+  sc.chain().push(markName+".enter().append('"+def.svg+"')");
+  if (mark.enter) {
+    encode(mark, mark.enter, index, encoders, sc);
+    def.attr(mark.enter, sc);
+    vg.mark.props(mark.enter, sc);
+  }
+  sc.unchain();
+
+  // exit
+  vg.mark.selection(markName, "exit", sc);
+  if (mark.exit) {
+    encode(mark, mark.exit, index, encoders, sc);
+    def.attr(mark.exit, sc);
+    vg.mark.props(mark.exit, sc);
+  }
+  sc.call(".remove").unchain();
+
+  // update
+  vg.mark.selection(markName, null, sc);
+  if (mark.update) {
+    encode(mark, mark.update, index, encoders, sc);
+    def.attr(mark.update, sc);
+    vg.mark.props(mark.update, sc);
+  }
+  sc.unchain();
+};
+
+vg.mark.selection = function(markName, selName, sc) {
+  selName = selName ? "." + selName + "()" : "";
+  sc.chain().push("(duration"
+    + " ? " + markName + selName + ".transition().duration(duration)"
+    + " : " + markName + selName + ")");
+}
+
+vg.mark.noop = function() {};
+
+vg.mark.encode = function(mark, props, index, encoders, sc) {
+  var obj = vg.mark.obj,
+      def = vg.mark.registry[mark.type];
+
+  sc.push(".each(function(d,i) {").indent();
+  if (def.group) {
+    sc.push("var scene = "+obj+" || ("+obj+" = []);");
+    sc.push("d.forEach(function(d,j) {").indent();
+    sc.push("var o = scene[j] || (scene[j] = {x:0, y:0});");
+  } else {
+    sc.push("var o = "+obj+" || ("+obj+" = {x:0, y:0});");
+  }
   
   // encoder properties
   encoders.forEach(function(enc) {
     vg.encoder.encode(enc.def, enc.spec, mark, index, sc);
   });
 
-  // arc properties
-  ["innerRadius","outerRadius","startAngle","endAngle"].forEach(function(p) {
-    if (props[p] === undefined) return;
-    sc.push(obj+"."+p + " = " + vg.value(props[p]) + ";");    
-  });
+  // mark-specific properties
+  if (def.encode) def.encode(props, sc);
 
   // horizontal spatial properties
   if (props.x1 !== undefined && props.x2 !== undefined) {
     sc.decl("x1", vg.value(props.x1))
       .decl("x2", vg.value(props.x2))
       .push("if (x1 > x2) { var tmp = x1; x1 = x2; x2 = tmp; }")
-      .push(obj + ".x = x1;")
-      .push(obj + ".width = (x2-x1);");
+      .push("o.x = x1;")
+      .push("o.width = (x2-x1);");
   } else if (props.x1 !== undefined && props.width !== undefined) {
     sc.decl("x1", vg.value(props.x1))
       .decl("width", vg.value(props.width))
       .push("if (width < 0) { x1 += width; width *= -1; }")
-      .push(obj + ".x = x1;")
-      .push(obj + ".width = width;");
+      .push("o.x = x1;")
+      .push("o.width = width;");
   } else if (props.x2 !== undefined && props.width !== undefined) {
     sc.decl("width", vg.value(props.width))
       .decl("x2", vg.value(props.x2) + " - width")
       .push("if (width < 0) { x2 += width; width *= -1; }")
-      .push(obj + ".x = x2;")
-      .push(obj + ".width = width;");
+      .push("o.x = x2;")
+      .push("o.width = width;");
   } else if (props.x1 !== undefined) {
-    sc.push(obj + ".x = " + vg.value(props.x1) + ";");
+    sc.push("o.x = " + vg.value(props.x1) + ";");
   }
 
   // vertical spatial properties
@@ -599,59 +719,34 @@ vg.mark.encode = function(mark, index, encoders, sc) {
     sc.decl("y1", vg.value(props.y1))
       .decl("y2", vg.value(props.y2))
       .push("if (y1 > y2) { var tmp = y1; y1 = y2; y2 = tmp; }")
-      .push(obj + ".y = y1;")
-      .push(obj + ".height = (y2-y1);");
+      .push("o.y = y1;")
+      .push("o.height = (y2-y1);");
   } else if (props.y1 !== undefined && props.height !== undefined) {
     sc.decl("y1", vg.value(props.y1))
       .decl("height", vg.value(props.height))
       .push("if (height < 0) { y1 += height; height *= -1; }")
-      .push(obj + ".x = y1;")
-      .push(obj + ".height = height;");
+      .push("o.x = y1;")
+      .push("o.height = height;");
   } else if (props.y2 !== undefined && props.height !== undefined) {
     sc.decl("height", vg.value(props.height))
       .decl("y2", vg.value(props.y2) + " - height")
       .push("if (height < 0) { y2 += height; height *= -1; }")
-      .push(obj + ".y = y2;")
-      .push(obj + ".height = height;");
+      .push("o.y = y2;")
+      .push("o.height = height;");
   } else if (props.y1 !== undefined) {
-    sc.push(obj + ".y = " + vg.value(props.y1) + ";");
+    sc.push("o.y = " + vg.value(props.y1) + ";");
   }
 
-  sc.unindent().push("});");
+  if (def.group) {
+    sc.unindent().push("});");
+  }
+  sc.unindent().push("})");
 };
 
-vg.mark.rect = function(mark, index, encoders, sc) {
-  var mname = vg.varname("mark", index),
-      method = ".attr";
-  
-  // select
-  sc.chain()
-    .decl(mname, "dom.select('.mark-"+index+"')")
-    .call(".selectAll", "'rect'")
-    .call(".data", "data['"+mark.from+"']")
-    .unchain();
-    
-  // exit and enter
-  sc.push(mname+".exit().remove();");
-  sc.push(mname+".enter().append('rect');");
-  
-  // compute spatial and encoder properties
-  vg.mark.encode(mark, index, encoders, sc);
-
-  // update and transition
-  sc.chain().push("(duration"
-    + " ? " + mname + ".transition().duration(duration)"
-    + " : " + mname + ")");
-
-  // encode spatial properties
-  ["'x'","'y'","'width'","'height'"].forEach(function(name) {
-    sc.call(method, name, "function() { return "+vg.mark.obj+"["+name+"]; }");
-  });
-
-  // encode all other properties
-  for (var name in mark.properties) {
-    if (vg.mark.spatials[name]) continue;
-    var props = mark.properties[name],
+vg.mark.props = function(properties, sc) {
+  for (var name in properties) {
+    if (vg.mark.reserved[name]) continue;
+    var props = properties[name],
         val = vg.value(props);
     if (props.field !== undefined) {
       val = "function(d,i) { return " + val + "; }";
@@ -659,190 +754,109 @@ vg.mark.rect = function(mark, index, encoders, sc) {
     sc.call(vg.mark.styles[name] ? ".style" : ".attr",
       vg.str(vg.mark.styles[name]||name), val);
   }
-  sc.unchain();
-};
-
-vg.mark.path = function(mark, index, encoders, sc) {
-  var mname = vg.varname("mark", index),
-      method = ".attr";
-  
-  // select
-  sc.chain()
-    .decl(mname, "dom.select('.mark-"+index+"')")
-    .call(".selectAll", "'path'")
-    .call(".data", "data['"+mark.from+"']")
-    .unchain();
-    
-  // exit and enter
-  sc.push(mname+".exit().remove();");
-  sc.push(mname+".enter().append('path');");
-
-  // compute spatial and encoder properties
-  vg.mark.encode(mark, index, encoders, sc);
-
-  // update and transition
-  sc.chain().push("(duration"
-    + " ? " + mname + ".transition().duration(duration)"
-    + " : " + mname + ")");
-
-  // encode spatial properties
-  sc.call(method, "'transform'", "function() { "
-      + "return 'translate('+"+vg.mark.obj+".x+','+"+vg.mark.obj+".y+')'; }")
-    .call(method, "'d'", "function() { return "+vg.mark.obj+".path; }");
-
-  // encode all other properties
-  for (var name in mark.properties) {
-    if (vg.mark.spatials[name]) continue;
-    var props = mark.properties[name],
-        val = vg.value(props);
-    if (props.field !== undefined) {
-      val = "function(d,i) { return " + val + "; }";
+};vg.mark.register("rect", {
+  svg: "rect",
+  attr: function(properties, sc) {
+    if (properties.x1 || properties.x2) {
+      sc.call(".attr", "'x'", "function() { return "+vg.mark.obj+"['x']; }");
     }
-    sc.call(vg.mark.styles[name] ? ".style" : ".attr",
-      vg.str(vg.mark.styles[name]||name), val);
-  }
-  sc.unchain();
-};
-
-vg.mark.arc = function(mark, index, encoders, sc) {
-  var mname = vg.varname("mark", index),
-      arc = "arc"+index,
-      method = ".attr";
-  
-  // arc path generation
-  sc.decl(arc, "d3.svg.arc()");
-  
-  // select
-  sc.chain()
-    .decl(mname, "dom.select('.mark-"+index+"')")
-    .call(".selectAll", "'path'")
-    .call(".data", "data['"+mark.from+"']")
-    .unchain();
-    
-  // exit and enter
-  sc.push(mname+".exit().remove();");
-  sc.push(mname+".enter().append('path');");
-
-  // compute spatial and encoder properties
-  vg.mark.encode(mark, index, encoders, sc);
-
-  // update and transition
-  sc.chain().push("(duration"
-    + " ? " + mname + ".transition().duration(duration)"
-    + " : " + mname + ")");
-
-  // encode spatial properties
-  sc.call(method, "'transform'", "function() { "
-      + "return 'translate('+"+vg.mark.obj+".x+','+"+vg.mark.obj+".y+')'; }")
-    .call(method, "'d'", "function() { return "+arc+"("+vg.mark.obj+"); }");
-
-  // encode all other properties
-  for (var name in mark.properties) {
-    if (vg.mark.spatials[name]) continue;
-    var props = mark.properties[name],
-        val = vg.value(props);
-    if (props.field !== undefined) {
-      val = "function(d,i) { return " + val + "; }";
+    if (properties.y1 || properties.y2) {
+      sc.call(".attr", "'y'", "function() { return "+vg.mark.obj+"['y']; }");
     }
-    sc.call(vg.mark.styles[name] ? ".style" : ".attr",
-      vg.str(vg.mark.styles[name]||name), val);
-  }
-  sc.unchain();
-};
-
-vg.mark.area = function(mark, index, encoders, sc) {
-  var mname = vg.varname("mark", index),
-      area = "area"+index,
-      props = mark.properties;
-    
-  // select
-  sc.chain()
-    .decl(mname, "dom.select('.mark-"+index+"')")
-    .call(".selectAll", "'path'")
-    .call(".data", "[data['"+mark.from+"']]")
-    .unchain();
-    
-  // exit and enter
-  sc.push(mname+".exit().remove();");
-  sc.push(mname+".enter().append('path');");
-
-  // update and transition
-  sc.chain().push("(duration"
-    + " ? " + mname + ".transition().duration(duration)"
-    + " : " + mname + ")");
-
-  // encode spatial properties
-  sc.chain()
-    .push(".attr('d', d3.svg.area()")
-    .call(".x","function(d) { return "+vg.value(props.x1)+"; }")
-    .call(".y1","function(d) { return "+vg.value(props.y1)+"; }")
-    .call(".y0","function(d) { return "+vg.value(props.y2)+"; }");
-  if (props.interpolate !== undefined)
-    sc.call(".interpolate", vg.value(props.interpolate));
-  if (props.tension !== undefined)
-    sc.call(".tension", vg.value(props.tension));
-  sc.unchain(1, true);
-
-  // encode all other properties
-  for (var name in mark.properties) {
-    if (vg.mark.spatials[name]) continue;
-    var props = mark.properties[name],
-        val = vg.value(props);
-    if (props.field !== undefined) {
-      val = "function(d,i) { return " + val + "; }";
+    if (properties.width || (properties.x1 && properties.x2)) {
+      sc.call(".attr", "'width'", "function() { return "+vg.mark.obj+"['width']; }");
     }
-    sc.call(vg.mark.styles[name] ? ".style" : ".attr",
-      vg.str(vg.mark.styles[name]||name), val);
-  }
-  sc.unchain();
-};
-
-vg.mark.line = function(mark, index, encoders, sc) {
-  var mname = vg.varname("mark", index),
-      line = "line"+index,
-      props = mark.properties;
-    
-  // select
-  sc.chain()
-    .decl(mname, "dom.select('.mark-"+index+"')")
-    .call(".selectAll", "'path'")
-    .call(".data", "[data['"+mark.from+"']]")
-    .unchain();
-    
-  // exit and enter
-  sc.push(mname+".exit().remove();");
-  sc.push(mname+".enter().append('path');");
-
-  // update and transition
-  sc.chain().push("(duration"
-    + " ? " + mname + ".transition().duration(duration)"
-    + " : " + mname + ")");
-
-  // encode spatial properties
-  sc.chain()
-    .push(".attr('d', d3.svg.line()")
-    .call(".x","function(d) { return "+vg.value(props.x1)+"; }")
-    .call(".y","function(d) { return "+vg.value(props.y1)+"; }");
-  if (props.interpolate !== undefined)
-    sc.call(".interpolate", vg.value(props.interpolate));
-  if (props.tension !== undefined)
-    sc.call(".tension", vg.value(props.tension));
-  sc.unchain(1, true);  
-
-  // encode all other properties
-  for (var name in mark.properties) {
-    if (vg.mark.spatials[name]) continue;
-    var props = mark.properties[name],
-        val = vg.value(props);
-    if (props.field !== undefined) {
-      val = "function(d,i) { return " + val + "; }";
+    if (properties.height || (properties.y1 && properties.y2)) {
+      sc.call(".attr", "'height'", "function() { return "+vg.mark.obj+"['height']; }");    
     }
-    sc.call(vg.mark.styles[name] ? ".style" : ".attr",
-      vg.str(vg.mark.styles[name]||name), val);
   }
-  sc.unchain();
-};
-vg.encoders = function(spec, sc) {
+});vg.mark.register("circ", {
+  svg: "circle",
+  reserved: ["size"],
+  encode: function(properties, sc) {
+    if (properties["size"] !== undefined) {
+      sc.push("o.size = Math.sqrt(" + vg.value(properties["size"]) + ");");
+    }
+  },
+  attr: function(properties, sc) {
+    if (properties.x1 || properties.x2) {
+      sc.call(".attr", "'cx'", "function() { return "+vg.mark.obj+"['x']; }");
+    }
+    if (properties.y1 || properties.y2) {
+      sc.call(".attr", "'cy'", "function() { return "+vg.mark.obj+"['y']; }");
+    }
+    if (properties.size) {
+      sc.call(".attr", "'r'", "function() { return "+vg.mark.obj+"['size']; }");
+    }
+  }
+});vg.mark.register("path", {
+  svg: "path",
+  reserved: ["path"],
+  attr: function(properties, sc) {
+    sc.call(".attr", "'transform'", "function() { "
+        + "return 'translate('+"+vg.mark.obj+".x+','+"+vg.mark.obj+".y+')'; }")
+      .call(".attr", "'d'", "function() { return "+vg.mark.obj+".path; }");
+  }
+});vg.mark.register("arc", {
+  svg: "path",
+  reserved: [
+    "innerRadius",
+    "outerRadius",
+    "startAngle",
+    "endAngle"
+  ],
+  encode: function(properties, sc) {
+    ["innerRadius","outerRadius","startAngle","endAngle"].forEach(function(p) {
+      if (properties[p] === undefined) return;
+      sc.push("o." + p + " = " + vg.value(properties[p]) + ";");
+    });
+  },
+  attr: function(properties, sc) {
+    sc.call(".attr", "'transform'", "function() { "
+        + "return 'translate('+"+vg.mark.obj+".x+','+"+vg.mark.obj+".y+')'; }")
+      .call(".attr", "'d'", "function() { return d3.svg.arc()("+vg.mark.obj+"); }");
+  }
+});
+vg.mark.register("area", {
+  svg: "path",
+  group: true,
+  reserved: [
+    "interpolate",
+    "tension"
+  ],
+  attr: function(properties, sc) {
+    var o = vg.mark.obj;
+    sc.chain()
+      .push(".attr('d', d3.svg.area()")
+      .call(".x","function(d,i) { return "+o+"[i].x; }")
+      .call(".y0","function(d,i) { return "+o+"[i].y; }")
+      .call(".y1","function(d,i) { return "+o+"[i].y + "+o+"[i].height; }");
+    if (properties.interpolate !== undefined)
+      sc.call(".interpolate", vg.value(properties.interpolate));
+    if (properties.tension !== undefined)
+      sc.call(".tension", vg.value(properties.tension));
+    sc.unchain(1, true);
+  }
+});vg.mark.register("line", {
+  svg: "path",
+  group: true,
+  reserved: [
+    "interpolate",
+    "tension"
+  ],
+  attr: function(properties, sc) {
+    var o = vg.mark.obj;
+    sc.chain()
+      .push(".attr('d', d3.svg.line()")
+      .call(".x","function(d,i) { return "+o+"[i].x; }")
+      .call(".y","function(d,i) { return "+o+"[i].y; }");
+    if (properties.interpolate !== undefined)
+      sc.call(".interpolate", vg.value(properties.interpolate));
+    if (properties.tension !== undefined)
+      sc.call(".tension", vg.value(properties.tension));
+    sc.unchain(1, true);
+  }
+});vg.encoders = function(spec, sc) {
   if (!spec.encoders) return;
   spec.encoders.forEach(function(enc, index) {
     if (index > 0) sc.push();
@@ -937,12 +951,11 @@ vg.encoder.register("geo", function() {
     encode: function(def, spec, mark, index, sc) {
       var name = vg.varname("geo", index),
           lon = vg.value(spec.lon),
-          lat = vg.value(spec.lat),
-          obj = vg.mark.obj;
+          lat = vg.value(spec.lat);
 
       sc.decl("xy", name+"(["+lon+", "+lat+"])")
-        .push(obj + ".x = xy[0];")
-        .push(obj + ".y = xy[1];");
+        .push("o.x = xy[0];")
+        .push("o.y = xy[1];");
     },
     
     finish: function(def, spec, mark, index, sc) {
@@ -979,7 +992,7 @@ vg.encoder.register("geo", function() {
   encode: function(def, spec, mark, index, sc) {
     var name = vg.varname("geojson", index),
         field = vg.value(spec.field);
-    sc.push(vg.mark.obj+".path = "+name+"("+field+");");
+    sc.push("o.path = "+name+"("+field+");");
   },
   
   finish: function(def, spec, mark, index, sc) {
@@ -1008,10 +1021,47 @@ vg.encoder.register("geo", function() {
   
   encode: function(def, spec, mark, index, sc) {
     var name = vg.varname("pie", index);
-    sc.push(vg.mark.obj+".startAngle = "+name+"[i].startAngle;")
-      .push(vg.mark.obj+".endAngle = "+name+"[i].endAngle;");
+    sc.push("o.startAngle = "+name+"[i].startAngle;")
+      .push("o.endAngle = "+name+"[i].endAngle;");
   }
   
+});vg.encoder.register("stack", {
+
+  input: ["x", "y"],
+  params: ["offset", "order", "scale"],
+  output: ["x", "y", "height"],
+  method: undefined,
+    
+  start: function(def, spec, mark, index, sc) {
+    var name = vg.varname("stack", index);
+    sc.chain().decl(name, "d3.layout.stack()");
+    if (spec.offset !== undefined) {
+      sc.call(".offset", vg.value(spec.offset));
+    }
+    if (spec.order !== undefined) {
+      sc.call(".order", vg.value(spec.order));
+    }
+    sc.call(".x", "function(d,i) { return "+vg.value(spec.x)+"; }")
+      .call(".y", "function(d,i) { return "+vg.value(spec.y)+"; }")    
+      .push("("+vg.mark.from(mark.from)+")")
+      .unchain();
+  },
+  
+  encode: function(def, spec, mark, index, sc) {
+    var name = vg.varname("stack", index);
+    sc.decl("so", name+"[i][j]");
+    if (spec.scale) {
+      var s = "scales['"+spec.scale+"']";
+      sc.decl("y1", s+"(so.y0)")
+        .decl("y2", s+"(so.y0 + so.y)")
+        .push("if (y1 > y2) { var tmp = y1; y1 = y2; y2 = tmp; }")
+        .push("o.y = y1;")
+        .push("o.height = (y2-y1);");
+    } else {
+      sc.push("o.y = so.y0;")
+        .push("o.height = so.y;");
+    }
+  }
 });vg.encoder.register("symbol", {
 
   params: ["shape", "size"],
@@ -1028,7 +1078,7 @@ vg.encoder.register("geo", function() {
   
   encode: function(def, spec, mark, index, sc) {
     var name = vg.varname("symbol", index);
-    sc.push(vg.mark.obj+".path = "+name+"(d);");
+    sc.push("o.path = "+name+"(d);");
   }
   
 });vg.dom = function(spec, sc) {
@@ -1093,7 +1143,8 @@ vg.compile = function(spec, template) {
     name: "chart",
     width: 400,
     height: 400,
-    padding: {top:30, bottom:30, left:30, right:30}    
+    padding: {top:30, bottom:30, left:30, right:30},
+    duration: 0
   };
 
   // PARAMETERS
@@ -1101,9 +1152,14 @@ vg.compile = function(spec, template) {
   js.set("WIDTH", spec.width || defaults.width);
   js.set("HEIGHT", spec.height || defaults.height);
   js.set("PADDING", spec.padding || defaults.padding);
+  js.set("DURATION", spec.duration || defaults.duration);
 
   // INITIALIZATION
 
+  // data
+  vg.data(spec, sc.clear().indent(2));
+  js.set("INIT_DATA", sc.source());
+  
   // scales
   vg.scales(spec, sc.clear().indent(2));
   js.set("INIT_SCALES", sc.source());
