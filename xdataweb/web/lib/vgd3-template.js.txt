@@ -76,6 +76,11 @@ function {{NAME}}() {
 {{UPDATE_MARKS}}
     return vis;
   };
+
+  vis.extraUpdate = function() {
+{{EXTRA_UPDATE}}
+    return vis;
+  };
   
   // for debugging
   vis.scales = scales;

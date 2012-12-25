@@ -86,10 +86,24 @@ function static_histogram(start, end, bins, sel, empty){
 
             // Compile the spec into the template.
             var source = vg.compile(stats.spec, stats.vistemplate);
+            
+            // Insert the "extra update" code, to include title elements
+            // attached to the rect elements.
+            var code =
+                [
+                "var titles = new Array(" + bins + ");",
+                "var format = d3.format('%');",
+                "for(var i=0; i<bins; i++){",
+                "  titles[i] = format(i/bins) + ' - ' + format((i+1)/bins);",
+                "}",
+                "dom.select('.mark-0').selectAll('rect').data(titles).append('title').text(function(d) { return d; });"
+                ].join("\n");
+            source = source.replace("{{EXTRA_UPDATE}}", code);
+
             d3.select("#code").text(source);
             eval("stats.chart = " + source +";");
             stats.vis = stats.chart();
-            stats.vis.el(sel).data(stats.data).init().update();
+            stats.vis.el(sel).data(stats.data).init().update().extraUpdate();
         };
     })();
 
