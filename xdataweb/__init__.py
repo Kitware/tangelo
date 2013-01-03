@@ -1,7 +1,9 @@
 import bson.json_util
 import cherrypy
 import json
+import StringIO
 import sys
+import traceback
 
 # This function defines the structure of a service response.  Each service
 # module should import this function from this package.
@@ -70,7 +72,15 @@ class Server(object):
         try:
             return handler.go(*pargs, **kwargs)
         except Exception as e:
+            # Error message.
             response['error'] = "xdataweb: error: %s: %s" % (e.__class__.__name__, e.message)
+
+            # Full Python traceback stack.
+            s = StringIO.StringIO()
+            traceback.print_exc(file=s)
+            response['traceback'] += "\n" + s.getvalue()
+
+            # Serialize to JSON.
             return json.dumps(response)
 
     @cherrypy.expose
