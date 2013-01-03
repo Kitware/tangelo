@@ -27,7 +27,7 @@ function getMinMaxDates(){
         success: function(response){
             if(response.error !== null){
                 // Error condition.
-                console.log("error: could not get minimum time value from database.");
+                console.log("error: could not get minimum time value from database - " + response.error);
             }
             else{
                 var val = +response.result[0]['date']['$date'];
@@ -53,7 +53,7 @@ function getMinMaxDates(){
         success: function(response){
             if(response.error !== null){
                 // Error condition.
-                console.log("error: could not get maximum time value from database.");
+                console.log("error: could not get maximum time value from database - " + response.error);
             }
             else{
                 var val = +response.result[0]['date']['$date'];
