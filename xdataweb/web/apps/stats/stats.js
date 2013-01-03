@@ -24,11 +24,10 @@ stats.spec = {
     ],
     scales: [
         {name: "x", type: "ordinal", domain: {data: "values", field: "bin"}, range: "width", padding: 0},
-        //{name: "y", domain: {data: "values", field: "value"}, range: "height"}
         {name: "y", type: "linear", domain: [0,1], range: "height"}
     ],
     axes: [
-        {axis: "x", scale: "x", format: "%"},
+        {axis: "x", scale: "x", values: []},
         {axis: "y", scale: "y"}
     ],
     marks: [
