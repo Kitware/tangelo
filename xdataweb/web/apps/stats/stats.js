@@ -67,7 +67,7 @@ function static_histogram(start, end, bins, sel, empty){
     var make_chart = (function(){
         var trigger = 1;
 
-        return function(){
+        return function(data){
             // This mechanism causes the function's bulk not to execute until
             // all of the AJAX calls have completed (i.e., until the function is
             // called "bins" times, it will simply return early).
@@ -92,8 +92,9 @@ function static_histogram(start, end, bins, sel, empty){
                 [
                 "var titles = new Array(" + bins + ");",
                 "var format = d3.format('%');",
+                "var data = " + JSON.stringify(data) + ";",
                 "for(var i=0; i<bins; i++){",
-                "  titles[i] = format(i/bins) + ' - ' + format((i+1)/bins);",
+                "  titles[i] = format(i/bins) + ' - ' + format((i+1)/bins) + ' (' + format(data[i].value) + ' or ' + data[i].count + ' records)';",
                 "}",
                 "dom.select('.mark-0').selectAll('rect').data(titles).append('title').text(function(d) { return d; });"
                 ].join("\n");
@@ -122,11 +123,11 @@ function static_histogram(start, end, bins, sel, empty){
             // succeeded.
             stats.data.values[which] = {
                 bin: (which + 1) / bins,
-                //value: response.result.count
+                count: +response.result.count,
                 value: +response.result.count / stats.count
             };
 
-            make_chart();
+            make_chart(stats.data.values);
         };
     }
 
