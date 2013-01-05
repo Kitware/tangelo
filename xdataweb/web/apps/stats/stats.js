@@ -42,6 +42,18 @@ stats.spec = {
                 width: {scale: "x"},
                 fill: {value: "darkgreen"}
             }
+        },
+
+        {   type: "rect",
+            name: "histogram_bar_containers",
+            from: "values",
+            enter: {
+                x1: {scale: "x", field: "bin"},
+                width: {scale: "x"},
+                y1: {scale: "y", value: 0},
+                y2: {scale: "y", value: 1},
+                opacity: {value: 0.0}
+            }
         }
     ]
 };
@@ -96,7 +108,7 @@ function static_histogram(start, end, bins, sel, empty){
                 "for(var i=0; i<bins; i++){",
                 "  titles[i] = format(i/bins) + ' - ' + format((i+1)/bins) + ' (' + format(data[i].value) + ' or ' + data[i].count + ' records)';",
                 "}",
-                "dom.select('.mark-0').selectAll('rect').data(titles).append('title').text(function(d) { return d; });"
+                "dom.select('.mark-1').selectAll('rect').data(titles).append('title').text(function(d) { return d; });"
                 ].join("\n");
             source = source.replace("{{EXTRA_UPDATE}}", code);
 
