@@ -59,7 +59,7 @@ stats.spec = {
     ]
 };
 
-function static_histogram(start, end, bins, sel, empty){
+function static_histogram(start, end, bins, sel, empty, extra_update_template){
     // Grab the chart container element.
     var chart = d3.select(sel);
 
@@ -101,19 +101,7 @@ function static_histogram(start, end, bins, sel, empty){
             
             // Insert the "extra update" code, to include title elements
             // attached to the rect elements.
-            var code =
-                [
-                "var titles = new Array(" + bins + ");",
-                "var format = d3.format('%');",
-                "var data = " + JSON.stringify(data) + ";",
-                "for(var i=0; i<bins; i++){",
-                "  titles[i] = format(i/bins) + ' - ' + format((i+1)/bins) + ' (' + format(data[i].value) + ' or ' + data[i].count + ' records)';",
-                "}",
-                "var containers = dom.select('.mark-1').selectAll('rect');",
-                "containers.data(titles).append('title').text(function(d) { return d; });",
-                "containers.on('mouseover', function(){ d3.select(this).style('opacity',0.3); });",
-                "containers.on('mouseout', function(){ d3.select(this).style('opacity',0.0); });"
-                ].join("\n");
+            var code = extra_update_template.replace("<<DATA>>", JSON.stringify(data));
             source = source.replace("{{EXTRA_UPDATE}}", code);
 
             d3.select("#code").text(source);
@@ -230,19 +218,33 @@ window.onload = function(){
                                 // Grab the text.
                                 stats.vistemplate = text;
 
-                                // Finally - now that we have all the stuff we
-                                // need - initialize the buttons.
-                                d3.select("#quartile").node().onclick = function(){
-                                    static_histogram(stats.start, stats.end, 4, "#chart", true);
-                                };
+                                // Fire an AJAX call to grab the "extra update"
+                                // template text (for use in constructing the
+                                // vis object from the Vega spec).
+                                d3.text("extra-update.template.js", function(text, error){
+                                    // Check for error.
+                                    if(text === undefined){
+                                        console.log("error: " + error);
+                                        return;
+                                    }
 
-                                d3.select("#decile").node().onclick = function(){
-                                    static_histogram(stats.start, stats.end, 10, "#chart", true);
-                                };
+                                    // Grab the text.
+                                    stats.extraupdate_template = text;
 
-                                d3.select("#percentile").node().onclick = function(){
-                                    static_histogram(stats.start, stats.end, 100, "#chart", true);
-                                };
+                                    // Finally - now that we have all the stuff we
+                                    // need - initialize the buttons.
+                                    d3.select("#quartile").node().onclick = function(){
+                                        static_histogram(stats.start, stats.end, 4, "#chart", true, stats.extraupdate_template);
+                                    };
+
+                                    d3.select("#decile").node().onclick = function(){
+                                        static_histogram(stats.start, stats.end, 10, "#chart", true, stats.extraupdate_template);
+                                    };
+
+                                    d3.select("#percentile").node().onclick = function(){
+                                        static_histogram(stats.start, stats.end, 100, "#chart", true, stats.extraupdate_template);
+                                    };
+                                });
                             });
                         }
                     });
