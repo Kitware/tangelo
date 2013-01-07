@@ -52,6 +52,7 @@ stats.spec = {
                 width: {scale: "x"},
                 y1: {scale: "y", value: 0},
                 y2: {scale: "y", value: 1},
+                fill: {value: "black"},
                 opacity: {value: 0.0}
             }
         }
@@ -108,7 +109,10 @@ function static_histogram(start, end, bins, sel, empty){
                 "for(var i=0; i<bins; i++){",
                 "  titles[i] = format(i/bins) + ' - ' + format((i+1)/bins) + ' (' + format(data[i].value) + ' or ' + data[i].count + ' records)';",
                 "}",
-                "dom.select('.mark-1').selectAll('rect').data(titles).append('title').text(function(d) { return d; });"
+                "var containers = dom.select('.mark-1').selectAll('rect');",
+                "containers.data(titles).append('title').text(function(d) { return d; });",
+                "containers.on('mouseover', function(){ d3.select(this).style('opacity',0.3); });",
+                "containers.on('mouseout', function(){ d3.select(this).style('opacity',0.0); });"
                 ].join("\n");
             source = source.replace("{{EXTRA_UPDATE}}", code);
 
