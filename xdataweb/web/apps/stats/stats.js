@@ -9,6 +9,12 @@ stats.count = null;
 // The JavaScript template to use for compiling the vis spec into.
 stats.vistemplate = null;
 
+// Variables needed for implementing click-drag actions.
+stats.dragging = {};
+stats.dragging.on = false;
+stats.dragging.last = [-1,-1];
+stats.dragging.from = -1;
+
 // Data.
 stats.data = {};
 
