@@ -239,17 +239,25 @@ window.onload = function(){
 
                                     // Finally - now that we have all the stuff we
                                     // need - initialize the buttons.
-                                    d3.select("#quartile").node().onclick = function(){
-                                        static_histogram(stats.start, stats.end, 4, "#chart", true, stats.extraupdate_template);
-                                    };
+                                    d3.select("#quartile").attr("disabled", null)
+                                        .node().onclick = function(){
+                                            static_histogram(stats.start, stats.end, 4, "#chart", true, stats.extraupdate_template);
+                                        };
 
-                                    d3.select("#decile").node().onclick = function(){
-                                        static_histogram(stats.start, stats.end, 10, "#chart", true, stats.extraupdate_template);
-                                    };
+                                    d3.select("#decile").attr("disabled", null)
+                                        .node().onclick = function(){
+                                            static_histogram(stats.start, stats.end, 10, "#chart", true, stats.extraupdate_template);
+                                        };
 
-                                    d3.select("#percentile").node().onclick = function(){
-                                        static_histogram(stats.start, stats.end, 100, "#chart", true, stats.extraupdate_template);
-                                    };
+                                    d3.select("#percentile").attr("disabled", null)
+                                        .node().onclick = function(){
+                                            // The call is wrapped in a lambda to
+                                            // allow stats.start and stats.end to
+                                            // bind dynamically.
+                                            (function(){
+                                                static_histogram(stats.start, stats.end, 100, "#chart", true, stats.extraupdate_template);
+                                            })();
+                                        };
                                 });
                             });
                         }
