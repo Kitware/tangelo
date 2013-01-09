@@ -71,10 +71,6 @@ stats.spec = {
 };
 
 function static_histogram(start, end, bins, sel, empty){
-    console.log("start: " + start);
-    console.log("end: " + end);
-    console.log("bins: " + bins);
-
     // Record the current number of bins.
     stats.bins = bins;
 
@@ -86,7 +82,6 @@ function static_histogram(start, end, bins, sel, empty){
 
     // Calculate the ranges of data.
     var binsize = (end - start) / bins;
-    console.log("binsize: " + binsize);
     var ranges = [];
     for(var i=0; i<bins+1; i++){
         ranges.push(start + i*binsize);
@@ -164,7 +159,6 @@ function static_histogram(start, end, bins, sel, empty){
     // in each range.
     for(i=0; i<bins; i++){
         var mongostring = JSON.stringify({date: {$gte : {$date : ranges[i]}, $lt: {$date : ranges[i+1]}} });
-        console.log("ajax call " + i + ": " + mongostring);
         $.ajax({
             url: '/service/mongo/mongo/xdata/flickr_paris',
             data: {
@@ -284,7 +278,6 @@ function extraUpdate(v, bins){
     });
 
     function mousedown(d, i){
-        console.log("click: " + i);
         stats.dragging.on = true;
         stats.dragging.left = stats.dragging.right = i;
         stats.dragging.from = -1;
@@ -299,23 +292,14 @@ function extraUpdate(v, bins){
     }
 
     function mouseup(d, i){
-        console.log("unclick: " + i);
         stats.dragging.on = false;
-        console.log("selected range: " + stats.dragging.left + " -> " + stats.dragging.right);
 
         // Compute the new value limits to use.  Once this is done, the buttons will
         // reference the new ranges.
         var binwidth = (stats.end - stats.start) / stats.bins;
         var oldstart = stats.start;
-        console.log("oldstart: " + oldstart);
-        console.log("oldend: " + stats.end);
-        console.log("binwidth: " + binwidth);
-        console.log("left: " + stats.dragging.left);
-        console.log("right: " + stats.dragging.right);
         stats.start = oldstart + stats.dragging.left*binwidth;
         stats.end = oldstart + (stats.dragging.right+1)*binwidth;
-        console.log("start: " + stats.start);
-        console.log("end: " + stats.end);
     }
 
     containers.on('mousedown', mousedown);
