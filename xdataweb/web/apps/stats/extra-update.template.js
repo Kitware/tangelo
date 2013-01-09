@@ -1,6 +1,6 @@
 var bardata = new Array(bins);
 var format = d3.format('%');
-var data = <<DATA>>;
+var data = this.data().values;
 for(var i=0; i<bins; i++){
     bardata[i] = {};
     bardata[i].title = format(i/bins) + ' - ' + format((i+1)/bins) + ' (' + format(data[i].value) + ' or ' + data[i].count + ' records)';

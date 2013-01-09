@@ -105,7 +105,7 @@ function static_histogram(start, end, bins, sel, empty, extra_update_template){
         chart.append('div')
             .attr("id", "chart_progress");
 
-        return function(data){
+        return function(){
             // This mechanism causes the function's bulk not to execute until
             // all of the AJAX calls have completed (i.e., until the function is
             // called "bins" times, it will simply return early).
@@ -130,8 +130,7 @@ function static_histogram(start, end, bins, sel, empty, extra_update_template){
             
             // Insert the "extra update" code, to include title elements
             // attached to the rect elements.
-            var code = extra_update_template.replace("<<DATA>>", JSON.stringify(data));
-            source = source.replace("{{EXTRA_UPDATE}}", code);
+            source = source.replace("{{EXTRA_UPDATE}}", extra_update_template);
 
             d3.select("#code").text(source);
             eval("stats.chart = " + source +";");
@@ -160,7 +159,7 @@ function static_histogram(start, end, bins, sel, empty, extra_update_template){
                 value: +response.result.count / stats.count
             };
 
-            make_chart(stats.data.values);
+            make_chart();
         };
     };
 
