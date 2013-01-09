@@ -6,6 +6,11 @@ stats.start = null;
 stats.end = null;
 stats.count = null;
 
+// Some stacks to store earlier versions of those values (for recovering older
+// visualization state).
+stats.bounds = [];
+stats.counts = [];
+
 // The JavaScript template to use for compiling the vis spec into.
 stats.vistemplate = null;
 
@@ -66,11 +71,22 @@ stats.spec = {
 };
 
 function static_histogram(start, end, bins, sel, empty, extra_update_template){
+    console.log("start: " + start);
+    console.log("end: " + end);
+    console.log("bins: " + bins);
+
+    // Record the current number of bins.
+    stats.bins = bins;
+
+    // Record the start and end values in the stack.
+    stats.bounds.push([start, end]);
+
     // Grab the chart container element.
     var chart = d3.select(sel);
 
     // Calculate the ranges of data.
     var binsize = (end - start) / bins;
+    console.log("binsize: " + binsize);
     var ranges = [];
     for(var i=0; i<bins+1; i++){
         ranges.push(start + i*binsize);
@@ -86,12 +102,19 @@ function static_histogram(start, end, bins, sel, empty, extra_update_template){
     var make_chart = (function(){
         var trigger = 1;
 
+        chart.append('div')
+            .attr("id", "chart_progress");
+
         return function(data){
             // This mechanism causes the function's bulk not to execute until
             // all of the AJAX calls have completed (i.e., until the function is
             // called "bins" times, it will simply return early).
             if(trigger != bins){
                 trigger += 1;
+
+                chart.select("#chart_progress")
+                    .html("Received " + trigger + " of " + bins + " responses");
+
                 return;
             }
 
@@ -139,15 +162,17 @@ function static_histogram(start, end, bins, sel, empty, extra_update_template){
 
             make_chart(stats.data.values);
         };
-    }
+    };
 
     // Now, fire several AJAX calls to retrieve the number of records existing
     // in each range.
     for(i=0; i<bins; i++){
+        var mongostring = JSON.stringify({date: {$gte : {$date : ranges[i]}, $lt: {$date : ranges[i+1]}} });
+        console.log("ajax call " + i + ": " + mongostring);
         $.ajax({
             url: '/service/mongo/mongo/xdata/flickr_paris',
             data: {
-                query: JSON.stringify({date: {$gte : {$date : ranges[i]}, $lt: {$date : ranges[i+1]}} }),
+                query: mongostring,
                 limit: "0",
                 fill: false
             },
