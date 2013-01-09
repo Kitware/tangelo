@@ -70,7 +70,7 @@ stats.spec = {
     ]
 };
 
-function static_histogram(start, end, bins, sel, empty, extra_update_template){
+function static_histogram(start, end, bins, sel, empty){
     console.log("start: " + start);
     console.log("end: " + end);
     console.log("bins: " + bins);
@@ -128,14 +128,11 @@ function static_histogram(start, end, bins, sel, empty, extra_update_template){
             // Compile the spec into the template.
             var source = vg.compile(stats.spec, stats.vistemplate);
             
-            // Insert the "extra update" code, to include title elements
-            // attached to the rect elements.
-            source = source.replace("{{EXTRA_UPDATE}}", extra_update_template);
-
             d3.select("#code").text(source);
             eval("stats.chart = " + source +";");
             stats.vis = stats.chart();
-            stats.vis.el(sel).data(stats.data).init().update().extraUpdate();
+            stats.vis.el(sel).data(stats.data).init().update();
+            extraUpdate(stats.vis, bins);
         };
     })();
 
@@ -179,6 +176,150 @@ function static_histogram(start, end, bins, sel, empty, extra_update_template){
             success: callback_maker(i)
         });
     }
+}
+
+function extraUpdate(v, bins){
+    // Grab a reference to the containing DOM element for the visualization.
+    var dom = d3.select(v.el());
+
+    var bardata = new Array(bins);
+    var format = d3.format('%');
+    var data = v.data().values;
+    for(var i=0; i<bins; i++){
+        bardata[i] = {};
+        bardata[i].title = format(i/bins) + ' - ' + format((i+1)/bins) + ' (' + format(data[i].value) + ' or ' + data[i].count + ' records)';
+        bardata[i].state = 'unselected';
+    }
+    var containers = dom.select('.mark-1').selectAll('rect');
+    containers.data(bardata).append('title').text(function(d) { return d.title; });
+
+    function select(d){
+        d.state = 'selected';
+        return d;
+    }
+
+    function unselect(d){
+        d.state = 'unselected';
+        return d;
+    }
+
+    containers.on('mouseover', function(d, i){
+        var bar = d3.select(this);
+        if(d.state == 'selected'){
+            bar.style('fill', 'red')
+        .style('opacity', 0.5);
+        }
+        else if(d.state == 'unselected'){
+            bar.style('fill', 'black')
+        .style('opacity',0.3);
+        }
+        else{
+            console.log("d.state must be selected or unselected - was " + d.state);
+            throw 0;
+        }
+
+    if(stats.dragging.on){
+        var target = -1;
+        if(i < stats.dragging.left){
+            // Dragging outside the pack, to the left.
+            for(var j=i; j<=stats.dragging.left; j++){
+                var e = d3.select(containers[0][j]);
+                e.style('opacity', 0.3)
+                    .style('fill', 'red')
+                    .datum(select);
+            }
+            stats.dragging.left = i;
+            stats.dragging.from = 0;
+        }
+        else if(i > stats.dragging.right){
+            // Dragging outside the pack, to the right.
+            for(var j=stats.dragging.right+1; j<=i; j++){
+                var e = d3.select(containers[0][j]);
+                e.style('opacity', 0.3)
+                    .style('fill', 'red')
+                    .datum(select);
+            }
+            stats.dragging.right = i;
+            stats.dragging.from = 1;
+        }
+        else{
+            // Dragging inside the pack.
+            if(stats.dragging.from === 0){
+                // Shrinking the selection from the left.
+                for(var j=stats.dragging.left; j<i; j++){
+                    var e = d3.select(containers[0][j]);
+                    e.style('opacity', 0.0)
+                        .style('fill', 'black')
+                        .datum(unselect);
+                }
+                stats.dragging.left = i;
+            }
+            else if(stats.dragging.from === 1){
+                // Shrinking the selection from the right.
+                for(var j=i+1; j<=stats.dragging.right; j++){
+                    var e = d3.select(containers[0][j]);
+                    e.style('opacity', 0.0)
+                        .style('fill', 'black')
+                        .datum(unselect);
+                }
+                stats.dragging.right = i;
+            }
+            else{
+                console.log("error - stats.dragging.from must be 0 or 1");
+                throw 0;
+            }
+        }
+    }
+    });
+
+    containers.on('mouseout', function(d){
+        if(!stats.dragging.on){
+            if(d.state === 'unselected'){
+                d3.select(this).style('opacity',0.0);
+            }
+            else if(d.state === 'selected'){
+                d3.select(this).style('opacity',0.3);
+            }
+        }
+    });
+
+    function mousedown(d, i){
+        console.log("click: " + i);
+        stats.dragging.on = true;
+        stats.dragging.left = stats.dragging.right = i;
+        stats.dragging.from = -1;
+
+        containers.style('opacity', 0.0)
+            .datum(unselect);
+
+        d3.select(containers[0][i])
+            .style('fill', 'red')
+            .style('opacity', 0.3)
+            .datum(select);
+    }
+
+    function mouseup(d, i){
+        console.log("unclick: " + i);
+        stats.dragging.on = false;
+        console.log("selected range: " + stats.dragging.left + " -> " + stats.dragging.right);
+
+        // Compute the new value limits to use.  Once this is done, the buttons will
+        // reference the new ranges.
+        var binwidth = (stats.end - stats.start) / stats.bins;
+        var oldstart = stats.start;
+        console.log("oldstart: " + oldstart);
+        console.log("oldend: " + stats.end);
+        console.log("binwidth: " + binwidth);
+        console.log("left: " + stats.dragging.left);
+        console.log("right: " + stats.dragging.right);
+        stats.start = oldstart + stats.dragging.left*binwidth;
+        stats.end = oldstart + (stats.dragging.right+1)*binwidth;
+        console.log("start: " + stats.start);
+        console.log("end: " + stats.end);
+    }
+
+    containers.on('mousedown', mousedown);
+    containers.on('mouseup', mouseup);
 }
 
 window.onload = function(){
@@ -241,48 +382,34 @@ window.onload = function(){
 
                             // Save the count.
                             stats.count = +response.result.count;
-                            
+
                             // Fire an AJAX call to retrieve the Vega template
                             // text.
                             d3.text("/lib/vgd3-template.js.txt", function(text){
                                 // Grab the text.
                                 stats.vistemplate = text;
 
-                                // Fire an AJAX call to grab the "extra update"
-                                // template text (for use in constructing the
-                                // vis object from the Vega spec).
-                                d3.text("extra-update.template.js", function(text, error){
-                                    // Check for error.
-                                    if(text === undefined){
-                                        console.log("error: " + error);
-                                        return;
-                                    }
+                                // Finally - now that we have all the stuff
+                                // we need - initialize the buttons.
+                                d3.select("#quartile").attr("disabled", null)
+                                .node().onclick = function(){
+                                    static_histogram(stats.start, stats.end, 4, "#chart", true, stats.extraupdate_template);
+                                };
 
-                                    // Grab the text.
-                                    stats.extraupdate_template = text;
+                            d3.select("#decile").attr("disabled", null)
+                                .node().onclick = function(){
+                                    static_histogram(stats.start, stats.end, 10, "#chart", true, stats.extraupdate_template);
+                                };
 
-                                    // Finally - now that we have all the stuff we
-                                    // need - initialize the buttons.
-                                    d3.select("#quartile").attr("disabled", null)
-                                        .node().onclick = function(){
-                                            static_histogram(stats.start, stats.end, 4, "#chart", true, stats.extraupdate_template);
-                                        };
-
-                                    d3.select("#decile").attr("disabled", null)
-                                        .node().onclick = function(){
-                                            static_histogram(stats.start, stats.end, 10, "#chart", true, stats.extraupdate_template);
-                                        };
-
-                                    d3.select("#percentile").attr("disabled", null)
-                                        .node().onclick = function(){
-                                            // The call is wrapped in a lambda to
-                                            // allow stats.start and stats.end to
-                                            // bind dynamically.
-                                            (function(){
-                                                static_histogram(stats.start, stats.end, 100, "#chart", true, stats.extraupdate_template);
-                                            })();
-                                        };
-                                });
+                            d3.select("#percentile").attr("disabled", null)
+                                .node().onclick = function(){
+                                    // The call is wrapped in a lambda to
+                                    // allow stats.start and stats.end to
+                                    // bind dynamically.
+                                    (function(){
+                                        static_histogram(stats.start, stats.end, 100, "#chart", true, stats.extraupdate_template);
+                                    })();
+                                };
                             });
                         }
                     });
