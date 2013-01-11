@@ -1,3 +1,11 @@
+vegalab = {};
+
+function compile(){
+
+}
+
+// A callback function for reading a selected file and pasting its contents into
+// a textarea element.
 function textplop(textarea_id){
     return function(e){
         // Grab the filename from the element.
@@ -19,10 +27,24 @@ function textplop(textarea_id){
 }
 
 window.onload = function(){
-    // Install file upload handlers on the textarea buttons.
-    d3.select("#vega_file")
-        .on("change", textplop("vega"));
+    // Load the Vega template text.
+    d3.text("/lib/vgd3-template.js.txt", function(text){
+        // Save the text.
+        vegalab.vega_template = text;
 
-    d3.select("#js_file")
-        .on("change", textplop("js"));
+        // Now that the necessary data is loaded, install the actions on the
+        // buttons.
+        //
+        // Install file upload handlers on the textarea buttons.
+        d3.select("#vega_file")
+            .on("change", textplop("vega"));
+
+        d3.select("#js_file")
+            .on("change", textplop("js"));
+
+        // Install click handler for compile button, and enable the button.
+        d3.select("#compile")
+            .on("click", compile)
+            .attr("disabled", null);
+    });
 };
