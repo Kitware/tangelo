@@ -1,0 +1,32 @@
+<!doctype html>
+<meta charset=utf-8>
+
+<!-- Fonts and styling -->
+<link href='http://fonts.googleapis.com/css?family=Marcellus|EB+Garamond|Inconsolata' rel='stylesheet' type='text/css'>
+<link rel=stylesheet type=text/css href=/xdataweb.css>
+
+<!-- External libraries -->
+<!--<script type=text/javascript src=http://d3js.org/d3.v2.min.js></script>-->
+<script type=text/javascript src=http://d3js.org/d3.v2.js></script>
+<script type=text/javascript src=http://code.jquery.com/jquery-1.8.2.min.js></script>
+
+<!-- Internal libraries -->
+<script type=text/javascript src=/lib/vgd3.js></script>
+<script type=text/javascript src=/lib/underscore.js></script>
+
+<!-- Driver for this page -->
+<script type=text/javascript src=stats.js></script>
+
+<!-- Document begins here -->
+<title>Data Stats Investigator</title>
+<h1>Data Stats Investigator</h1>
+
+<div class=centered id=chart></div>
+
+<div class=centered>
+    <input id=quartile type=button value="Quartile Plot" disabled>
+    <input id=decile type=button value="Decile Plot" disabled>
+    <input id=percentile type=button value="Percentile Plot" disabled>
+</div>
+
+<pre id=code></pre>
