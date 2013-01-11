@@ -18,6 +18,7 @@ def main():
     parser.add_argument("--location", nargs=3, metavar=('LATFIELD','LONGFIELD','NAME'), help="fuse <LATFIELD> and <LONGFIELD> fields into single field named <NAME> (<LATFIELD> and <LONGFIELD> will be converted to float)")
     parser.add_argument("--hashtags", action='append', default=[], nargs=2, metavar=('FIELD','NAME'), help="extract hashtags from <FIELD> and put them in a new field named <NAME>")
     parser.add_argument("--drop-field", action='append', default=[], metavar=('FIELD'), help="do not upload <FIELD> to database")
+    parser.add_argument("-r", "--rename-field", action='append', default=[], nargs=2, metavar=('FIELD', 'NAME'), help="rename field FIELD to NAME")
     parser.add_argument("-i", "--input", nargs='?', metavar='FILE', type=argparse.FileType('r'), default=sys.stdin, help="input file (defaults to stdin)")
     parser.add_argument("-s", "--strict", action='store_true', help="exits with error if any action fields do not exist in CSV header row")
     parser.add_argument("-v", "--verbose", action='store_true', help="print out records as they are processed")
@@ -42,12 +43,20 @@ def main():
     location = args['location']
     hashtags = args['hashtags']
     drop_fields = args['drop_field']
+    rename = args['rename_field']
     infile = args['input']
     strict = args['strict']
     verbose = args['verbose']
     warning = args['warning']
     progress = args['progress']
     bundle_size = args['bundle_size']
+
+    # Form a table of field renames.
+    tmp = {}
+    for p in rename:
+        tmp[p[0]] = p[1]
+    rename = tmp
+    del tmp
 
     # Process the various requested data processing actions (convert, date,
     # location, hashtags, and drop-field) into an action map.
@@ -270,6 +279,13 @@ def main():
         # the record before continuiing.
         for k in drop:
             del record[k]
+
+        # Rename the field names as requested.
+        for k in record:
+            if k in rename:
+                r = rename[k]
+                record[r] = record[k]
+                del record[k]
 
         if verbose:
             print record
