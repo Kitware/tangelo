@@ -19,3 +19,37 @@
 <!-- Document begins here -->
 <title>Vega Laboratory</title>
 <h1>Vega Laboratory</h1>
+
+<table class=centered>
+    <tr>
+        <td colspan=2><div id=chart></div></td>
+    </tr>
+    <tr>
+        <td>
+            <table class=centered>
+                <tr>
+                    <td><textarea id=vega rows=20 cols=60></textarea></td>
+                </tr>
+                <tr>
+                    <td><input type=file id="vega_file" value="Load Vega spec"</td>
+                </tr>
+            </table>
+        </td>
+
+        <td>
+            <table class=centered>
+                <tr>
+                    <td><textarea id=js rows=20 cols=60></textarea></td>
+                </tr>
+                <tr>
+                    <td><input type=file id="js_file" value="Load JavaScript file"</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td colspan=2>
+            <input type=button value=Compile>
+        </td>
+    </tr>
+</table>
