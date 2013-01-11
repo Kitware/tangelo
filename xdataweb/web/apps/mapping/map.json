@@ -1,0 +1,49 @@
+{
+  "name": "map",
+  "width": 960,
+  "height": 500,
+  "padding": {"top": 0, "bottom": 0, "left": 0, "right": 0},
+  "data": [
+    {"name": "cities"},
+    {"name": "regions"},
+    {"name": "table"}
+  ],
+  "scales": [
+    {
+      "name": "size",
+      "domain": {"data":"cities", "field":"val"},
+      "range": [0, 1000]
+    }
+  ],
+  "encoders": [
+    {"name":"proj", "type":"geo.mercator", "scale":1000, "translate":[500,300]},
+    {"name":"us", "type":"geojson", "projection":"proj"},
+    {"name":"symbol", "type":"symbol"}
+  ],
+  "marks": [
+    {
+      "type": "path",
+      "from": "regions",
+      "encoders": [
+        {"name": "us", "field": {"field": "r"}}
+      ],
+      "update": {
+        "fill": { "value": "lightgrey"},
+        "stroke": {"value": "white"}
+      }
+    },
+    {
+      "type": "path",
+      "from": "table",
+      "encoders": [
+        {"name": "proj", "lon": {"field":"location.1"}, "lat": {"field":"location.0"}},
+        {"name": "symbol", "size": {"value": 100}}
+      ],
+      "update": {
+        "strokeWidth": {"value": 2},
+        "fill": {"value": "transparent"},
+        "stroke": {"value": "steelblue"}
+      }
+    }
+  ]
+}

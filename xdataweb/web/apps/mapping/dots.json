@@ -1,0 +1,33 @@
+{
+  "name": "dots",
+  "width": 400,
+  "height": 400,
+  "data": [{"name": "table"}],
+  "scales": [
+    {
+      "name": "lat",
+      "zero": false,
+      "domain": {"data": "table", "field": "location.1"},
+      "range": [0,400]
+    },
+    {
+      "name": "lon",
+      "zero": false,
+      "domain": {"data": "table", "field": "location.0"},
+      "range": [0,400]
+    }
+  ],
+  "marks": [
+    {
+      "type": "circ",
+      "from": "table",
+      "update": {
+        "x1": {"scale": "lon", "field": "location.0"},
+        "y1": {"scale": "lat", "field": "location.1"},
+        "size": {"value": 20},
+        "fill": {"value": "lightblue"},
+        "stroke": {"value": "steelblue"}
+      }
+    }
+  ]
+}
