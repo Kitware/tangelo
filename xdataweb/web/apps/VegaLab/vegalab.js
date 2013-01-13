@@ -1,7 +1,50 @@
 vegalab = {};
 
 function compile(){
+    // Capture the Vega and Javascript code.
+    var spec = d3.select("#vega").node().value;
+    var js = d3.select("#js").node().value;
 
+    // Create a JavaScript object out of the spec.
+    //
+    // TODO(choudhury): error checking for the eval call.
+    spec = eval("(" + spec + ")");
+
+    // Compile the Vega code into the template.
+    var source = vg.compile(spec, vegalab.template);
+
+    // Eval the generated source, and capture the resulting function with a
+    // name.
+    eval("vegalab.make_chart = " + source + ";");
+
+    // Create a visualization by calling the function.
+    vegalab.chart = vegalab.make_chart();
+    vegalab.chart.el("#chart");
+
+    // Eval the user Javascript, which should be just an object with properties
+    // named "data" and "extra".
+    vegalab.js = eval("(" + js + ")");
+
+    // The "data" property should contain a function that returns the data to be
+    // used with the visualization.
+    if(vegalab.js.data !== undefined){
+        vegalab.chart.data(vegalab.js.data());
+    }
+    else{
+        console.log("warning: no 'data' function in javascript code");
+    }
+
+    // The "extra" property should contain a function that takes a Vega
+    // visualization as an input and performs some extra work on it (to
+    // implement interactin behavior, etc.).
+    if(vegalab.js.extra !== undefined){
+        vegalab.js.extra(vegalab.chart);
+    }
+    else{
+        console.log("warning: no 'extra' function in javascript code");
+    }
+
+    vegalab.chart.init().update();
 }
 
 // A callback function for reading a selected file and pasting its contents into
@@ -30,7 +73,7 @@ window.onload = function(){
     // Load the Vega template text.
     d3.text("/lib/vgd3-template.js.txt", function(text){
         // Save the text.
-        vegalab.vega_template = text;
+        vegalab.template = text;
 
         // Now that the necessary data is loaded, install the actions on the
         // buttons.
