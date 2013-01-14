@@ -50,7 +50,7 @@ stats.spec = {
                 x1: {scale: "x", field: "bin"},
                 y1: {scale: "y", field: "value"},
                 y2: {scale: "y", value: 0},
-                width: {scale: "x"},
+                width: {scale: "x", band: true, offset: -1},
                 fill: {value: "darkgreen"}
             }
         },
@@ -60,7 +60,7 @@ stats.spec = {
             from: "values",
             enter: {
                 x1: {scale: "x", field: "bin"},
-                width: {scale: "x"},
+                width: {scale: "x", band: true, offset: -1},
                 y1: {scale: "y", value: 0},
                 y2: {scale: "y", value: 1},
                 fill: {value: "black"},
