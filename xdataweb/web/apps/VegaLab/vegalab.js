@@ -56,7 +56,7 @@ function textplop(textarea_id){
 
         // Instantiate a file reader object, whose callback will simply plop
         // the text into the element.
-        var reader = FileReader();
+        var reader = new FileReader();
         reader.onload = function(e){
             // Grab the text.
             var text = e.target.result;
