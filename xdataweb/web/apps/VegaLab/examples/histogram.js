@@ -22,12 +22,34 @@
         // selection.
         var select = function(d){
             d.state = "selected";
+            return d;
         }
 
         // Utility function to remove a bar from the selection.
         var unselect = function(d){
             d.state = "unselected";
+            return d;
         }
+
+        bars.on("mousedown", function(d, i){
+            vis.dragging.on = true;
+            vis.dragging.left = vis.dragging.right = i;
+            vis.dragging.from = -1;
+
+            bars.style('opacity', 0.0)
+                .datum(unselect);
+
+            d3.select(bars[0][i])
+                .style('fill', 'red')
+                .style('opacity', 0.3)
+                .datum(select);
+        });
+
+        bars.on("mouseup", function (d, i){
+            vis.dragging.on = false;
+
+            console.log("selection: " + vis.dragging.left + " -> " + vis.dragging.right);
+        });
 
         bars.on("mouseover", function(d, i){
             var bar = d3.select(this);
@@ -49,7 +71,7 @@
             if(i < vis.dragging.left){
                 // Dragging outside the pack, to the left.
                 for(var j=i; j<=vis.dragging.left; j++){
-                    var e = d3.select(containers[0][j]);
+                    var e = d3.select(bars[0][j]);
                     e.style('opacity', 0.3)
                         .style('fill', 'red')
                         .datum(select);
@@ -60,7 +82,7 @@
             else if(i > vis.dragging.right){
                 // Dragging outside the pack, to the right.
                 for(var j=vis.dragging.right+1; j<=i; j++){
-                    var e = d3.select(containers[0][j]);
+                    var e = d3.select(bars[0][j]);
                     e.style('opacity', 0.3)
                         .style('fill', 'red')
                         .datum(select);
@@ -73,7 +95,7 @@
                 if(vis.dragging.from === 0){
                     // Shrinking the selection from the left.
                     for(var j=vis.dragging.left; j<i; j++){
-                        var e = d3.select(containers[0][j]);
+                        var e = d3.select(bars[0][j]);
                         e.style('opacity', 0.0)
                             .style('fill', 'black')
                             .datum(unselect);
@@ -83,7 +105,7 @@
                 else if(vis.dragging.from === 1){
                     // Shrinking the selection from the right.
                     for(var j=i+1; j<=vis.dragging.right; j++){
-                        var e = d3.select(containers[0][j]);
+                        var e = d3.select(bars[0][j]);
                         e.style('opacity', 0.0)
                             .style('fill', 'black')
                             .datum(unselect);
