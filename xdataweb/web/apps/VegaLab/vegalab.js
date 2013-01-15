@@ -10,8 +10,10 @@ function compile(){
     // TODO(choudhury): error checking for the eval call.
     spec = eval("(" + spec + ")");
 
-    // Compile the Vega code into the template.
+    // Compile the Vega code into the template, and display it on the page.
     var source = vg.compile(spec, vegalab.template);
+    d3.select("#code")
+        .text(source);
 
     // Eval the generated source, and capture the resulting function with a
     // name.
@@ -34,6 +36,9 @@ function compile(){
         console.log("warning: no 'data' function in javascript code");
     }
 
+    // Now that the data is ready, create the chart.
+    vegalab.chart.init().update();
+
     // The "extra" property should contain a function that takes a Vega
     // visualization as an input and performs some extra work on it (to
     // implement interactin behavior, etc.).
@@ -43,8 +48,6 @@ function compile(){
     else{
         console.log("warning: no 'extra' function in javascript code");
     }
-
-    vegalab.chart.init().update();
 }
 
 // A callback function for reading a selected file and pasting its contents into
