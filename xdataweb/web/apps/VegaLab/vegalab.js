@@ -4,11 +4,18 @@ function compile(){
     // Capture the Vega and Javascript code.
     var spec = d3.select("#vega").node().value;
     var js = d3.select("#js").node().value;
+    var data = d3.select("#data").node().value;
 
     // Create a JavaScript object out of the spec.
     //
     // TODO(choudhury): error checking for the eval call.
-    spec = eval("(" + spec + ")");
+    try{
+        spec = eval("(" + spec + ")");
+    }
+    catch(e){
+        console.log("error parsing Vega spec: " + e);
+        return;
+    }
 
     // Compile the Vega code into the template, and display it on the page.
     var source = vg.compile(spec, vegalab.template);
@@ -23,31 +30,53 @@ function compile(){
     vegalab.chart = vegalab.make_chart();
     vegalab.chart.el("#chart");
 
-    // Eval the user Javascript, which should be just an object with properties
-    // named "data" and "extra".
-    vegalab.js = eval("(" + js + ")");
-
-    // The "data" property should contain a function that returns the data to be
-    // used with the visualization.
-    if(vegalab.js.data !== undefined){
-        vegalab.chart.data(vegalab.js.data());
+    // Eval the user Javascript, which should be just a function.  Default to
+    // the function that does nothing.
+    if(js.length > 0){
+        try{
+            eval("vegalab.js = " + js);
+        }
+        catch(e){
+            console.log("error parsing user JavaScript: " + e);
+            return;
+        }
     }
     else{
-        console.log("warning: no 'data' function in javascript code");
+        vegalab.js = function() {};
+    }
+
+    // The data window should contain either a function that returns the data to
+    // be used, or a JSON object describing the data directly.
+    if(data.length > 0){
+        try{
+            // Try to parse a JSON object from the data window.
+            var d = $.parseJSON(data);
+
+            // If we succeed, send the data object to the vega object.
+            vegalab.chart.data(d);
+        }
+        catch(e){
+            // Reaching here means the data window could not be parsed as JSON.
+            // Try to parse it as JavaScript now.  The window should contain a
+            // single function that returns a data value.
+            try{
+                eval("d = " + data);
+
+                // Call d as a function, and send its output to the vega object.
+                vegalab.chart.data(d());
+            }
+            catch(e){
+                console.log("error parsing user data: " + e);
+                return;
+            }
+        }
     }
 
     // Now that the data is ready, create the chart.
     vegalab.chart.init().update();
 
-    // The "extra" property should contain a function that takes a Vega
-    // visualization as an input and performs some extra work on it (to
-    // implement interactin behavior, etc.).
-    if(vegalab.js.extra !== undefined){
-        vegalab.js.extra(vegalab.chart);
-    }
-    else{
-        console.log("warning: no 'extra' function in javascript code");
-    }
+    // Call the user JavaScript code on the vega object.
+    vegalab.js(vegalab.chart);
 }
 
 // A callback function for reading a selected file and pasting its contents into
