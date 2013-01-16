@@ -15,6 +15,9 @@
         vis.dragging.last = [-1, -1];
         vis.dragging.from = -1;
 
+        // A D3 selection representing the currently selected range.
+        vis.selection = null;
+
         // Select the invisible container bars, for use in the mouse callbacks.
         var bars = d3.select(vis.el()).select(".mark-1").selectAll("rect");
 
@@ -32,13 +35,28 @@
         }
 
         bars.on("mousedown", function(d, i){
+            // Ignore middle clicks.
+            var e = d3.event;
+            if(e.button === 1){
+                return;
+            }
+
+            // Cancel any existing selection.
+            if(vis.selection){
+                vis.selection.on("click", null);
+                vis.selection = null;
+            }
+
+            // Enable dragging mode.
             vis.dragging.on = true;
             vis.dragging.left = vis.dragging.right = i;
             vis.dragging.from = -1;
 
+            // Mark all bars as being unselected.
             bars.style('opacity', 0.0)
                 .datum(unselect);
 
+            // Mark the *clicked* bar as selected.
             d3.select(bars[0][i])
                 .style('fill', 'red')
                 .style('opacity', 0.3)
@@ -46,9 +64,29 @@
         });
 
         bars.on("mouseup", function (d, i){
+            // Ignore middle clicks.
+            var e = d3.event;
+            if(e.button === 1){
+                return;
+            }
+
+            // Turn off dragging mode.
             vis.dragging.on = false;
 
-            console.log("selection: " + vis.dragging.left + " -> " + vis.dragging.right);
+            // Select out the nodes in the selection.
+            vis.selection = d3.selectAll(bars[0].slice(vis.dragging.left, vis.dragging.right+1));
+
+            // Add a mouseclick handler to this selection - middle clicking on
+            // it will trigger a "recomputation" of the histogram over the
+            // selection.
+            vis.selection.on("click", function(){
+                var e = d3.event;
+                if(e.button === 1){
+                    // TODO(choudhury): replace this with appropriate
+                    // "recompute" code.
+                    console.log("recompute: " + vis.dragging.left + " -> " + vis.dragging.right);
+                }
+            });
         });
 
         bars.on("mouseover", function(d, i){
