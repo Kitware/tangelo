@@ -72,7 +72,11 @@ function compile(){
         }
     }
 
-    // Now that the data is ready, create the chart.
+    // Now that the data is ready, empty the container element and create the
+    // chart.
+    d3.select("#chart")
+        .selectAll("*")
+        .remove();
     vegalab.chart.init().update();
 
     // Call the user JavaScript code on the vega object.
