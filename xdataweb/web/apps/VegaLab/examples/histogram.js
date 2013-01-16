@@ -18,6 +18,9 @@
         // A D3 selection representing the currently selected range.
         vis.selection = null;
 
+        // For the "recompute" action (a middle click on the selection).
+        vis.middle_clicking = false;
+
         // Select the invisible container bars, for use in the mouse callbacks.
         var bars = d3.select(vis.el()).select(".mark-1").selectAll("rect");
 
@@ -34,7 +37,7 @@
             return d;
         }
 
-        bars.on("mousedown", function(d, i){
+        bars.on("mousedown.bars", function(d, i){
             // Ignore middle clicks.
             var e = d3.event;
             if(e.button === 1){
@@ -43,7 +46,8 @@
 
             // Cancel any existing selection.
             if(vis.selection){
-                vis.selection.on("click", null);
+                vis.selection.on("mousedown.selection", null);
+                vis.selection.on("mouseup.selection", null);
                 vis.selection = null;
             }
 
@@ -63,7 +67,7 @@
                 .datum(select);
         });
 
-        bars.on("mouseup", function (d, i){
+        bars.on("mouseup.bars", function (d, i){
             // Ignore middle clicks.
             var e = d3.event;
             if(e.button === 1){
@@ -76,12 +80,25 @@
             // Select out the nodes in the selection.
             vis.selection = d3.selectAll(bars[0].slice(vis.dragging.left, vis.dragging.right+1));
 
-            // Add a mouseclick handler to this selection - middle clicking on
-            // it will trigger a "recomputation" of the histogram over the
-            // selection.
-            vis.selection.on("click", function(){
+            // Add a pair of mouseclick handlers to this selection - middle
+            // clicking on it will trigger a "recomputation" of the histogram
+            // over the selection.
+            //
+            // We can't make this a "click" listener, because in browsers
+            // besides Chrome, a non-left button click does not generate a click
+            // event.
+            vis.selection.on("mousedown.selection", function(){
                 var e = d3.event;
                 if(e.button === 1){
+                    vis.middle_clicking = true;
+                }
+            });
+
+            vis.selection.on("mouseup.selection", function(){
+                var e = d3.event;
+                if(e.button === 1 && vis.middle_clicking){
+                    vis.middle_clicking = false;
+
                     // TODO(choudhury): replace this with appropriate
                     // "recompute" code.
                     console.log("recompute: " + vis.dragging.left + " -> " + vis.dragging.right);
