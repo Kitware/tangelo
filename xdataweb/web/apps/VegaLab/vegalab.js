@@ -88,6 +88,9 @@ window.onload = function(){
         d3.select("#js_file")
             .on("change", textplop("js"));
 
+        d3.select("#data_file")
+            .on("change", textplop("data"));
+
         // Install click handler for compile button, and enable the button.
         d3.select("#compile")
             .on("click", compile)
