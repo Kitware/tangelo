@@ -1,8 +1,8 @@
 function(){
     var dat = [];
-    for(var i=0; i<5; i++){
+    for(var i=0; i<100; i++){
         var o = { bin : i,
-                  value : (i+1)*0.1,
+                  value : Math.sin((i+1)*0.01*Math.PI),
                   state : "unselected" };
         dat.push(o);
     }
