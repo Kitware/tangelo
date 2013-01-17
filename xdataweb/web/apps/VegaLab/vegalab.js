@@ -1,5 +1,12 @@
 vegalab = {};
 
+function url_exists(url){
+    var http = new XMLHttpRequest();
+    http.open('HEAD', url, false);
+    http.send();
+    return http.status != 404;
+}
+
 function compile(){
     // Capture the Vega and Javascript code.
     var spec = d3.select("#vega").node().value;
@@ -60,7 +67,7 @@ function compile(){
             // Try to parse it as JavaScript now.  The window should contain a
             // single function that returns a data value.
             try{
-                eval("d = " + data);
+                eval("var d = " + data);
 
                 // Call d as a function, and send its output to the vega object.
                 vegalab.chart.data(d());
@@ -123,49 +130,69 @@ function loadspec(){
     var filename_prefix = "/apps/VegaLab/examples/" + opt + "/" + opt;
 
     // Fill in the Vega spec text box.
-    d3.text(filename_prefix + ".json", function(text, err){
-        if(err !== undefined){
-            console.log("fatal error: could not read Vega spec '" + (filename_prefix + ".json") + "'");
-            return;
-        }
-
-        d3.select("#vega")
+    var filename = filename_prefix + ".json";
+    if(url_exists(filename)){
+        d3.text(filename, function(text, err){
+            if(err !== undefined){
+                console.log("error: could not read Vega spec '" + filename + "'");
+            }
+            else{
+                d3.select("#vega")
             .text(text);
-    });
+            }
+        });
+    }
+    else{
+        console.log("fatal error: Vega spec file '" + filename + "' does not exist");
+    }
 
     // Fill in the JavaScript box.
-    d3.text(filename_prefix + ".js", function(text, err){
-        console.log(err);
-        if(err !== undefined){
-            console.log("info/warning: could not read JavaScript file '" + (filename_prefix + ".js") + "'");
-            return;
-        }
-
-        d3.select("#js")
-            .text(text);
-    });
+    filename = filename_prefix + ".js";
+    if(url_exists(filename)){
+        d3.text(filename, function(text, err){
+            if(err !== undefined){
+                console.log("error: could not read JavaScript file '" + filename + "'");
+            }
+            else{
+                d3.select("#js")
+                    .text(text);
+            }
+        });
+    }
+    else{
+        console.log("info/warning: JavaScript file '" + filename + "' does not exist");
+    }
 
     // Fill in the data box.
-    d3.text(filename_prefix + "-data.js", function(text, err){
-        // If this fails, we have to try "-data.json" too (since the file could
-        // be either of those).
-        if(err !== undefined){
-            d3.text(filename_prefix + "-data.json", function(text, err){
-                if(err !== undefined){
-                    console.log("info/warning: could not read either JavaScript file '" + (filename_prefix + "-data.js") + "' or JSON file '" + (filename_prefix + "-data.json") + "'");
-                    return;
-                }
-
+    //
+    // Dispatch on the existence of a .js file or a .json file.
+    if(url_exists(filename_prefix + "-data.js")){
+        filename = filename_prefix + "-data.js";
+        d3.text(filename, function(text, err){
+            if(err !== undefined){
+                console.log("error: could not read JavaScript file '" + filename + "'");
+            }
+            else{
                 d3.select("#data")
                     .text(text);
-            });
-
-            return;
-        }
-
-        d3.select("#data")
-            .text(text);
-    });
+            }
+        });
+    }
+    else if(url_exists(filename_prefix + "-data.json")){
+        filename = filename_prefix + "-data.json";
+        d3.text(filename, function(text, err){
+            if(err !== undefined){
+                console.log("error: could not read JSON file '" + filename + "'");
+            }
+            else{
+                d3.select("#data")
+                    .text(text);
+            }
+        });
+    }
+    else{
+        console.log("info/warning: neither JavaScript file '" + (filename_prefix + "-data.js") + "' nor JSON file '" + (filename_prefix + "-data.json") + "' exists");
+    }
 }
 
 window.onload = function(){
@@ -193,10 +220,15 @@ window.onload = function(){
             .attr("disabled", null);
     });
 
-    var examples = [{dir: 'histogram', optname: 'Data Histograms'}];
+    var examples = [
+        {dir: 'histogram', optname: 'Data Histograms'},
+        {dir: 'histogram-json', optname: 'JSON Data Histograms'}
+    ];
     d3.select("#load")
         .on("change", loadspec)
-        .data(examples)
+        .selectAll("option")
+        .data(examples, function(d){ return d === undefined ? "" : d.optname; })
+        .enter()
         .append("option")
         .attr("id", function(d){
             return d.dir;
