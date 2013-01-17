@@ -105,6 +105,69 @@ function textplop(textarea_id){
     }
 }
 
+function loadspec(){
+    // Check to see if it's the "dummy" option (which just states the name of
+    // the pull down menu).
+    var sel = d3.select("#load").node();
+    if(sel.selectedIndex === 0){
+        return;
+    }
+
+    // Grab the name of the option's associated directory.
+    var opt = sel.options[sel.selectedIndex].id;
+
+    // Issue ajax calls to fill the textarea elements with the contents of the
+    // appropriate files.
+    //
+    // NOTE: the directory name is the same as the filename base.
+    var filename_prefix = "/apps/VegaLab/examples/" + opt + "/" + opt;
+
+    // Fill in the Vega spec text box.
+    d3.text(filename_prefix + ".json", function(text, err){
+        if(err !== undefined){
+            console.log("fatal error: could not read Vega spec '" + (filename_prefix + ".json") + "'");
+            return;
+        }
+
+        d3.select("#vega")
+            .text(text);
+    });
+
+    // Fill in the JavaScript box.
+    d3.text(filename_prefix + ".js", function(text, err){
+        console.log(err);
+        if(err !== undefined){
+            console.log("info/warning: could not read JavaScript file '" + (filename_prefix + ".js") + "'");
+            return;
+        }
+
+        d3.select("#js")
+            .text(text);
+    });
+
+    // Fill in the data box.
+    d3.text(filename_prefix + "-data.js", function(text, err){
+        // If this fails, we have to try "-data.json" too (since the file could
+        // be either of those).
+        if(err !== undefined){
+            d3.text(filename_prefix + "-data.json", function(text, err){
+                if(err !== undefined){
+                    console.log("info/warning: could not read either JavaScript file '" + (filename_prefix + "-data.js") + "' or JSON file '" + (filename_prefix + "-data.json") + "'");
+                    return;
+                }
+
+                d3.select("#data")
+                    .text(text);
+            });
+
+            return;
+        }
+
+        d3.select("#data")
+            .text(text);
+    });
+}
+
 window.onload = function(){
     // Load the Vega template text.
     d3.text("/lib/vgd3-template.js.txt", function(text){
@@ -132,6 +195,7 @@ window.onload = function(){
 
     var examples = [{dir: 'histogram', optname: 'Data Distribution Histograms'}];
     d3.select("#load")
+        .on("change", loadspec)
         .data(examples)
         .append("option")
         .attr("id", function(d){
