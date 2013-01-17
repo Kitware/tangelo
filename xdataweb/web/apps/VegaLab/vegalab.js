@@ -193,7 +193,7 @@ window.onload = function(){
             .attr("disabled", null);
     });
 
-    var examples = [{dir: 'histogram', optname: 'Data Distribution Histograms'}];
+    var examples = [{dir: 'histogram', optname: 'Data Histograms'}];
     d3.select("#load")
         .on("change", loadspec)
         .data(examples)
