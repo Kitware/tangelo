@@ -129,4 +129,15 @@ window.onload = function(){
             .on("click", compile)
             .attr("disabled", null);
     });
+
+    var examples = [{dir: 'histogram', optname: 'Data Distribution Histograms'}];
+    d3.select("#load")
+        .data(examples)
+        .append("option")
+        .attr("id", function(d){
+            return d.dir;
+        })
+        .html(function(d){
+            return d.optname;
+        });
 };
