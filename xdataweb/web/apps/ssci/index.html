@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>SSCI</title>
+<style>
+.active {
+  fill: red
+}
+</style>
+<script src="http://d3js.org/d3.v2.min.js?2.8.1"></script>
+
+<h1>Predictive Database</h1>
+
+<p>Time: <select id="time">
+  <option value="0">time 0</option>
+  <option value="1">time 1</option>
+  <option value="2">time 2</option>
+  <option value="3">time 3</option>
+  <option value="4">time 4</option>
+  <option value="5">time 5</option>
+  <option value="6">time 6</option>
+  <option value="7">time 7</option>
+  <option value="8">time 8</option>
+  <option value="9">time 9</option>
+  <option value="10">time 10</option>
+  <option value="11">time 11</option>
+</select>
+
+<p>Built with <a href="http://d3js.org/">d3.js</a>.
+
+<script>
+
+var margin = {top: 150, right: 300, bottom: 200, left: 100},
+    width = 1500,
+    height = 400;
+
+var x = d3.scale.ordinal().rangeBands([0, width]),
+    y = [d3.scale.ordinal().rangeBands([0, height])],
+    z = d3.scale.linear().domain([0, 4]).clamp(true),
+    c = d3.scale.category20().domain([1, 0]);
+
+var colPartition = [];
+var rowPartition = [];
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    //.style("margin-left", -margin.left + "px")
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+d3.json("ssci.json", function(data) {
+  // The default sort order.
+  x.domain(d3.range(data.columns.length));
+  y[0].domain(d3.range(data.rows.length));
+
+  svg.append("rect")
+      .attr("class", "background")
+      .style("fill", "white")
+      .attr("width", width)
+      .attr("height", height);
+
+  var row = svg.selectAll(".row")
+      .data(data.rows)
+    .enter().append("g")
+      .attr("class", "row")
+      .attr("transform", function(d, i) { return "translate(0," + y[0](i) + ")"; });
+
+  row.append("line")
+      .attr("x2", width);
+
+  row.append("text")
+      .attr("x", -6)
+      .attr("y", y[0].rangeBand() / 2)
+      .attr("dy", ".32em")
+      .attr("text-anchor", "end")
+      .text(function(d, i) { return d.name; });
+
+  var column = svg.selectAll(".column")
+      .data(data.columns)
+    .enter().append("g")
+      .attr("class", "column")
+      .attr("transform", function(d, i) { return "translate(" + x(i) + ")rotate(-90)"; });
+
+  column.append("line")
+      .attr("x1", -width);
+
+  column.append("text")
+      .attr("x", 6)
+      .attr("y", x.rangeBand() / 2)
+      .attr("dy", ".32em")
+      .attr("text-anchor", "start")
+      .text(function(d, i) { return d.name; });
+
+  var cell = svg.selectAll(".cell")
+      .data(data.table)
+    .enter().append("rect")
+      .attr("class", "cell")
+      .attr("x", function(d) { return x(d.j); })
+      .attr("y", function(d) { return y[0](d.i); })
+      .attr("width", x.rangeBand())
+      .attr("height", y[0].rangeBand())
+      .attr("opacity", function(d) { return d.value ? 1 : 0.5; })
+      .style("fill", function(d) { return c(d.value); })
+      .on("mouseover", mouseover)
+      .on("mouseout", mouseout)
+    .append("title")
+      .text(function(d) { return d.row + "," + d.col; });
+
+  function mouseover(p) {
+    d3.selectAll(".row text").classed("active", function(d, i) { return i == p.i; });
+    d3.selectAll(".column text").classed("active", function(d, i) { return i == p.j; });
+    d3.selectAll(".cell").attr("opacity", function(d, i) { return (d.i == p.i ? 1 : 0.25) * (rowPartition[colPartition[p.j] - 1][p.i] == rowPartition[colPartition[p.j] - 1][d.i] ? 1 : 1) * (d.value ? 1 : 0.5); });
+  }
+
+  function mouseout() {
+    d3.selectAll("text").classed("active", false);
+    d3.selectAll(".cell").classed("active", false);
+    d3.selectAll(".cell").attr("opacity", function(d) { return d.value ? 1 : 0.5; });
+  }
+
+  d3.select("#time").on("change", function() {
+    order(this.value);
+  });
+
+  function order(value) {
+    colPartition = data.columnPartition[value];
+    rowPartition = data.rowPartition[value];
+
+    function sortColumns(i, j) {
+      if (colPartition[i] !== colPartition[j]) {
+        return d3.ascending(colPartition[i], colPartition[j]);
+      }
+      return d3.ascending(data.columns[i].name, data.columns[j].name);
+    }
+
+    function sortRows(group) {
+      return function(i, j) {
+        if (rowPartition[group][i] !== rowPartition[group][j]) {
+          return d3.ascending(rowPartition[group][i], rowPartition[group][j]);
+        }
+        return d3.ascending(data.rows[i].name, data.rows[j].name);
+      }
+    }
+
+    console.log(rowPartition);
+    var colPermute = d3.range(data.columns.length).sort(sortColumns);
+    x.domain(colPermute);
+    y = [{}];
+    for (var group = 0; group < rowPartition.length; ++group) {
+      var cy = d3.scale.ordinal().rangeBands([0, height]);
+      cy.domain(d3.range(data.rows.length).sort(sortRows(group)));
+      y.push(cy);
+    }
+
+    var t = svg.transition().duration(2500);
+
+    t.selectAll(".row")
+        .delay(function(d, i) { return y[1](i) * 1; })
+        .attr("transform", function(d, i) { return "translate(0," + (y[1](i) + 25*(rowPartition[0][i]-1)) + ")"; });
+
+    t.selectAll(".cell")
+        .delay(function(d) { return x(d.j) * 1; })
+        .attr("x", function(d) { return x(d.j) + 25*(colPartition[d.j]-1); })
+        .attr("y", function(d) { return y[colPartition[d.j]](d.i) + 25*(rowPartition[colPartition[d.j] - 1][d.i]-1); });
+
+    t.selectAll(".column")
+        .delay(function(d, i) { return x(i) * 1; })
+        .attr("transform", function(d, i) { return "translate(" + (x(i) + 25*(colPartition[i]-1)) + ")rotate(-90)"; });
+  }
+
+  order("0");
+});
+</script>
