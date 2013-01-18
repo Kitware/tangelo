@@ -132,8 +132,9 @@ function loadspec(){
     // Fill in the Vega spec text box.
     var filename = filename_prefix + ".json";
     if(url_exists(filename)){
-        d3.text(filename, function(text, err){
-            if(err !== undefined){
+        //d3.text(filename, function(text, err){
+        d3.text(filename, function(err, text){
+            if(err !== null){
                 console.log("error: could not read Vega spec '" + filename + "'");
             }
             else{
@@ -149,8 +150,8 @@ function loadspec(){
     // Fill in the JavaScript box.
     filename = filename_prefix + ".js";
     if(url_exists(filename)){
-        d3.text(filename, function(text, err){
-            if(err !== undefined){
+        d3.text(filename, function(err, text){
+            if(err !== null){
                 console.log("error: could not read JavaScript file '" + filename + "'");
             }
             else{
@@ -168,8 +169,8 @@ function loadspec(){
     // Dispatch on the existence of a .js file or a .json file.
     if(url_exists(filename_prefix + "-data.js")){
         filename = filename_prefix + "-data.js";
-        d3.text(filename, function(text, err){
-            if(err !== undefined){
+        d3.text(filename, function(err, text){
+            if(err !== null){
                 console.log("error: could not read JavaScript file '" + filename + "'");
             }
             else{
@@ -180,8 +181,8 @@ function loadspec(){
     }
     else if(url_exists(filename_prefix + "-data.json")){
         filename = filename_prefix + "-data.json";
-        d3.text(filename, function(text, err){
-            if(err !== undefined){
+        d3.text(filename, function(err, text){
+            if(err !== null){
                 console.log("error: could not read JSON file '" + filename + "'");
             }
             else{
@@ -197,7 +198,12 @@ function loadspec(){
 
 window.onload = function(){
     // Load the Vega template text.
-    d3.text("/lib/vgd3-template.js.txt", function(text){
+    d3.text("/lib/vgd3-template.js.txt", function(err, text){
+        if(err !== null){
+            console.log("fatal error: could not read vega template file '/lib/vgd3-template.js.txt'");
+            return;
+        }
+
         // Save the text.
         vegalab.template = text;
 
