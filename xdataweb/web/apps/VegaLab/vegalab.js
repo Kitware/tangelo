@@ -26,8 +26,7 @@ function compile(){
 
     // Compile the Vega code into the template, and display it on the page.
     var source = vg.compile(spec, vegalab.template);
-    d3.select("#code")
-        .text(source);
+    d3.select("#code").node().value = source;
 
     // Eval the generated source, and capture the resulting function with a
     // name.
@@ -103,8 +102,7 @@ function textplop(textarea_id){
             var text = e.target.result;
 
             // Place it into the textarea element.
-            d3.select("#" + textarea_id)
-                .text(text);
+            d3.select("#" + textarea_id).node().value = text;
         };
         reader.readAsText(file);
     }
@@ -136,8 +134,7 @@ function loadspec(){
                 console.log("error: could not read Vega spec '" + filename + "'");
             }
             else{
-                d3.select("#vega")
-            .text(text);
+                d3.select("#vega").node().value = text;
             }
         });
     }
@@ -145,8 +142,7 @@ function loadspec(){
         console.log("fatal error: Vega spec file '" + filename + "' does not exist");
 
         // Empty the textbox.
-        d3.select("#vega")
-            .text("");
+        d3.select("#vega").node().value = "";
     }
 
     // Fill in the JavaScript box.
@@ -157,8 +153,7 @@ function loadspec(){
                 console.log("error: could not read JavaScript file '" + filename + "'");
             }
             else{
-                d3.select("#js")
-                    .text(text);
+                d3.select("#js").node().value = text;
             }
         });
     }
@@ -166,8 +161,7 @@ function loadspec(){
         console.log("info/warning: JavaScript file '" + filename + "' does not exist");
 
         // Empty the textbox.
-        d3.select("#js")
-            .text("");
+        d3.select("#js").node().value = "";
     }
 
     // Fill in the data box.
@@ -180,8 +174,7 @@ function loadspec(){
                 console.log("error: could not read JavaScript file '" + filename + "'");
             }
             else{
-                d3.select("#data")
-                    .text(text);
+                d3.select("#data").node().value = text;
             }
         });
     }
@@ -192,8 +185,7 @@ function loadspec(){
                 console.log("error: could not read JSON file '" + filename + "'");
             }
             else{
-                d3.select("#data")
-                    .text(text);
+                d3.select("#data").node().value = text;
             }
         });
     }
@@ -201,8 +193,7 @@ function loadspec(){
         console.log("info/warning: neither JavaScript file '" + (filename_prefix + "-data.js") + "' nor JSON file '" + (filename_prefix + "-data.json") + "' exists");
 
         // Empty the textbox.
-        d3.select("#data")
-            .text("");
+        d3.select("#data").node().value = "";
     }
 }
 
