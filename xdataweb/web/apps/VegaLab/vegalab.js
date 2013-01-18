@@ -128,7 +128,6 @@ function loadspec(){
     // Fill in the Vega spec text box.
     var filename = filename_prefix + ".json";
     if(url_exists(filename)){
-        //d3.text(filename, function(text, err){
         d3.text(filename, function(err, text){
             if(err !== null){
                 console.log("error: could not read Vega spec '" + filename + "'");
