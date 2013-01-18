@@ -143,6 +143,10 @@ function loadspec(){
     }
     else{
         console.log("fatal error: Vega spec file '" + filename + "' does not exist");
+
+        // Empty the textbox.
+        d3.select("#vega")
+            .text("");
     }
 
     // Fill in the JavaScript box.
@@ -160,6 +164,10 @@ function loadspec(){
     }
     else{
         console.log("info/warning: JavaScript file '" + filename + "' does not exist");
+
+        // Empty the textbox.
+        d3.select("#js")
+            .text("");
     }
 
     // Fill in the data box.
@@ -191,6 +199,10 @@ function loadspec(){
     }
     else{
         console.log("info/warning: neither JavaScript file '" + (filename_prefix + "-data.js") + "' nor JSON file '" + (filename_prefix + "-data.json") + "' exists");
+
+        // Empty the textbox.
+        d3.select("#data")
+            .text("");
     }
 }
 
