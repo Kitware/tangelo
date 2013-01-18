@@ -12,6 +12,26 @@ function(vis){
     // For the "recompute" action (a middle click on the selection).
     vis.middle_clicking = false;
 
+    // This function queries the database to get bar values for the histogram.
+    // It can be called again with different parameters (in the "middle click"
+    // callback, for instance) to recompute the data.
+    var getdata = function(){
+        var dat = [];
+        for(var i=0; i<100; i++){
+            var o = {
+                bin: i,
+                value: Math.random(),
+                state: "unselected"
+            };
+            dat.push(o);
+        }
+
+        return { values: dat };
+    };
+
+    // Initialize the data by calling the data retrieval function now.
+    vis.data(getdata()).update();
+
     // Select the invisible container bars, for use in the mouse callbacks.
     var bars = d3.select(vis.el()).select(".mark-1").selectAll("rect");
 
@@ -33,7 +53,7 @@ function(vis){
         var e = d3.event;
         if(e.button === 1){
             return;
-        }
+       }
 
         // Cancel any existing selection.
         if(vis.selection){
@@ -93,6 +113,8 @@ function(vis){
                 // TODO(choudhury): replace this with appropriate
                 // "recompute" code.
                 console.log("recompute: " + vis.dragging.left + " -> " + vis.dragging.right);
+
+                vis.data(getdata()).update();
             }
         });
     });
