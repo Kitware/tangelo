@@ -222,7 +222,8 @@ window.onload = function(){
 
     var examples = [
         {dir: 'histogram', optname: 'Data Histograms'},
-        {dir: 'histogram-json', optname: 'JSON Data Histograms'}
+        {dir: 'histogram-json', optname: 'JSON Data Histograms'},
+        {dir: 'vega-arc', optname: 'Arc (Vega)'}
     ];
     d3.select("#load")
         .on("change", loadspec)
