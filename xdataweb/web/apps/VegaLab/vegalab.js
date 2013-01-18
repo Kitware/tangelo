@@ -224,7 +224,15 @@ window.onload = function(){
         {dir: 'histogram', optname: 'Data Histograms'},
         {dir: 'histogram-json', optname: 'JSON Data Histograms'},
         {dir: 'vega-arc', optname: 'Arc (Vega)'},
-        {dir: 'vega-bars', optname: 'Bars (Vega)'}
+        {dir: 'vega-bars', optname: 'Bars (Vega)'},
+        {dir: 'vega-image', optname: 'Image (Vega)'},
+        {dir: 'vega-line', optname: 'Line (Vega)'},
+        {dir: 'vega-map', optname: 'Map (Vega)'},
+        {dir: 'vega-ordinal-bars', optname: 'Ordinal Bars(Vega)'},
+        {dir: 'vega-stack_area', optname: 'Stacked Area (Vega)'},
+        {dir: 'vega-stack_bars', optname: 'Stacked Bars (Vega)'},
+        {dir: 'vega-symbol', optname: 'Symbol (Vega)'},
+        {dir: 'vega-treemap', optname: 'Treemap (Vega)'}
     ];
     d3.select("#load")
         .on("change", loadspec)

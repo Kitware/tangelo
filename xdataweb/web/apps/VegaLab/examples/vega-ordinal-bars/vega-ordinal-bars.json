@@ -1,0 +1,31 @@
+{
+  "name": "ordinal_bars",
+  "width": 300,
+  "height": 150,
+  "padding": {"top":30, "bottom":30, "left":35, "right":30},
+  "data": [
+    {"name": "letters"}
+  ],
+  "scales": [
+    {"name": "x", "type": "ordinal", "domain": {"data": "letters", "field": "letter"}, "range": "width", "padding": 0},
+    {"name": "y", "domain": {"data": "letters", "field": "frequency"}, "range": "height"}
+  ],
+  "axes": [
+    {"axis": "x", "scale": "x"},
+    {"axis": "y", "scale": "y", "format": " 1.2f"}
+  ],
+  "marks": [
+    {
+      "type": "rect",
+      "name": "data",
+      "from": "letters",
+      "properties": {
+        "x1": {"scale": "x", "field": "letter"},
+        "y1": {"scale": "y", "field": "frequency"},
+        "y2": {"scale": "y", "value": 0},
+        "width": {"scale": "x"},
+        "fill": {"value": "darkgreen"}
+      }
+    }
+  ]
+}

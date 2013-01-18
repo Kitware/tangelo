@@ -1,0 +1,47 @@
+{
+  "name": "line",
+  "width": 300,
+  "height": 150,
+  "data": [
+    {"name": "layer"},
+    {
+      "name": "series",
+      "source": "layer",
+      "transform": [{"type": "group", "keys": ["s"]}]
+    }
+  ],
+  "scales": [
+    {"name":"xaxis", "domain":{"data":"table", "field":"a"}, "range":"width"},
+    {"name":"yaxis", "domain":{"data":"table", "field":"b"}, "range":"height"}
+  ],
+  "axes": [
+    {"axis": "x", "scale": "xaxis", "offset": 0},
+    {"axis": "y", "scale": "yaxis", "offset": 3, "tickSizeEnd": 0}
+  ],
+  "marks": [
+    {
+      "type": "line",
+      "from": "series",
+      "update": {
+        "x1": {"scale": "xaxis", "field": "a"},
+        "y1": {"scale": "yaxis", "field": "b"},
+        "interpolate": {"value": "monotone"},
+        "fill": {"value": "none"},
+        "stroke": {"value": "steelblue"},
+        "strokeWidth": {"value": 1}
+      }
+    },
+    {
+      "type": "circ",
+      "from": "layer",
+      "update": {
+        "x1": {"scale": "xaxis", "field": "a"},
+        "y1": {"scale": "yaxis", "field": "b"},
+        "size": {"value": 16},
+        "fill": {"value": "lightblue"},
+        "stroke": {"value": "steelblue"},
+        "strokeWidth": {"value": 1}
+      }
+    }
+  ]
+}
