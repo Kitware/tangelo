@@ -227,12 +227,12 @@ window.onload = function(){
     var examples = [
         {dir: 'histogram', optname: 'Data Histograms'},
         {dir: 'histogram-json', optname: 'JSON Data Histograms'},
+        {dir: 'ordinal-bars', optname: 'Ordinal Bars'},
         {dir: 'vega-arc', optname: 'Arc (Vega)'},
         {dir: 'vega-bars', optname: 'Bars (Vega)'},
         {dir: 'vega-image', optname: 'Image (Vega)'},
         {dir: 'vega-line', optname: 'Line (Vega)'},
         {dir: 'vega-map', optname: 'Map (Vega)'},
-        {dir: 'vega-ordinal-bars', optname: 'Ordinal Bars (Vega)'},
         {dir: 'vega-stack_area', optname: 'Stacked Area (Vega)'},
         {dir: 'vega-stack_bars', optname: 'Stacked Bars (Vega)'},
         {dir: 'vega-symbol', optname: 'Symbol (Vega)'},
