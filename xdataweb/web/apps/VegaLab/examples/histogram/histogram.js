@@ -12,6 +12,17 @@ function(vis){
     // For the "recompute" action (a middle click on the selection).
     vis.middle_clicking = false;
 
+    // The number of bins we are working with.
+    //
+    // TODO(choudhury): this should be controllable externally somehow.  Ask
+    // Jeff H. about whether we might store "extra" parameters in a special
+    // field of the Vega object.
+    vis.bins = 100;
+
+    // The bounds of the data range.
+    vis.lo = null;
+    vis.hi = null;
+
     // This function queries the database to get bar values for the histogram.
     // It can be called again with different parameters (in the "middle click"
     // callback, for instance) to recompute the data.
@@ -27,6 +38,41 @@ function(vis){
         }
 
         return { values: dat };
+    };
+
+    // This function queries the database for the high and low values in the
+    // dataset.
+    var getDataBounds = function(){
+        // TODO(choudhury): possible that the function is not needed, and just
+        // bare ajax calls would solve the problem.  This is where iced coffee
+        // script's await/defer mechanism would be nice :-\.
+        
+        $.ajax({
+            url: ,
+            type: 'json',
+            success: function(data){
+                vis.lo = data.???;
+
+                $.ajax({
+                    url: ,
+                    type: 'json',
+                    success: function(data){
+                        vis.hi = data.???;
+                    }
+                });
+            }
+        });
+    };
+
+    // This function queries the database for the count of data items falling
+    // between "lo" and "hi", divided up into "bins" bins.  
+    var getDBdata = function(var lo, var hi, var bins){
+        var binsize = (hi - lo) / bins;
+
+        for(var i=0; i<bins; i++){
+            // TODO(choudhury): issue an ajax call to retrieve the count of
+            // items falling in the range [lo+i*binsize, lo+(i+1)*binsize).
+        }
     };
 
     // Initialize the data by calling the data retrieval function now.
