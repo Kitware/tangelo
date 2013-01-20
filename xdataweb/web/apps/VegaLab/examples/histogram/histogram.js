@@ -107,7 +107,7 @@ function(vis){
                 completed++;
                 if(completed === bins){
                     for(var i=0; i<vis.bins; i++){
-                        vis.dataset.values[i].value = vis.dataset.values[i].count / vis.count;
+                        vis.dataset.values[i].value = vis.dataset.values[i].count / (vis.count === 0 ? 1 : vis.count);
                     }
 
                     if(callback !== undefined){
