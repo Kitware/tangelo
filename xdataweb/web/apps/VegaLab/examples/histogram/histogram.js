@@ -12,6 +12,9 @@ function(vis){
     // For the "recompute" action (a middle click on the selection).
     vis.middle_clicking = false;
 
+    // The current dataset.
+    vis.dataset = {values: null};
+
     // The number of bins we are working with.
     //
     // TODO(choudhury): this should be controllable externally somehow.  Ask
@@ -19,14 +22,16 @@ function(vis){
     // field of the Vega object.
     vis.bins = 100;
 
+    // The total number of records in the current dataset.
+    vis.count = 0;
+
     // The bounds of the data range.
     vis.lo = null;
     vis.hi = null;
 
-    // This function queries the database to get bar values for the histogram.
-    // It can be called again with different parameters (in the "middle click"
-    // callback, for instance) to recompute the data.
-    var getdata = function(){
+    // This function creates a synthetic dataset made from completely random
+    // values.  It's mainly a debugging tool.
+    var getSyntheticData = function(){
         var dat = [];
         for(var i=0; i<100; i++){
             var o = {
@@ -42,22 +47,34 @@ function(vis){
 
     // This function queries the database for the high and low values in the
     // dataset.
-    var getDataBounds = function(){
-        // TODO(choudhury): possible that the function is not needed, and just
-        // bare ajax calls would solve the problem.  This is where iced coffee
+    var getDataBounds = function(callback){
+        // NOTE:  This function is a perfect example of where iced coffee
         // script's await/defer mechanism would be nice :-\.
-        
         $.ajax({
-            url: ,
-            type: 'json',
-            success: function(data){
-                vis.lo = data.???;
+            url: '/service/mongo/mongo/xdata/flickr_paris',
+            data: {
+                sort: JSON.stringify([['date',1]]),
+                fields: JSON.stringify(['date']),
+                limit: 1
+            },
+            dataType: 'json',
+            success: function(response){
+                vis.lo = +response.result.data[0].date.$date;
 
                 $.ajax({
-                    url: ,
-                    type: 'json',
-                    success: function(data){
-                        vis.hi = data.???;
+                    url: '/service/mongo/mongo/xdata/flickr_paris',
+                    data: {
+                        sort: JSON.stringify([['date',-1]]),
+                        fields: JSON.stringify(['date']),
+                        limit: 1
+                    },
+                    dataType: 'json',
+                    success: function(response){
+                        vis.hi = +response.result.data[0].date.$date;
+
+                        if(callback !== undefined){
+                            callback();
+                        }
                     }
                 });
             }
@@ -66,17 +83,69 @@ function(vis){
 
     // This function queries the database for the count of data items falling
     // between "lo" and "hi", divided up into "bins" bins.  
-    var getDBdata = function(var lo, var hi, var bins){
+    var getDBdata = function(lo, hi, bins, callback){
+        vis.dataset.values = new Array(bins);
+        vis.count = 0;
+
+        var completed = 0;
+        var callback_maker = function(which){
+            return function(response){
+                if(response.error != null){
+                    console.log("error: could not complete database request for range " + which);
+                    console.log(response.error);
+                    return;
+                }
+
+                vis.dataset.values[which] = {
+                    bin: (which + 1) / bins,
+                    count: +response.result.count,
+                    state: "unselected"
+                };
+
+                vis.count += +response.result.count;
+
+                completed++;
+                if(completed === bins){
+                    for(var i=0; i<vis.bins; i++){
+                        vis.dataset.values[i].value = vis.dataset.values[i].count / vis.count;
+                    }
+
+                    if(callback !== undefined){
+                        console.log("calling callback");
+                        callback();
+                    }
+                }
+            };
+        };
+
         var binsize = (hi - lo) / bins;
 
         for(var i=0; i<bins; i++){
-            // TODO(choudhury): issue an ajax call to retrieve the count of
-            // items falling in the range [lo+i*binsize, lo+(i+1)*binsize).
+            // Issue an ajax call to retrieve the count of items falling in the
+            // range [lo+i*binsize, lo+(i+1)*binsize).
+            var mongostring = JSON.stringify({date: {$gte: {$date: lo + binsize*i}, $lt: {$date: lo + binsize*(i+1)}}});
+            $.ajax({
+                url: '/service/mongo/mongo/xdata/flickr_paris',
+                data: {
+                    query: mongostring,
+                    limit: 0,
+                    fill: false
+                },
+                dataType: 'json',
+                success: callback_maker(i),
+                done: function(){ console.log("aww"); }
+            });
         }
     };
 
-    // Initialize the data by calling the data retrieval function now.
-    vis.data(getdata()).update();
+    // Initialize the data by calling the database retrieval function.
+    getDataBounds(function(){
+        console.log("lo: " + vis.lo);
+        console.log("hi: " + vis.hi);
+        getDBdata(vis.lo, vis.hi, vis.bins, function(){
+            vis.data(vis.dataset).update();
+        });
+    });
 
     // Select the invisible container bars, for use in the mouse callbacks.
     var bars = d3.select(vis.el()).select(".mark-1").selectAll("rect");
@@ -156,11 +225,13 @@ function(vis){
             if(e.button === 1 && vis.middle_clicking){
                 vis.middle_clicking = false;
 
-                // TODO(choudhury): replace this with appropriate
-                // "recompute" code.
                 console.log("recompute: " + vis.dragging.left + " -> " + vis.dragging.right);
 
-                vis.data(getdata()).update();
+                // Consult the database for new values.
+                var binsize = (vis.hi - vis.lo) / vis.bins;
+                getDBdata(vis.lo + vis.dragging.left*binsize, vis.lo + (vis.dragging.right+1)*binsize, vis.bins, function(){
+                    vis.data(vis.dataset).update();
+                });
             }
         });
     });
