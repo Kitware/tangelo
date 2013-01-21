@@ -26,7 +26,8 @@ function compile(){
 
     // Compile the Vega code into the template, and display it on the page.
     var source = vg.compile(spec, vegalab.template);
-    d3.select("#code").node().value = source;
+    d3.select("#code")
+       .text(source);
 
     // Eval the generated source, and capture the resulting function with a
     // name.
