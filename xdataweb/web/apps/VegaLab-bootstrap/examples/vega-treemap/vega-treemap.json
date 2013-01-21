@@ -1,0 +1,37 @@
+{
+  "name": "treemap",
+  "width": 900,
+  "height": 500,
+  "padding": 0,
+  "data": [
+    {"name":"layer"},
+    {"name":"tree", "source":"layer", "type":"tree",
+     "transform": [{"type":"tree", "keys":["s", "c"]}]}
+  ],
+  "encoders": [
+    {"name":"treemap","type":"treemap","value":{"field": "b"},"sticky":true}
+  ],
+  "marks": [
+    {
+      "type": "rect",
+      "from": "tree.nodes",
+      "encoders": [{"name": "treemap"}],
+      "update": {
+        "fill": {"value": "lightblue"},
+        "stroke": {"value": "steelblue"}
+      }
+    },
+    {
+      "type": "text",
+      "from": "tree.leaves",
+      "encoders": [{"name": "treemap"}],
+      "update": {
+        "text": {"field": "c"},
+        "font": "13px Helvetica Neue",
+        "baseline": "top",
+        "xMargin": 4,
+        "yMargin": 4
+      }
+    }
+  ]
+}
