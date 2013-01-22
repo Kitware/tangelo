@@ -1,34 +1,43 @@
 <!doctype html>
 <meta charset=utf-8>
-<link href=xdataweb.css rel=stylesheet type=text/css>
-<link href='http://fonts.googleapis.com/css?family=Marcellus|EB+Garamond|Inconsolata' rel='stylesheet' type='text/css'>
+<link href=bootstrap.css rel=stylesheet type=text/css>
+<link href=bootstrap-xdata.css rel=stylesheet type=text/css>
+<!--<link href='http://fonts.googleapis.com/css?family=Marcellus|EB+Garamond|Inconsolata' rel='stylesheet' type='text/css'>-->
 
 <title>XDATA Web</title>
 
-<h1>Welcome to XDATA web!</h1>
-<h2>Application Index</h2>
+<div class=container>
+    <div class=masthead>
+        <h3 class=muted>XDATA Web</h3>
+    </div>
 
-<div class="placard" style="width:60%; padding:0; margin-left:auto; margin-right:auto">
-    <h3 class=centered><a href="/apps/NER/index.html">Document entity relationships</a></h3>
-    <p>Upload text documents, and discover the network of <em>named entities</em> hidden within them.</p>
-</div>
+    <hr>
 
-<div class="placard" style="width:60%; padding:0; margin-left:auto; margin-right:auto">
-    <h3 class=centered><a href="/apps/flickr/index.html">Flickr metadata maps</a></h3>
-    <p>Explore the locations where millions of Flickr photos were taken.</p>
-</div>
+    <div class=jumbotron>
+        <h1>Welcome to XDATA Web!</h1>
+        <p class=lead>Big Data unlocked with the power of Python.</p>
+    </div>
 
-<div class="placard" style="width:60%; padding:0; margin-left:auto; margin-right:auto">
-    <h3 class=centered><a href="/apps/stats/index.html">Histogram Statistics</a></h3>
-    <p>See the distribution of data values with an interactive histogram.</p>
-</div>
+    <hr>
 
-<div class="placard" style="width:60%; padding:0; margin-left:auto; margin-right:auto">
-    <h3 class=centered><a href="/apps/VegaLab/index.html">Vega Laboratory</a></h3>
-    <p>Load, edit, compile, and view Vega specifications in real time</p>
-</div>
+    <div id=apps class="row-fluid">
+        <div id=left class=span6>
+            <a href="/apps/NER/index.html"><h4>Document Entity Relationships</h4></a>
+            <p>Discover the network of <em>named entitites</em> hidden within text documents</p>
 
-<div class="placard" style="width:60%; padding:0; margin-left:auto; margin-right:auto">
-    <h3 class=centered><a href="/apps/ssci/index.html">SSCI Predictive Database</a></h3>
-    <p>Explore the progression of table partitioning in a predictive database.</p>
+            <a href="/apps/flickr/index.html"><h4>Flickr Metadata Maps</h4></a>
+            <p>Explore the locations where millions of Flickr photos were taken</p>
+
+            <a href="/apps/VegaLab/index.html"><h4>Vega Laboratory</h4></a>
+            <p>Load, edit, compile, and view Vega specifications in real time</p>
+        </div>
+
+        <div class=span6 id=right class=row>
+            <a href="/apps/stats/index.html"><h4>Histogram Statistics</h4></a>
+            <p>See the distribution of data values with an interactive histogram.</p>
+
+            <a href="/apps/ssci/index.html"><h4>SSCI Predictive Database</h4></a>
+            <p>See the distribution of data values with an interactive histogram.</p>
+        </div>
+    </div>
 </div>

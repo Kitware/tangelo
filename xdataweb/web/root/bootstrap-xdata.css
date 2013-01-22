@@ -1,0 +1,25 @@
+body {
+    background: white;
+}
+
+a {
+    color: #0088cc;
+}
+
+input[type="file"].small {
+    height: auto;
+    line-height: auto;
+    font-size: 13.2px;
+    font-weight: auto;
+}
+
+textarea.code {
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 15px;
+    line-height: normal;
+}
+
+.jumbotron {
+    text-align: center;
+    color: #004400;
+}
