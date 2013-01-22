@@ -649,20 +649,20 @@ window.onload = function(){
 
     document.getElementById('docs').addEventListener('change', handleFileSelect, false);
 
-    // TODO(choudhury): this is just testing code - get rid of it at the right
-    // time.
-    var h = null;
-    d3.csv("letters.csv", function(rows){
-        rows.sort(function(a,b) { return a.frequency < b.frequency; });
-        h = barchart.barchart({
-                table: rows,
-                xcolumn: "letter",
-                ycolumn: "frequency",
-                yrange: [0, 0.13],
-                svgselector: "#barchart",
-                position: [3, 3],
-                size: [794, 144],
-                border: false
-        });
-    });
+/*    // TODO(choudhury): this is just testing code - get rid of it at the right*/
+    //// time.
+    //var h = null;
+    //d3.csv("letters.csv", function(rows){
+        //rows.sort(function(a,b) { return a.frequency < b.frequency; });
+        //h = barchart.barchart({
+                //table: rows,
+                //xcolumn: "letter",
+                //ycolumn: "frequency",
+                //yrange: [0, 0.13],
+                //svgselector: "#barchart",
+                //position: [3, 3],
+                //size: [794, 144],
+                //border: false
+        //});
+    /*});*/
 };
