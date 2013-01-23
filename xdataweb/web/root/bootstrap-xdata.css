@@ -27,7 +27,7 @@ ul.legend {
 }
 
 /* File inputs are way too big */
-input[type="file"].small {
+input[type="file"] {
     height: auto;
     line-height: auto;
     font-size: 13.2px;
