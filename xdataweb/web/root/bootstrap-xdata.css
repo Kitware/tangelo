@@ -1,0 +1,53 @@
+body {
+    background: white;
+}
+
+a {
+    color: #0088cc;
+}
+
+.centered {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+/* List styling */
+ul.flush {
+    margin: 0 0 0 1em;
+    padding: 0px;
+}
+
+ul.buttons {
+    list-style-type: none;
+}
+
+ul.legend {
+    list-style-type: none;
+}
+
+/* File inputs are way too big */
+input[type="file"] {
+    height: auto;
+    line-height: auto;
+    font-size: 13.2px;
+    font-weight: auto;
+}
+
+.code {
+    font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
+    font-size: 15px;
+    line-height: normal;
+}
+
+.jumbotron {
+    text-align: center;
+    color: #004400;
+}
+
+/* A rounded-corner panel for printing information */
+.placard {
+    border-radius: 10px 10px 10px 10px;
+    background: #000;
+    opacity: 0.3;
+}

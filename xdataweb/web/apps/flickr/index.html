@@ -7,148 +7,144 @@
 <script type=text/javascript src=/lib/date.js></script>
 <script type=text/javascript src=/lib/slider.js></script>
 <script type=text/javascript src='https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false'></script>
-<link href='http://fonts.googleapis.com/css?family=Marcellus|EB+Garamond|Inconsolata' rel='stylesheet' type='text/css'>
-<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700' rel='stylesheet' type='text/css'>
 <link href="http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css" rel=stylesheet type=text/css>
 
-<link href=/xdataweb.css rel=stylesheet type=text/css>
-<!--<link href=flickr.css rel=stylesheet type=text/css>-->
-
-<style type=text/css>
-    td {
-        vertical-align: top;
-        text-align: left;
-        //border: solid black 1px;
-    }
-</style>
+<link href=/bootstrap.css rel=stylesheet type=text/css>
+<link href=/bootstrap-xdata.css rel=stylesheet type=text/css>
 
 <title>Flickr Metadata Maps</title>
-<h1>Flickr Metadata Maps</h1>
-<p class=centered><a href="/config/flickr" target=_blank>[Configure this app]</a>
 
-<div id="map" class=centered style="width:80%; height:500px;"></div>
+<div class=container>
+    <div class=masthead>
+        <h3 class=muted>XDATA Web</h3>
+    </div>
 
-<table class=centered style="width:70%;">
-    <tr>
-        <td style="width:25%">
-            <h3>Time filter</h3>
+    <hr>
+
+    <div class=jumbotron>
+        <h1>Flickr Metadata Maps</h1>
+        <p class=lead>Explore Flickr photos where they were taken</p>
+    </div>
+
+    <p class=centered><a href="/config/flickr" target=_blank>[Configure this app]</a>
+
+    <hr>
+
+    <div class=row>
+        <div id=map class="span12 centered" style="height:500px;"></div>
+    </div>
+
+    <div class=row>
+        <div class=span3>
+            <h4>Time filter</h4>
             <div id="time-slider"></div>
-            <div class=data id="low"></div>
-            <div class=data id="high"></div>
-            <input type=button id=zoom value="Zoom to range">
-            <input type=button id=unzoom disabled value="Unzoom">
-        </td>
+            <div class=code id="low"></div>
+            <div class=code id="high"></div>
+            <a class="btn btn-small" id=zoom>Zoom to range</a>
+            <a class="btn btn-small disabled" id=unzoom>Unzoom</a>
+        </div>
 
-        <td style="width:3%"></td>
+        <div class=span3>
+            <h4>Hashtag filter</h4>
+            <textarea id=hashtags rows=4 cols=20></textarea>
+        </div>
 
-        <td style="width:25%">
-            <h3>Hashtag filter</h3>
-            <textarea id=hashtags rows=4 cols=20>#paris</textarea>
-        </td>
+        <div class=span3>
+            <h4>Opacity</h4>
+            <input id=opacity type=text class=span2 value=1.0>
+        </div>
 
-        <td style="width:25%">
-            <h3>Opacity</h3>
-            <input id="opacity" value=1.0>
-        </td>
-
-        <td class=placard>
-            <h3>Information</h3>
+        <div class=span3>
+            <h4>Information</h4>
             <div id=information></div>
-        </td>
-    </tr>
+        </div>
+    </div>
 
-    <tr>
-        <td colspan=2>
-            <h3>Day filter</h3>
-            <ul class="buttons flush">
-                <li>
-                <input type=checkbox id=Sun>
-                <label for=Sun>Sunday</label>
+    <div class=row>
+        <div class=span3>
+            <h4>Day filter</h4>
+            <label class="checkbox">
+                <input type=checkbox id=Sun> Sunday
+            </label>
 
-                <li>
-                <input type=checkbox id=Mon>
-                <label for=Mon>Monday</label>
+            <label class="checkbox">
+                <input type=checkbox id=Mon> Monday
+            </label>
 
-                <li>
-                <input type=checkbox id=Tue>
-                <label for=Tue>Tuesday</label>
+            <label class="checkbox">
+                <input type=checkbox id=Tue> Tuesday
+            </label>
 
-                <li>
-                <input type=checkbox id=Wed>
-                <label for=Wed>Wednesday</label>
+            <label class="checkbox">
+                <input type=checkbox id=Wed> Wednesday
+            </label>
 
-                <li>
-                <input type=checkbox id=Thu>
-                <label for=Thu>Thursday</label>
+            <label class="checkbox">
+                <input type=checkbox id=Thu> Thursday
+            </label>
 
-                <li>
-                <input type=checkbox id=Fri>
-                <label for=Fri>Friday</label>
+            <label class="checkbox">
+                <input type=checkbox id=Fri> Friday
+            </label>
 
-                <li>
-                <input type=checkbox id=Sat>
-                <label for=Sat>Saturday</label>
+            <label class="checkbox">
+                <input type=checkbox id=Sat> Saturday
+            </label>
             </ul>
-        </td>
+        </div>
 
-        <td>
-            <h3>Colormap</h3>
-            <div style="float:left;">
-                <ul class="legend flush" id="legend"></ul>
+        <div class=span3>
+            <h4>Colormap</h4>
+
+            <div class=row>
+                <div class=span1 style="float:left;">
+                    <ul class="legend flush" id="legend"></ul>
+                </div>
+
+                <div class=span2>
+                    <label class=radio>
+                        <input name=colormap type=radio id=month> Month
+                    </label>
+
+                    <label class=radio>
+                        <input name=colormap type=radio id=day> Day
+                    </label>
+
+                    <label class=radio>
+                        <input name=colormap type=radio id=rb> Recency (red-blue)
+                        <label class=checkbox>
+                            <input type=checkbox id=invert> Invert color scale
+                        </label>
+                    </label>
+
+                    <label class=radio>
+                        <input name=colormap type=radio id=none checked> None
+                    </label>
+                </div>
             </div>
+        </div>
 
-            <div>
-                <ul class="buttons flush">
-                    <li>
-                    <input name=colormap type=radio id=month>
-                    <label for=month>Month</label>
+        <div class=span3>
+            <h4>Glyph size</h4>
+            <label class=radio>
+                <input name=size type=radio id=recency> Recency (earlier is larger)
+            </label>
 
-                    <li>
-                    <input name=colormap type=radio id=day>
-                    <label for=day>Day</label>
+            <label class=radio>
+                <input name=size type=radio id=constant checked> Constant
+            </label>
+            <input type=text id=size class=span1 value=5>
+        </div>
 
-                    <li>
-                    <input name=colormap type=radio id=rb>
-                    <label for=rb>Recency (red-blue)</label>
-                    <ul class="buttons flush">
-                        <li>
-                        <input type=checkbox id=invert>
-                        <label for=invert>Invert color scale</label>
-                    </ul>
-
-                    <li>
-                    <input name=colormap type=radio id=none checked>
-                    <label for=none>None</label>
-                </ul>
-            </div>
-        </td>
-
-        <td>
-            <h3>Glyph size</h3>
-            <ul class="buttons flush">
-                <li>
-                <input name=size type=radio id=recency>
-                <label for=recency>Recency (earlier is larger)</label>
-
-                <li>
-                <input name=size type=radio id=constant checked>
-                <label for=constant>Constant</label>
-                <ul class="buttons flush">
-                    <li>
-                    <input type=text id=size value=5>
-                </ul>
-            </ul>
-        </td>
-
-        <td>
-            <h3>Record count limit</h3>
+        <div class=span3>
+            <h4>Record count limit</h4>
             <input id=record-limit type=text value=1000>
-        </td>
-    </tr>
+        </div>
+    </div>
 
-    <tr>
-        <td class=centered colspan=4>
-            <input type=button id="data-button" value="Update">
-        </td>
-    </tr>
-</table>
+    <div class=row>
+        <div class="span2 offset5">
+            <a class="btn btn-small" id=data-button>Update</a>
+        </div>
+    </div>
+</div>

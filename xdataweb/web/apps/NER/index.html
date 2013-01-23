@@ -1,84 +1,86 @@
 <!doctype html>
 <meta charset=utf-8>
 <script type="text/javascript" src="NER.js"></script>
-<script type="text/javascript" src="../../lib/id.js"></script>
-<script type="text/javascript" src="../../lib/barchart.js"></script>
+<script type="text/javascript" src="/lib/id.js"></script>
 <script type=text/javascript src=/lib/slider.js></script>
-<script type="text/javascript" src="NER.js"></script>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
 <script type="text/javascript" src="http://code.jquery.com/ui/1.9.1/jquery-ui.js"></script>
 <script type="text/javascript" src="http://d3js.org/d3.v2.min.js"></script>
 <script type="text/javascript" src="http://crypto-js.googlecode.com/svn/tags/3.0.2/build/rollups/md5.js"></script>
-<link href='http://fonts.googleapis.com/css?family=Marcellus|EB+Garamond|Inconsolata' rel='stylesheet' type='text/css'>
-<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700' rel='stylesheet' type='text/css'>
 <link href="http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css" rel=stylesheet type=text/css>
 
-<link href=/xdataweb.css rel=stylesheet type=text/css>
+<link href=/bootstrap.css rel=stylesheet type=text/css>
+<link href=/bootstrap-xdata.css rel=stylesheet type=text/css>
+
 <link href=NER.css rel=stylesheet type=text/css>
 
 <title>Document Entity Relationships</title>
 
-<h1>Document Entity Relationships</h1>
+<div class=container>
+    <div class=masthead>
+        <h3 class=muted>XDATA Web</h3>
+    </div>
 
-<span class=centered>
-    <p><a href="/config/NER" target=_blank>[Configure this app]</a>
-    <p>Select a group of text files to analyze.
-    <p><input type=file id=docs multiple />
-</span>
+    <hr>
 
-<table>
-    <tr>
-        <td rowspan=2>
-            <svg id=graph width=800 height=800>
-            <rect x=1.5 y=1.5 rx=10 ry=10 width=797 height=797 style="fill:rgb(221,221,221); stroke:black; stroke-width:3;" />
+    <div class=jumbotron>
+        <h1>Document Entity Relationships</h1>
+        <p class=lead>See the network of named entities in your text documents.</p>
+    </div>
+
+    <p class=centered><a href="/config/NER" target=_blank>[Configure this app]</a>
+
+    <hr>
+
+    <p class=centered>Select a group of text files to analyze.
+    <p class=centered><input type=file id=docs multiple>
+
+    <div class=row>
+        <div class=span7>
+            <svg id=graph width=540 height=540>
+            <rect x=1.5 y=1.5 rx=10 ry=10 width=537 height=537 style="fill:rgb(221,221,221); stroke:black; stroke-width:3;" />
 
             <g id="links"></g>
             <g id="nodes"></g>
 
             </svg>
-        </td>
+        </div>
 
-        <td style="height:50%">
-            <h3 class=nomargin>Graph</h3>
-            <ul class="buttons flush">
-                <li>
-                <input type=checkbox id=nodefreq onchange="graph.updateConfig(); graph.applyConfig(); graph.render();">
-                <label for=nodefreq>Scale nodes by frequency</label>
+        <div class=span5>
+            <div class=row>
+                <div class=span2>
+                    <h4>Graph</h4>
+                    <label class=checkbox>
+                        <input type=checkbox id=nodefreq onchange="graph.updateConfig(); graph.applyConfig(); graph.render();"> Scale nodes by frequency
+                    </label>
 
-                <li>
-                <input type=checkbox id=linkfreq onchange="graph.updateConfig(); graph.applyConfig();">
-                <label for=linkfreq>Thicken links by frequency</label>
+                    <label class=checkbox>
+                        <input type=checkbox id=linkfreq onchange="graph.updateConfig(); graph.applyConfig();"> Thicken links by frequency
+                    </label>
 
-                <li>
-                <input type=checkbox id=usetext onchange="graph.updateConfig(); graph.reset();">
-                <label for=usetext>Render text labels</label>
-            </ul>
+                    <label class=checkbox>
+                        <input type=checkbox id=usetext onchange="graph.updateConfig(); graph.reset();"> Render text labels
+                    </label>
+                </div>
 
-            <h3 class=nomargin>Filtering</h3>
-            <ul class="buttons flush">
-                <li><div id="slider"></div>
-                Nodes must have at least <span id=value></span> mentions.
-            </ul>
-        </td>
-    </tr>
+                <div class=span3>
+                    <h4>Filtering</h4>
+                    <div id=slider></div>
+                    Nodes must have at least <span id=value></span> mentions.
+                </div>
+            </div>
 
-    <tr>
-        <td class=placard style="width:50%">
-            <h2 class=nomargin>Legend</h2>
-            <ul class="legend flush" id=color-legend></ul>
-        </td>
+            <div class=row>
+                <div class=span3>
+                    <h4>Legend</h4>
+                    <div id=color-legend></div>
+                </div>
 
-        <td class=placard style="width:50%">
-            <h2 class=nomargin>Information</h2>
-            <ul class=flush id=file-info></ul>
-        </td>
-   </tr>
-
-   <tr>
-       <td colspan=3 style="width:100%">
-           <svg id=barchart width=800 height=150>
-           <rect x=1 y=1 rx=2 ry=2 width=798 height=148 style="fill:rgb(221,221,221); stroke:black; stroke-width:3;" />
-           </svg>
-       </td>
-   </tr>
-</table>
+                <div class=span2>
+                    <h4>Information</h4>
+                    <div id=file-info></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

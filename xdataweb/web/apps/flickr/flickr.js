@@ -552,7 +552,7 @@ window.onload = function(){
                 // Activate the unzoom button if this is the first entry in the
                 // stack.
                 if(stack.length === 1){
-                    unzoom.attr("disabled", null);
+                    unzoom.classed("disabled", false);
                 }
             },
 
@@ -572,7 +572,7 @@ window.onload = function(){
                 // If the stack now contains no entries, disable the unzoom
                 // button.
                 if(stack.length === 0){
-                    unzoom.attr("disabled", "disabled");
+                    unzoom.classed("disabled", true);
                 }
             }
         };
