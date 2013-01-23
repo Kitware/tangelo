@@ -1,24 +1,11 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <title>Cross-Cat Animation</title>
+<link rel=stylesheet type=text/css href=/bootstrap.css>
+<link rel=stylesheet type=text/css href=/bootstrap-xdata.css>
 <style>
 .active {
   fill: red
-}
-
-#play {
-  margin: 5px;
-  padding: 10px;
-  background-color: green;
-  color: white;
-  border-radius: 3px;
-  float: left;
-}
-
-#time-div {
-  padding: 10px;
-  float: left;
-  font-size: 24px;
 }
 
 #play:hover {
@@ -28,38 +15,61 @@
 </style>
 <script src="http://d3js.org/d3.v2.min.js?2.8.1"></script>
 
-<h1>Cross-Cat Animation</h1>
+<div class=container>
+    <div class=masthead>
+        <h3 class=muted>XDATA Web</h3>
+    </div>
 
-<p>This demo shows an animation of the sequence of operations performed by the <a href="http://web.mit.edu/vkm/www/crosscat.pdf">Cross-Cat</a> clustering
-algorithm developed by Vikash Mansinghka et al. at MIT. This is an example of a visualization that will be possible using the Vega visualization grammar and
-the Visualization Design Environment, whose goal is to make advanced visualization apps such as this producable by non-programmers.
-This combines efforts from a DARPA XDATA TA1 analysis team (SSCI / MIT) with a TA2 visualization team (Kitware / Stanford / Georgia Tech / Harvard / U. Utah / KnowledgeVis).
-The rows of the table represent the objects (here, animal species) and the columns represent attributes.
-A Cross-Cat clustering consists of a set of views, or groups of attributes, where each object is assigned to a partition in each view.
-The number of views and the number of partitions per view are free variables that are detected dynamically based on properties of the data.
+    <hr>
 
-<p>Hover over a row to see it's corresponding location in other views.
-Press the play/pause button to start and stop the looping animation. The animation will be smoothest on the latest Google Chrome.
+    <div class=jumbotron>
+        <h1>Cross-Cat Animation</h1>
+        <p class=muted style="text-align:left;">This demo shows an animation of the sequence of operations performed by the <a href="http://web.mit.edu/vkm/www/crosscat.pdf">Cross-Cat</a> clustering
+        algorithm developed by Vikash Mansinghka et al. at MIT. This is an example of a visualization that will be possible using the Vega visualization grammar and
+        the Visualization Design Environment, whose goal is to make advanced visualization apps such as this producable by non-programmers.
+        This combines efforts from a DARPA XDATA TA1 analysis team (SSCI / MIT) with a TA2 visualization team (Kitware / Stanford / Georgia Tech / Harvard / U. Utah / KnowledgeVis).
+        The rows of the table represent the objects (here, animal species) and the columns represent attributes.
+        A Cross-Cat clustering consists of a set of views, or groups of attributes, where each object is assigned to a partition in each view.
+        The number of views and the number of partitions per view are free variables that are detected dynamically based on properties of the data.</p>
 
-<div id="time-div">time step <select id="time">
-  <option value="0">0</option>
-  <option value="1">1</option>
-  <option value="2">2</option>
-  <option value="3">3</option>
-  <option value="4">4</option>
-  <option value="5">5</option>
-  <option value="6">6</option>
-  <option value="7">7</option>
-  <option value="8">8</option>
-  <option value="9">9</option>
-  <option value="10">10</option>
-  <option value="11">11</option>
-</select>
+        <p class=muted style="text-align:left;">Hover over a row to see its corresponding location in other views.
+        Press the play/pause button to start and stop the looping animation. The animation will be smoothest on the latest Google Chrome.</p>
+    </div>
+
+    <hr>
+
+    <div class=row>
+        <div class=span2 style="text-align:right;font-size:24px;">
+            time step
+        </div>
+
+        <div class=span1>
+            <select id="time" class=span1>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+            </select>
+        </div>
+
+        <div class=span1>
+            <!--<div id="play">❚❚</div>-->
+            <a id="play" class="btn btn-success">❚❚</a>
+        </div>
+    </div>
 </div>
 
-<div id="play">❚❚</div>
-
-<div style="clear:both"></div>
+<!-- Place the svg element outside of the bootstrap grid so it can float out to
+     the left -->
+<svg id="svg"></svg>
 
 <script>
 
@@ -67,7 +77,7 @@ var playing = true;
 var timeValue = "0";
 var animationLength = 1000;
 
-var margin = {top: 150, right: 800, bottom: 200, left: 100},
+var margin = {top: 200, right: 800, bottom: 200, left: 150},
     width = 1500,
     height = 400;
 
@@ -81,7 +91,7 @@ var rowPartition = [];
 var firstColumnInView = [];
 var rowPartitionReindex = [];
 
-var svg = d3.select("body").append("svg")
+var svg = d3.select("#svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     //.style("margin-left", -margin.left + "px")
