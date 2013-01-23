@@ -375,17 +375,17 @@ window.onload = function(){
 
                                 // Finally - now that we have all the stuff
                                 // we need - initialize the buttons.
-                                d3.select("#quartile").attr("disabled", null)
+                                d3.select("#quartile").classed("disabled", false)
                                 .node().onclick = function(){
                                     static_histogram(stats.start, stats.end, 4, "#chart", true, stats.extraupdate_template);
                                 };
 
-                            d3.select("#decile").attr("disabled", null)
+                            d3.select("#decile").classed("disabled", false)
                                 .node().onclick = function(){
                                     static_histogram(stats.start, stats.end, 10, "#chart", true, stats.extraupdate_template);
                                 };
 
-                            d3.select("#percentile").attr("disabled", null)
+                            d3.select("#percentile").classed("disabled", false)
                                 .node().onclick = function(){
                                     // The call is wrapped in a lambda to
                                     // allow stats.start and stats.end to

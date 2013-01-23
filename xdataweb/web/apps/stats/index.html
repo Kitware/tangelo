@@ -2,11 +2,10 @@
 <meta charset=utf-8>
 
 <!-- Fonts and styling -->
-<link href='http://fonts.googleapis.com/css?family=Marcellus|EB+Garamond|Inconsolata' rel='stylesheet' type='text/css'>
-<link rel=stylesheet type=text/css href=/xdataweb.css>
+<link rel=stylesheet type=text/css href=/bootstrap.css>
+<link rel=stylesheet type=text/css href=/bootstrap-xdata.css>
 
 <!-- External libraries -->
-<!--<script type=text/javascript src=http://d3js.org/d3.v2.min.js></script>-->
 <script type=text/javascript src=http://d3js.org/d3.v2.js></script>
 <script type=text/javascript src=http://code.jquery.com/jquery-1.8.2.min.js></script>
 
@@ -19,14 +18,38 @@
 
 <!-- Document begins here -->
 <title>Data Stats Investigator</title>
-<h1>Data Stats Investigator</h1>
 
-<div class=centered id=chart></div>
+<div class=container>
+    <div class=masthead>
+        <h3 class=muted>XDATA Web</h3>
+    </div>
 
-<div class=centered>
-    <input id=quartile type=button value="Quartile Plot" disabled>
-    <input id=decile type=button value="Decile Plot" disabled>
-    <input id=percentile type=button value="Percentile Plot" disabled>
+    <hr>
+
+    <div class=jumbotron>
+        <h1>Data Stats Investigator</h1>
+        <p class=muted>See the shape of your data.</p>
+    </div>
+
+    <hr>
+
+    <div class=row>
+        <div class="offset3 span2">
+            <a class="btn btn-small disabled" id=quartile>Quartile Plot</a>
+        </div>
+
+        <div class="span2">
+            <a class="btn btn-small disabled" id=decile>Decile Plot</a>
+        </div>
+
+        <div class="span2">
+            <a class="btn btn-small disabled" id=percentile>Percentile Plot</a>
+        </div>
+    </div>
+
+    <div class=row>
+        <div class=span12 id=chart></div>
+    </div>
 </div>
 
-<pre id=code></pre>
+<pre id=code class=code></pre>
