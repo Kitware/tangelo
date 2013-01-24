@@ -42,6 +42,9 @@ input[type="file"] {
 
 .jumbotron {
     text-align: center;
+}
+
+.title {
     color: #004400;
 }
 
