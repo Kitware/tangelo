@@ -1,27 +1,26 @@
 import pymongo
-import bson.json_util
 import json
 
-from xdataweb import empty_response
+import xdataweb
 
 class Handler:
     def go(self, servername, dbname, collname, file_hash=None, data=None):
         # Construct an empty response object.
-        response = empty_response();
+        response = xdataweb.empty_response();
 
         # If no schema was passed in, give an error.
         #
         # TODO(choudhury): see comment below about error codes, etc.
         if file_hash == None:
             response['error'] = "no file hash"
-            return bson.json_util.dumps(response)
+            return xdataweb.dumps(response)
 
         # Establish a connection to the MongoDB server.
         try:
             conn = pymongo.Connection(servername)
         except pymongo.errors.AutoReconnect as e:
             response['error'] = "error: %s" % (e.message)
-            return bson.json_util.dumps(response)
+            return xdataweb.dumps(response)
 
         # Extract the requested database and collection.
         db = conn[dbname]
@@ -38,7 +37,7 @@ class Handler:
             response['result'] = [d for d in coll.find(schema)]
         else:
             # Convert the JSON object "data" to a Python object.
-            pydata = bson.json_util.loads(data)
+            pydata = xdataweb.loads(data)
 
             # Apply the schema to an insert request.
             coll.insert({'file_hash': file_hash, 'data': data})
@@ -47,4 +46,4 @@ class Handler:
             response['result'] = "ok"
 
         # Convert to JSON and return the result.
-        return bson.json_util.dumps(response)
+        return xdataweb.dumps(response)
