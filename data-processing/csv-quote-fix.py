@@ -35,11 +35,13 @@ if __name__ == '__main__':
     QUOTED = 1       # Enter this state upon encountering a quotation mark.
     QUOTED_AGAIN = 2 # Enter this state upon seeing a quotation mark while in the QUOTED state.
     UNEXPECTED_EOL = 3 # Enter this state when encountering EOL within the QUOTED state.
+    ILLEGAL_ESCAPE = 4 # Enter this state when encountering a backslash at the end of a line.
 
     state_name = { UNQUOTED : 'UNQUOTED',
                    QUOTED : 'QUOTED',
                    QUOTED_AGAIN : 'QUOTED_AGAIN',
-                   UNEXPECTED_EOL : 'UNEXPECTED_EOL' }
+                   UNEXPECTED_EOL : 'UNEXPECTED_EOL',
+                   ILLEGAL_ESCAPE : 'ILLEGAL_ESCAPE' }
 
     # Process the input line by line.
     count = 0
@@ -47,6 +49,7 @@ if __name__ == '__main__':
         line = line.strip() + '\n'
 
         state = UNQUOTED
+        backslash = False
         count = count + 1
         out = ''
 
@@ -56,6 +59,37 @@ if __name__ == '__main__':
         for c in line:
             if debug:
                 print "State is %s, encountered '%s'" % (state_name[state], prep(c))
+
+            # If the last character seen was a backslash, the current character
+            # is "protected", meaning it will simply be echoed without effecting
+            # a state change (and the loop can be short-circuited to the next
+            # iteration).  The one exception is a lone backslash at the end of a
+            # line, which is not allowed.
+            #
+            # Otherwise, if the last character WASN'T a backslash, but the
+            # current character IS, note that we have seen one, echo it, and
+            # short-circuit the loop to the next loop iteration without changing
+            # the state.
+            if backslash:
+                if c != '\n':
+                    if debug:
+                        print "Saw a '%s' following a backslash" % (c)
+
+                    backslash = False
+                    out = out + c
+                    continue
+                else:
+                    if debug:
+                        print "Dangling backslash at end-of-line!"
+
+                    state = ILLEGAL_ESCAPE
+            elif c == '\\':
+                if debug:
+                    print "Saw a backslash, next character will be escaped."
+
+                backslash = True
+                out = out + c
+                continue
 
             # When a quoted string has not appeared yet, a quotation mark puts
             # us into the QUOTED state.  Regardless of what character appears,
@@ -123,6 +157,15 @@ if __name__ == '__main__':
                         print "Changing to state %s" % (state_name[state])
                 out = out + c
 
+            elif state == ILLEGAL_ESCAPE:
+                # Illegal condition, so print an error message and possibly stop
+                # the script.
+                print >>sys.stderr, "%s: dangling backslash at end of line %d: <<%s>>" % (progname, count, line.strip())
+                if stop:
+                    sys.exit(1)
+                else:
+                    out = out + c
+
             else:
                 # This branch represents an unknown state.
                 raise RuntimeError("illegal state '%s'" % (state_name[state]))
@@ -137,7 +180,7 @@ if __name__ == '__main__':
         # After processing the line, the state should be UNQUOTED - if it is
         # not, it means there is a severe problem in the line that needs to be
         # reported.
-        if state != UNEXPECTED_EOL and state != UNQUOTED:
+        if state != UNEXPECTED_EOL and state != UNQUOTED and state != ILLEGAL_ESCAPE:
             print >>sys.stderr, "%s: fatal error on line %d: <<%s>> (final state %d)" % (progname, count, line.strip(), state)
             if stop:
                 sys.exit(1)
