@@ -35,5 +35,5 @@ also make Ajax calls to the Python *backend* modules to request various
 services, such as database access, server side processing, or anything else that
 you can imagine.
 
-See the [Application Architecture](/wiki/Architecture) page on the wiki for more
-information.
+See the [Application Architecture](/xdata-vde/xdata-web/wiki/Installation) page
+on the wiki for more information.
