@@ -1,4 +1,4 @@
-# XDATA Web -- A Python Framework for Powerful Web Applications
+# XDATA Web: A Python Framework for Web Applications
 
 **XDATA Web** is a web framework built on top of
 [CherryPy](http://www.cherrypy.org/) to enable rich web applications, bringing
