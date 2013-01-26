@@ -20,8 +20,8 @@ then run the "start-xdataweb" script in the top-level directory.  Then, point
 your browser to [http://localhost:8080](http://localhost:8080) to check things
 out.
 
-See the [Installing XDATA Web](/wiki/Installation) page on the wiki for detailed
-instructions.
+See the [Installing XDATA Web](/xdata-vde/xdata-web/wiki/Installation) page on
+the wiki for detailed instructions.
 
 # System Architecture
 
@@ -35,5 +35,5 @@ also make Ajax calls to the Python *backend* modules to request various
 services, such as database access, server side processing, or anything else that
 you can imagine.
 
-See the [Application Architecture](/xdata-vde/xdata-web/wiki/Installation) page
+See the [Application Architecture](/xdata-vde/xdata-web/wiki/Architecture) page
 on the wiki for more information.
