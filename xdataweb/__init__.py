@@ -81,6 +81,8 @@ class Server(object):
             # Error message.
             response['error'] = "xdataweb: error: %s: %s" % (e.__class__.__name__, e.message)
 
+            cherrypy.log("Caught exception - %s: %s" % (e.__class__.__name__, e.message))
+
             # Full Python traceback stack.
             s = StringIO.StringIO()
             traceback.print_exc(file=s)
