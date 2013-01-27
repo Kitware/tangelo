@@ -37,7 +37,11 @@ class Handler:
             response['result'] = [d for d in coll.find(schema)]
         else:
             # Convert the JSON object "data" to a Python object.
-            pydata = xdataweb.loads(data)
+            try:
+                pydata = xdataweb.loads(data)
+            except ValueError as e:
+                response['error'] = e.message
+                return xdataweb.dumps(response)
 
             # Apply the schema to an insert request.
             coll.insert({'file_hash': file_hash, 'data': data})
