@@ -1,17 +1,30 @@
-flickr = {};
+/*jslint browser: true */
+
+/*globals flickr, $, google, d3, date */
+
+var flickr = {};
 flickr.map = null;
 
-flickr.getMongoDBInfo = function(){
+flickr.getMongoDBInfo = function () {
+    "use strict";
+
     // Read in the config options regarding which MongoDB
     // server/database/collection to use.
-    return { server: localStorage.getItem('flickr:mongodb-server') || 'localhost',
-             db: localStorage.getItem('flickr:mongodb-db') || 'xdata',
-             coll: localStorage.getItem('flickr:mongodb-coll') || 'flickr_paris' };
-}
+    return {
+        server: localStorage.getItem('flickr:mongodb-server') || 'localhost',
+        db: localStorage.getItem('flickr:mongodb-db') || 'xdata',
+        coll: localStorage.getItem('flickr:mongodb-coll') || 'flickr_paris'
+    };
+};
 
-function getMinMaxDates(){
-    var mongo = flickr.getMongoDBInfo();
-    var july30 = Date.parse("Jul 30, 2012 01:31:06");
+function getMinMaxDates() {
+    "use strict";
+
+    var mongo,
+        july30;
+
+    mongo = flickr.getMongoDBInfo();
+    july30 = Date.parse("Jul 30, 2012 01:31:06");
 
     // Query the collection about the earliest and latest dates in the
     // collection.
@@ -24,13 +37,15 @@ function getMinMaxDates(){
             fields: JSON.stringify(['date'])
         },
         dataType: 'json',
-        success: function(response){
-            if(response.error !== null){
+        success: function (response) {
+            var val;
+
+            if (response.error !== null) {
                 // Error condition.
                 console.log("error: could not get minimum time value from database - " + response.error);
-            }
-            else{
-                var val = +response.result.data[0]['date']['$date'];
+            } else {
+                //val = +response.result.data[0]['date']['$date'];
+                val = +response.result.data[0].date.$date;
                 flickr.timeslider.setMin(val);
                 //flickr.timeslider.setLowValue(val);
 
@@ -50,13 +65,14 @@ function getMinMaxDates(){
             fields: JSON.stringify(['date'])
         },
         dataType: 'json',
-        success: function(response){
-            if(response.error !== null){
+        success: function (response) {
+            var val;
+
+            if (response.error !== null) {
                 // Error condition.
                 console.log("error: could not get maximum time value from database - " + response.error);
-            }
-            else{
-                var val = +response.result.data[0]['date']['$date'];
+            } else {
+                val = +response.result.data[0].date.$date;
                 flickr.timeslider.setMax(val);
                 flickr.timeslider.setHighValue(val);
             }
@@ -64,19 +80,30 @@ function getMinMaxDates(){
     });
 }
 
-function retrieveDataSynthetic(){
+function retrieveDataSynthetic() {
+    "use strict";
+
+    var chicago,
+        paris,
+        slc,
+        albany,
+        dhaka,
+        rio,
+        wellington,
+        locs;
+
     // Generate a few lat/long values in well-known places.
-    var chicago = [42.0, -87.5];
-    var paris = [48.9, 2.3];
-    var slc = [40.8, -111.9];
-    var albany = [42.7, -73.8];
-    var dhaka = [23.7, 90.4];
-    var rio = [-22.9, -43.2];
-    var wellington = [-41.3, 174.8];
+    chicago = [42.0, -87.5];
+    paris = [48.9, 2.3];
+    slc = [40.8, -111.9];
+    albany = [42.7, -73.8];
+    dhaka = [23.7, 90.4];
+    rio = [-22.9, -43.2];
+    wellington = [-41.3, 174.8];
 
     // Take the array of arrays, and map it to an array of google LatLng
     // objects.
-    var locs = [chicago, paris, slc, albany, dhaka, rio, wellington].map(function(d) { return new google.maps.LatLng(d[0], d[1]); });
+    locs = [chicago, paris, slc, albany, dhaka, rio, wellington].map(function (d) { return new google.maps.LatLng(d[0], d[1]); });
 
     // Store the retrieved values.
     flickr.map.locations(locs);
@@ -85,36 +112,48 @@ function retrieveDataSynthetic(){
     flickr.map.draw();
 }
 
-function retrieveData(){
+function retrieveData() {
+    "use strict";
+
+    var times,
+        timequery,
+        hashtagText,
+        hashtags,
+        hashtagquery,
+        query,
+        mongo,
+        panel;
+
     // Interrogate the UI elements to build up a query object for the database.
     //
     // Get the time slider range.
-    var times = flickr.timeslider.getValue();
+    times = flickr.timeslider.getValue();
 
     // Construct a query that selects times between the two ends of the slider.
-    var timequery = { $and : [{'date' : {$gte : {"$date" : times[0]}}},
-                              {'date' : {$lte : {"$date" : times[1]}}}]
-                    };
+    timequery = {
+        $and : [{'date' : {$gte : {"$date" : times[0]}}},
+                {'date' : {$lte : {"$date" : times[1]}}}]
+    };
 
     // Get the hashtag text and split it into several tags.
-    var hashtagText = d3.select("#hashtags").node().value;
-    var hashtags = [];
-    if(hashtagText !== ""){
-        var hashtags = hashtagText.split(/\s+/);
+    hashtagText = d3.select("#hashtags").node().value;
+    hashtags = [];
+    if (hashtagText !== "") {
+        hashtags = hashtagText.split(/\s+/);
     }
 
     // Construct a query to find any entry containing any of these tags.
-    var hashtagquery = {};
-    if(hashtags.length > 0){
+    hashtagquery = {};
+    if (hashtags.length > 0) {
         hashtagquery = { 'hashtags' : {$in : hashtags}};
     }
 
     // Stitch all the queries together into a "superquery".
-    var query = {$and : [timequery, hashtagquery]};
+    query = {$and : [timequery, hashtagquery]};
 
     // Issue the query to the mongo module.
-    var mongo = flickr.getMongoDBInfo();
-    var panel = d3.select("#information")
+    mongo = flickr.getMongoDBInfo();
+    panel = d3.select("#information")
                     .html("Querying database...");
     $.ajax({
         type: 'POST',
@@ -122,27 +161,29 @@ function retrieveData(){
         data: {
             query: JSON.stringify(query),
             limit: d3.select("#record-limit").node().value,
-            sort: JSON.stringify([['date',1]])
+            sort: JSON.stringify([['date', 1]])
         },
         dataType: 'json',
-        success: function(response){
+        success: function (response) {
+            var N,
+                data;
+
             // Error check.
-            if(response.error !== null){
+            if (response.error !== null) {
                 console.log("fatal error: " + response.error);
-                panel
-                    .classed("error", true)
+                panel.classed("error", true)
                     .html("fatal error: " + response.error);
                 return;
             }
 
             // Report how many results there were.
-            var N = response.result.data.length;
+            N = response.result.data.length;
             panel.html("Got " + N + " result" + (N === 0 || N > 1 ? "s" : ""));
 
             // Process the data to add some interesting features
             //
             // Extract some information from the date.
-            var data = response.result.data.map(function(d){
+            data = response.result.data.map(function (d) {
                 var date = new Date(d.date.$date);
 
                 d.month = date.getMonthName();
@@ -156,10 +197,14 @@ function retrieveData(){
             // Redraw the map.
             flickr.map.draw();
         }
-       });
+    });
 }
 
-function GMap(elem, options){
+function GMap(elem, options) {
+    "use strict";
+
+    var that;
+
     // Create the map object and place it into the specified container element.
     this.map = new google.maps.Map(elem, options);
 
@@ -179,11 +224,22 @@ function GMap(elem, options){
 
     this.setMap(this.map);
 
-    var that = this;
-    google.maps.event.addListener(this.map, "drag", function() { that.draw(); });
+    that = this;
+    google.maps.event.addListener(this.map, "drag", function () { that.draw(); });
 }
 
-window.onload = function(){
+window.onload = function () {
+    "use strict";
+
+    var options,
+        div,
+        buttons,
+        i,
+        displayFunc,
+        checkbox,
+        dayboxes,
+        zoomfunc;
+
     // TODO(choudhury): Probably the GMap prototype extension stuff should all
     // go in its own .js file.
     //
@@ -194,7 +250,7 @@ window.onload = function(){
     //
     // onAdd() signals that the map's panes are ready to receive the overlaid
     // DOM element.
-    GMap.prototype.onAdd = function(){
+    GMap.prototype.onAdd = function () {
         console.log("onAdd()!");
 
         // Grab the overlay mouse target element (because it can accept, e.g.,
@@ -204,7 +260,7 @@ window.onload = function(){
 
         var svg = d3.select(this.overlayLayer).append("div")
             .attr("id", "svgcontainer")
-            .style("position","relative")
+            .style("position", "relative")
             .style("left", "0px")
             .style("top", "0px")
             .append("svg");
@@ -223,12 +279,30 @@ window.onload = function(){
 
         // Record the SVG element in the object for later use.
         this.overlay = svg.node();
-    }
+    };
 
     // draw() sizes and places the overlaid SVG element.
-    GMap.prototype.draw = function(){
+    GMap.prototype.draw = function () {
+        var proj,
+            w,
+            h,
+            containerLatLng,
+            divPixels,
+            div,
+            newLeft,
+            newTop,
+            svg,
+            data,
+            days,
+            N,
+            that,
+            color,
+            radius,
+            opacity,
+            markers;
+
         //console.log("draw()!");
-        if(this.locationData === null || typeof this.locationData === 'undefined' || this.locationData.length === 0){
+        if (this.locationData === null || typeof this.locationData === 'undefined' || this.locationData.length === 0) {
             console.log("returning early: locationData is " + this.locationData);
             return;
         }
@@ -237,32 +311,30 @@ window.onload = function(){
         // lat/long data will be "pushed through" it just prior to being drawn.
         // It is deferred this way to deal with changes in the window size,
         // etc., that can occur without warning.
-        var proj = this.getProjection();
+        proj = this.getProjection();
 
         // Shift the container div to cover the "whole world".
         //
         // First, compute the pixel coordinates of the bounds of the "whole
         // world".
-        var proj = this.getProjection();
-        var w = this.container.offsetWidth;
-        var h = this.container.offsetHeight;
-        var containerLatLng = proj.fromContainerPixelToLatLng({x: 0, y: 0});
-        var divPixels = proj.fromLatLngToDivPixel(containerLatLng);
+        proj = this.getProjection();
+        w = this.container.offsetWidth;
+        h = this.container.offsetHeight;
+        containerLatLng = proj.fromContainerPixelToLatLng({x: 0, y: 0});
+        divPixels = proj.fromLatLngToDivPixel(containerLatLng);
 
         // Move and resize the div element.
-        var div = d3.select(this.overlayLayer).select("#svgcontainer");
-        var newLeft = divPixels.x + "px";
-        var newTop = divPixels.y + "px";
-        div
-            .style("left", newLeft)
+        div = d3.select(this.overlayLayer).select("#svgcontainer");
+        newLeft = divPixels.x + "px";
+        newTop = divPixels.y + "px";
+        div.style("left", newLeft)
             .style("top", newTop)
             .style("width", w + "px")
             .style("height", h + "px");
 
         // Resize the SVG element to fit the viewport.
-        var svg = d3.select(this.overlayLayer).select("svg");
-        svg
-            .attr("width", w)
+        svg = d3.select(this.overlayLayer).select("svg");
+        svg.attr("width", w)
             .attr("height", h);
 
         //// Make the rect element track the SVG element.
@@ -271,7 +343,7 @@ window.onload = function(){
             //.attr("height", svg.attr("height"));
 
         // Process the data by adjoining pixel locations to each entry.
-        var data = this.locationData.map(function(d){
+        data = this.locationData.map(function (d) {
             d.pixelLocation = proj.fromLatLngToDivPixel(new google.maps.LatLng(d.location[0], d.location[1]));
             d.pixelLocation.x -= divPixels.x;
             d.pixelLocation.y -= divPixels.y;
@@ -279,34 +351,45 @@ window.onload = function(){
         });
 
         // Filter the results by day (if any of the boxes is checked).
-        var days = date.day_names.filter(function(d){
+        days = date.day_names.filter(function (d) {
             return document.getElementById(d).checked;
         });
-        if(days.length > 0){
-            data = data.filter(function(d) { return days.indexOf(d.day) !== -1; });
+        if (days.length > 0) {
+            data = data.filter(function (d) {
+                return days.indexOf(d.day) !== -1;
+            });
         }
 
         // Grab the total number of data items.
-        var N = data.length;
+        N = data.length;
 
         // Select a colormapping function based on the radio buttons.
-        var that = this;
-        var color = (function(){
+        that = this;
+        color = (function () {
+            var which,
+                colormap,
+                elemtext,
+                li,
+                retval,
+                invert,
+                range,
+                scale;
+
             // Empty the color legend div.
             d3.select("#legend").selectAll("*").remove();
 
             // Determine which radio button is currently selected.
-            var which = $("input[name=colormap]:radio:checked").attr("id");
+            which = $("input[name=colormap]:radio:checked").attr("id");
 
             // Generate a colormap function to return, and place a color legend
             // based on it.
-            if(which === 'month'){
-                var colormap = function(d){
+            if (which === 'month') {
+                colormap = function (d) {
                     return that.monthColor(d.month);
                 };
 
-                $.each(date.month_names, function(i, d){
-                    var elemtext = d3.select(document.createElement("div"))
+                $.each(date.month_names, function (i, d) {
+                    elemtext = d3.select(document.createElement("div"))
                         .style("border", "solid black 1px")
                         .style("background", colormap({'month': d}))
                         .style("display", "inline-block")
@@ -314,20 +397,19 @@ window.onload = function(){
                         .html("&nbsp;")
                         .node().outerHTML;
 
-                    var li = d3.select("#legend")
+                    li = d3.select("#legend")
                         .append("li")
                         .html(elemtext + "&nbsp;" + d);
                 });
 
-                return colormap;
-            }
-            else if(which === 'day'){
-                var colormap = function(d){
+                retval = colormap;
+            } else if (which === 'day') {
+                colormap = function (d) {
                     return that.dayColor(d.day);
                 };
 
-                $.each(date.day_names, function(i, d){
-                    var elemtext = d3.select(document.createElement("div"))
+                $.each(date.day_names, function (i, d) {
+                    elemtext = d3.select(document.createElement("div"))
                         .style("border", "solid black 1px")
                         .style("background", colormap({'day': d}))
                         .style("display", "inline-block")
@@ -335,66 +417,72 @@ window.onload = function(){
                         .html("&nbsp;")
                         .node().outerHTML;
 
-                    var li = d3.select("#legend")
+                    li = d3.select("#legend")
                         .append("li")
                         .html(elemtext + "&nbsp;" + d);
                 });
 
-                return colormap;
-            }
-            else if(which == 'rb'){
-                var invert = document.getElementById("invert").checked;
-                var range = invert ? ['blue', 'red'] : ['red', 'blue'];
-                var scale = d3.scale.linear()
-                    .domain([0,N-1])
+                retval = colormap;
+            } else if (which === 'rb') {
+                invert = document.getElementById("invert").checked;
+                range = invert ? ['blue', 'red'] : ['red', 'blue'];
+                scale = d3.scale.linear()
+                    .domain([0, N - 1])
                     .range(range);
 
-                return function(d, i){
+                retval = function (d, i) {
                     return scale(i);
                 };
+            } else {
+                retval = "pink";
             }
-            else{
-                return "pink";
-            }
-        })();
+
+            return retval;
+        }());
 
         // Select a radius function as well.
-        var radius = (function(){
+        radius = (function () {
+            var which,
+                retval,
+                size;
+
             // Determine which radio button is selected.
-            var which = $("input[name=size]:radio:checked").attr("id");
+            which = $("input[name=size]:radio:checked").attr("id");
 
             // Generate a radius function to return.
-            if(which === 'recency'){
-                return function(d, i){
-                    return 5 + 15*(N-1-i)/(N-1);
+            if (which === 'recency') {
+                retval = function (d, i) {
+                    return 5 + 15 * (N - 1 - i) / (N - 1);
                 };
-            }
-            else{
+            } else {
                 // Get the size value.
-                var size = parseFloat(d3.select("#size").node().value);
-                if(isNaN(size) || size <= 0.0){
+                size = parseFloat(d3.select("#size").node().value);
+                if (isNaN(size) || size <= 0.0) {
                     size = 5.0;
                 }
 
-                return size;
+                retval = size;
             }
-        })();
+
+            return retval;
+        }());
 
         // Get the opacity value.
-        var opacity = parseFloat(d3.select("#opacity").node().value);
-        if(isNaN(opacity) || opacity > 1.0){
+        opacity = parseFloat(d3.select("#opacity").node().value);
+        if (isNaN(opacity) || opacity > 1.0) {
             opacity = 1.0;
-        }
-        else if(opacity < 0.0){
+        } else if (opacity < 0.0) {
             opacity = 0.0;
         }
 
         // Compute a data join with the current list of marker locations, using
         // the MongoDB unique id value as the key function.
-        var markers = d3.select(this.overlay)
+        markers = d3.select(this.overlay)
             .select("#markers")
             .selectAll("circle")
-            .data(data, function(d) { return d._id.$oid; });
+            .data(data, function (d) {
+                return d._id.$oid;
+            });
 
         // For the enter selection, create new circle elements, and attach a
         // title element to each one.  In the update selection (which includes
@@ -408,24 +496,33 @@ window.onload = function(){
             .style("opacity", 0.0)
             .attr("r", 0)
             .append("title")
-            .text(function(d){
-                var date = new Date(d.date.$date);
-                var msg = "";
+            .text(function (d) {
+                var date,
+                    msg;
+
+                date = new Date(d.date.$date);
+
+                msg = "";
                 msg += "Date: " + date.getDayName() + " " + date + "\n";
                 msg += "Location: (" + d.location[0] + ", " + d.location[1] + ")\n";
                 msg += "Author: " + d.author + "\n";
                 msg += "Description: " + d.title + "\n";
+
                 return msg;
             });
 
         // This is to prevent division by zero if there is only one data
         // element.
-        if(N === 1){
+        if (N === 1) {
             N = 2;
         }
         markers
-            .attr("cx", function(d) { return d.pixelLocation.x; })
-            .attr("cy", function(d) { return d.pixelLocation.y; })
+            .attr("cx", function (d) {
+                return d.pixelLocation.x;
+            })
+            .attr("cy", function (d) {
+                return d.pixelLocation.y;
+            })
             .style("fill", color)
             //.style("fill-opacity", 0.6)
             .style("fill-opacity", 1.0)
@@ -443,17 +540,17 @@ window.onload = function(){
             .duration(500)
             .style("opacity", 0.0)
             .remove();
-    }
+    };
 
     // onRemove() destroys the overlay when it is no longer needed.
-    GMap.prototype.onRemove = function(){
+    GMap.prototype.onRemove = function () {
         // TODO(choudhury): implement this function by removing the SVG element
         // from the pane.
         console.log("onRemove()!");
 
-    }
+    };
 
-    GMap.prototype.locations = function(locationData){
+    GMap.prototype.locations = function (locationData) {
         // TODO(choudhury): it might be better to actually copy the values here.
         //
         this.locationData = locationData;
@@ -461,24 +558,26 @@ window.onload = function(){
         //for(var i=0; i<locationData.length; i++){
             //this.locationData.push(locationData[i]);
         //}
-    }
+    };
 
     // Create a range slider for slicing by time.
-    var displayFunc = (function(){
-        var lowdiv = d3.select("#low");
-        var highdiv = d3.select("#high");
+    displayFunc = (function () {
+        var lowdiv,
+            highdiv;
 
-        return function(low, high){
+        lowdiv = d3.select("#low");
+        highdiv = d3.select("#high");
+
+        return function (low, high) {
             lowdiv.html(new Date(low));
             highdiv.html(new Date(high));
         };
-    })();
+    }());
 
-    flickr.timeslider = rangeSlider(d3.select("#time-slider").node(),
-            {
-                onchange: displayFunc,
-                onslide: displayFunc
-            });
+    flickr.timeslider = rangeSlider(d3.select("#time-slider").node(), {
+        onchange: displayFunc,
+        onslide: displayFunc
+    });
     flickr.timeslider.initialize();
 
     // Attach an action to the "data" button.
@@ -487,58 +586,82 @@ window.onload = function(){
     // Some options for initializing the google map.
     //
     // Set to Paris, with good view of the Seine.
-    var options = {
+    options = {
         zoom: 13,
         center: new google.maps.LatLng(48.86, 2.33),
         mapTypeId: google.maps.MapTypeId.ROADMAP
     };
-    var div = d3.select("#map").node();
+    div = d3.select("#map").node();
     flickr.map = new GMap(div, options);
 
     // Direct the colormap selector radio buttons to redraw the map when they
     // are clicked.
-    var buttons = document.getElementsByName("colormap");
-    for(var i=0; i<buttons.length; i++){
-        buttons[i].onclick = function(){ flickr.map.draw(); };
+    buttons = document.getElementsByName("colormap");
+    for (i = 0; i < buttons.length; i += 1) {
+        // TODO(choudhury): this raises an error in JSLint.  Refactor this to a
+        // function bound to a variable OUTSIDE of the loop.
+        buttons[i].onclick = function () {
+            flickr.map.draw();
+        };
     }
-    var checkbox = document.getElementById("invert");
-    checkbox.onclick = function(){ flickr.map.draw(); };
+    checkbox = document.getElementById("invert");
+    checkbox.onclick = function () {
+        flickr.map.draw();
+    };
 
     // Direct the day filter checkboxes to redraw the map when clicked.
-    var dayboxes = date.day_names.map(function(d) { return document.getElementById(d); });
-    for(var i=0; i<dayboxes.length; i++){
-        dayboxes[i].onclick = function() { flickr.map.draw(); };
+    dayboxes = date.day_names.map(function (d) {
+        return document.getElementById(d);
+    });
+
+    for (i = 0; i < dayboxes.length; i += 1) {
+        dayboxes[i].onclick = function () {
+            flickr.map.draw();
+        };
     }
 
     // Direct the glyph size radio buttons to redraw.
     buttons = document.getElementsByName("size");
-    for(var i=0; i<buttons.length; i++){
-        buttons[i].onclick = function(){ flickr.map.draw() };
+    for (i = 0; i < buttons.length; i += 1) {
+        buttons[i].onclick = function () {
+            flickr.map.draw();
+        };
     }
 
     // Direct the opacity control to redraw.
-    document.getElementById("opacity").onchange = function(){ flickr.map.draw(); };
+    document.getElementById("opacity").onchange = function () {
+        flickr.map.draw();
+    };
 
     // Direct the size control to redraw.
-    document.getElementById("size").onchange = function(){ flickr.map.draw(); };
+    document.getElementById("size").onchange = function () {
+        flickr.map.draw();
+    };
 
     // Get the earliest and latest times in the database, to create a suitable
     // range for the time slider.
     getMinMaxDates();
 
     // Attach actions to the zoom and unzoom buttons.
-    var zoomfunc = (function(){
-        var zoom = d3.select("#zoom");
-        var unzoom = d3.select("#unzoom");
+    zoomfunc = (function () {
+        var zoom,
+            unzoom,
+            stack;
 
-        var stack = [];
+        zoom = d3.select("#zoom");
+        unzoom = d3.select("#unzoom");
+
+        stack = [];
 
         return {
-            zoomer: function(slider){
+            zoomer: function (slider) {
+                var value,
+                    bounds;
+
                 // Return immediately if the handles are already at the bounds.
-                var value = slider.getValue();
-                var bounds = [slider.getMin(), slider.getMax()];
-                if(value[0] == bounds[0] && value[1] == bounds[1]){
+                value = slider.getValue();
+                bounds = [slider.getMin(), slider.getMax()];
+                if (value[0] === bounds[0] && value[1] === bounds[1]) {
                     return;
                 }
 
@@ -551,32 +674,34 @@ window.onload = function(){
 
                 // Activate the unzoom button if this is the first entry in the
                 // stack.
-                if(stack.length === 1){
+                if (stack.length === 1) {
                     unzoom.classed("disabled", false);
                 }
             },
 
-            unzoomer: function(slider){
+            unzoomer: function (slider) {
+                var bounds;
+
                 // Make sure this function is not being called when there are no
                 // entries in the stack.
-                if(stack.length === 0){
-                   throw "Logic error: Unzoom button was clicked even though there is nothing to unzoom to.";
+                if (stack.length === 0) {
+                    throw "Logic error: Unzoom button was clicked even though there is nothing to unzoom to.";
                 }
 
                 // Pop a bounds value from the stack, and set it as the bounds
                 // for the slider.
-                var bounds = stack.pop();
+                bounds = stack.pop();
                 slider.setMin(bounds[0]);
                 slider.setMax(bounds[1]);
 
                 // If the stack now contains no entries, disable the unzoom
                 // button.
-                if(stack.length === 0){
+                if (stack.length === 0) {
                     unzoom.classed("disabled", true);
                 }
             }
         };
-    })();
+    }());
 
     d3.select("#zoom")
         .data([flickr.timeslider])
@@ -588,4 +713,4 @@ window.onload = function(){
 
     // Make a spinner out of the opacity control.
     //$("#opacity").spinner();
-}
+};

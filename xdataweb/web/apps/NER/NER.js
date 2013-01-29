@@ -1,40 +1,186 @@
+/*jslint browser: true */
+
+/*global CryptoJS, $, d3, escape, FileReader */
+
 // This is declared null for now - it will be initialized in the window's
 // onready method, as it depends on elements being loaded in the page.
 var graph = null;
 
 // Top-level container object for this js file.
-var NER = {};
+var NER = {
+    // "nodes" is a table of entity names, mapping to an array position generated
+    // uniquely by the "counter" variable.  Once the table is complete, the nodes
+    // table can be recast into an array.
+    nodes: {},
+    links: {},
+    counter: 0,
+    linkcounter: 0,
 
-// Get the mongo server to use from the configuration.
-NER.getMongoDBServer = function(){
-    return localStorage.getItem('NER:mongodb-server') || 'localhost';
+    // A catalog of NER types found by the analysis.  This will be used to construct
+    // the color legend at the top of the graph display.
+    types: {},
+
+    // This count will signal when the last ajax request has completed, and graph
+    // assembly can continue.
+    num_files: 0,
+    files_processed: 0,
+
+    // This table stores formatted filename information that can be dynamically
+    // added to in different situations ("processing" to "processed", etc.).
+    filenames: {},
+
+    // Get the mongo server to use from the configuration.
+    getMongoDBServer: function () {
+        "use strict";
+
+        return localStorage.getItem('NER:mongodb-server') || 'localhost';
+    }
+};
+
+// This function can be called with a filename to *generate* an AJAX-success
+// callback function to process the contents of some file.  The parameter passed
+// into the generator is so that the callback has access to the name of the file
+// being processed.
+function processFileContents(filename, id, file_hash) {
+    "use strict";
+
+    return function (response) {
+        var entities,
+            li,
+            ok,
+            doc_index,
+            entity_index,
+            link;
+
+        // Check the error code in the AJAX response.  If there is an error,
+        // write the error message in the information window and abort the
+        // operation.
+        if (response.error !== null) {
+            d3.select("#file-info")
+                .append("li")
+                .classed("error", true)
+                .html(response.error)
+                .style("opacity", 0.0)
+                .transition()
+                .duration(1000)
+                .style("opacity", 1.0);
+
+            return;
+        }
+
+        // Extract the actual result from the response object.
+        entities = response.result;
+
+        li = d3.select("#" + id)
+            .classed("inprogress", false)
+            .classed("processing done", true);
+        li.html(NER.filenames[filename] + ' processed');
+
+        // If the "store" parameter is set to true, store the data in the
+        // database (caching it for future retrieval).
+        if (file_hash !== undefined) {
+            // Fire an AJAX call that will install the computed data in the DB.
+            ok = true;
+            $.ajax({
+                type: 'POST',
+                url: '/service/NERmongo/' + NER.getMongoDBServer() + '/xdata/ner-cache',
+                data: {
+                    file_hash: file_hash,
+                    data: JSON.stringify(entities)
+                },
+                dataType: 'json',
+                success: function (resp) {
+                    // If there was an error, continue anyway, as the failure
+                    // would be in writing an entry to the database, and we
+                    // already have the data in hand.
+                    if (resp.error !== null) {
+                        console.log("error: " + resp.error);
+/*                        d3.select("#file-info")*/
+                            //.append("li")
+                            //.classed("error", true)
+                            //.html(resp.error)
+                            //.style("opacity", 0.0)
+                            //.transition()
+                            //.duration(1000)
+                            /*.style("opacity", 1.0);*/
+                    }
+                }
+            });
+        }
+
+        // Create an entry for the document itself.
+        NER.nodes[filename] = {
+            name: filename,
+            type: "DOCUMENT",
+            count: 1,
+            id: NER.counter += 1
+        };
+        doc_index = NER.counter - 1;
+
+        // Augment the count for the DOCUMENT type in the type table.
+        NER.types.DOCUMENT = NER.types.DOCUMENT + 1 || 1;
+
+        // Process the entities.
+        $.each(entities, function (i, e) {
+            // Place the entity into the global entity list
+            // if not already there.
+            //
+            // Also update the count of this entity.
+            var key = '["' + e[0] + '","' + e[1] + '"]';
+            if (!NER.nodes.hasOwnProperty(key)) {
+                // Place the entity into the node table.
+                NER.nodes[key] = {
+                    name: e[1],
+                    type: e[0],
+                    count: 1,
+                    id: NER.counter += 1
+                };
+
+                // Augment the type count.
+                NER.types[e[0]] = NER.types[e[0]] + 1 || 1;
+            } else {
+                NER.nodes[key].count += 1;
+            }
+
+            entity_index = NER.nodes[key].id;
+
+            // Enter a link into the link list, or just increase the count if
+            // the link exists already.
+            link = "(" + entity_index + "," + doc_index + ")";
+            if (!NER.links.hasOwnProperty(link)) {
+                NER.links[link] = {
+                    source: entity_index,
+                    target: doc_index,
+                    count: 1,
+                    id: NER.linkcounter += 1
+                };
+            } else {
+                NER.links[link].count += 1;
+            }
+        });
+
+        // Increment the number of successfully processed files; if the number
+        // reaches the number of total files to process, launch the final step
+        // of assembling the graph.
+        NER.files_processed += 1;
+
+        if (NER.files_processed === NER.num_files) {
+            graph.assemble(NER.nodes, NER.links, NER.types, NER.nodeSlider.getValue());
+            graph.recompute(NER.nodeSlider.getValue());
+            graph.render();
+        }
+    };
 }
 
-// "nodes" is a table of entity names, mapping to an array position generated
-// uniquely by the "counter" variable.  Once the table is complete, the nodes
-// table can be recast into an array.
-NER.nodes = {};
-NER.links = {};
-NER.counter = 0;
-NER.linkcounter = 0;
+function processFile(filename, id) {
+    "use strict";
 
-// A catalog of NER types found by the analysis.  This will be used to construct
-// the color legend at the top of the graph display.
-NER.types = {};
+    return function (e) {
+        var text,
+            file_hash;
 
-// This count will signal when the last ajax request has completed, and graph
-// assembly can continue.
-NER.num_files = 0;
-NER.files_processed = 0;
-
-// This table stores formatted filename information that can be dynamically
-// added to in different situations ("processing" to "processed", etc.).
-NER.filenames = {};
-
-function processFile(filename, id){
-    return function(e){
         // Grab the text of the file.
-        var text = e.target.result;
+        text = e.target.result;
 
         // Create a "progress" bullet point describing the current
         // AJAX state of this file.
@@ -45,8 +191,7 @@ function processFile(filename, id){
         //elem.setAttribute("class", "processing inprogress");
         //$("#blobs").get(0).appendChild(elem);
 
-
-        var file_hash = CryptoJS.MD5(text).toString();
+        file_hash = CryptoJS.MD5(text).toString();
 
         // Check to see if the file contents were already processed,
         // by querying the database for the results.  If they are
@@ -60,9 +205,9 @@ function processFile(filename, id){
                 file_hash: file_hash
             },
             dataType: "json",
-            success: function(response){
+            success: function (response) {
                 // Error checking.
-                if(response.error !== null){
+                if (response.error !== null) {
                     d3.select("#file-info")
                         .append("li")
                         .classed("error", true)
@@ -81,7 +226,7 @@ function processFile(filename, id){
                 // Check the response - if it is an empty list, or there was a
                 // database error, launch the second AJAX call to directly
                 // compute the NER set, and store it in the database.
-                if(response.error !== null || response.result.length == 0){
+                if (response.error !== null || response.result.length === 0) {
                     $.ajax({
                         type: 'POST',
                         url: '/service/NER',
@@ -90,12 +235,11 @@ function processFile(filename, id){
                         },
                         dataType: 'json',
                         success: processFileContents(filename, id, file_hash),
-                        error: function(){
-                            $("#" + filename.replace(".","-")).removeClass("inprogress").addClass("failed").get(0).innerHTML = filename + " processed";
+                        error: function () {
+                            $("#" + filename.replace(".", "-")).removeClass("inprogress").addClass("failed").get(0).innerHTML = filename + " processed";
                         }
                     });
-                }
-                else{
+                } else {
                     // TODO(choudhury): error checking.  Make sure that response
                     // has only a single element, etc.
 
@@ -119,174 +263,59 @@ function processFile(filename, id){
     };
 }
 
-// This function can be called with a filename to *generate* an AJAX-success
-// callback function to process the contents of some file.  The parameter passed
-// into the generator is so that the callback has access to the name of the file
-// being processed.
-function processFileContents(filename, id, file_hash){
-    return function(response){
-        // Check the error code in the AJAX response.  If there is an error,
-        // write the error message in the information window and abort the
-        // operation.
-        if(response.error !== null){
-            d3.select("#file-info")
-                .append("li")
-                .classed("error", true)
-                .html(response.error)
-                .style("opacity", 0.0)
-                .transition()
-                .duration(1000)
-                .style("opacity", 1.0);
+function handleFileSelect(evt) {
+    "use strict";
 
-            return;
-        }
+    var files,
+        output,
+        i,
+        f,
+        filename,
+        id,
+        using,
+        status,
+        msg,
+        li,
+        reader;
 
-        // Extract the actual result from the response object.
-        var entities = response.result;
-
-        var li = d3.select("#" + id)
-            .classed("inprogress", false)
-            .classed("processing done", true);
-        li.html(NER.filenames[filename] + ' processed');
-
-        // If the "store" parameter is set to true, store the data in the
-        // database (caching it for future retrieval).
-        if(file_hash !== undefined){
-            // Fire an AJAX call that will install the computed data in the DB.
-            var ok = true;
-            $.ajax({
-                type: 'POST',
-                url: '/service/NERmongo/' + NER.getMongoDBServer() + '/xdata/ner-cache',
-                data: {
-                    file_hash: file_hash,
-                    data: JSON.stringify(entities)
-                },
-                dataType: 'json',
-                success: function(resp){
-                    // If there was an error, continue anyway, as the failure
-                    // would be in writing an entry to the database, and we
-                    // already have the data in hand.
-                    if(resp.error !== null){
-                        console.log("error: " + resp.error);
-/*                        d3.select("#file-info")*/
-                            //.append("li")
-                            //.classed("error", true)
-                            //.html(resp.error)
-                            //.style("opacity", 0.0)
-                            //.transition()
-                            //.duration(1000)
-                            /*.style("opacity", 1.0);*/
-                    }
-                }
-            });
-        }
-
-        // Create an entry for the document itself.
-        NER.nodes[filename] = {
-            name: filename,
-            type: "DOCUMENT",
-            count: 1,
-            id: NER.counter++
-        };
-        var doc_index = NER.counter - 1;
-
-        // Augment the count for the DOCUMENT type in the type table.
-        NER.types["DOCUMENT"] = NER.types["DOCUMENT"] + 1 || 1;
-
-        // Process the entities.
-        $.each(entities, function(i, e){
-            // Place the entity into the global entity list
-            // if not already there.
-            //
-            // Also update the count of this entity.
-            var key = '["' + e[0] + '","' + e[1] + '"]';
-            if(!NER.nodes.hasOwnProperty(key)){
-                // Place the entity into the node table.
-                NER.nodes[key] = {
-                    name: e[1],
-            type: e[0],
-            count: 1,
-            id: NER.counter++
-                };
-
-            // Augment the type count.
-            NER.types[e[0]] = NER.types[e[0]] + 1 || 1;
-            }
-            else{
-                NER.nodes[key].count++;
-            }
-        var entity_index = NER.nodes[key].id;
-
-        // Enter a link into the link list, or just increase the count if
-        // the link exists already.
-        var link = "(" + entity_index + "," + doc_index + ")";
-        if(!NER.links.hasOwnProperty(link)){
-            NER.links[link] = {
-                source: entity_index,
-                target: doc_index,
-                count: 1,
-                id: NER.linkcounter++
-            };
-        }
-        else{
-            NER.links[link].count++;
-        }
-        });
-
-        // Increment the number of successfully processed files; if the number
-        // reaches the number of total files to process, launch the final step
-        // of assembling the graph.
-        ++NER.files_processed;
-
-        if(NER.files_processed == NER.num_files){
-            graph.assemble(NER.nodes, NER.links, NER.types, NER.nodeSlider.getValue());
-            graph.recompute(NER.nodeSlider.getValue());
-            graph.render();
-        }
-    };
-}
-
-function handleFileSelect(evt){
     // Grab the list of files selected by the user.
-    var files = evt.target.files;
+    files = evt.target.files;
 
     // Compute how many of these files will actually be processed for named
     // entities (see comment below for explanation of how the files are vetted).
     NER.num_files = 0;
-    $.each(files, function(k, v){
-        if(v.type == '(n/a)' || v.type.slice(0,5) == 'text/'){
-            NER.num_files++;
+    $.each(files, function (k, v) {
+        if (v.type === '(n/a)' || v.type.slice(0, 5) === 'text/') {
+            NER.num_files += 1;
         }
     });
 
     // Now run through the files, using a callback to load the content from the
     // proper ones and pass it to an ajax call to perform named-entity
     // recognition.
-    var output = [];
-    for(var i=0; i<files.length; i++){
-        var f = files[i];
+    output = [];
+    for (i = 0; i < files.length; i += 1) {
+        f = files[i];
 
         // Create globally usable names to use to refer to the current file.
-        var filename = escape(f.name);
-        var id = filename.replace(".", "-");
+        filename = escape(f.name);
+        id = filename.replace(".", "-");
 
         // Decide whether to process a selected file or not - accept everything
         // with a mime-type of text/*, as well as those with unspecified type
         // (assume the user knows what they are doing in such a case).
-        var using = null;
-        var status = null;
-        var msg = null;
-        if(f.type == '(n/a)'){
+        using = null;
+        status = null;
+        msg = null;
+        if (f.type === '(n/a)') {
             status = "accepted";
             msg = "ok, assuming text";
             using = true;
-        }
-        else if(f.type.slice(0,5) == 'text/'){
+        } else if (f.type.slice(0, 5) === 'text/') {
             status = "accepted";
             msg = "ok";
             using = true;
-        }
-        else{
+        } else {
             status = "rejected";
             msg = "rejected";
             using = false;
@@ -294,14 +323,14 @@ function handleFileSelect(evt){
 
         // Create a list item element to represent the file.  Tag it with an id
         // so it can be updated later.
-        var li = d3.select("#file-info").append("li");
+        li = d3.select("#file-info").append("li");
         NER.filenames[filename] = '<span class=filename>' + filename + '</span>';
         li.attr("id", id)
             .classed("rejected", !using)
-            .html(NER.filenames[filename] + '<span class=filename>(' + (f.type || 'n/a') + ')</span> - ' + f.size + ' bytes ' + (using ? '<span class=ok>(ok)</span>' : '<span class=rejected>(rejected)</span>') );
+            .html(NER.filenames[filename] + '<span class=filename>(' + (f.type || 'n/a') + ')</span> - ' + f.size + ' bytes ' + (using ? '<span class=ok>(ok)</span>' : '<span class=rejected>(rejected)</span>'));
 
-        if(using){
-            var reader = new FileReader();
+        if (using) {
+            reader = new FileReader();
             reader.onload = processFile(filename, id);
             reader.readAsText(f);
         }
@@ -317,76 +346,99 @@ function handleFileSelect(evt){
         .remove();
 }
 
-window.onload = function(){
-    graph = (function(){
+window.onload = function () {
+    "use strict";
+
+    graph = (function () {
+        var fade_time,
+            orignodes,
+            origlinks,
+            nodes,
+            links,
+            counter,
+            config,
+            color,
+            legend,
+            svg,
+            height,
+            nodeCharge,
+            textCharge,
+            force,
+            width,
+            scaler,
+            cards;
+
         // Duration of fade-in/fade-out transitions.
-        var fade_time = 500;
+        fade_time = 500;
 
         // Original data as passed to this module by a call to assemble().
-        var orignodes = {};
-        var origlinks = {};
+        orignodes = {};
+        origlinks = {};
 
         // Data making up the graph.
-        var nodes = [];
-        var links = [];
+        nodes = [];
+        links = [];
 
         // A counter to help uniquely identify incoming data from different sources.
-        var counter = 0;
+        counter = 0;
 
         // Configuration parameters for graph rendering.
-        var config = {
+        config = {
             // Whether to make the radius of each node proportional to the number of
             // times it occurs in the corpus.
             nodeScale: false,
 
-          // Whether to thicken a link proportionally to the number of times it
-          // occurs in the corpus.
-          linkScale: false,
+            // Whether to thicken a link proportionally to the number of times
+            // it occurs in the corpus.
+            linkScale: false,
 
-         // Whether to use circles to represent nodes, or text objects.
-         useTextLabels: false
+            // Whether to use circles to represent nodes, or text objects.
+            useTextLabels: false
         };
 
-        var color = d3.scale.category20();
-        var legend = d3.select("#color-legend");
+        color = d3.scale.category20();
+        legend = d3.select("#color-legend");
 
-        var svg = d3.select("#graph");
+        svg = d3.select("#graph");
 
-        var width = svg.attr("width"),
-            height = svg.attr("height");
+        width = svg.attr("width");
+        height = svg.attr("height");
 
-        var nodeCharge = -120;
-        var textCharge = -600;
-        var force = d3.layout.force()
+        nodeCharge = -120;
+        textCharge = -600;
+        force = d3.layout.force()
             .linkDistance(30)
             .size([width, height]);
 
         return {
-            assemble: function(nodedata, linkdata, typedata, nodecount_threshold){
+            assemble: function (nodedata, linkdata, typedata, nodecount_threshold) {
                 // Store copies of the incoming data.
                 orignodes = {};
-                $.each(nodedata, function(k,v){
+                $.each(nodedata, function (k, v) {
                     orignodes[k] = v;
                 });
 
                 origlinks = {};
-                $.each(linkdata, function(k,v){
+                $.each(linkdata, function (k, v) {
                     origlinks[k] = v;
                 });
 
                 // Loop through the types and place a color swatch in the legend
                 // area for each one.
-                $.each(typedata, function(t){
-                    var elemtext = d3.select(document.createElement("div"))
-                    .style("border", "solid black 1px")
-                    .style("background", color(t))
-                    .style("display","inline-block")
-                    .style("width", "20px")
-                    .html("&nbsp;")
-                    .node().outerHTML;
+                $.each(typedata, function (t) {
+                    var elemtext,
+                        li;
 
-                    var li = legend.append("li")
-                    .html(elemtext + "&nbsp;" + t);
+                    elemtext = d3.select(document.createElement("div"))
+                        .style("border", "solid black 1px")
+                        .style("background", color(t))
+                        .style("display", "inline-block")
+                        .style("width", "20px")
+                        .html("&nbsp;")
+                        .node().outerHTML;
+
+                    li = legend.append("li")
+                        .html(elemtext + "&nbsp;" + t);
                 });
 
                 // Read the current state of the option inputs (these might not
@@ -395,9 +447,9 @@ window.onload = function(){
                 this.updateConfig();
             },
 
-            recompute: function(nodecount_threshold){
-                if(typeof nodecount_threshold === "undefined"){
-                    throw "recompute must be called with a threshold!"
+            recompute: function (nodecount_threshold) {
+                if (typeof nodecount_threshold === "undefined") {
+                    throw "recompute must be called with a threshold!";
                 }
 
                 // Copy the thresholded nodes over to the local array, and
@@ -405,8 +457,8 @@ window.onload = function(){
                 // original, unfiltered data.
                 nodes.length = 0;
                 var fixup = {};
-                $.each(orignodes, function(k,v){
-                    if(v.count >= nodecount_threshold || v.type === "DOCUMENT"){
+                $.each(orignodes, function (k, v) {
+                    if (v.count >= nodecount_threshold || v.type === "DOCUMENT") {
                         fixup[v.id] = nodes.length;
                         nodes.push(v);
                     }
@@ -418,15 +470,18 @@ window.onload = function(){
                 // actually present for this threshold value).  Also make a
                 // local copy of the origlinks, unfiltered link data.
                 links.length = 0;
-                $.each(origlinks, function(k,vv){
-                    var v = {};
-                    for(p in vv){
-                        if(vv.hasOwnProperty(p)){
+                $.each(origlinks, function (k, vv) {
+                    var v,
+                        p;
+
+                    v = {};
+                    for (p in vv) {
+                        if (vv.hasOwnProperty(p)) {
                             v[p] = vv[p];
                         }
                     }
 
-                    if(fixup.hasOwnProperty(v.source) && fixup.hasOwnProperty(v.target)){
+                    if (fixup.hasOwnProperty(v.source) && fixup.hasOwnProperty(v.target)) {
                         // Use the fixup array to edit the index location of the
                         // source and target.
                         v.source = fixup[v.source];
@@ -436,7 +491,7 @@ window.onload = function(){
                 });
             },
 
-            reset: function(){
+            reset: function () {
                 // Empty the node and link containers, so they can be recomputed
                 // from scratch.
                 svg.select("g#nodes").selectAll("*").remove();
@@ -449,9 +504,13 @@ window.onload = function(){
                 this.render();
             },
 
-            render: function(){
-                var link = svg.select("g#links").selectAll("line.link")
-                    .data(links, function(d) { return d.id; });
+            render: function () {
+                var link,
+                    node,
+                    charge;
+
+                link = svg.select("g#links").selectAll("line.link")
+                    .data(links, function (d) { return d.id; });
 
                 link.enter().append("line")
                     .classed("link", true)
@@ -472,56 +531,54 @@ window.onload = function(){
                 // The base selector is "*" to allow for selecting either
                 // "circle" elements or "text" elements (depending on which
                 // rendering mode we are in).
-                var node = d3.select("g#nodes").selectAll("*.node")
-                    .data(nodes, function(d) { return d.id; });
+                node = d3.select("g#nodes").selectAll("*.node")
+                    .data(nodes, function (d) { return d.id; });
 
 
                 // Compute the nodal charge based on the type of elements, and
                 // their size.
-                var charge = config.useTextLabels ? textCharge : nodeCharge;
-                if(config.nodeScale){
-                    force.charge(function(n) { return 2*Math.sqrt(n.count)*charge; });
-                }
-                else{
+                charge = config.useTextLabels ? textCharge : nodeCharge;
+                if (config.nodeScale) {
+                    force.charge(function (n) { return 2 * Math.sqrt(n.count) * charge; });
+                } else {
                     force.charge(charge);
                 }
 
                 // Create appropriate SVG elements to represent the nodes, based
                 // on the current rendering mode.
-                if(config.useTextLabels){
-                    var scaler = this.nodeScalingFunction();
-                    var cards = node.enter().append("g")
-                        .attr("id", function(d) { return d.id; })
-                        .attr("scale", function(d) { return "scale(" + scaler(d) + ")";})
+                if (config.useTextLabels) {
+                    scaler = this.nodeScalingFunction();
+                    cards = node.enter().append("g")
+                        .attr("id", function (d) { return d.id; })
+                        .attr("scale", function (d) { return "scale(" + scaler(d) + ")"; })
                         .attr("translate", "translate(0,0)")
                         .classed("node", true)
                         .call(force.drag);
 
                     cards.append("text")
-                        .text(function(d) { return d.name; })
+                        .text(function (d) { return d.name; })
                         .style("fill", "black")
-                        .datum(function(d){
+                        .datum(function (d) {
                             // Augment the selection's data with the bounding
                             // box of the text elements.
                             d.bbox = this.getBBox();
                         });
 
                     cards.insert("rect", ":first-child")
-                        .attr("width", function(d) { return d.bbox.width; })
-                        .attr("height", function(d) { return d.bbox.height; })
-                        .attr("y", function(d) { return -0.75*d.bbox.height; })
-                        .style("stroke", function(d) { return color(d.type); })
+                        .attr("width", function (d) { return d.bbox.width; })
+                        .attr("height", function (d) { return d.bbox.height; })
+                        .attr("y", function (d) { return -0.75 * d.bbox.height; })
+                        .style("stroke", function (d) { return color(d.type); })
                         .style("stroke-width", "2px")
-                        .style("fill", function(d) { return d.type === "DOCUMENT" ? color("DOCUMENT") : "#e5e5e5"; })
+                        .style("fill", function (d) { return d.type === "DOCUMENT" ? color("DOCUMENT") : "#e5e5e5"; })
                         .style("fill-opacity", "0.8");
-                }
-                else{
+                } else {
                     node.enter().append("circle")
                         .classed("node", true)
                         .attr("r", this.nodeScalingFunction())
-                        .attr("cx", width/2)
-                        .attr("cy", height/2)
-                        .style("fill", function(d) { return color(d.type); })
+                        .attr("cx", width / 2)
+                        .attr("cy", height / 2)
+                        .style("fill", function (d) { return color(d.type); })
                         .style("opacity", 0.0)
                         .call(force.drag)
                         .transition()
@@ -529,7 +586,7 @@ window.onload = function(){
                         .style("opacity", 1.0);
 
                     node.append("title")
-                        .text(function(d) { return d.name; });
+                        .text(function (d) { return d.name; });
                 }
 
                 node.exit()
@@ -543,103 +600,103 @@ window.onload = function(){
                     .links(links)
                     .start();
 
-                force.on("tick", function(){
-                    link.attr("x1", function(d) { return d.source.x; })
-                    .attr("y1", function(d) { return d.source.y; })
-                    .attr("x2", function(d) { return d.target.x; })
-                    .attr("y2", function(d) { return d.target.y; });
+                force.on("tick", function () {
+                    link.attr("x1", function (d) { return d.source.x; })
+                        .attr("y1", function (d) { return d.source.y; })
+                        .attr("x2", function (d) { return d.target.x; })
+                        .attr("y2", function (d) { return d.target.y; });
 
-                if(config.useTextLabels){
-                    //node.attr("x", function(d) { return d.x; })
-                    //.attr("y", function(d) { return d.y; });
-                    node.attr("translate", function(d) { return "translate(" + d.x + "," + d.y + ")"; })
-                    //.attr("transform", function() { return this.getAttribute("scale") + " " + this.getAttribute("translate"); });
-                    .attr("transform", function() { return this.getAttribute("translate") + " " + this.getAttribute("scale"); });
-
-                }
-                else{
-                    node.attr("cx", function(d) { return d.x; })
-                    .attr("cy", function(d) { return d.y; });
-                }
+                    if (config.useTextLabels) {
+                        node.attr("translate", function (d) { return "translate(" + d.x + "," + d.y + ")"; })
+                            .attr("transform", function () { return this.getAttribute("translate") + " " + this.getAttribute("scale"); });
+                    } else {
+                        node.attr("cx", function (d) { return d.x; })
+                            .attr("cy", function (d) { return d.y; });
+                    }
                 });
             },
 
-            updateConfig: function(){
-                    // Sweep through the configuration elements and set the boolean
-                    // flags appropriately.
-                    var check = $("#nodefreq")[0];
-                    config.nodeScale = check.checked;
+            updateConfig: function () {
+                // Sweep through the configuration elements and set the boolean
+                // flags appropriately.
+                var check = $("#nodefreq")[0];
+                config.nodeScale = check.checked;
 
-                    check = $("#linkfreq")[0];
-                    config.linkScale = check.checked;        
+                check = $("#linkfreq")[0];
+                config.linkScale = check.checked;
 
-                    check = $("#usetext")[0];
-                    config.useTextLabels = check.checked;
-                },
+                check = $("#usetext")[0];
+                config.useTextLabels = check.checked;
+            },
 
-                applyConfig: function(){
-                    // Reset the attributes on the nodes and links according to
-                    // the current config settings.
-                    svg.selectAll("g#links line.link")
+            applyConfig: function () {
+                // Reset the attributes on the nodes and links according to
+                // the current config settings.
+                svg.selectAll("g#links line.link")
+                    .transition()
+                    .duration(2000)
+                    .style("stroke-width", this.linkScalingFunction());
+
+                if (config.useTextLabels) {
+                    var scaler = this.nodeScalingFunction(); // Capture here because 'this' content is gone when we need to retrieve this function.
+                    svg.selectAll("g#nodes *.node")
                         .transition()
-                        .duration(2000)
-                        .style("stroke-width", this.linkScalingFunction());
-
-                    if(config.useTextLabels){
-                        var scaler = this.nodeScalingFunction(); // Capture here because 'this' content is gone when we need to retrieve this function.
-                        svg.selectAll("g#nodes *.node")
-                            .transition()
-                            .duration(1000)
-                            .attr("scale", function(d) { return "scale(" + scaler(d) + ")"; })
-                            .attr("transform", function() { return this.getAttribute("translate") + " " + this.getAttribute("scale"); });
-                            //.attr("transform", function() { return this.getAttribute("translate"); });
-                            //.attr("transform", function() { return this.getAttribute("scale"); });
-                    }
-                    else{
-                        svg.selectAll("g#nodes circle.node")
-                            .transition()
-                            .duration(1000)
-                            .attr("r", this.nodeScalingFunction());
-                    }
-                },
-
-                nodeScalingFunction: function(){
-                    var base = config.useTextLabels ? 1 : 5;
-                    if(config.nodeScale){
-                        return function(d) { return base*Math.sqrt(d.count); };
-                    }
-                    else{
-                        return function() { return base; };
-                    }
-                },
-
-                linkScalingFunction: function(){
-                    if(config.linkScale){
-                        return function(d) { return Math.sqrt(d.count); };
-                    }
-                    else{
-                        return 1;
-                    }
+                        .duration(1000)
+                        .attr("scale", function (d) { return "scale(" + scaler(d) + ")"; })
+                        .attr("transform", function () { return this.getAttribute("translate") + " " + this.getAttribute("scale"); });
+                        //.attr("transform", function() { return this.getAttribute("translate"); });
+                        //.attr("transform", function() { return this.getAttribute("scale"); });
+                } else {
+                    svg.selectAll("g#nodes circle.node")
+                        .transition()
+                        .duration(1000)
+                        .attr("r", this.nodeScalingFunction());
                 }
+            },
+
+            nodeScalingFunction: function () {
+                var base,
+                    retval;
+
+                base = config.useTextLabels ? 1 : 5;
+                if (config.nodeScale) {
+                    retval = function (d) { return base * Math.sqrt(d.count); };
+                } else {
+                    retval = function () { return base; };
+                }
+
+                return retval;
+            },
+
+            linkScalingFunction: function () {
+                var retval;
+
+                if (config.linkScale) {
+                    retval = function (d) { return Math.sqrt(d.count); };
+                } else {
+                    retval = 1;
+                }
+
+                return retval;
+            }
         };
-    })();
+    }());
 
     // Initialize the slider for use in filtering.
-    NER.nodeSlider = slider(d3.select("#slider").node(),
-            {
-                onchange: function(v) {
-                    graph.recompute(v);
-                    graph.render();
-                },
+    NER.nodeSlider = slider(d3.select("#slider").node(), {
+        onchange: function (v) {
+            graph.recompute(v);
+            graph.render();
+        },
 
-                onslide: (function(){
-                    var display = d3.select("#value");
+        onslide: (function () {
+            var display = d3.select("#value");
 
-                    return function(v){
-                        display.html(v);
-                    };
-                })()
-            });
+            return function (v) {
+                display.html(v);
+            };
+        }())
+    });
     NER.nodeSlider.setMax(10);
     NER.nodeSlider.initialize();
 
