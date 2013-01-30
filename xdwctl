@@ -1,0 +1,85 @@
+#!/usr/bin/env python
+
+import os
+import signal
+import subprocess
+import sys
+
+def start():
+    if os.path.exists(pidfile):
+        sys.stderr.write("error: xdataweb already seems to be running")
+        return 1
+
+    os.chdir(path)
+    return subprocess.call([cherry,
+        "-d",
+        "-i", "xdataweb",
+        "-c", "server.conf",
+        "-p", pidfile,
+        "-P", path + "/xdataweb"])
+
+def stop():
+    retval = 0
+
+    if os.path.exists(pidfile):
+        f = open(pidfile)
+
+        try:
+            pid = int(f.read())
+        except ValueError:
+            sys.stderr.write("error: xdataweb.pid does not contain a valid process id")
+            return 1
+
+        retval = os.kill(pid, signal.SIGKILL)
+        os.remove(pidfile)
+
+    return retval
+
+def restart():
+    stop()
+    return start()
+
+def usage():
+    sys.stderr.write("usage: xdwctl [start|stop|restart]\n")
+
+# Read the action argument.
+if len(sys.argv) < 2:
+    usage()
+    sys.exit(1)
+
+# Determine the correct executable.
+#
+# TODO(choudhury): Check the environment first, rather than always running this
+# test.
+cherry = "cherryd2"
+try:
+    subprocess.check_output(["which", cherry])
+except subprocess.CalledProcessError:
+    cherry = "cherryd"
+    try:
+        subprocess.check_output(["which", cherry])
+    except subprocess.CalledProcessError:
+        cherry = None
+
+if cherry is None:
+    sys.stderr.write("Neither `cherryd2` nor `cherry` seem to be in your path")
+    sys.exit(1)
+
+# Determine the path to this script.
+path = os.path.dirname(os.path.abspath(sys.argv[0]))
+pidfile = path + "/xdataweb.pid"
+
+# Dispatch on action argument.
+action = sys.argv[1]
+code = 1
+if action == "start":
+    code = start()
+elif action == "stop":
+    code = stop()
+elif action == "restart":
+    code = restart()
+else:
+    usage()
+    code = 1
+
+sys.exit(code)
