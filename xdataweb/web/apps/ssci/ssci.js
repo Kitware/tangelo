@@ -1,3 +1,7 @@
+/*jslint browser: true */
+
+/*globals d3 */
+
 "use strict";
 
 var playing = true;
