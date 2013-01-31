@@ -1,41 +1,41 @@
 /*jslint browser: true */
 
-/*global CryptoJS, $, d3, escape, FileReader */
+/*globals CryptoJS, $, d3, escape, FileReader */
 
 // This is declared null for now - it will be initialized in the window's
 // onready method, as it depends on elements being loaded in the page.
 var graph = null;
 
 // Top-level container object for this js file.
-var NER = {
-    // "nodes" is a table of entity names, mapping to an array position generated
-    // uniquely by the "counter" variable.  Once the table is complete, the nodes
-    // table can be recast into an array.
-    nodes: {},
-    links: {},
-    counter: 0,
-    linkcounter: 0,
+var NER = {};
 
-    // A catalog of NER types found by the analysis.  This will be used to construct
-    // the color legend at the top of the graph display.
-    types: {},
+// Get the mongo server to use from the configuration.
+NER.getMongoDBServer = function () {
+    "use strict";
 
-    // This count will signal when the last ajax request has completed, and graph
-    // assembly can continue.
-    num_files: 0,
-    files_processed: 0,
-
-    // This table stores formatted filename information that can be dynamically
-    // added to in different situations ("processing" to "processed", etc.).
-    filenames: {},
-
-    // Get the mongo server to use from the configuration.
-    getMongoDBServer: function () {
-        "use strict";
-
-        return localStorage.getItem('NER:mongodb-server') || 'localhost';
-    }
+    return localStorage.getItem('NER:mongodb-server') || 'localhost';
 };
+
+// "nodes" is a table of entity names, mapping to an array position generated
+// uniquely by the "counter" variable.  Once the table is complete, the nodes
+// table can be recast into an array.
+NER.nodes = {};
+NER.links = {};
+NER.counter = 0;
+NER.linkcounter = 0;
+
+// A catalog of NER types found by the analysis.  This will be used to construct
+// the color legend at the top of the graph display.
+NER.types = {};
+
+// This count will signal when the last ajax request has completed, and graph
+// assembly can continue.
+NER.num_files = 0;
+NER.files_processed = 0;
+
+// This table stores formatted filename information that can be dynamically
+// added to in different situations ("processing" to "processed", etc.).
+NER.filenames = {};
 
 // This function can be called with a filename to *generate* an AJAX-success
 // callback function to process the contents of some file.  The parameter passed
@@ -48,9 +48,7 @@ function processFileContents(filename, id, file_hash) {
         var entities,
             li,
             ok,
-            doc_index,
-            entity_index,
-            link;
+            doc_index;
 
         // Check the error code in the AJAX response.  If there is an error,
         // write the error message in the information window and abort the
@@ -113,28 +111,35 @@ function processFileContents(filename, id, file_hash) {
             name: filename,
             type: "DOCUMENT",
             count: 1,
-            id: NER.counter += 1
+            id: NER.counter
         };
-        doc_index = NER.counter - 1;
+        doc_index = NER.counter;
+        NER.counter += 1;
 
         // Augment the count for the DOCUMENT type in the type table.
         NER.types.DOCUMENT = NER.types.DOCUMENT + 1 || 1;
 
         // Process the entities.
         $.each(entities, function (i, e) {
+            var key,
+                entity_index,
+                link;
+
             // Place the entity into the global entity list
             // if not already there.
             //
             // Also update the count of this entity.
-            var key = '["' + e[0] + '","' + e[1] + '"]';
+            key = '["' + e[0] + '","' + e[1] + '"]';
             if (!NER.nodes.hasOwnProperty(key)) {
                 // Place the entity into the node table.
                 NER.nodes[key] = {
                     name: e[1],
                     type: e[0],
                     count: 1,
-                    id: NER.counter += 1
+                    id: NER.counter
                 };
+
+                NER.counter += 1;
 
                 // Augment the type count.
                 NER.types[e[0]] = NER.types[e[0]] + 1 || 1;
@@ -152,8 +157,10 @@ function processFileContents(filename, id, file_hash) {
                     source: entity_index,
                     target: doc_index,
                     count: 1,
-                    id: NER.linkcounter += 1
+                    id: NER.linkcounter
                 };
+
+                NER.linkcounter += 1;
             } else {
                 NER.links[link].count += 1;
             }
@@ -206,6 +213,8 @@ function processFile(filename, id) {
             },
             dataType: "json",
             success: function (response) {
+                var li;
+
                 // Error checking.
                 if (response.error !== null) {
                     d3.select("#file-info")
@@ -219,7 +228,7 @@ function processFile(filename, id) {
                 }
 
                 // Mark the appropriate list item as being processed.
-                var li = d3.select("#" + id);
+                li = d3.select("#" + id);
                 li.html(NER.filenames[filename] + " processing")
                     .classed("processing inprogress", true);
 
@@ -360,13 +369,11 @@ window.onload = function () {
             color,
             legend,
             svg,
+            width,
             height,
             nodeCharge,
             textCharge,
-            force,
-            width,
-            scaler,
-            cards;
+            force;
 
         // Duration of fade-in/fade-out transitions.
         fade_time = 500;
@@ -388,8 +395,8 @@ window.onload = function () {
             // times it occurs in the corpus.
             nodeScale: false,
 
-            // Whether to thicken a link proportionally to the number of times
-            // it occurs in the corpus.
+            // Whether to thicken a link proportionally to the number of times it
+            // occurs in the corpus.
             linkScale: false,
 
             // Whether to use circles to represent nodes, or text objects.
@@ -412,6 +419,9 @@ window.onload = function () {
 
         return {
             assemble: function (nodedata, linkdata, typedata, nodecount_threshold) {
+                var elemtext,
+                    li;
+
                 // Store copies of the incoming data.
                 orignodes = {};
                 $.each(nodedata, function (k, v) {
@@ -426,9 +436,6 @@ window.onload = function () {
                 // Loop through the types and place a color swatch in the legend
                 // area for each one.
                 $.each(typedata, function (t) {
-                    var elemtext,
-                        li;
-
                     elemtext = d3.select(document.createElement("div"))
                         .style("border", "solid black 1px")
                         .style("background", color(t))
@@ -448,6 +455,8 @@ window.onload = function () {
             },
 
             recompute: function (nodecount_threshold) {
+                var fixup;
+
                 if (typeof nodecount_threshold === "undefined") {
                     throw "recompute must be called with a threshold!";
                 }
@@ -456,7 +465,7 @@ window.onload = function () {
                 // record their index as we go.  Also make a local copy of the
                 // original, unfiltered data.
                 nodes.length = 0;
-                var fixup = {};
+                fixup = {};
                 $.each(orignodes, function (k, v) {
                     if (v.count >= nodecount_threshold || v.type === "DOCUMENT") {
                         fixup[v.id] = nodes.length;
@@ -507,7 +516,9 @@ window.onload = function () {
             render: function () {
                 var link,
                     node,
-                    charge;
+                    charge,
+                    scaler,
+                    cards;
 
                 link = svg.select("g#links").selectAll("line.link")
                     .data(links, function (d) { return d.id; });
@@ -607,6 +618,8 @@ window.onload = function () {
                         .attr("y2", function (d) { return d.target.y; });
 
                     if (config.useTextLabels) {
+                        //node.attr("x", function(d) { return d.x; })
+                        //.attr("y", function(d) { return d.y; });
                         node.attr("translate", function (d) { return "translate(" + d.x + "," + d.y + ")"; })
                             .attr("transform", function () { return this.getAttribute("translate") + " " + this.getAttribute("scale"); });
                     } else {
@@ -617,9 +630,11 @@ window.onload = function () {
             },
 
             updateConfig: function () {
+                var check;
+
                 // Sweep through the configuration elements and set the boolean
                 // flags appropriately.
-                var check = $("#nodefreq")[0];
+                check = $("#nodefreq")[0];
                 config.nodeScale = check.checked;
 
                 check = $("#linkfreq")[0];
@@ -630,6 +645,8 @@ window.onload = function () {
             },
 
             applyConfig: function () {
+                var scaler;
+
                 // Reset the attributes on the nodes and links according to
                 // the current config settings.
                 svg.selectAll("g#links line.link")
@@ -638,14 +655,14 @@ window.onload = function () {
                     .style("stroke-width", this.linkScalingFunction());
 
                 if (config.useTextLabels) {
-                    var scaler = this.nodeScalingFunction(); // Capture here because 'this' content is gone when we need to retrieve this function.
+                    scaler = this.nodeScalingFunction(); // Capture here because 'this' content is gone when we need to retrieve this function.
                     svg.selectAll("g#nodes *.node")
                         .transition()
                         .duration(1000)
                         .attr("scale", function (d) { return "scale(" + scaler(d) + ")"; })
                         .attr("transform", function () { return this.getAttribute("translate") + " " + this.getAttribute("scale"); });
-                        //.attr("transform", function() { return this.getAttribute("translate"); });
-                        //.attr("transform", function() { return this.getAttribute("scale"); });
+                    //.attr("transform", function() { return this.getAttribute("translate"); });
+                    //.attr("transform", function() { return this.getAttribute("scale"); });
                 } else {
                     svg.selectAll("g#nodes circle.node")
                         .transition()
@@ -656,28 +673,28 @@ window.onload = function () {
 
             nodeScalingFunction: function () {
                 var base,
-                    retval;
+                    ret;
 
                 base = config.useTextLabels ? 1 : 5;
                 if (config.nodeScale) {
-                    retval = function (d) { return base * Math.sqrt(d.count); };
+                    ret = function (d) { return base * Math.sqrt(d.count); };
                 } else {
-                    retval = function () { return base; };
+                    ret = function () { return base; };
                 }
 
-                return retval;
+                return ret;
             },
 
             linkScalingFunction: function () {
-                var retval;
+                var ret;
 
                 if (config.linkScale) {
-                    retval = function (d) { return Math.sqrt(d.count); };
+                    ret = function (d) { return Math.sqrt(d.count); };
                 } else {
-                    retval = 1;
+                    ret = 1;
                 }
 
-                return retval;
+                return ret;
             }
         };
     }());
