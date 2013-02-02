@@ -7,8 +7,23 @@ if(${JSLINT} STREQUAL "JSLINT-NOTFOUND")
     message(FATAL_ERROR "Could not find JSLint.  You can install it with \"npm install -g jslint\"")
 endif()
 
-# Glob the JavaScript sources.
-file(GLOB_RECURSE JSFILES ${CMAKE_SOURCE_DIR}/xdataweb/*.js)
+# List the JavaScript sources.
+set(JSFILES
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/root/index.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/id.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/slider.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/date.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/barchart.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/NER/NER.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/stats/stats.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/DataTwiddle/DataTwiddle.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/VegaLab/vegalab.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/ssci/ssci.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/flickr/flickr.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/mapping/mapping.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/config/flickr-config.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/config/NER-config.js
+)
 
 include(CTest)
 
