@@ -23,7 +23,7 @@ def decodeAndAdd(s, output, argname, resp):
 		raise
 
 class Handler:
-	def go(self, servername, dbname, data_coll, name=None, objectid=None, _id=None, accession=None, scientific_name=None, noid=False, noloc=False, maxdepth=1000):
+	def go(self, servername, dbname, data_coll, name=None, objectid=None, _id=None, accession=None, scientific_name=None, noid=False, noloc=False, maxdepth=100):
 		
 		def recursiveHelper(child, depth = 0):
 			it = c.find({'_id':child})
@@ -75,8 +75,7 @@ class Handler:
 
 		# if no arguments given just search from root
 		if not query:
-			#query['rooted'] = True
-			query['_id'] = ObjectId("50c8ef4cf7db501197000000")
+			query['rooted'] = True
 
 		it = c.find(query)
 
