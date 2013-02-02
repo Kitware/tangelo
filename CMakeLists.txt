@@ -25,7 +25,11 @@ set(JSFILES
     ${CMAKE_SOURCE_DIR}/xdataweb/web/config/NER-config.js
 )
 
+# Testing
 include(CTest)
-
 enable_testing()
-add_test(jslint ${JSLINT} ${JSFILES})
+
+# JSLint tests.
+foreach(f ${JSFILES})
+    add_test(jslint-${f} ${JSLINT} ${f})
+endforeach()
