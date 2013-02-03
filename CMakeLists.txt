@@ -1,14 +1,18 @@
 cmake_minimum_required(VERSION 2.8)
 project(XDATA-Web)
 
+set(DEPLOY_TEST_SERVICES OFF CACHE BOOL "Deploy the \"testing\" web service modules.")
+
+set(DEPLOY deploy)
+
 # Find JSLint.
 find_program(JSLINT jslint)
 if(${JSLINT} STREQUAL "JSLINT-NOTFOUND")
     message(FATAL_ERROR "Could not find JSLint.  You can install it with \"npm install -g jslint\"")
 endif()
 
-# List the JavaScript sources.
-set(JSFILES
+# These files should be validated with JSLint.
+set(JS_VALIDATE_FILES
     ${CMAKE_SOURCE_DIR}/xdataweb/web/root/index.js
     ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/id.js
     ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/slider.js
@@ -25,6 +29,119 @@ set(JSFILES
     ${CMAKE_SOURCE_DIR}/xdataweb/web/config/NER-config.js
 )
 
+# These files should be copied to the deployment directory.
+set(SOURCES
+    xdwctl
+    server.conf
+    xdataweb/__init__.py
+    xdataweb/modules/__init__.py
+    xdataweb/modules/datatwiddle.py
+    xdataweb/modules/echo.py
+    xdataweb/modules/mongo.py
+    xdataweb/modules/NERmongo.py
+    xdataweb/modules/NER.py
+    xdataweb/web/apps/DataTwiddle/DataTwiddle.js
+    xdataweb/web/apps/DataTwiddle/index.html
+    xdataweb/web/apps/flickr/flickr.js
+    xdataweb/web/apps/flickr/index.html
+    xdataweb/web/apps/mapping/cities.json
+    xdataweb/web/apps/mapping/dots.json
+    xdataweb/web/apps/mapping/index.html
+    xdataweb/web/apps/mapping/map.json
+    xdataweb/web/apps/mapping/mapping.css
+    xdataweb/web/apps/mapping/mapping.js
+    xdataweb/web/apps/mapping/vgd3.js
+    xdataweb/web/apps/mapping/world-countries.json
+    xdataweb/web/apps/NER/index.html
+    xdataweb/web/apps/NER/letters.csv
+    xdataweb/web/apps/NER/NER.css
+    xdataweb/web/apps/NER/NER.js
+    xdataweb/web/apps/ssci/index.html
+    xdataweb/web/apps/ssci/ssci.js
+    xdataweb/web/apps/ssci/ssci.json
+    xdataweb/web/apps/stats/index.html
+    xdataweb/web/apps/stats/stats.js
+    xdataweb/web/apps/VegaLab/data/7zip.png
+    xdataweb/web/apps/VegaLab/data/cities.json
+    xdataweb/web/apps/VegaLab/data/ffox.png
+    xdataweb/web/apps/VegaLab/data/gimp.png
+    xdataweb/web/apps/VegaLab/data/letters.json
+    xdataweb/web/apps/VegaLab/data/world-countries.json
+    xdataweb/web/apps/VegaLab/examples/histogram/histogram-data.js
+    xdataweb/web/apps/VegaLab/examples/histogram/histogram.js
+    xdataweb/web/apps/VegaLab/examples/histogram/histogram.json
+    xdataweb/web/apps/VegaLab/examples/histogram-json/histogram-json-data.json
+    xdataweb/web/apps/VegaLab/examples/histogram-json/histogram-json.js
+    xdataweb/web/apps/VegaLab/examples/histogram-json/histogram-json.json
+    xdataweb/web/apps/VegaLab/examples/ordinal-bars/ordinal-bars.json
+    xdataweb/web/apps/VegaLab/examples/vega-arc/vega-arc-data.js
+    xdataweb/web/apps/VegaLab/examples/vega-arc/vega-arc.json
+    xdataweb/web/apps/VegaLab/examples/vega-bars/vega-bars-data.json
+    xdataweb/web/apps/VegaLab/examples/vega-bars/vega-bars.json
+    xdataweb/web/apps/VegaLab/examples/vega-data.js
+    xdataweb/web/apps/VegaLab/examples/vega-image/vega-image.json
+    xdataweb/web/apps/VegaLab/examples/vega-line/vega-line-data.js
+    xdataweb/web/apps/VegaLab/examples/vega-line/vega-line.json
+    xdataweb/web/apps/VegaLab/examples/vega-map/vega-map.json
+    xdataweb/web/apps/VegaLab/examples/vega-stack_area/vega-stack_area-data.js
+    xdataweb/web/apps/VegaLab/examples/vega-stack_area/vega-stack_area.json
+    xdataweb/web/apps/VegaLab/examples/vega-stack_bars/vega-stack_bars-data.js
+    xdataweb/web/apps/VegaLab/examples/vega-stack_bars/vega-stack_bars.json
+    xdataweb/web/apps/VegaLab/examples/vega-symbol/vega-symbol-data.js
+    xdataweb/web/apps/VegaLab/examples/vega-symbol/vega-symbol.json
+    xdataweb/web/apps/VegaLab/examples/vega-treemap/vega-treemap-data.js
+    xdataweb/web/apps/VegaLab/examples/vega-treemap/vega-treemap.json
+    xdataweb/web/apps/VegaLab/index.html
+    xdataweb/web/apps/VegaLab/lib/projection.js
+    xdataweb/web/apps/VegaLab/vegalab.css
+    xdataweb/web/apps/VegaLab/vegalab.js
+    xdataweb/web/config/flickr-config.js
+    xdataweb/web/config/flickr.html
+    xdataweb/web/config/NER-config.js
+    xdataweb/web/config/NER.html
+    xdataweb/web/config/notfound.html
+    xdataweb/web/lib/barchart.js
+    xdataweb/web/lib/date.js
+    xdataweb/web/lib/id.js
+    xdataweb/web/lib/slider.js
+    xdataweb/web/lib/vgd3.js
+    xdataweb/web/lib/vgd3-template.js.txt
+    xdataweb/web/lib/vg.util.js
+    xdataweb/web/root/apps.json
+    xdataweb/web/root/bootstrap.css
+    xdataweb/web/root/bootstrap-xdata.css
+    xdataweb/web/root/bootswatch/bootstrap-readable.css
+    xdataweb/web/root/index.html
+    xdataweb/web/root/index.js
+    xdataweb/web/root/xdataweb.css
+)
+
+if(DEPLOY_TEST_SERVICES)
+    list(APPEND SOURCES
+        xdataweb/modules/broken.py
+        xdataweb/modules/exceptional.py
+        xdataweb/modules/testapp.py
+    )
+endif()
+
+# Copy the files to the deployment directory.
+set(ALL_TARGETS)
+foreach(m ${SOURCES})
+    set(outfile ${DEPLOY}/${m})
+    add_custom_command(
+        OUTPUT ${outfile}
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/${m} ${CMAKE_BINARY_DIR}/${outfile}
+        DEPENDS ${m}
+    )
+    list(APPEND ALL_TARGETS ${outfile})
+endforeach()
+
+add_custom_target(
+    deploy
+    ALL
+    DEPENDS ${ALL_TARGETS}
+)
+
 # Testing
 include(CTest)
 enable_testing()
@@ -33,3 +150,9 @@ enable_testing()
 foreach(f ${JSFILES})
     add_test(jslint-${f} ${JSLINT} ${f})
 endforeach()
+
+# TODO
+#
+# - uglify/concatenate appropriate javascript files
+#
+# - configure server.conf file with server name, port number, etc.
