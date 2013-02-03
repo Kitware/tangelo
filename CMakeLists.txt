@@ -1,18 +1,26 @@
 cmake_minimum_required(VERSION 2.8)
 project(XDATA-Web)
 
+# Cache variables.
 set(DEPLOY_TEST_SERVICES OFF CACHE BOOL "Deploy the \"testing\" web service modules.")
 
+# TODO: this should be a cache variable?
 set(DEPLOY deploy)
 
 # Find JSLint.
 find_program(JSLINT jslint)
 if(${JSLINT} STREQUAL "JSLINT-NOTFOUND")
-    message(FATAL_ERROR "Could not find JSLint.  You can install it with \"npm install -g jslint\"")
+    message(WARNING "Could not find JSLint.  You can install it with \"npm install -g jslint\"")
+endif()
+
+# Find UglifyJS.
+find_program(UGLIFYJS uglifyjs)
+if(${UGLIFYJS} STREQUAL "UGLIFYJS-NOTFOUND")
+    message(FATAL_ERROR "Could not find UglifyJS.  You can install it with \"npm install -g uglify-js\"")
 endif()
 
 # These files should be validated with JSLint.
-set(JS_VALIDATE_FILES
+set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/xdataweb/web/root/index.js
     ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/id.js
     ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/slider.js
@@ -27,6 +35,14 @@ set(JS_VALIDATE_FILES
     ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/mapping/mapping.js
     ${CMAKE_SOURCE_DIR}/xdataweb/web/config/flickr-config.js
     ${CMAKE_SOURCE_DIR}/xdataweb/web/config/NER-config.js
+)
+
+# These files should be uglified and concatenated.
+set(JS_UGLIFY_FILES
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/id.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/slider.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/date.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/barchart.js
 )
 
 # These files should be copied to the deployment directory.
@@ -100,10 +116,6 @@ set(SOURCES
     xdataweb/web/config/NER-config.js
     xdataweb/web/config/NER.html
     xdataweb/web/config/notfound.html
-    xdataweb/web/lib/barchart.js
-    xdataweb/web/lib/date.js
-    xdataweb/web/lib/id.js
-    xdataweb/web/lib/slider.js
     xdataweb/web/lib/vgd3.js
     xdataweb/web/lib/vgd3-template.js.txt
     xdataweb/web/lib/vg.util.js
@@ -120,8 +132,7 @@ if(DEPLOY_TEST_SERVICES)
     list(APPEND SOURCES
         xdataweb/modules/broken.py
         xdataweb/modules/exceptional.py
-        xdataweb/modules/testapp.py
-    )
+        xdataweb/modules/testapp.py)
 endif()
 
 # Copy the files to the deployment directory.
@@ -136,10 +147,19 @@ foreach(m ${SOURCES})
     list(APPEND ALL_TARGETS ${outfile})
 endforeach()
 
+# Uglify and concatenate the library js files.
+set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY}/xdataweb/web/lib/xdataweb.min.js)
+add_custom_command(
+    OUTPUT ${MIN_JS_FILE}
+    COMMAND ${UGLIFYJS} -o ${MIN_JS_FILE} ${JS_UGLIFY_FILES}
+    DEPENDS ${JS_UGLIFY_FILES}
+)
+
+# The top-level target.
 add_custom_target(
     deploy
     ALL
-    DEPENDS ${ALL_TARGETS}
+    DEPENDS ${ALL_TARGETS} ${MIN_JS_FILE}
 )
 
 # Testing
@@ -147,7 +167,7 @@ include(CTest)
 enable_testing()
 
 # JSLint tests.
-foreach(f ${JSFILES})
+foreach(f ${JS_LINT_FILES})
     add_test(jslint-${f} ${JSLINT} ${f})
 endforeach()
 
@@ -156,3 +176,5 @@ endforeach()
 # - uglify/concatenate appropriate javascript files
 #
 # - configure server.conf file with server name, port number, etc.
+#
+# - Figure out why -m flag to uglifyjs isn't working.
