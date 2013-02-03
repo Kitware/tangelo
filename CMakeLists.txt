@@ -4,6 +4,8 @@ project(XDATA-Web)
 # Cache variables.
 set(DEPLOY_TEST_SERVICES OFF CACHE BOOL "Deploy the \"testing\" web service modules.")
 set(DEPLOY_DIR deploy CACHE PATH "Build subdirectory into which to deploy the web framework.")
+set(SERVER_HOSTNAME localhost CACHE STRING "The hostname of the machine that will run the server.")
+set(SERVER_PORT 8080 CACHE STRING "The port the server will run on.")
 
 # Find JSLint.
 find_program(JSLINT jslint)
@@ -46,7 +48,6 @@ set(JS_UGLIFY_FILES
 # These files should be copied to the deployment directory.
 set(SOURCES
     xdwctl
-    server.conf
     xdataweb/__init__.py
     xdataweb/modules/__init__.py
     xdataweb/modules/datatwiddle.py
@@ -133,6 +134,11 @@ if(DEPLOY_TEST_SERVICES)
         xdataweb/modules/testapp.py)
 endif()
 
+# Configure the server config file.
+configure_file(
+    server.conf
+    ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/server.conf)
+
 # Copy the files to the deployment directory.
 set(ALL_TARGETS)
 foreach(m ${SOURCES})
@@ -170,9 +176,5 @@ foreach(f ${JS_LINT_FILES})
 endforeach()
 
 # TODO
-#
-# - uglify/concatenate appropriate javascript files
-#
-# - configure server.conf file with server name, port number, etc.
 #
 # - Figure out why -m flag to uglifyjs isn't working.
