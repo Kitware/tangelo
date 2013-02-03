@@ -3,9 +3,7 @@ project(XDATA-Web)
 
 # Cache variables.
 set(DEPLOY_TEST_SERVICES OFF CACHE BOOL "Deploy the \"testing\" web service modules.")
-
-# TODO: this should be a cache variable?
-set(DEPLOY deploy)
+set(DEPLOY_DIR deploy CACHE PATH "Build subdirectory into which to deploy the web framework.")
 
 # Find JSLint.
 find_program(JSLINT jslint)
@@ -138,7 +136,7 @@ endif()
 # Copy the files to the deployment directory.
 set(ALL_TARGETS)
 foreach(m ${SOURCES})
-    set(outfile ${DEPLOY}/${m})
+    set(outfile ${DEPLOY_DIR}/${m})
     add_custom_command(
         OUTPUT ${outfile}
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/${m} ${CMAKE_BINARY_DIR}/${outfile}
@@ -148,7 +146,7 @@ foreach(m ${SOURCES})
 endforeach()
 
 # Uglify and concatenate the library js files.
-set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY}/xdataweb/web/lib/xdataweb.min.js)
+set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/xdataweb/web/lib/xdataweb.min.js)
 add_custom_command(
     OUTPUT ${MIN_JS_FILE}
     COMMAND ${UGLIFYJS} -o ${MIN_JS_FILE} ${JS_UGLIFY_FILES}
