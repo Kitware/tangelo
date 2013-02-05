@@ -351,7 +351,7 @@ window.onload = function () {
         });
 
         // Filter the results by day (if any of the boxes is checked).
-        days = date.day_names.filter(function (d) {
+        days = date.dayNames().filter(function (d) {
             return document.getElementById(d).checked;
         });
         if (days.length > 0) {
@@ -388,7 +388,7 @@ window.onload = function () {
                     return that.monthColor(d.month);
                 };
 
-                $.each(date.month_names, function (i, d) {
+                $.each(date.monthNames(), function (i, d) {
                     elemtext = d3.select(document.createElement("div"))
                         .style("border", "solid black 1px")
                         .style("background", colormap({'month': d}))
@@ -408,7 +408,7 @@ window.onload = function () {
                     return that.dayColor(d.day);
                 };
 
-                $.each(date.day_names, function (i, d) {
+                $.each(date.dayNames(), function (i, d) {
                     elemtext = d3.select(document.createElement("div"))
                         .style("border", "solid black 1px")
                         .style("background", colormap({'day': d}))
@@ -574,7 +574,7 @@ window.onload = function () {
         };
     }());
 
-    flickr.timeslider = rangeSlider(d3.select("#time-slider").node(), {
+    flickr.timeslider = xdw.util.rangeSlider(d3.select("#time-slider").node(), {
         onchange: displayFunc,
         onslide: displayFunc
     });
@@ -610,7 +610,7 @@ window.onload = function () {
     };
 
     // Direct the day filter checkboxes to redraw the map when clicked.
-    dayboxes = date.day_names.map(function (d) {
+    dayboxes = date.dayNames().map(function (d) {
         return document.getElementById(d);
     });
 

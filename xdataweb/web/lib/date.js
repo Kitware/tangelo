@@ -1,51 +1,63 @@
 /*jslint */
 
-var date = {};
-date.month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-date.day_names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+/*global xdw */
 
-date.toShortString = function (d) {
+(function () {
     "use strict";
 
-    var day,
-        month,
-        year,
-        hour,
-        minute,
-        second;
+    var mod,
+        month_names,
+        day_names,
+        toShortString;
 
-    // Grab the date.
-    day = d.getDate();
-    month = d.getMonth();
-    year = d.getFullYear();
+    mod = xdw.namespace("date");
 
-    // Grab the time.
-    hour = d.getHours();
-    minute = d.getMinutes();
-    second = d.getSeconds();
+    month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    day_names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-    // Pad the time components with a zero if they are smaller than 10.
-    if (hour < 10) { hour = "0" + hour; }
-    if (minute < 10) { minute = "0" + minute; }
-    if (second < 10) { second = "0" + second; }
+    mod.monthNames = function () {
+        return month_names.slice();
+    };
 
-    return date.month_names[month] + " " + day + ", " + year + " (" + hour + ":" + minute + ":" + second + ")";
-};
+    mod.dayNames = function () {
+        return day_names.slice();
+    };
 
-Date.prototype.toString = function () {
-    "use strict";
+    toShortString = function (d) {
+        var day,
+            month,
+            year,
+            hour,
+            minute,
+            second;
 
-    return date.toShortString(this);
-};
+        // Grab the date.
+        day = d.getDate();
+        month = d.getMonth();
+        year = d.getFullYear();
 
-Date.prototype.getMonthName = function () {
-    "use strict";
+        // Grab the time.
+        hour = d.getHours();
+        minute = d.getMinutes();
+        second = d.getSeconds();
 
-    return date.month_names[this.getMonth()];
-};
+        // Pad the time components with a zero if they are smaller than 10.
+        if (hour < 10) { hour = "0" + hour; }
+        if (minute < 10) { minute = "0" + minute; }
+        if (second < 10) { second = "0" + second; }
 
-Date.prototype.getDayName = function () {
-    "use strict";
+        return month_names[month] + " " + day + ", " + year + " (" + hour + ":" + minute + ":" + second + ")";
+    };
 
-    return date.day_names[this.getDay()];
-};
+    Date.prototype.toString = function () {
+        return toShortString(this);
+    };
+
+    Date.prototype.getMonthName = function () {
+        return month_names[this.getMonth()];
+    };
+
+    Date.prototype.getDayName = function () {
+        return day_names[this.getDay()];
+    };
+}());
