@@ -53,13 +53,13 @@ set(JS_UGLIFY_FILES
 # These files should be copied to the deployment directory.
 set(SOURCES
     xdwctl
-    xdataweb/__init__.py
-    xdataweb/modules/__init__.py
-    xdataweb/modules/datatwiddle.py
-    xdataweb/modules/echo.py
-    xdataweb/modules/mongo.py
-    xdataweb/modules/NERmongo.py
-    xdataweb/modules/NER.py
+    xdataweb.py
+    modules/__init__.py
+    modules/datatwiddle.py
+    modules/echo.py
+    modules/mongo.py
+    modules/NERmongo.py
+    modules/NER.py
     web/apps/DataTwiddle/DataTwiddle.js
     web/apps/DataTwiddle/index.html
     web/apps/flickr/flickr.js
