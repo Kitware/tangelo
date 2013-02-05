@@ -1,4 +1,4 @@
-/*jslint browser: true, evil: true */
+/*jslint browser: true */
 
 /*globals d3, vg, $ */
 
@@ -290,7 +290,11 @@ function static_histogram(start, end, bins, sel, empty) {
             var source = vg.compile(stats.spec, stats.vistemplate);
 
             d3.select("#code").text(source);
+
+            /*jslint evil: true */
             eval("stats.chart = " + source + ";");
+            /*jslint evil: false */
+
             stats.vis = stats.chart();
             stats.vis.el(sel).data(stats.data).init().update();
             extraUpdate(stats.vis, bins);

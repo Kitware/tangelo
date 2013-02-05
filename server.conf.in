@@ -1,0 +1,14 @@
+[global]
+environment: 'production'
+log.error_file: 'error.log'
+log.screen: True
+
+tree.xdataweb: cherrypy.Application(xdataweb.Server())
+
+server.socket_host = "@SERVER_HOSTNAME@"
+server.socket_port = @SERVER_PORT@
+
+[/]
+tools.staticdir.root: xdataweb.current_dir
+tools.staticdir.on: True
+tools.staticdir.dir: 'web/'

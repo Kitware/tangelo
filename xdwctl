@@ -16,7 +16,7 @@ def start():
         "-i", "xdataweb",
         "-c", "server.conf",
         "-p", pidfile,
-        "-P", path + "/xdataweb"])
+        "-P", path])
 
 def stop():
     retval = 0

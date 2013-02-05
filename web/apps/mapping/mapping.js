@@ -1,4 +1,4 @@
-/*jslint browser: true, evil: true */
+/*jslint browser: true */
 
 /*globals d3, vg, $ */
 
@@ -28,11 +28,18 @@ function update() {
         el;
 
     d3.selectAll("#content *").remove();
+
+    /*jslint evil: true */
     eval('vis = ' + d3.select("#code")[0][0].value);
+    /*jslint evil: false */
+
     source = vg.compile(vis, template.join("\n"));
     el = "#content";
     console.log(source);
+
+    /*jslint evil: true */
     eval(source);
+    /*jslint evil: false */
 }
 
 function load() {

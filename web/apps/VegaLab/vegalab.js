@@ -1,4 +1,4 @@
-/*jslint evil: true, browser: true */
+/*jslint browser: true */
 
 /*global d3, vg, $, FileReader */
 
@@ -29,7 +29,9 @@ function compile() {
     //
     // TODO(choudhury): error checking for the eval call.
     try {
+        /*jslint evil: true */
         spec = eval("(" + spectext + ")");
+        /*jslint evil: false */
     } catch (e) {
         console.log("error parsing Vega spec: " + e);
         return;
@@ -42,13 +44,17 @@ function compile() {
 
     // Eval the generated source, and capture the resulting function with a
     // name.
+    /*jslint evil: true */
     eval("vegalab.make_chart = " + source + ";");
+    /*jslint evil: false */
 
     // Eval the user Javascript, which should be just a function.  Default to
     // the function that does nothing.
     if (jstext.length > 0) {
         try {
+            /*jslint evil: true */
             eval("vegalab.js = " + jstext);
+            /*jslint evil: false */
         } catch (e) {
             console.log("error parsing user JavaScript: " + e);
             return;
@@ -70,7 +76,9 @@ function compile() {
             // Try to parse it as JavaScript now.  The window should contain a
             // single function that returns a data value.
             try {
+                /*jslint evil: true */
                 eval("d = " + datatext);
+                /*jslint evil: false */
 
                 // Call the d() function, and store the result.
                 data = d();

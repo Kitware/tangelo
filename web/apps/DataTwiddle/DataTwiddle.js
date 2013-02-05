@@ -1,4 +1,4 @@
-/*jslint browser: true, evil: true */
+/*jslint browser: true */
 
 /*globals $, d3 */
 
@@ -8,8 +8,11 @@ function update() {
     "use strict";
 
     d3.selectAll("#content *").remove();
+
+    /*jslint evil: true */
     data = eval(d3.select("#data")[0][0].value);
     eval(d3.select("#code")[0][0].value);
+    /*jslint evil: false */
 }
 
 function save() {
