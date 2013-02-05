@@ -165,7 +165,7 @@ function loadspec() {
     // Fill in the JavaScript box.
     filename = filename_prefix + ".js";
     if (url_exists(filename)) {
-        d3.text(filename, function (err, text) {
+        d3.text(filename + "?" + (new Date().getTime()), function (err, text) {
             if (err !== null) {
                 console.log("error: could not read JavaScript file '" + filename + "'");
             } else {
@@ -184,7 +184,7 @@ function loadspec() {
     // Dispatch on the existence of a .js file or a .json file.
     if (url_exists(filename_prefix + "-data.js")) {
         filename = filename_prefix + "-data.js";
-        d3.text(filename, function (err, text) {
+        d3.text(filename + "?" + (new Date().getTime()), function (err, text) {
             if (err !== null) {
                 console.log("error: could not read JavaScript file '" + filename + "'");
             } else {
@@ -193,7 +193,7 @@ function loadspec() {
         });
     } else if (url_exists(filename_prefix + "-data.json")) {
         filename = filename_prefix + "-data.json";
-        d3.text(filename, function (err, text) {
+        d3.text(filename + "?" + (new Date().getTime()), function (err, text) {
             if (err !== null) {
                 console.log("error: could not read JSON file '" + filename + "'");
             } else {
@@ -266,4 +266,7 @@ window.onload = function () {
         .html(function (d) {
             return d.optname;
         });
+
+    d3.select("#load").node().value = "Arc (Vega)";
+    loadspec();
 };

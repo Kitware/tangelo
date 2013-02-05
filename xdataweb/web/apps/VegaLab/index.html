@@ -22,7 +22,7 @@
 
 <!-- Document begins here -->
 <title>Vega Laboratory</title>
-<div class=container>
+<div class=container-fluid>
     <div class=masthead>
         <a href="/"><h3 class=muted>XDATA Web</h3></a>
     </div>
@@ -38,54 +38,36 @@
 
     <hr>
 
-    <div class=row>
-        <div class=span4>Vega Spec</div>
-        <div class=span4>JavaScript Code</div>
-        <div class=span4>Data (JSON or JavaScript)</div>
-    </div>
-
-    <div class=row>
-        <div class=span4>
-            <textarea id=vega class=code></textarea><br>
-            <input type=file id="vega_file">
+    <div class=container-fluid>
+        <div class=row-fluid>
+            <div class=span6>
+                <div>
+                    <select id=load>
+                        <option>Load Example</option>
+                    </select>
+                </div>
+                <div>
+                    <button id=compile class="btn btn-primary">Compile</button>
+                </div>
+                <h4>Vega Spec</h4>
+                <textarea id=vega class="code span12" rows=20></textarea><br>
+                <input type=file id="vega_file">
+                <h4>Javascript</h4>
+                <textarea id=js class="code span12" rows=20></textarea><br>
+                <input type=file id="js_file">
+                <h4>Data (JSON or Javascript)</h4>
+                <textarea id=data class="code span12" rows=20></textarea><br>
+                <input type=file id="data_file">
+            </div>
+            <div class=span6>
+            <!-- <div class=span10 style="float:none; margin-left:auto; margin-right:auto"> -->
+                <div id=chart></div>
+            </div>
         </div>
-
-        <div class=span4>
-            <textarea id=js class=code></textarea><br>
-            <input type=file id="js_file">
-        </div>
-
-        <div class=span4>
-            <textarea id=data class=code></textarea><br>
-            <input type=file id="data_file">
-        </div>
-    </div>
-
-    <div class=row>
-        <div class="span4"></div>
-
-        <div class="span3">
-            <select id=load>
-                <option>Load Example</option>
-            </select>
-        </div>
-
-        <div class="span1">
-            <a id=compile class="btn btn-small" href="#">Compile</a>
-        </div>
-
-        <div class="span4"></div>
-    </div>
-
-    <div class=row>
-        <div class=span12 style="float:none; margin-left:auto; margin-right:auto">
-            <div id=chart></div>
-        </div>
-    </div>
-
-    <div class=row>
-        <div class=span12>
-            <pre style="line-height:normal;" id=code></pre>
+        <div class=row-fluid>
+            <div class=span12>
+                <pre style="line-height:normal;" id=code></pre>
+            </div>
         </div>
     </div>
 </div>

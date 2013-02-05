@@ -7,7 +7,7 @@
     {
       "name": "r",
       "domain": {"data": "table", "field": "b"},
-      "range": [20,90]
+      "range": [60,150]
     }
   ],
   "encoders": [
