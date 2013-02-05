@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+		<title>Tree</title>
+		<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+		<style>
+			.node circle {
+				cursor: pointer;
+				fill: #fff;
+				stroke: steelblue;
+				stroke-width: 1.5px;
+			}
+			.node text {
+				font: 11px sans-serif;
+			}
+			path.link {
+				fill: none;
+				stroke: #ccc;
+				stroke-width: 1.5px;
+			}
+			/*
+			.progress-meter .background {
+				fill: #ccc;
+			}
+
+			.progress-meter .foreground {
+				fill: #000;
+			}
+			.progress-meter text {
+				font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+				font-size: 24px;
+				font-weight: bold;
+			}
+			*/
+		</style>
+	</head>
+	<body>
+		<div id="tree"></div>
+		<script type="text/javascript" src="phylotree.js"></script>
+	</body>
+</html>

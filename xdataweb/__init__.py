@@ -86,7 +86,10 @@ class Server(object):
             # Full Python traceback stack.
             s = StringIO.StringIO()
             traceback.print_exc(file=s)
-            response['traceback'] += "\n" + s.getvalue()
+            if 'traceback' in response:
+                response['traceback'] += "\n" + s.getvalue()
+            else:
+                response['traceback'] = "\n" + s.getvalue()
 
             # Serialize to JSON.
             return json.dumps(response)
