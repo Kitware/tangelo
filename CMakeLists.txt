@@ -94,7 +94,8 @@ set(SOURCES
     web/apps/VegaLab/examples/histogram-json/histogram-json.js
     web/apps/VegaLab/examples/histogram-json/histogram-json.json
     web/apps/VegaLab/examples/ordinal-bars/ordinal-bars.json
-    web/apps/VegaLab/examples/vega-arc/vega-arc-data.js
+    web/apps/VegaLab/examples/vega-arc/vega-arc-data.json
+    web/apps/VegaLab/examples/vega-arc/vega-arc.js
     web/apps/VegaLab/examples/vega-arc/vega-arc.json
     web/apps/VegaLab/examples/vega-bars/vega-bars-data.json
     web/apps/VegaLab/examples/vega-bars/vega-bars.json
