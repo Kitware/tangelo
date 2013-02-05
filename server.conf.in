@@ -11,16 +11,4 @@ server.socket_port = @SERVER_PORT@
 [/]
 tools.staticdir.root: xdataweb.current_dir
 tools.staticdir.on: True
-tools.staticdir.dir: 'web/root'
-
-[/apps]
-tools.staticdir.on: True
-tools.staticdir.dir: 'web/apps'
-
-[/lib]
-tools.staticdir.on: True
-tools.staticdir.dir: 'web/lib'
-
-[/config]
-tools.staticdir.on: True
-tools.staticdir.dir: 'web/config'
+tools.staticdir.dir: '../web'

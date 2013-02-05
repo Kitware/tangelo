@@ -23,31 +23,31 @@ endif()
 
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/root/index.js
-    #${CMAKE_SOURCE_DIR}/xdataweb/web/lib/id.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/slider.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/date.js
-    #${CMAKE_SOURCE_DIR}/xdataweb/web/lib/barchart.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/NER/NER.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/stats/stats.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/DataTwiddle/DataTwiddle.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/VegaLab/vegalab.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/ssci/ssci.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/flickr/flickr.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/mapping/mapping.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/config/flickr-config.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/config/NER-config.js
+    ${CMAKE_SOURCE_DIR}/web/root/index.js
+    #${CMAKE_SOURCE_DIR}/web/lib/id.js
+    ${CMAKE_SOURCE_DIR}/web/lib/slider.js
+    ${CMAKE_SOURCE_DIR}/web/lib/date.js
+    #${CMAKE_SOURCE_DIR}/web/lib/barchart.js
+    ${CMAKE_SOURCE_DIR}/web/apps/NER/NER.js
+    ${CMAKE_SOURCE_DIR}/web/apps/stats/stats.js
+    ${CMAKE_SOURCE_DIR}/web/apps/DataTwiddle/DataTwiddle.js
+    ${CMAKE_SOURCE_DIR}/web/apps/VegaLab/vegalab.js
+    ${CMAKE_SOURCE_DIR}/web/apps/ssci/ssci.js
+    ${CMAKE_SOURCE_DIR}/web/apps/flickr/flickr.js
+    ${CMAKE_SOURCE_DIR}/web/apps/mapping/mapping.js
+    ${CMAKE_SOURCE_DIR}/web/config/flickr-config.js
+    ${CMAKE_SOURCE_DIR}/web/config/NER-config.js
 )
 
 # These files should be uglified and concatenated.
 set(JS_UGLIFY_FILES
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/xdw.js
-    #${CMAKE_SOURCE_DIR}/xdataweb/web/lib/id.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/slider.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/date.js
-    #${CMAKE_SOURCE_DIR}/xdataweb/web/lib/barchart.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/vgd3.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/vg.util.js
+    ${CMAKE_SOURCE_DIR}/web/lib/xdw.js
+    #${CMAKE_SOURCE_DIR}/web/lib/id.js
+    ${CMAKE_SOURCE_DIR}/web/lib/slider.js
+    ${CMAKE_SOURCE_DIR}/web/lib/date.js
+    #${CMAKE_SOURCE_DIR}/web/lib/barchart.js
+    ${CMAKE_SOURCE_DIR}/web/lib/vgd3.js
+    ${CMAKE_SOURCE_DIR}/web/lib/vg.util.js
 )
 
 # These files should be copied to the deployment directory.
@@ -60,76 +60,74 @@ set(SOURCES
     xdataweb/modules/mongo.py
     xdataweb/modules/NERmongo.py
     xdataweb/modules/NER.py
-    xdataweb/web/apps/DataTwiddle/DataTwiddle.js
-    xdataweb/web/apps/DataTwiddle/index.html
-    xdataweb/web/apps/flickr/flickr.js
-    xdataweb/web/apps/flickr/index.html
-    xdataweb/web/apps/mapping/cities.json
-    xdataweb/web/apps/mapping/dots.json
-    xdataweb/web/apps/mapping/index.html
-    xdataweb/web/apps/mapping/map.json
-    xdataweb/web/apps/mapping/mapping.css
-    xdataweb/web/apps/mapping/mapping.js
-    xdataweb/web/apps/mapping/vgd3.js
-    xdataweb/web/apps/mapping/world-countries.json
-    xdataweb/web/apps/NER/index.html
-    xdataweb/web/apps/NER/letters.csv
-    xdataweb/web/apps/NER/NER.css
-    xdataweb/web/apps/NER/NER.js
-    xdataweb/web/apps/ssci/index.html
-    xdataweb/web/apps/ssci/ssci.js
-    xdataweb/web/apps/ssci/ssci.json
-    xdataweb/web/apps/stats/index.html
-    xdataweb/web/apps/stats/stats.js
-    xdataweb/web/apps/VegaLab/data/7zip.png
-    xdataweb/web/apps/VegaLab/data/cities.json
-    xdataweb/web/apps/VegaLab/data/ffox.png
-    xdataweb/web/apps/VegaLab/data/gimp.png
-    xdataweb/web/apps/VegaLab/data/letters.json
-    xdataweb/web/apps/VegaLab/data/world-countries.json
-    xdataweb/web/apps/VegaLab/examples/histogram/histogram-data.js
-    xdataweb/web/apps/VegaLab/examples/histogram/histogram.js
-    xdataweb/web/apps/VegaLab/examples/histogram/histogram.json
-    xdataweb/web/apps/VegaLab/examples/histogram-json/histogram-json-data.json
-    xdataweb/web/apps/VegaLab/examples/histogram-json/histogram-json.js
-    xdataweb/web/apps/VegaLab/examples/histogram-json/histogram-json.json
-    xdataweb/web/apps/VegaLab/examples/ordinal-bars/ordinal-bars.json
-    xdataweb/web/apps/VegaLab/examples/vega-arc/vega-arc-data.js
-    xdataweb/web/apps/VegaLab/examples/vega-arc/vega-arc.json
-    xdataweb/web/apps/VegaLab/examples/vega-bars/vega-bars-data.json
-    xdataweb/web/apps/VegaLab/examples/vega-bars/vega-bars.json
-    xdataweb/web/apps/VegaLab/examples/vega-data.js
-    xdataweb/web/apps/VegaLab/examples/vega-image/vega-image.json
-    xdataweb/web/apps/VegaLab/examples/vega-line/vega-line-data.js
-    xdataweb/web/apps/VegaLab/examples/vega-line/vega-line.json
-    xdataweb/web/apps/VegaLab/examples/vega-map/vega-map.json
-    xdataweb/web/apps/VegaLab/examples/vega-stack_area/vega-stack_area-data.js
-    xdataweb/web/apps/VegaLab/examples/vega-stack_area/vega-stack_area.json
-    xdataweb/web/apps/VegaLab/examples/vega-stack_bars/vega-stack_bars-data.js
-    xdataweb/web/apps/VegaLab/examples/vega-stack_bars/vega-stack_bars.json
-    xdataweb/web/apps/VegaLab/examples/vega-symbol/vega-symbol-data.js
-    xdataweb/web/apps/VegaLab/examples/vega-symbol/vega-symbol.json
-    xdataweb/web/apps/VegaLab/examples/vega-treemap/vega-treemap-data.js
-    xdataweb/web/apps/VegaLab/examples/vega-treemap/vega-treemap.json
-    xdataweb/web/apps/VegaLab/index.html
-    xdataweb/web/apps/VegaLab/lib/projection.js
-    xdataweb/web/apps/VegaLab/vegalab.css
-    xdataweb/web/apps/VegaLab/vegalab.js
-    xdataweb/web/config/flickr-config.js
-    xdataweb/web/config/flickr.html
-    xdataweb/web/config/NER-config.js
-    xdataweb/web/config/NER.html
-    xdataweb/web/config/notfound.html
-    #xdataweb/web/lib/vgd3.js
-    xdataweb/web/lib/vgd3-template.js.txt
-    #xdataweb/web/lib/vg.util.js
-    xdataweb/web/root/apps.json
-    xdataweb/web/root/bootstrap.css
-    xdataweb/web/root/bootstrap-xdata.css
-    xdataweb/web/root/bootswatch/bootstrap-readable.css
-    xdataweb/web/root/index.html
-    xdataweb/web/root/index.js
-    xdataweb/web/root/xdataweb.css
+    web/apps/DataTwiddle/DataTwiddle.js
+    web/apps/DataTwiddle/index.html
+    web/apps/flickr/flickr.js
+    web/apps/flickr/index.html
+    web/apps/mapping/cities.json
+    web/apps/mapping/dots.json
+    web/apps/mapping/index.html
+    web/apps/mapping/map.json
+    web/apps/mapping/mapping.css
+    web/apps/mapping/mapping.js
+    web/apps/mapping/vgd3.js
+    web/apps/mapping/world-countries.json
+    web/apps/NER/index.html
+    web/apps/NER/letters.csv
+    web/apps/NER/NER.css
+    web/apps/NER/NER.js
+    web/apps/ssci/index.html
+    web/apps/ssci/ssci.js
+    web/apps/ssci/ssci.json
+    web/apps/stats/index.html
+    web/apps/stats/stats.js
+    web/apps/VegaLab/data/7zip.png
+    web/apps/VegaLab/data/cities.json
+    web/apps/VegaLab/data/ffox.png
+    web/apps/VegaLab/data/gimp.png
+    web/apps/VegaLab/data/letters.json
+    web/apps/VegaLab/data/world-countries.json
+    web/apps/VegaLab/examples/histogram/histogram-data.js
+    web/apps/VegaLab/examples/histogram/histogram.js
+    web/apps/VegaLab/examples/histogram/histogram.json
+    web/apps/VegaLab/examples/histogram-json/histogram-json-data.json
+    web/apps/VegaLab/examples/histogram-json/histogram-json.js
+    web/apps/VegaLab/examples/histogram-json/histogram-json.json
+    web/apps/VegaLab/examples/ordinal-bars/ordinal-bars.json
+    web/apps/VegaLab/examples/vega-arc/vega-arc-data.js
+    web/apps/VegaLab/examples/vega-arc/vega-arc.json
+    web/apps/VegaLab/examples/vega-bars/vega-bars-data.json
+    web/apps/VegaLab/examples/vega-bars/vega-bars.json
+    web/apps/VegaLab/examples/vega-data.js
+    web/apps/VegaLab/examples/vega-image/vega-image.json
+    web/apps/VegaLab/examples/vega-line/vega-line-data.js
+    web/apps/VegaLab/examples/vega-line/vega-line.json
+    web/apps/VegaLab/examples/vega-map/vega-map.json
+    web/apps/VegaLab/examples/vega-stack_area/vega-stack_area-data.js
+    web/apps/VegaLab/examples/vega-stack_area/vega-stack_area.json
+    web/apps/VegaLab/examples/vega-stack_bars/vega-stack_bars-data.js
+    web/apps/VegaLab/examples/vega-stack_bars/vega-stack_bars.json
+    web/apps/VegaLab/examples/vega-symbol/vega-symbol-data.js
+    web/apps/VegaLab/examples/vega-symbol/vega-symbol.json
+    web/apps/VegaLab/examples/vega-treemap/vega-treemap-data.js
+    web/apps/VegaLab/examples/vega-treemap/vega-treemap.json
+    web/apps/VegaLab/index.html
+    web/apps/VegaLab/lib/projection.js
+    web/apps/VegaLab/vegalab.css
+    web/apps/VegaLab/vegalab.js
+    web/config/flickr-config.js
+    web/config/flickr.html
+    web/config/NER-config.js
+    web/config/NER.html
+    web/config/notfound.html
+    web/lib/vgd3-template.js.txt
+    web/apps.json
+    web/bootstrap.css
+    web/bootstrap-xdata.css
+    web/bootswatch/bootstrap-readable.css
+    web/index.html
+    web/index.js
+    web/xdataweb.css
 )
 
 if(DEPLOY_TEST_SERVICES)
@@ -165,7 +163,7 @@ if(${MINIFY} AND ${MANGLE})
     set(MANGLE_FLAG "-m")
 endif()
 
-set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/xdataweb/web/lib/xdataweb.min.js)
+set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/lib/xdataweb.min.js)
 
 add_custom_command(
     OUTPUT ${MIN_JS_FILE}
