@@ -6,6 +6,8 @@ set(DEPLOY_TEST_SERVICES OFF CACHE BOOL "Deploy the \"testing\" web service modu
 set(DEPLOY_DIR deploy CACHE PATH "Build subdirectory into which to deploy the web framework.")
 set(SERVER_HOSTNAME localhost CACHE STRING "The hostname of the machine that will run the server.")
 set(SERVER_PORT 8080 CACHE STRING "The port the server will run on.")
+set(MINIFY ON CACHE BOOL "Minify the JavaScript files prior to concatenating.")
+set(MANGLE ON CACHE BOOL "When minifying, also mangle non-public symbol names.")
 
 # Find JSLint.
 find_program(JSLINT jslint)
@@ -22,10 +24,10 @@ endif()
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/xdataweb/web/root/index.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/id.js
+    #${CMAKE_SOURCE_DIR}/xdataweb/web/lib/id.js
     ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/slider.js
     ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/date.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/barchart.js
+    #${CMAKE_SOURCE_DIR}/xdataweb/web/lib/barchart.js
     ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/NER/NER.js
     ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/stats/stats.js
     ${CMAKE_SOURCE_DIR}/xdataweb/web/apps/DataTwiddle/DataTwiddle.js
@@ -39,10 +41,13 @@ set(JS_LINT_FILES
 
 # These files should be uglified and concatenated.
 set(JS_UGLIFY_FILES
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/id.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/xdw.js
+    #${CMAKE_SOURCE_DIR}/xdataweb/web/lib/id.js
     ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/slider.js
     ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/date.js
-    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/barchart.js
+    #${CMAKE_SOURCE_DIR}/xdataweb/web/lib/barchart.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/vgd3.js
+    ${CMAKE_SOURCE_DIR}/xdataweb/web/lib/vg.util.js
 )
 
 # These files should be copied to the deployment directory.
@@ -115,9 +120,9 @@ set(SOURCES
     xdataweb/web/config/NER-config.js
     xdataweb/web/config/NER.html
     xdataweb/web/config/notfound.html
-    xdataweb/web/lib/vgd3.js
+    #xdataweb/web/lib/vgd3.js
     xdataweb/web/lib/vgd3-template.js.txt
-    xdataweb/web/lib/vg.util.js
+    #xdataweb/web/lib/vg.util.js
     xdataweb/web/root/apps.json
     xdataweb/web/root/bootstrap.css
     xdataweb/web/root/bootstrap-xdata.css
@@ -152,10 +157,19 @@ foreach(m ${SOURCES})
 endforeach()
 
 # Uglify and concatenate the library js files.
+if(NOT ${MINIFY})
+    set(MINIFY_FLAG "-b")
+endif()
+
+if(${MINIFY} AND ${MANGLE})
+    set(MANGLE_FLAG "-m")
+endif()
+
 set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/xdataweb/web/lib/xdataweb.min.js)
+
 add_custom_command(
     OUTPUT ${MIN_JS_FILE}
-    COMMAND ${UGLIFYJS} -o ${MIN_JS_FILE} ${JS_UGLIFY_FILES}
+    COMMAND ${UGLIFYJS} -o ${MIN_JS_FILE} ${JS_UGLIFY_FILES} ${MINIFY_FLAG} ${MANGLE_FLAG}
     DEPENDS ${JS_UGLIFY_FILES}
 )
 
@@ -174,7 +188,3 @@ enable_testing()
 foreach(f ${JS_LINT_FILES})
     add_test(jslint-${f} ${JSLINT} ${f})
 endforeach()
-
-# TODO
-#
-# - Figure out why -m flag to uglifyjs isn't working.
