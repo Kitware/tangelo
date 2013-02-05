@@ -141,7 +141,7 @@ endif()
 
 # Configure the server config file.
 configure_file(
-    server.conf
+    server.conf.in
     ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/server.conf)
 
 # Copy the files to the deployment directory.
