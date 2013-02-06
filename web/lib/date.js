@@ -2,6 +2,11 @@
 
 /*global xdw */
 
+/**
+ * @fileOverview Provides a few utility functions dealing with dates - in
+ * particular, an abbreviated toString() method.
+ */
+
 (function () {
     "use strict";
 

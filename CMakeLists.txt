@@ -13,7 +13,6 @@ set(MINIFY ON CACHE BOOL "Minify the JavaScript files prior to concatenating.")
 set(MANGLE ON CACHE BOOL "When minifying, also mangle non-public symbol names.")
 set(DOCUMENT ON CACHE BOOL "Generate documentation for JavaScript files.")
 
-
 # Find JSLint.
 find_package(JSLint)
 
@@ -22,6 +21,9 @@ find_package(UglifyJS REQUIRED)
 
 # Find JSDoc.
 find_package(JSDoc)
+
+# Create a "stamps" directory for storing fake targets for custom commands.
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/stamps)
 
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
@@ -50,6 +52,11 @@ set(JS_UGLIFY_FILES
     #${CMAKE_SOURCE_DIR}/web/lib/barchart.js
     ${CMAKE_SOURCE_DIR}/web/lib/vgd3.js
     ${CMAKE_SOURCE_DIR}/web/lib/vg.util.js
+)
+
+# These files should have documentation generated for them.
+set(JS_DOCUMENT_FILES
+    ${CMAKE_SOURCE_DIR}/web/lib/date.js
 )
 
 # These files should be copied to the deployment directory.
@@ -177,11 +184,35 @@ add_custom_command(
     DEPENDS ${JS_UGLIFY_FILES}
 )
 
+# Generate documentation.
+set(DOCUMENTATION_STAMP ${CMAKE_BINARY_DIR}/stamps/documentation.txt)
+if(${DOCUMENT})
+    add_custom_command(
+        OUTPUT ${DOCUMENTATION_STAMP}
+        COMMAND ${JSDoc_EXECUTABLE} ${JS_DOCUMENT_FILES} -d=${CMAKE_BINARY_DIR}/jsdoc
+        COMMAND ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_STAMP}
+        DEPENDS ${JS_DOCUMENT_FILES}
+    )
+
+    # Remove the stamp file, which may have been trivially generated in a
+    # previous configure step by the else portion of this if-block.
+    file(REMOVE ${DOCUMENTATION_STAMP})
+else()
+    # Use a dummy custom command rather than a call to file() in case someone
+    # deletes the stamp file for some reason.  In that case, the custom command
+    # will regenerate the file without complaints, whereas the call to file()
+    # wouldn't, instead resulting in an error.
+    add_custom_command(
+        OUTPUT ${DOCUMENTATION_STAMP}
+        COMMAND ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_STAMP}
+    )
+endif()
+
 # The top-level target.
 add_custom_target(
     deploy
     ALL
-    DEPENDS ${ALL_TARGETS} ${MIN_JS_FILE}
+    DEPENDS ${ALL_TARGETS} ${MIN_JS_FILE} ${DOCUMENTATION_STAMP}
 )
 
 # Testing
