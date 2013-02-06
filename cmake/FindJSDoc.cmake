@@ -1,7 +1,7 @@
 include(FindPackageHandleStandardArgs)
 
-if(NOT JSDOC_EXECUTABLE)
-    find_program(JSDOC_EXECUTABLE jsdoc)
+if(NOT JSDoc_EXECUTABLE)
+    find_program(JSDoc_EXECUTABLE jsdoc)
 endif()
 
-find_package_handle_standard_args(JSDOC DEFAULT_MSG JSDOC_EXECUTABLE)
+find_package_handle_standard_args(JSDoc DEFAULT_MSG JSDoc_EXECUTABLE)
