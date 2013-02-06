@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 project(XDATA-Web)
 
+# Extend cmake module path.
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
 # Cache variables.
 set(DEPLOY_TEST_SERVICES OFF CACHE BOOL "Deploy the \"testing\" web service modules.")
 set(DEPLOY_DIR deploy CACHE PATH "Build subdirectory into which to deploy the web framework.")
@@ -8,18 +11,17 @@ set(SERVER_HOSTNAME localhost CACHE STRING "The hostname of the machine that wil
 set(SERVER_PORT 8080 CACHE STRING "The port the server will run on.")
 set(MINIFY ON CACHE BOOL "Minify the JavaScript files prior to concatenating.")
 set(MANGLE ON CACHE BOOL "When minifying, also mangle non-public symbol names.")
+set(DOCUMENT ON CACHE BOOL "Generate documentation for JavaScript files.")
+
 
 # Find JSLint.
-find_program(JSLINT jslint)
-if(${JSLINT} STREQUAL "JSLINT-NOTFOUND")
-    message(WARNING "Could not find JSLint.  You can install it with \"npm install -g jslint\"")
-endif()
+find_package(JSLint)
 
 # Find UglifyJS.
-find_program(UGLIFYJS uglifyjs)
-if(${UGLIFYJS} STREQUAL "UGLIFYJS-NOTFOUND")
-    message(FATAL_ERROR "Could not find UglifyJS.  You can install it with \"npm install -g uglify-js\"")
-endif()
+find_package(UglifyJS REQUIRED)
+
+# Find JSDoc.
+find_package(JSDoc)
 
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
@@ -171,7 +173,7 @@ set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/lib/xdataweb.min.js)
 
 add_custom_command(
     OUTPUT ${MIN_JS_FILE}
-    COMMAND ${UGLIFYJS} -o ${MIN_JS_FILE} ${JS_UGLIFY_FILES} ${MINIFY_FLAG} ${MANGLE_FLAG}
+    COMMAND ${UglifyJS_EXECUTABLE} -o ${MIN_JS_FILE} ${JS_UGLIFY_FILES} ${MINIFY_FLAG} ${MANGLE_FLAG}
     DEPENDS ${JS_UGLIFY_FILES}
 )
 
@@ -188,5 +190,5 @@ enable_testing()
 
 # JSLint tests.
 foreach(f ${JS_LINT_FILES})
-    add_test(jslint-${f} ${JSLINT} ${f})
+    add_test(jslint-${f} ${JSLint_EXECUTABLE} ${f})
 endforeach()
