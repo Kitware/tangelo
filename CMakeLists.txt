@@ -126,13 +126,13 @@ set(SOURCES
     web/config/NER.html
     web/config/notfound.html
     web/lib/vgd3-template.js.txt
+    web/css/xdataweb.css
+    web/css/bootstrap.css
+    web/css/bootstrap-xdata.css
+    web/css/bootswatch/bootstrap-readable.css
     web/apps.json
-    web/bootstrap.css
-    web/bootstrap-xdata.css
-    web/bootswatch/bootstrap-readable.css
     web/index.html
     web/index.js
-    web/xdataweb.css
 )
 
 if(DEPLOY_TEST_SERVICES)
