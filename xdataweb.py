@@ -93,24 +93,3 @@ class Server(object):
 
             # Serialize to JSON.
             return json.dumps(response)
-
-    @cherrypy.expose
-    def config(self, module, *pargs, **kwargs):
-        cherrypy.response.headers['Content-type'] = 'text/html'
-
-        # Redirect to the appropriately named configuration page, or to a "no
-        # configuration" information page if it doesn't exist.
-        try:
-            # Test whether the requested config app file exists.
-            target = "/config/%s.html" % (module)
-            os.stat(current_dir + "/web" + target)
-
-            # Redirect to the config app page.
-            raise cherrypy.HTTPRedirect(target)
-        except OSError:
-            # This code path means the configuration webpage doesn't exist.
-            #
-            # TODO(choudhury): a templating engine would be useful here; look
-            # into Jinja2 (recommended by DJ Deo).
-            notfound_text = open(current_dir + "/web/config/notfound.html").read().replace("[APPNAME]", module)
-            return notfound_text
