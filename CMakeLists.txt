@@ -65,6 +65,8 @@ set(SOURCES
     web/apps/DataTwiddle/index.html
     web/apps/flickr/flickr.js
     web/apps/flickr/index.html
+    web/apps/flickr/flickr-config.js
+    web/apps/flickr/flickr-config.html
     web/apps/mapping/cities.json
     web/apps/mapping/dots.json
     web/apps/mapping/index.html
@@ -77,6 +79,8 @@ set(SOURCES
     web/apps/NER/letters.csv
     web/apps/NER/NER.css
     web/apps/NER/NER.js
+    web/apps/NER/NER-config.js
+    web/apps/NER/NER-config.html
     web/apps/ssci/index.html
     web/apps/ssci/ssci.js
     web/apps/ssci/ssci.json
@@ -120,10 +124,6 @@ set(SOURCES
     web/apps/Phylotree/heliconia.json
     web/apps/Phylotree/index.html
     web/apps/Phylotree/phylotree.js
-    web/config/flickr-config.js
-    web/config/flickr.html
-    web/config/NER-config.js
-    web/config/NER.html
     web/config/notfound.html
     web/lib/vgd3-template.js.txt
     web/css/xdataweb.css
