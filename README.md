@@ -16,9 +16,8 @@ in the realm of open-source software.
 # Installation
 
 Installation is simple -- just install the dependencies, clone this repository,
-then run the "start-xdataweb" script in the top-level directory.  Then, point
-your browser to [http://localhost:8080](http://localhost:8080) to check things
-out.
+build the system, then run the `xdwctl start` command.  Then, point your browser
+to [http://localhost:8080](http://localhost:8080) to check things out.
 
 See the [Installing XDATA Web](/xdata-vde/xdata-web/wiki/Installation) page on
 the wiki for detailed instructions.
