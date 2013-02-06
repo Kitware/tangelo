@@ -6,12 +6,14 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 # Cache variables.
 set(DEPLOY_TEST_SERVICES OFF CACHE BOOL "Deploy the \"testing\" web service modules.")
-set(DEPLOY_DIR deploy CACHE PATH "Build subdirectory into which to deploy the web framework.")
 set(SERVER_HOSTNAME localhost CACHE STRING "The hostname of the machine that will run the server.")
 set(SERVER_PORT 8080 CACHE STRING "The port the server will run on.")
 set(MINIFY ON CACHE BOOL "Minify the JavaScript files prior to concatenating.")
 set(MANGLE ON CACHE BOOL "When minifying, also mangle non-public symbol names.")
 set(DOCUMENT ON CACHE BOOL "Generate documentation for JavaScript files.")
+
+# Non-cache variables.
+set(DEPLOY_DIR deploy)
 
 # Find JSLint.
 find_package(JSLint)
