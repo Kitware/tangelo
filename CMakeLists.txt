@@ -59,6 +59,8 @@ set(JS_UGLIFY_FILES
 # These files should have documentation generated for them.
 set(JS_DOCUMENT_FILES
     ${CMAKE_SOURCE_DIR}/web/lib/date.js
+    ${CMAKE_SOURCE_DIR}/web/lib/slider.js
+    ${CMAKE_SOURCE_DIR}/web/lib/xdw.js
 )
 
 # These files should be copied to the deployment directory.
@@ -188,10 +190,12 @@ add_custom_command(
 
 # Generate documentation.
 set(DOCUMENTATION_STAMP ${CMAKE_BINARY_DIR}/stamps/documentation.txt)
+set(DOCUMENTATION_DIR ${CMAKE_BINARY_DIR}/jsdoc)
 if(${DOCUMENT})
     add_custom_command(
         OUTPUT ${DOCUMENTATION_STAMP}
-        COMMAND ${JSDoc_EXECUTABLE} ${JS_DOCUMENT_FILES} -d=${CMAKE_BINARY_DIR}/jsdoc
+        COMMAND ${CMAKE_COMMAND} -E remove_directory ${DOCUMENTATION_DIR}
+        COMMAND ${JSDoc_EXECUTABLE} ${JS_DOCUMENT_FILES} -p -d=${DOCUMENTATION_DIR}
         COMMAND ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_STAMP}
         DEPENDS ${JS_DOCUMENT_FILES}
     )

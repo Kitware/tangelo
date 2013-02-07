@@ -574,7 +574,7 @@ window.onload = function () {
         };
     }());
 
-    flickr.timeslider = xdw.util.rangeSlider(d3.select("#time-slider").node(), {
+    flickr.timeslider = xdw.slider.rangeSlider(d3.select("#time-slider").node(), {
         onchange: displayFunc,
         onslide: displayFunc
     });
