@@ -700,7 +700,7 @@ window.onload = function () {
     }());
 
     // Initialize the slider for use in filtering.
-    NER.nodeSlider = xdw.util.slider(d3.select("#slider").node(), {
+    NER.nodeSlider = xdw.slider.slider(d3.select("#slider").node(), {
         onchange: function (v) {
             graph.recompute(v);
             graph.render();
