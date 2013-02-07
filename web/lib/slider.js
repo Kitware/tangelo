@@ -10,15 +10,19 @@
 (function () {
     "use strict";
 
+    /**
+     * @name slider
+     * @memberOf xdw
+     *
+     * @namespace Classes for creating and controlling jQuery slider elements.
+     */
     var mod = xdw.namespace("slider");
 
     /**
-     *
      * @name slider
-     *
      * @memberOf xdw.slider
      *
-     * @constructor Creates a single-value jQuery slider control.
+     * @class A single-value jQuery slider control.
      *
      * @param {string} sliderelem A selector for the element that will become
      * the slider object (e.g. <i>"#opacityslider"</i>, etc.).
@@ -80,7 +84,10 @@
              */
             setMax: function (max) { config.max = max; s.slider(config); },
 
-            /** Returns the current slider value. */
+            /** Returns the current slider value.
+             *
+             * @returns {number} The current slider value.
+             */
             getValue: function () { return s.slider("value"); }
         };
     };
@@ -88,7 +95,7 @@
     /**
      * @name xdw.slider.rangeSlider
      *
-     * @constructor Creates a range-valued jQuery slider control.
+     * @class A range-valued jQuery slider control.
      *
      * @param {string} sliderelem A selector for the element that will become
      * the slider object (e.g. <i>"#opacityslider"</i>, etc.).
@@ -120,12 +127,14 @@
         config = {
             range: true,
 
+            /** @ignore */
             change: function (e, ui) {
                 if (onchange) {
                     onchange(ui.values[0], ui.values[1]);
                 }
             },
 
+            /** @ignore */
             slide: function (e, ui) {
                 if (onslide) {
                     onslide(ui.values[0], ui.values[1]);
