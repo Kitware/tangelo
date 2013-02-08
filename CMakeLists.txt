@@ -239,6 +239,12 @@ foreach(f ${JS_LINT_FILES})
     add_test(jslint-${f} ${JSLint_EXECUTABLE} ${f})
 endforeach()
 
-# Fake python test.
-add_test(pytest-fail ${PYTHON_EXECUTABLE} -c "import sys; print 'hello'; sys.exit(1)")
-add_test(pytest-pass ${PYTHON_EXECUTABLE} -c "import sys; print 'hello'; sys.exit(0)")
+# Python web service tests.
+set(PYTEST ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/xdwpytest.py)
+
+add_test(xdw-NER ${PYTEST} NER "Toto, I've got a feeling we're not in Kansas anymore." "{\"result\": [[\"GPE\", \"Toto\"], [\"GPE\", \"Kansas\"]], \"error\": null}")
+
+if(DEPLOY_TEST_SERVICES)
+    add_test(xdw-echo-blank ${PYTEST} echo "(No arguments passed)")
+    add_test(xdw-echo ${PYTEST} echo jan feb mar color=red answer=42 "[jan, feb, mar]\ncolor -> red\nanswer -> 42\n")
+endif()
