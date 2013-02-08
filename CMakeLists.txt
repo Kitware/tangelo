@@ -162,6 +162,12 @@ configure_file(
     server.conf.in
     ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/server.conf)
 
+# Configure the Python testing driver.
+configure_file(
+    testing/xdwpytest.py.in
+    ${CMAKE_BINARY_DIR}/xdwpytest.py
+)
+
 # Copy the files to the deployment directory.
 set(ALL_TARGETS)
 foreach(m ${SOURCES})

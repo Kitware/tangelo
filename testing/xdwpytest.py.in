@@ -1,0 +1,25 @@
+#!/usr/bin/python2
+
+import sys
+
+if len(sys.argv) < 2:
+    print >>sys.stderr, "usage: xdwpytest.py [web-service-module]"
+    sys.exit(1)
+
+# Grab the module to test.
+module = sys.argv[1]
+
+# Grab the arguments to pass to the module.
+args = sys.argv[2:]
+
+# Modify the module path.
+sys.path.append("@CMAKE_BINARY_DIR@/@DEPLOY_DIR@")
+
+# Import the module.
+exec("import modules.%s as m" % (module))
+
+# Instantiate the service module.
+test = m.Handler()
+
+# Finally, run the service and print out its result on stdout.
+print test.go(*args)
