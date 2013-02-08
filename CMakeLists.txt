@@ -24,6 +24,9 @@ find_package(UglifyJS REQUIRED)
 # Find JSDoc.
 find_package(JSDoc)
 
+# Find a Python2 interpreter.
+find_package(PythonInterp 2.7)
+
 # Create a "stamps" directory for storing fake targets for custom commands.
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/stamps)
 
@@ -229,3 +232,7 @@ enable_testing()
 foreach(f ${JS_LINT_FILES})
     add_test(jslint-${f} ${JSLint_EXECUTABLE} ${f})
 endforeach()
+
+# Fake python test.
+add_test(pytest-fail ${PYTHON_EXECUTABLE} -c "import sys; print 'hello'; sys.exit(1)")
+add_test(pytest-pass ${PYTHON_EXECUTABLE} -c "import sys; print 'hello'; sys.exit(0)")
