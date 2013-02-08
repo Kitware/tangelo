@@ -1,0 +1,48 @@
+#!/usr/bin/python2
+
+import sys
+
+if len(sys.argv) < 2:
+    print >>sys.stderr, "usage: xdwpytest.py [web-service-module]"
+    sys.exit(1)
+
+# Grab the module to test.
+module = sys.argv[1]
+
+# Grab the positional (i.e., URL path encoded) arguments to pass to the module.
+all_args = sys.argv[2:-1]
+pos_args = filter(lambda x: '=' not in x, all_args)
+
+# Grab the keyword (i.e., query encoded) arguments to pass to the module, and
+# construct a dict out of them.
+kw_args = {k: v for (k,v) in map(lambda x: x.split("="), filter(lambda x: '=' in x, all_args))}
+
+# Grab the string describing the expected output.
+#
+# TODO: is there a generic way to "compare to expected output" at the CTest
+# level, so it doesn't have to be done here?
+expected = sys.argv[-1]
+
+# Modify the module path.
+sys.path.append("@CMAKE_BINARY_DIR@/@DEPLOY_DIR@")
+
+# Import the module.
+exec("import modules.%s as m" % (module))
+
+# Instantiate the service module.
+test = m.Handler()
+
+# Run the service and capture the output.
+output = test.go(*pos_args, **kw_args)
+
+print "Exepcted output:"
+print expected
+
+print "Actual output:"
+print output
+
+# Compare the output and generate a pass/fail value.
+if output == expected:
+    sys.exit(0)
+else:
+    sys.exit(1)

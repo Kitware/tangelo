@@ -24,6 +24,9 @@ find_package(UglifyJS REQUIRED)
 # Find JSDoc.
 find_package(JSDoc)
 
+# Find a Python2 interpreter.
+find_package(PythonInterp 2.7)
+
 # Create a "stamps" directory for storing fake targets for custom commands.
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/stamps)
 
@@ -159,6 +162,12 @@ configure_file(
     server.conf.in
     ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/server.conf)
 
+# Configure the Python testing driver.
+configure_file(
+    testing/xdwpytest.py.in
+    ${CMAKE_BINARY_DIR}/xdwpytest.py
+)
+
 # Copy the files to the deployment directory.
 set(ALL_TARGETS)
 foreach(m ${SOURCES})
@@ -229,3 +238,13 @@ enable_testing()
 foreach(f ${JS_LINT_FILES})
     add_test(jslint-${f} ${JSLint_EXECUTABLE} ${f})
 endforeach()
+
+# Python web service tests.
+set(PYTEST ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/xdwpytest.py)
+
+add_test(xdw-NER ${PYTEST} NER "Toto, I've got a feeling we're not in Kansas anymore." "{\"result\": [[\"GPE\", \"Toto\"], [\"GPE\", \"Kansas\"]], \"error\": null}")
+
+if(DEPLOY_TEST_SERVICES)
+    add_test(xdw-echo-blank ${PYTEST} echo "(No arguments passed)")
+    add_test(xdw-echo ${PYTEST} echo jan feb mar color=red answer=42 "[jan, feb, mar]\ncolor -> red\nanswer -> 42\n")
+endif()
