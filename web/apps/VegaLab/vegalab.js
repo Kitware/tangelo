@@ -32,8 +32,8 @@ function compile() {
         /*jslint evil: true */
         spec = eval("(" + spectext + ")");
         /*jslint evil: false */
-    } catch (e) {
-        console.log("error parsing Vega spec: " + e);
+    } catch (e0) {
+        console.log("error parsing Vega spec: " + e0);
         return;
     }
 
@@ -55,8 +55,8 @@ function compile() {
             /*jslint evil: true */
             eval("vegalab.js = " + jstext);
             /*jslint evil: false */
-        } catch (e) {
-            console.log("error parsing user JavaScript: " + e);
+        } catch (e1) {
+            console.log("error parsing user JavaScript: " + e1);
             return;
         }
     } else {
@@ -71,7 +71,7 @@ function compile() {
         try {
             // Try to parse a JSON object from the data window.
             data = $.parseJSON(datatext);
-        } catch (e) {
+        } catch (e2) {
             // Reaching here means the data window could not be parsed as JSON.
             // Try to parse it as JavaScript now.  The window should contain a
             // single function that returns a data value.
@@ -82,8 +82,8 @@ function compile() {
 
                 // Call the d() function, and store the result.
                 data = d();
-            } catch (e) {
-                console.log("error parsing user data: " + e);
+            } catch (e3) {
+                console.log("error parsing user data: " + e3);
                 return;
             }
         }

@@ -1,6 +1,6 @@
 /*jslint browser: true */
 
-/*globals CryptoJS, $, d3, escape, FileReader */
+/*globals xdw, CryptoJS, $, d3, escape, FileReader */
 
 // This is declared null for now - it will be initialized in the window's
 // onready method, as it depends on elements being loaded in the page.

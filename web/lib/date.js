@@ -90,7 +90,7 @@
     };
 
     Date.prototype.toString = function () {
-        return toShortString(this);
+        return xdw.date.toShortString(this);
     };
 
     Date.prototype.getMonthName = function () {
