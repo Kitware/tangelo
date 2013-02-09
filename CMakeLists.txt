@@ -32,20 +32,20 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/stamps)
 
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
-    ${CMAKE_SOURCE_DIR}/web/root/index.js
+    ${CMAKE_SOURCE_DIR}/web/index.js
     #${CMAKE_SOURCE_DIR}/web/lib/id.js
     ${CMAKE_SOURCE_DIR}/web/lib/slider.js
     ${CMAKE_SOURCE_DIR}/web/lib/date.js
     #${CMAKE_SOURCE_DIR}/web/lib/barchart.js
     ${CMAKE_SOURCE_DIR}/web/apps/NER/NER.js
+    ${CMAKE_SOURCE_DIR}/web/apps/NER/NER-config.js
     ${CMAKE_SOURCE_DIR}/web/apps/stats/stats.js
     ${CMAKE_SOURCE_DIR}/web/apps/DataTwiddle/DataTwiddle.js
     ${CMAKE_SOURCE_DIR}/web/apps/VegaLab/vegalab.js
     ${CMAKE_SOURCE_DIR}/web/apps/ssci/ssci.js
     ${CMAKE_SOURCE_DIR}/web/apps/flickr/flickr.js
+    ${CMAKE_SOURCE_DIR}/web/apps/flickr/flickr-config.js
     ${CMAKE_SOURCE_DIR}/web/apps/mapping/mapping.js
-    ${CMAKE_SOURCE_DIR}/web/config/flickr-config.js
-    ${CMAKE_SOURCE_DIR}/web/config/NER-config.js
 )
 
 # These files should be uglified and concatenated.

@@ -1,6 +1,6 @@
 /*jslint browser: true */
 
-/*globals flickr, $, google, d3, date */
+/*globals xdw, flickr, $, google, d3, date */
 
 var flickr = {};
 flickr.map = null;
@@ -238,7 +238,8 @@ window.onload = function () {
         displayFunc,
         checkbox,
         dayboxes,
-        zoomfunc;
+        zoomfunc,
+        redraw;
 
     // TODO(choudhury): Probably the GMap prototype extension stuff should all
     // go in its own .js file.
@@ -477,12 +478,15 @@ window.onload = function () {
 
         // Compute a data join with the current list of marker locations, using
         // the MongoDB unique id value as the key function.
+        //
+        /*jslint nomen: true */
         markers = d3.select(this.overlay)
             .select("#markers")
             .selectAll("circle")
             .data(data, function (d) {
                 return d._id.$oid;
             });
+        /*jslint nomen: false */
 
         // For the enter selection, create new circle elements, and attach a
         // title element to each one.  In the update selection (which includes
@@ -597,12 +601,11 @@ window.onload = function () {
     // Direct the colormap selector radio buttons to redraw the map when they
     // are clicked.
     buttons = document.getElementsByName("colormap");
+    redraw = function () {
+        flickr.map.draw();
+    };
     for (i = 0; i < buttons.length; i += 1) {
-        // TODO(choudhury): this raises an error in JSLint.  Refactor this to a
-        // function bound to a variable OUTSIDE of the loop.
-        buttons[i].onclick = function () {
-            flickr.map.draw();
-        };
+        buttons[i].onclick = redraw;
     }
     checkbox = document.getElementById("invert");
     checkbox.onclick = function () {
@@ -615,28 +618,20 @@ window.onload = function () {
     });
 
     for (i = 0; i < dayboxes.length; i += 1) {
-        dayboxes[i].onclick = function () {
-            flickr.map.draw();
-        };
+        dayboxes[i].onclick = redraw;
     }
 
     // Direct the glyph size radio buttons to redraw.
     buttons = document.getElementsByName("size");
     for (i = 0; i < buttons.length; i += 1) {
-        buttons[i].onclick = function () {
-            flickr.map.draw();
-        };
+        buttons[i].onclick = redraw;
     }
 
     // Direct the opacity control to redraw.
-    document.getElementById("opacity").onchange = function () {
-        flickr.map.draw();
-    };
+    document.getElementById("opacity").onchange = redraw;
 
     // Direct the size control to redraw.
-    document.getElementById("size").onchange = function () {
-        flickr.map.draw();
-    };
+    document.getElementById("size").onchange = redraw;
 
     // Get the earliest and latest times in the database, to create a suitable
     // range for the time slider.

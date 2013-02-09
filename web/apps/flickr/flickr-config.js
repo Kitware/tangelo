@@ -1,18 +1,32 @@
-config = null;
+/*jslint browser: true */
 
-function current(s){
+/*globals d3 */
+
+var config = null;
+
+function current(s) {
+    "use strict";
+
     return s + "-current";
 }
 
-function tag(s){
+function tag(s) {
+    "use strict";
+
     return "#" + s;
 }
 
-function update(){
+function update() {
+    "use strict";
+
+    var server,
+        db,
+        coll;
+
     // Grab the elements.
-    var server = document.getElementById("mongodb-server");
-    var db = document.getElementById("mongodb-db");
-    var coll = document.getElementById("mongodb-coll");
+    server = document.getElementById("mongodb-server");
+    db = document.getElementById("mongodb-db");
+    coll = document.getElementById("mongodb-coll");
 
     // Read the options into DOM storage.
     localStorage.setItem('flickr:mongodb-server', server.value);
@@ -23,12 +37,18 @@ function update(){
     window.onload();
 }
 
-window.onload = function(){
+window.onload = function () {
+    "use strict";
+
+    var server,
+        db,
+        coll;
+
     // Grab the current config values from DOM storage, or use default values if
     // they are missing.
-    var server = localStorage.getItem('flickr:mongodb-server') || 'localhost';
-    var db = localStorage.getItem('flickr:mongodb-db') || 'xdata';
-    var coll = localStorage.getItem('flickr:mongodb-coll') || 'flickr_paris';
+    server = localStorage.getItem('flickr:mongodb-server') || 'localhost';
+    db = localStorage.getItem('flickr:mongodb-db') || 'xdata';
+    coll = localStorage.getItem('flickr:mongodb-coll') || 'flickr_paris';
 
     // Fill in the table with the current information.
     d3.select("#mongodb-server-current")
@@ -45,4 +65,4 @@ window.onload = function(){
         .html(coll);
     d3.select("#mongodb-coll")
         .attr("value", coll);
-}
+};
