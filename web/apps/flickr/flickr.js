@@ -68,8 +68,8 @@ function getMinMaxDates() {
                             flickr.timeslider.setMin(val);
                             //flickr.timeslider.setLowValue(val);
 
-                            // TODO(choudhury): for XDATA demo.  Remove when no longer
-                            // needed.
+                            // This time value makes a nice time window for a
+                            // demo.
                             flickr.timeslider.setLowValue(july30);
                         }
                     }
