@@ -4,8 +4,24 @@
 
 "use strict";
 
+var crosscatvis = function (spec) {
+    var that,
+        playing = spec.playing || true,
+        index = spec.index || 0,
+        dataUpdate = spec.dataUpdate,
+        margin = spec.margin || {top: 200, right: 800, bottom: 200, left: 150},
+        width = spec.width || 1500,
+        height = spec.height || 400,
+        x = d3.scale.ordinal().rangeBounds([0, width]),
+        y = [d3.scale.ordinal().rangeBands([0, height])],
+        color = d3.scale.category20().domain([1, 0]);
+
+    that = {};
+    return that;
+};
+
 var playing = true;
-var timeValue = "0";
+var timeValue = 0;
 var animationLength = 1000;
 
 var margin = {top: 200, right: 800, bottom: 200, left: 150},
@@ -30,62 +46,43 @@ var svg = d3.select("#svg")
 
 d3.json("ssci.json", function (data) {
 
-    var column, mouseover, mouseout, cell, viewRows, updateRows, columnPosition, rowPosition, order, orderWrapper;
+    var column,
+        mouseover,
+        mouseout,
+        cell,
+        viewRows,
+        updateRows,
+        columnPosition,
+        rowPosition,
+        order,
+        orderWrapper,
+        cellOpacity;
 
-    // The default sort order.
-    x.domain(d3.range(data.columns.length));
-    y[0].domain(d3.range(data.rows.length));
-
-    svg.append("rect")
-        .attr("class", "background")
-        .style("fill", "white")
-        .attr("width", width)
-        .attr("height", height);
-
-    column = svg.selectAll(".column")
-        .data(data.columns)
-        .enter().append("g")
-        .attr("class", "column")
-        .attr("transform", function (d, i) { return "translate(" + x(i) + ")rotate(-90)"; });
-
-    column.append("line")
-        .attr("x1", -width);
-
-    column.append("text")
-        .attr("x", 6)
-        .attr("y", x.rangeBand() / 2)
-        .attr("dy", ".32em")
-        .attr("text-anchor", "start")
-        .text(function (d, i) { return d.name; });
+    cellOpacity = function (d) {
+        var opacity = 1;
+        if (d.value === 0) {
+            opacity = 0.5;
+        }
+        return opacity;
+    }
 
     mouseover = function (p) {
         d3.selectAll(".row text.row-text").classed("active", function (d, i) { return d === data.rows[p.i]; });
         d3.selectAll(".column text").classed("active", function (d, i) { return i === p.j; });
-        d3.selectAll(".cell").attr("opacity", function (d, i) { return (d.i === p.i ? 1 : 0.25) * (rowPartition[colPartition[p.j] - 1][p.i] === rowPartition[colPartition[p.j] - 1][d.i] ? 1 : 1) * (d.value ? 1 : 0.5); });
+        d3.selectAll(".cell").attr("opacity", function (d) {
+            var opacity = cellOpacity(d);
+            if (d.i !== p.i) {
+                opacity *= 0.25;
+            }
+            return opacity;
+        });
     };
 
     mouseout = function () {
         d3.selectAll("text").classed("active", false);
         d3.selectAll(".cell").classed("active", false);
-        d3.selectAll(".cell").attr("opacity", function (d) { return d.value ? 1 : 0.5; });
+        d3.selectAll(".cell").attr("opacity", cellOpacity);
     };
-
-    cell = svg.selectAll(".cell")
-        .data(data.table)
-
-        .enter().append("rect")
-        .attr("class", "cell")
-        .attr("x", function (d) { return x(d.j); })
-        .attr("y", function (d) { return y[0](d.i); })
-        .attr("width", x.rangeBand())
-        .attr("height", y[0].rangeBand())
-        .attr("opacity", function (d) { return d.value ? 1 : 0.5; })
-        .style("fill", function (d) { return c(d.value); })
-        .on("mouseover", mouseover)
-        .on("mouseout", mouseout)
-
-        .append("title")
-        .text(function (d) { return d.row + "," + d.col; });
 
     updateRows = function () {
         var row = svg.selectAll(".row")
@@ -133,10 +130,15 @@ d3.json("ssci.json", function (data) {
             .attr("transform", function (d, i) { return "translate(" + columnPosition(col) + "," + rowPosition(i, col) + ")"; });
     };
 
-    updateRows();
-
     order = function (value) {
-        var colPermute, group, cy, newIndex, curReindex, part, i, t;
+        var colPermute,
+            group,
+            cy,
+            newIndex,
+            curReindex,
+            part,
+            i,
+            t;
 
         timeValue = value;
         colPartition = data.columnPartition[value];
@@ -202,7 +204,7 @@ d3.json("ssci.json", function (data) {
             .attr("transform", function (d, i) { return "translate(" + columnPosition(i) + ")rotate(-90)"; });
 
         if (playing) {
-            d3.timer(orderWrapper((+value + 1) % 12), animationLength + 3000);
+            d3.timer(orderWrapper((value + 1) % 12), animationLength + 3000);
         }
         return true;
     };
@@ -212,10 +214,55 @@ d3.json("ssci.json", function (data) {
             if (!playing) {
                 return true;
             }
-            d3.select("#time").node().selectedIndex = +value;
+            d3.select("#time").node().selectedIndex = value;
             return order(value);
         };
     };
+
+    // The default sort order.
+    x.domain(d3.range(data.columns.length));
+    y[0].domain(d3.range(data.rows.length));
+
+    svg.append("rect")
+        .attr("class", "background")
+        .style("fill", "white")
+        .attr("width", width)
+        .attr("height", height);
+
+    column = svg.selectAll(".column")
+        .data(data.columns)
+        .enter().append("g")
+        .attr("class", "column")
+        .attr("transform", function (d, i) { return "translate(" + x(i) + ")rotate(-90)"; });
+
+    column.append("line")
+        .attr("x1", -width);
+
+    column.append("text")
+        .attr("x", 6)
+        .attr("y", x.rangeBand() / 2)
+        .attr("dy", ".32em")
+        .attr("text-anchor", "start")
+        .text(function (d, i) { return d.name; });
+
+    cell = svg.selectAll(".cell")
+        .data(data.table)
+
+        .enter().append("rect")
+        .attr("class", "cell")
+        .attr("x", function (d) { return x(d.j); })
+        .attr("y", function (d) { return y[0](d.i); })
+        .attr("width", x.rangeBand())
+        .attr("height", y[0].rangeBand())
+        .attr("opacity", cellOpacity)
+        .style("fill", function (d) { return c(d.value); })
+        .on("mouseover", mouseover)
+        .on("mouseout", mouseout)
+
+        .append("title")
+        .text(function (d) { return d.row + "," + d.col; });
+
+    updateRows();
 
     d3.select("#time").on("change", function () {
         order(this.value);
@@ -225,7 +272,7 @@ d3.json("ssci.json", function (data) {
         playing = !playing;
         d3.select(this).text(playing ? "❚❚" : "▶");
         if (playing) {
-            d3.timer(orderWrapper((+timeValue + 1) % 12));
+            d3.timer(orderWrapper((timeValue + 1) % 12));
         }
     });
 
