@@ -2,279 +2,352 @@
 
 /*globals d3 */
 
-"use strict";
-
-var crosscatvis = function (spec) {
+function visCrossCat(spec) {
+    "use strict";
     var that,
-        playing = spec.playing || true,
-        index = spec.index || 0,
-        dataUpdate = spec.dataUpdate,
+        matrix = spec.matrix,
         margin = spec.margin || {top: 200, right: 800, bottom: 200, left: 150},
-        width = spec.width || 1500,
-        height = spec.height || 400,
-        x = d3.scale.ordinal().rangeBounds([0, width]),
-        y = [d3.scale.ordinal().rangeBands([0, height])],
-        color = d3.scale.category20().domain([1, 0]);
+        color = spec.color || d3.scale.category20().domain([1, 0]),
+        cellSize = spec.cellSize || 15,
+        rows,
+        columns,
+        views,
+        columnPermute,
+        rowPermute,
+        partitions,
+        numPartitions,
+        firstColumnInView,
+        svg;
 
-    that = {};
-    return that;
-};
+    function updateVisualization() {
+        var cell,
+            column,
+            row,
+            updateCellRow;
 
-var playing = true;
-var timeValue = 0;
-var animationLength = 1000;
-
-var margin = {top: 200, right: 800, bottom: 200, left: 150},
-    width = 1500,
-    height = 400;
-
-var x = d3.scale.ordinal().rangeBands([0, width]),
-    y = [d3.scale.ordinal().rangeBands([0, height])],
-    c = d3.scale.category20().domain([1, 0]);
-
-var colPartition = [];
-var rowPartition = [];
-var firstColumnInView = [];
-var rowPartitionReindex = [];
-
-var svg = d3.select("#svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-
-    .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-d3.json("ssci.json", function (data) {
-
-    var column,
-        mouseover,
-        mouseout,
-        cell,
-        viewRows,
-        updateRows,
-        columnPosition,
-        rowPosition,
-        order,
-        orderWrapper,
-        cellOpacity;
-
-    cellOpacity = function (d) {
-        var opacity = 1;
-        if (d.value === 0) {
-            opacity = 0.5;
+        function columnPosition(j) {
+            j = Math.max(0, j);
+            return columnPermute[j] * cellSize + 115 * views[j];
         }
-        return opacity;
-    }
 
-    mouseover = function (p) {
-        d3.selectAll(".row text.row-text").classed("active", function (d, i) { return d === data.rows[p.i]; });
-        d3.selectAll(".column text").classed("active", function (d, i) { return i === p.j; });
-        d3.selectAll(".cell").attr("opacity", function (d) {
-            var opacity = cellOpacity(d);
-            if (d.i !== p.i) {
-                opacity *= 0.25;
+        function rowPosition(i, j) {
+            j = Math.max(0, j);
+            var numParts = numPartitions[views[j]],
+                partOffset;
+            if (numParts === 1) {
+                partOffset = 100;
+            } else {
+                partOffset = 100 / (numParts - 1) * partitions[views[j]][i];
+            }
+            return rowPermute[views[j]][i] * cellSize + partOffset;
+        }
+
+        function cellOpacity(d) {
+            var opacity = 1;
+            if (d.value === 0) {
+                opacity = 0.5;
             }
             return opacity;
-        });
-    };
+        }
 
-    mouseout = function () {
-        d3.selectAll("text").classed("active", false);
-        d3.selectAll(".cell").classed("active", false);
-        d3.selectAll(".cell").attr("opacity", cellOpacity);
-    };
+        function mouseover(p) {
+            d3.selectAll(".row text.row-text").classed("active", function (d, i) { return d === rows[p.i]; });
+            d3.selectAll(".column text").classed("active", function (d, i) { return i === p.j; });
+            d3.selectAll(".cell").attr("opacity", function (d) {
+                var opacity = cellOpacity(d);
+                if (d.i !== p.i) {
+                    opacity *= 0.25;
+                }
+                return opacity;
+            });
+        }
 
-    updateRows = function () {
-        var row = svg.selectAll(".row")
-            .data(y.slice(1));
+        function mouseout() {
+            d3.selectAll("text").classed("active", false);
+            d3.selectAll(".cell").classed("active", false);
+            d3.selectAll(".cell").attr("opacity", cellOpacity);
+        }
+
+        updateCellRow = function (partition, viewIndex) {
+            var col = firstColumnInView[viewIndex],
+                rowText = d3.select(this).selectAll(".row-text").data(rows);
+
+            rowText.enter().append("text")
+                .attr("class", "row-text")
+                .attr("x", -6)
+                .attr("y", cellSize / 2)
+                .attr("dy", ".32em")
+                .attr("transform", function (d, i) { return "translate(" + columnPosition(col) + "," + rowPosition(i, col) + ")"; })
+                .attr("text-anchor", "end")
+                .text(function (d, i) { return d; });
+            rowText.style("visibility", col < 0 ? "hidden" : "visible");
+            rowText.transition().duration(1000)
+                .delay(function (d) { return columnPosition(col); })
+                .attr("transform", function (d, i) { return "translate(" + columnPosition(col) + "," + rowPosition(i, col) + ")"; });
+        };
+
+        column = svg.selectAll(".column")
+            .data(columns);
+        column.enter().append("g")
+            .attr("class", "column")
+            .attr("transform", function (d, i) { return "translate(" + columnPosition(i) + ")rotate(-90)"; })
+            .append("text")
+            .attr("x", 6)
+            .attr("y", cellSize / 2)
+            .attr("dy", ".32em")
+            .attr("text-anchor", "start")
+            .text(function (d) { return d; });
+        column.transition().duration(1000)
+            .delay(function (d, i) { return columnPosition(i); })
+            .attr("transform", function (d, i) { return "translate(" + columnPosition(i) + ")rotate(-90)"; });
+
+        row = svg.selectAll(".row")
+            .data(partitions);
         row.enter().append("g")
             .attr("class", "row")
-            .each(viewRows);
-        row.each(viewRows);
+            .each(updateCellRow);
         row.exit().remove();
-    };
+        row.transition().duration(1000)
+            .each(updateCellRow);
 
-    columnPosition = function (i) {
-        i = Math.max(0, i);
-        return (x(i) + 115 * (colPartition[i] - 1));
-    };
+        cell = svg.selectAll(".cell")
+            .data(matrix);
+        cell.enter().append("rect")
+            .attr("class", "cell")
+            .attr("x", function (d) { return columnPosition(d.j); })
+            .attr("y", function (d) { return rowPosition(d.i, d.j); })
+            .attr("width", cellSize + 1)
+            .attr("height", cellSize + 1)
+            .attr("opacity", cellOpacity)
+            .style("fill", function (d) { return color(d.value); })
+            .on("mouseover", mouseover)
+            .on("mouseout", mouseout)
+            .append("title")
+            .text(function (d) { return rows[d.i] + " " + columns[d.j] + "? " + (d.value ? "YES" : "NO"); });
+        cell.transition().duration(1000)
+            .delay(function (d) { return columnPosition(d.j); })
+            .attr("x", function (d) { return columnPosition(d.j); })
+            .attr("y", function (d) { return rowPosition(d.i, d.j); });
+    }
 
-    rowPosition = function (i, j) {
-        if (rowPartition[colPartition[j] - 1] === undefined) {
-            j = 1;
-        }
+    function updateData(columnOrder, rowOrder, columnPartitions, rowPartitions) {
+        var cell,
+            column,
+            columnName,
+            columnPermuteInverted,
+            rowName,
+            view;
 
-        var partition = rowPartition[colPartition[j] - 1][i],
-            reindex = rowPartitionReindex[colPartition[j] - 1],
-            mx = d3.max(reindex);
-
-        j = Math.max(0, j);
-        return y[colPartition[j]](i) + (mx > 1 ? (100 / (mx - 1)) * reindex[partition] : 100);
-    };
-
-    viewRows = function (y, viewIndex) {
-        var col = firstColumnInView[viewIndex],
-            rowText = d3.select(this).selectAll(".row-text").data(data.rows);
-
-        rowText.enter().append("text")
-            .attr("class", "row-text")
-            .attr("x", -6)
-            .attr("y", y.rangeBand() / 2)
-            .attr("dy", ".32em")
-            .attr("transform", function (d, i) { return "translate(" + columnPosition(col) + "," + rowPosition(i, col) + ")"; })
-            .attr("text-anchor", "end")
-            .text(function (d, i) { return d.name; });
-        rowText.style("visibility", col < 0 ? "hidden" : "visible");
-        rowText.transition().duration(animationLength)
-            .delay(function (d) { return x(firstColumnInView[viewIndex]); })
-            .attr("transform", function (d, i) { return "translate(" + columnPosition(col) + "," + rowPosition(i, col) + ")"; });
-    };
-
-    order = function (value) {
-        var colPermute,
-            group,
-            cy,
-            newIndex,
-            curReindex,
-            part,
-            i,
-            t;
-
-        timeValue = value;
-        colPartition = data.columnPartition[value];
-        rowPartition = data.rowPartition[value];
-
+        // Sort columns first by view, then by column name.
         function sortColumns(i, j) {
-            if (colPartition[i] !== colPartition[j]) {
-                return d3.ascending(colPartition[i], colPartition[j]);
+            if (views[i] !== views[j]) {
+                return d3.ascending(views[i], views[j]);
             }
-            return d3.ascending(data.columns[i].name, data.columns[j].name);
+            return d3.ascending(columns[i], columns[j]);
         }
 
-        function sortRows(group) {
+        // Sort rows first by partition, then by row name.
+        function sortRows(view) {
             return function (i, j) {
-                if (rowPartition[group][i] !== rowPartition[group][j]) {
-                    return d3.ascending(rowPartition[group][i], rowPartition[group][j]);
+                if (partitions[view][i] !== partitions[view][j]) {
+                    return d3.ascending(partitions[view][i], partitions[view][j]);
                 }
-                return d3.ascending(data.rows[i].name, data.rows[j].name);
+                return d3.ascending(rows[i], rows[j]);
             };
         }
 
-        colPermute = d3.range(data.columns.length).sort(sortColumns);
-        x.domain(colPermute);
-        y = [{}];
+        // Given an array containing a permutation (i.e. it has values in the
+        // range 0 to arr.length - 1 that each appear only once), find
+        // the inverse permutation such that inverse[arr[i]] === i for all i.
+        function invertPermutation(arr) {
+            var i,
+                inverse = [];
+            for (i = 0; i < arr.length; i = i + 1) {
+                inverse[arr[i]] = i;
+            }
+            return inverse;
+        }
 
-        rowPartitionReindex = [];
-        for (group = 0; group < rowPartition.length; group = group + 1) {
-            cy = d3.scale.ordinal().rangeBands([0, height]);
-            cy.domain(d3.range(data.rows.length).sort(sortRows(group)));
-            y.push(cy);
-            newIndex = 0;
-            curReindex = [0];
-            for (part = 1; part <= data.rows.length; part = part + 1) {
-                curReindex.push(newIndex);
-                if (rowPartition[group].indexOf(part) >= 0) {
-                    newIndex = newIndex + 1;
+        // Computes new values for an array by re-indexing values
+        // so that all values not present in the array are skipped,
+        // preserving the original ordering of the values.
+        // For example,
+        //     > result = removeNonEmpty([1, 4, 1, 3]);
+        //     > result;
+        //     [0, 2, 0, 1]
+        // The returned array also contains a remappedIndex field
+        // that contains an array mapping old indices to new indices.
+        // In our example,
+        //     > result.remappedIndex;
+        //     [undefined, 0, undefined, 1, 2]
+        //     > remappedIndex[1] => 0
+        //     > remappedIndex[3] => 1
+        //     > remappedIndex[4] => 2
+        function removeNonEmpty(arr) {
+            var i,
+                notEmpty = [],
+                numEmpty = 0,
+                result = [];
+
+            for (i = 0; i < arr.length; i = i + 1) {
+                notEmpty[arr[i]] = true;
+            }
+
+            result.remappedIndex = [];
+            for (i = 0; i < notEmpty.length; i = i + 1) {
+                if (notEmpty[i]) {
+                    result.remappedIndex[i] = i - numEmpty;
+                } else {
+                    numEmpty = numEmpty + 1;
                 }
             }
-            rowPartitionReindex.push(curReindex);
+
+            for (i = 0; i < arr.length; i = i + 1) {
+                result[i] = result.remappedIndex[arr[i]];
+            }
+
+            return result;
         }
 
-        firstColumnInView = [];
-        for (i = 0; i < colPartition.length; i = i + 1) {
-            while (colPartition[colPermute[i]] > firstColumnInView.length) {
-                firstColumnInView.push(colPermute[i]);
+        rows = [];
+        for (rowName in rowOrder.labelToIndex) {
+            if (rowOrder.labelToIndex.hasOwnProperty(rowName)) {
+                rows[rowOrder.labelToIndex[rowName] - 1] = rowName.toLowerCase();
             }
         }
-        while (firstColumnInView.length < rowPartition.length) {
+
+        columns = [];
+        for (columnName in columnOrder.labelToIndex) {
+            if (columnOrder.labelToIndex.hasOwnProperty(columnName)) {
+                columns[columnOrder.labelToIndex[columnName] - 1] = columnName.replace(/_/g, " ");
+            }
+        }
+
+        // Reindex all indices to be zero-based and eliminate empty views/partitions.
+        views = removeNonEmpty(columnPartitions.columnPartitionAssignments);
+        partitions = [];
+        for (view = 0; view < rowPartitions.rowPartitionAssignments.length; view = view + 1) {
+            if (views.remappedIndex[view + 1] !== undefined) {
+                partitions[views.remappedIndex[view + 1]] = removeNonEmpty(rowPartitions.rowPartitionAssignments[view]);
+            }
+        }
+
+        // Determine the ordering of columns and rows in this view.
+        columnPermuteInverted = d3.range(columns.length).sort(sortColumns);
+        columnPermute = invertPermutation(columnPermuteInverted);
+        rowPermute = [];
+        for (view = 0; view < partitions.length; view = view + 1) {
+            rowPermute[view] = invertPermutation(d3.range(rows.length).sort(sortRows(view)));
+        }
+
+        // Compute the number of partitions in each view.
+        numPartitions = [];
+        for (view = 0; view < partitions.length; view = view + 1) {
+            numPartitions[view] = d3.max(partitions[view]) + 1;
+        }
+
+        // We need the first column in each view to know where to place the row labels.
+        firstColumnInView = [];
+        for (column = 0; column < views.length; column = column + 1) {
+            while (views[columnPermuteInverted[column]] >= firstColumnInView.length) {
+                firstColumnInView.push(columnPermuteInverted[column]);
+            }
+        }
+        while (firstColumnInView.length < partitions.length) {
             firstColumnInView.push(-1);
         }
 
-        t = svg.transition().duration(animationLength);
+        // Update the visualization
+        updateVisualization();
+    }
 
-        updateRows();
+    svg = d3.select("#svg")
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-        t.selectAll(".cell")
-            .delay(function (d) { return x(d.j); })
-            .attr("x", function (d) { return columnPosition(d.j); })
-            .attr("y", function (d) { return rowPosition(d.i, d.j); });
+    that = {};
 
-        t.selectAll(".column")
-            .delay(function (d, i) { return x(i); })
-            .attr("transform", function (d, i) { return "translate(" + columnPosition(i) + ")rotate(-90)"; });
-
-        if (playing) {
-            d3.timer(orderWrapper((value + 1) % 12), animationLength + 3000);
-        }
-        return true;
+    that.update = function (id) {
+        d3.json("data/Cc_" + id + ".json", function (columnOrder) {
+            d3.json("data/Cr_" + id + ".json", function (rowOrder) {
+                d3.json("data/XL_" + id + ".json", function (columnPartitions) {
+                    d3.json("data/XD_" + id + ".json", function (rowPartitions) {
+                        updateData(columnOrder, rowOrder, columnPartitions, rowPartitions);
+                    });
+                });
+            });
+        });
     };
 
-    orderWrapper = function (value) {
-        return function () {
-            if (!playing) {
-                return true;
+    return that;
+}
+
+(function () {
+    "use strict";
+    d3.json("data/animals_data.json", function (data) {
+        var curIndex = 0,
+            i,
+            ids,
+            j,
+            matrix,
+            playing = true,
+            timerId,
+            vis;
+
+        function updater() {
+            var time = d3.select("#time").node();
+            time.selectedIndex = (time.selectedIndex + 1) % ids.length;
+            vis.update(ids[time.selectedIndex]);
+        }
+
+        ids = [
+            "73524567995_00",
+            "73524568270_01",
+            "73524568278_02",
+            "73524568287_03",
+            "73524568298_04",
+            "73524568305_05",
+            "73524568313_06",
+            "73524568322_07",
+            "73524568328_08",
+            "73524568338_09",
+            "73524568345_10",
+            "73524568352_11"
+        ];
+
+        matrix = [];
+        for (i = 0; i < data.length; i = i + 1) {
+            for (j = 0; j < data[i].length; j = j + 1) {
+                matrix.push({i: i, j: j, value: data[i][j]});
             }
-            d3.select("#time").node().selectedIndex = value;
-            return order(value);
-        };
-    };
+        }
+        vis = visCrossCat({matrix: matrix});
 
-    // The default sort order.
-    x.domain(d3.range(data.columns.length));
-    y[0].domain(d3.range(data.rows.length));
+        d3.select("#time").selectAll("option")
+            .data(ids)
+            .enter().append("option")
+            .attr("value", function (d) { return d; })
+            .text(function (d) { return d.split("_")[1]; });
 
-    svg.append("rect")
-        .attr("class", "background")
-        .style("fill", "white")
-        .attr("width", width)
-        .attr("height", height);
+        d3.select("#time").on("change", function () {
+            playing = false;
+            d3.select("#play").text("▶");
+            clearTimeout(timerId);
+            vis.update(this.value);
+        });
 
-    column = svg.selectAll(".column")
-        .data(data.columns)
-        .enter().append("g")
-        .attr("class", "column")
-        .attr("transform", function (d, i) { return "translate(" + x(i) + ")rotate(-90)"; });
+        d3.select("#play").on("click", function () {
+            playing = !playing;
+            d3.select(this).text(playing ? "❚❚" : "▶");
+            if (playing) {
+                timerId = setInterval(updater, 5000);
+            } else {
+                clearTimeout(timerId);
+            }
+        });
 
-    column.append("line")
-        .attr("x1", -width);
-
-    column.append("text")
-        .attr("x", 6)
-        .attr("y", x.rangeBand() / 2)
-        .attr("dy", ".32em")
-        .attr("text-anchor", "start")
-        .text(function (d, i) { return d.name; });
-
-    cell = svg.selectAll(".cell")
-        .data(data.table)
-
-        .enter().append("rect")
-        .attr("class", "cell")
-        .attr("x", function (d) { return x(d.j); })
-        .attr("y", function (d) { return y[0](d.i); })
-        .attr("width", x.rangeBand())
-        .attr("height", y[0].rangeBand())
-        .attr("opacity", cellOpacity)
-        .style("fill", function (d) { return c(d.value); })
-        .on("mouseover", mouseover)
-        .on("mouseout", mouseout)
-
-        .append("title")
-        .text(function (d) { return d.row + "," + d.col; });
-
-    updateRows();
-
-    d3.select("#time").on("change", function () {
-        order(this.value);
-    });
-
-    d3.select("#play").on("click", function () {
-        playing = !playing;
-        d3.select(this).text(playing ? "❚❚" : "▶");
         if (playing) {
-            d3.timer(orderWrapper((timeValue + 1) % 12));
+            timerId = setInterval(updater, 5000);
         }
     });
-
-    orderWrapper(0)();
-});
+}());
