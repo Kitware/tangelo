@@ -32,34 +32,6 @@ function getMinMaxDates() {
         type: 'POST',
         url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
         data: {
-            sort: JSON.stringify([['date', 1]]),
-            limit: 1,
-            fields: JSON.stringify(['date'])
-        },
-        dataType: 'json',
-        success: function (response) {
-            var val;
-
-            if (response.error !== null) {
-                // Error condition.
-                console.log("error: could not get minimum time value from database - " + response.error);
-            } else {
-                //val = +response.result.data[0]['date']['$date'];
-                val = +response.result.data[0].date.$date;
-                flickr.timeslider.setMin(val);
-                //flickr.timeslider.setLowValue(val);
-
-                // TODO(choudhury): for XDATA demo.  Remove when no longer
-                // needed.
-                flickr.timeslider.setLowValue(july30);
-            }
-        }
-    });
-
-    $.ajax({
-        type: 'POST',
-        url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
-        data: {
             sort: JSON.stringify([['date', -1]]),
             limit: 1,
             fields: JSON.stringify(['date'])
@@ -75,6 +47,33 @@ function getMinMaxDates() {
                 val = +response.result.data[0].date.$date;
                 flickr.timeslider.setMax(val);
                 flickr.timeslider.setHighValue(val);
+                $.ajax({
+                    type: 'POST',
+                    url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
+                    data: {
+                        sort: JSON.stringify([['date', 1]]),
+                        limit: 1,
+                        fields: JSON.stringify(['date'])
+                    },
+                    dataType: 'json',
+                    success: function (response) {
+                        var val;
+
+                        if (response.error !== null) {
+                            // Error condition.
+                            console.log("error: could not get minimum time value from database - " + response.error);
+                        } else {
+                            //val = +response.result.data[0]['date']['$date'];
+                            val = +response.result.data[0].date.$date;
+                            flickr.timeslider.setMin(val);
+                            //flickr.timeslider.setLowValue(val);
+
+                            // TODO(choudhury): for XDATA demo.  Remove when no longer
+                            // needed.
+                            flickr.timeslider.setLowValue(july30);
+                        }
+                    }
+                });
             }
         }
     });
