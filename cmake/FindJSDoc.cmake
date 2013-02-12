@@ -25,7 +25,7 @@ if(NOT JSDoc_EXECUTABLE)
             ERROR_QUIET)
 
         if(NOT ${success} EQUAL 0)
-            string(REPLACE ";" " " cmdline "${JSDoc_EXECUTABLE}")
+            string(REPLACE ";" " " cmdline "${JSDoc_TEST_EXECUTABLE}")
             message(WARNING "Could not determine invocation for JSDoc (tried \"${cmdline}\") - please edit JSDoc_EXECUTABLE by hand or set JSDoc_PATH to the location you extracted the jsdoc zip file.")
         else()
             set(JSDoc_EXECUTABLE ${JSDoc_TEST_EXECUTABLE} CACHE FILE "jsdoc executable" FORCE)
