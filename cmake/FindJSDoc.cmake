@@ -14,22 +14,23 @@ if(NOT JSDoc_EXECUTABLE)
 
         set(JSDoc_TEMPLATEPATH "${JSDoc_PATH}/templates/jsdoc")
         set(JSDoc_ARGS -Djsdoc.dir=${JSDoc_PATH} -Djsdoc.template.dir=${JSDoc_TEMPLATEPATH} -jar ${JSDoc_PATH}/jsrun.jar ${JSDoc_PATH}/app/run.js)
-        set(JSDoc_EXECUTABLE ${Java_JAVA_EXECUTABLE} ${JSDoc_ARGS})
+        set(JSDoc_TEST_EXECUTABLE ${Java_JAVA_EXECUTABLE} ${JSDoc_ARGS})
 
         # Test the resulting "executable" by running with the help flag and
         # observing the return value.
         execute_process(
-            COMMAND ${JSDoc_EXECUTABLE} -h
+            COMMAND ${JSDoc_TEST_EXECUTABLE} -h
             RESULT_VARIABLE success
             OUTPUT_QUIET
             ERROR_QUIET)
 
         if(NOT ${success} EQUAL 0)
             string(REPLACE ";" " " cmdline "${JSDoc_EXECUTABLE}")
-            message(WARNING "Could not determine invocation for JSDoc (tried \"${cmdline}\") - please edit JSDoc_EXECUTABLE by hand")
+            message(WARNING "Could not determine invocation for JSDoc (tried \"${cmdline}\") - please edit JSDoc_EXECUTABLE by hand or set JSDoc_PATH to the location you extracted the jsdoc zip file.")
+        else()
+            set(JSDoc_EXECUTABLE ${JSDoc_TEST_EXECUTABLE} CACHE FILE "jsdoc executable" FORCE)
         endif()
     endif()
-
 
 endif()
 
