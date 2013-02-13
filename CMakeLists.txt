@@ -145,6 +145,8 @@ set(SOURCES
     web/css/bootstrap.css
     web/css/bootstrap-xdata.css
     web/css/bootswatch/bootstrap-readable.css
+    web/img/glyphicons-halflings.png
+    web/img/glyphicons-halflings-white.png
     web/apps.json
     web/index.html
     web/index.js
