@@ -31,6 +31,27 @@ flickr.configPageletHTML = function () {
         .replace(/%COLLECTION%/g, config.coll);
 }
 
+function updateConfig() {
+    "use strict";
+
+    var server,
+        db,
+        coll;
+
+    // Grab the elements.
+    server = document.getElementById("mongodb-server");
+    db = document.getElementById("mongodb-db");
+    coll = document.getElementById("mongodb-coll");
+
+    // Read the options into DOM storage.
+    localStorage.setItem('flickr:mongodb-server', server.value);
+    localStorage.setItem('flickr:mongodb-db', db.value);
+    localStorage.setItem('flickr:mongodb-coll', coll.value);
+
+    // Close the config popover.
+    $("#config-popover").popover('hide');
+}
+
 function getMinMaxDates() {
     "use strict";
 
