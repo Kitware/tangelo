@@ -17,6 +17,20 @@ flickr.getMongoDBInfo = function () {
     };
 };
 
+flickr.configPageletHTML = function () {
+    "use strict";
+    var config;
+
+    // Retrieve the configuration options.
+    config = flickr.getMongoDBInfo();
+
+    // Instantiate the template with the current config values.
+    return flickr.configHtml
+        .replace(/%SERVER%/g, config.server)
+        .replace(/%DATABASE%/g, config.db)
+        .replace(/%COLLECTION%/g, config.coll);
+}
+
 function getMinMaxDates() {
     "use strict";
 
@@ -240,8 +254,11 @@ window.onload = function () {
         zoomfunc,
         redraw;
 
-    // Enable the popover.
-    $("[rel=popover]").popover();
+    // Enable the popovers.
+    $("#info-popover").popover();
+    $("#config-popover").popover({
+        content: flickr.configPageletHTML
+    });
 
     // TODO(choudhury): Probably the GMap prototype extension stuff should all
     // go in its own .js file.
@@ -710,4 +727,14 @@ window.onload = function () {
 
     // Make a spinner out of the opacity control.
     //$("#opacity").spinner();
+
+    // Read in the configuration template.
+    d3.text("config.html", function (text) {
+        if(text === undefined){
+            flickr.configHtml = "<b>Error reading in configuration template.</b>";
+        }
+        else{
+            flickr.configHtml = text;
+        }
+    });
 };

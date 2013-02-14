@@ -83,6 +83,7 @@ set(SOURCES
     web/apps/flickr/index.html
     web/apps/flickr/flickr-config.js
     web/apps/flickr/flickr-config.html
+    web/apps/flickr/config.html
     web/apps/mapping/cities.json
     web/apps/mapping/dots.json
     web/apps/mapping/index.html
