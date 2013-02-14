@@ -141,6 +141,7 @@ set(SOURCES
     web/apps/Phylotree/index.html
     web/apps/Phylotree/phylotree.js
     web/lib/vgd3-template.js.txt
+    web/lib/bootstrap.js
     web/css/xdataweb.css
     web/css/bootstrap.css
     web/css/bootstrap-xdata.css

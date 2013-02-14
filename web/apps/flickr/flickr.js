@@ -240,6 +240,9 @@ window.onload = function () {
         zoomfunc,
         redraw;
 
+    // Enable the popover.
+    $("#testpopover").popover();
+
     // TODO(choudhury): Probably the GMap prototype extension stuff should all
     // go in its own .js file.
     //
