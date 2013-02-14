@@ -58,3 +58,7 @@ input[type="file"] {
     background: #000;
     opacity: 0.3;
 }
+
+.popover {
+    max-width: none;
+}
