@@ -19,8 +19,46 @@
         <a class=brand href=/>XDATA Web</a>
         <ul class=nav>
             <li class=active><a href=#>Flickr Maps</a>
-            <li><a href=# id=testpopover rel=popover data-toggle=popover data-placement=bottom data-title="Flickr Metadata Maps" data-content="Explore the locations where millions of Flickr photos were taken"><i class=icon-info-sign></i> Info</a>
-            <li><a href=flickr-config.html target=_blank><i class=icon-cog></i> Config</a>
+            <li><a href=# rel=popover data-placement=bottom data-title="Flickr Metadata Maps" data-html=true data-content="Explore <i>the</i> locations where millions of Flickr photos were taken"><i class=icon-info-sign></i> Info</a>
+            <!--<li><a href=flickr-config.html target=_blank><i class=icon-cog></i> Config</a>-->
+            <li><a href=# rel=popover data-placement=bottom data-title="Configure this app" data-html=true data-content='<table>
+    <tr>
+        <th>Option</th>
+        <th>Current Value</th>
+        <th>New value</th>
+    </tr>
+
+    <tr>
+        <td>MongoDB Server</td>
+        <td id=mongodb-server-current></td>
+        <td>
+            <input id=mongodb-server type=text>
+        </td>
+    </tr>
+
+    <tr>
+        <td>MongoDB Database</td>
+        <td id=mongodb-db-current></td>
+        <td>
+            <input id=mongodb-db type=text>
+        </td>
+    </tr>
+
+    <tr>
+        <td>MongoDB Collection</td>
+        <td id=mongodb-coll-current></td>
+        <td>
+            <input id=mongodb-coll type=text>
+        </td>
+    </tr>
+
+    <tr>
+        <td colspan=3>
+            <input type=button value="Save Configuration" onclick="update();">
+            <input type=button value="Close" onclick="window.close();">
+        </td>
+    </tr>
+</table>'><i class=icon-cog></i> Config</a>
         </ul>
     </div>
 </div>

@@ -241,7 +241,7 @@ window.onload = function () {
         redraw;
 
     // Enable the popover.
-    $("#testpopover").popover();
+    $("[rel=popover]").popover();
 
     // TODO(choudhury): Probably the GMap prototype extension stuff should all
     // go in its own .js file.
