@@ -189,6 +189,8 @@ set(SOURCES
     web/apps/Phylotree/heliconia.json
     web/apps/Phylotree/index.html
     web/apps/Phylotree/phylotree.js
+    web/img/glyphicons-halflings-white.png
+    web/img/glyphicons-halflings.png
     web/lib/vgd3-template.js.txt
     web/css/xdataweb.css
     web/css/bootstrap.css

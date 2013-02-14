@@ -1,4 +1,4 @@
-/*jslint browser: true */
+/*jslint browser: true, unparam: true*/
 
 /*globals d3 */
 
@@ -51,7 +51,7 @@ function visCrossCat(spec) {
         }
 
         function mouseover(p) {
-            d3.selectAll(".row text.row-text").classed("active", function (d, i) { return d === rows[p.i]; });
+            d3.selectAll(".row text.row-text").classed("active", function (d) { return d === rows[p.i]; });
             d3.selectAll(".column text").classed("active", function (d, i) { return i === p.j; });
             d3.selectAll(".cell").attr("opacity", function (d) {
                 var opacity = cellOpacity(d);
@@ -131,8 +131,7 @@ function visCrossCat(spec) {
     }
 
     function updateData(columnOrder, rowOrder, columnPartitions, rowPartitions) {
-        var cell,
-            column,
+        var column,
             columnName,
             columnPermuteInverted,
             rowName,
@@ -285,8 +284,7 @@ function visCrossCat(spec) {
 (function () {
     "use strict";
     d3.json("data/animals_data.json", function (data) {
-        var curIndex = 0,
-            i,
+        var i,
             ids,
             j,
             matrix,
@@ -331,14 +329,14 @@ function visCrossCat(spec) {
 
         d3.select("#time").on("change", function () {
             playing = false;
-            d3.select("#play").text("▶");
+            d3.select("#play i").attr("class", "icon-play icon-white");
             clearTimeout(timerId);
             vis.update(this.value);
         });
 
         d3.select("#play").on("click", function () {
             playing = !playing;
-            d3.select(this).text(playing ? "❚❚" : "▶");
+            d3.select("#play i").attr("class", (playing ? "icon-pause" : "icon-play") + " icon-white");
             if (playing) {
                 timerId = setInterval(updater, 5000);
             } else {
