@@ -44,7 +44,6 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/web/apps/VegaLab/vegalab.js
     ${CMAKE_SOURCE_DIR}/web/apps/ssci/ssci.js
     ${CMAKE_SOURCE_DIR}/web/apps/flickr/flickr.js
-    ${CMAKE_SOURCE_DIR}/web/apps/flickr/flickr-config.js
     ${CMAKE_SOURCE_DIR}/web/apps/mapping/mapping.js
 )
 
@@ -81,8 +80,6 @@ set(SOURCES
     web/apps/DataTwiddle/index.html
     web/apps/flickr/flickr.js
     web/apps/flickr/index.html
-    web/apps/flickr/flickr-config.js
-    web/apps/flickr/flickr-config.html
     web/apps/flickr/config.html
     web/apps/mapping/cities.json
     web/apps/mapping/dots.json
