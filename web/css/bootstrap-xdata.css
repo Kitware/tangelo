@@ -62,3 +62,9 @@ input[type="file"] {
 .popover {
     max-width: none;
 }
+
+/* This allows for emulating a clickable link without affecting the browser
+ * history (use for popovers, etc. */
+.pointer {
+    cursor: pointer;
+}
