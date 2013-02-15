@@ -5,10 +5,10 @@
 function visCrossCat(spec) {
     "use strict";
     var that,
-        matrix = spec.matrix,
-        margin = spec.margin || {top: 200, right: 800, bottom: 200, left: 150},
-        color = spec.color || d3.scale.category20().domain([1, 0]),
-        cellSize = spec.cellSize || 15,
+        matrix,
+        margin,
+        color,
+        cellSize,
         rows,
         columns,
         views,
@@ -256,9 +256,14 @@ function visCrossCat(spec) {
             firstColumnInView.push(-1);
         }
 
-        // Update the visualization
         updateVisualization();
     }
+
+    // Set up defaults
+    matrix = spec.matrix;
+    margin = spec.margin || {top: 200, right: 800, bottom: 200, left: 150};
+    color = spec.color || d3.scale.category20().domain([1, 0]);
+    cellSize = spec.cellSize || 15;
 
     svg = d3.select("#svg")
         .append("g")
@@ -281,14 +286,14 @@ function visCrossCat(spec) {
     return that;
 }
 
-(function () {
+window.onload = function () {
     "use strict";
     d3.json("data/animals_data.json", function (data) {
         var i,
             ids,
             j,
             matrix,
-            playing = true,
+            playing,
             timerId,
             vis;
 
@@ -313,6 +318,8 @@ function visCrossCat(spec) {
             "73524568352_11"
         ];
 
+        playing = true;
+
         matrix = [];
         for (i = 0; i < data.length; i = i + 1) {
             for (j = 0; j < data[i].length; j = j + 1) {
@@ -329,14 +336,14 @@ function visCrossCat(spec) {
 
         d3.select("#time").on("change", function () {
             playing = false;
-            d3.select("#play i").attr("class", "icon-play icon-white");
+            d3.select("#play i").classed("icon-play", true).classed("icon-pause", false);
             clearTimeout(timerId);
             vis.update(this.value);
         });
 
         d3.select("#play").on("click", function () {
             playing = !playing;
-            d3.select("#play i").attr("class", (playing ? "icon-pause" : "icon-play") + " icon-white");
+            d3.select("#play i").classed("icon-pause", playing).classed("icon-play", !playing);
             if (playing) {
                 timerId = setInterval(updater, 5000);
             } else {
@@ -344,8 +351,9 @@ function visCrossCat(spec) {
             }
         });
 
+        vis.update(d3.select("#time").node().value);
         if (playing) {
             timerId = setInterval(updater, 5000);
         }
     });
-}());
+};
