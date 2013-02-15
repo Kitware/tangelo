@@ -58,3 +58,9 @@ input[type="file"] {
     background: #000;
     opacity: 0.3;
 }
+
+.btn [class^="icon-"],
+.btn [class*=" icon-"] {
+    margin-top: 3px;
+}
+
