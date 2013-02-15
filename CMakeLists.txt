@@ -100,6 +100,55 @@ set(SOURCES
     web/apps/ssci/index.html
     web/apps/ssci/ssci.js
     web/apps/ssci/ssci.json
+    web/apps/ssci/data/animals_data.json
+    web/apps/ssci/data/Cc_73524567995_00.json
+    web/apps/ssci/data/Cc_73524568270_01.json
+    web/apps/ssci/data/Cc_73524568278_02.json
+    web/apps/ssci/data/Cc_73524568287_03.json
+    web/apps/ssci/data/Cc_73524568298_04.json
+    web/apps/ssci/data/Cc_73524568305_05.json
+    web/apps/ssci/data/Cc_73524568313_06.json
+    web/apps/ssci/data/Cc_73524568322_07.json
+    web/apps/ssci/data/Cc_73524568328_08.json
+    web/apps/ssci/data/Cc_73524568338_09.json
+    web/apps/ssci/data/Cc_73524568345_10.json
+    web/apps/ssci/data/Cc_73524568352_11.json
+    web/apps/ssci/data/Cr_73524567995_00.json
+    web/apps/ssci/data/Cr_73524568270_01.json
+    web/apps/ssci/data/Cr_73524568278_02.json
+    web/apps/ssci/data/Cr_73524568287_03.json
+    web/apps/ssci/data/Cr_73524568298_04.json
+    web/apps/ssci/data/Cr_73524568305_05.json
+    web/apps/ssci/data/Cr_73524568313_06.json
+    web/apps/ssci/data/Cr_73524568322_07.json
+    web/apps/ssci/data/Cr_73524568328_08.json
+    web/apps/ssci/data/Cr_73524568338_09.json
+    web/apps/ssci/data/Cr_73524568345_10.json
+    web/apps/ssci/data/Cr_73524568352_11.json
+    web/apps/ssci/data/XD_73524567995_00.json
+    web/apps/ssci/data/XD_73524568270_01.json
+    web/apps/ssci/data/XD_73524568278_02.json
+    web/apps/ssci/data/XD_73524568287_03.json
+    web/apps/ssci/data/XD_73524568298_04.json
+    web/apps/ssci/data/XD_73524568305_05.json
+    web/apps/ssci/data/XD_73524568313_06.json
+    web/apps/ssci/data/XD_73524568322_07.json
+    web/apps/ssci/data/XD_73524568328_08.json
+    web/apps/ssci/data/XD_73524568338_09.json
+    web/apps/ssci/data/XD_73524568345_10.json
+    web/apps/ssci/data/XD_73524568352_11.json
+    web/apps/ssci/data/XL_73524567995_00.json
+    web/apps/ssci/data/XL_73524568270_01.json
+    web/apps/ssci/data/XL_73524568278_02.json
+    web/apps/ssci/data/XL_73524568287_03.json
+    web/apps/ssci/data/XL_73524568298_04.json
+    web/apps/ssci/data/XL_73524568305_05.json
+    web/apps/ssci/data/XL_73524568313_06.json
+    web/apps/ssci/data/XL_73524568322_07.json
+    web/apps/ssci/data/XL_73524568328_08.json
+    web/apps/ssci/data/XL_73524568338_09.json
+    web/apps/ssci/data/XL_73524568345_10.json
+    web/apps/ssci/data/XL_73524568352_11.json
     web/apps/stats/index.html
     web/apps/stats/stats.js
     web/apps/VegaLab/data/7zip.png
@@ -140,6 +189,8 @@ set(SOURCES
     web/apps/Phylotree/heliconia.json
     web/apps/Phylotree/index.html
     web/apps/Phylotree/phylotree.js
+    web/img/glyphicons-halflings-white.png
+    web/img/glyphicons-halflings.png
     web/lib/vgd3-template.js.txt
     web/css/xdataweb.css
     web/css/bootstrap.css
