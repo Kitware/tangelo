@@ -7,10 +7,17 @@
 .active {
   fill: red
 }
+.gutter {
+    position: fixed;
+    bottom: 0;
+    background: rgba(200, 200, 200, 0.5);
+    padding: 20px;
+    width: 100%;
+}
 </style>
 <script src=http://d3js.org/d3.v2.min.js?2.8.1></script>
 
-<div class=container>
+<div class=container style="display:none">
     <div class=masthead>
         <a href="/"><h3 class=muted>XDATA Web</h3></a>
     </div>
@@ -36,6 +43,9 @@
 
     <hr>
 
+</div>
+
+<div class="container gutter">
     <div class="row">
         <div class="span1">
             <select id="time" class="span1"></select>
