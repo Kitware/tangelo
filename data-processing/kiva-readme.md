@@ -11,13 +11,13 @@ latitude and longitude using the GeoNames dataset.
 * Load the geospatial data into mongo, replacing `your-host`:
 
     ```
-    mongoimport -h your-host -d xdata -c geonames --type tsv --file allCountries.txt --fieldFile fieldnames --drop
+    mongoimport -h your-host -d xdata -c geonames --type tsv --file allCountries.txt --fieldFile geo-fieldnames.txt --drop
     ```
 
 * Run a script to add indices to the data and split out an array of alternate names:
 
     ```
-    mongo --host your-host xdata import-geo.js
+    mongo --host your-host xdata geo-import.js
     ```
 
 * Run the Python scripts which will generate CSV files containing
