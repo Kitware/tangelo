@@ -4,8 +4,11 @@
 <link href=/css/bootstrap.css rel=stylesheet type=text/css>
 <link href=/css/bootstrap-xdata.css rel=stylesheet type=text/css>
 <style>
+text {
+    opacity: 0.25;
+}
 .active {
-  fill: red
+    opacity: 1.0;
 }
 .gutter {
     position: fixed;
@@ -16,6 +19,7 @@
 }
 </style>
 <script src=http://d3js.org/d3.v2.min.js?2.8.1></script>
+<script src=http://code.jquery.com/jquery-1.8.2.min.js></script>
 
 <div class=container style="display:none">
     <div class=masthead>
@@ -50,8 +54,22 @@
         <div class="span1">
             <select id="time" class="span1"></select>
         </div>
+        <a id="play" class="btn btn-success"><i class="icon-pause icon-white"></i></a>
         <div class="btn-group">
-            <a id="play" class="btn btn-success"><i class="icon-pause icon-white"></i></a>
+            <a id="prev" class="btn btn-success" title="Previous View"><i class="icon-arrow-left icon-white"></i></a>
+            <a id="next" class="btn btn-success" title="Next View"><i class="icon-arrow-right icon-white"></i></a>
+        </div>
+        <div class="btn-group">
+            <a id="zoom-in" class="btn btn-success" title="Zoom In"><i class="icon-zoom-in icon-white"></i></a>
+            <a id="zoom-out" class="btn btn-success" title="Zoom Out"><i class="icon-zoom-out icon-white"></i></a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="span12">
+            <form class="form-inline">
+                <input type="text" class="input" id="row-search" placeholder="Row search">
+                <input type="text" class="input" id="column-search" placeholder="Column search">
+            </form>
         </div>
     </div>
 </div>
