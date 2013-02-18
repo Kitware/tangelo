@@ -1,6 +1,6 @@
 /*jslint browser: true, unparam: true*/
 
-/*globals d3 */
+/*globals $, d3 */
 
 function visCrossCat(spec) {
     "use strict";
@@ -17,38 +17,114 @@ function visCrossCat(spec) {
         partitions,
         numPartitions,
         firstColumnInView,
-        svg;
+        svg,
+        transitionDuration,
+        zoom,
+        view,
+        rowFilter,
+        columnFilter;
+
+    function columnPosition(j) {
+        j = Math.max(0, j);
+        return columnPermute[j] * cellSize + 115 * views[j];
+    }
+
+    function rowPosition(i, j) {
+        j = Math.max(0, j);
+        var numParts = numPartitions[views[j]],
+            partOffset;
+        if (numParts === 1) {
+            partOffset = 100;
+        } else {
+            partOffset = 100 / (numParts - 1) * partitions[views[j]][i];
+        }
+        return rowPermute[views[j]][i] * cellSize + partOffset;
+    }
+
+    function updateTransform(dur) {
+        var extent,
+            gap,
+            trans,
+            offset,
+            viewWidth,
+            windowWidth,
+            viewMinX,
+            viewMaxX;
+
+        if (rows === undefined) {
+            return;
+        }
+
+        // Clamp view to a valid range in case we lost a view
+        view = Math.max(0, Math.min(view, partitions.length - 1));
+
+        extent = {x: 0, y: 0};
+        offset = {x: 0, y: 0};
+        extent.x = cellSize * columns.length + 115 * partitions.length;
+        extent.y = cellSize * rows.length + 100 + margin.top;
+        extent.x *= zoom;
+        extent.y *= zoom;
+
+        windowWidth = $(window).width();
+        if (extent.x < windowWidth) {
+            offset.x = (windowWidth - extent.x) / 2 + zoom * 115;
+        } else {
+            if (view < partitions.length - 1) {
+                viewMaxX = zoom * (columnPosition(firstColumnInView[view + 1]) - 115);
+            } else {
+                viewMaxX = extent.x;
+            }
+            viewMinX = zoom * (columnPosition(firstColumnInView[view]) - 115);
+            viewWidth = viewMaxX - viewMinX;
+            gap = (windowWidth - viewWidth) / 2;
+            offset.x = gap - viewMinX;
+        }
+        offset.y = Math.max(0, ($(window).height() - $(".gutter").height() - extent.y) / 2);
+        offset.y += zoom * margin.top;
+
+        trans = d3.select("#transform");
+        if (dur !== undefined) {
+            trans = trans.transition().duration(dur);
+        }
+        trans.attr("transform", "translate(" + offset.x + "," + offset.y + "),scale(" + zoom + ")");
+    }
+
+    function selected(d) {
+        var rowSelected,
+            columnSelected;
+        rowSelected = !rowFilter || rows[d.i].indexOf(rowFilter) >= 0;
+        columnSelected = !columnFilter || columns[d.j].indexOf(columnFilter) >= 0;
+        return rowSelected && columnSelected;
+    }
+
+    function cellOpacity(d) {
+        var opacity = 1;
+        if (d.value === 0) {
+            opacity = 0.5;
+        }
+        return opacity;
+    }
+
+    function selectedOpacity(d) {
+        var opacity = cellOpacity(d);
+        if (!selected(d)) {
+            opacity *= 0.1;
+        }
+        return opacity;
+    }
+
+    function updateSelection() {
+        d3.selectAll(".row text.row-text").classed("active", function (d) { return !rowFilter || d.indexOf(rowFilter) >= 0; });
+        d3.selectAll(".column text").classed("active", function (d, i) { return !columnFilter || columns[i].indexOf(columnFilter) >= 0; });
+        d3.selectAll(".cell").attr("opacity", selectedOpacity);
+    }
 
     function updateVisualization() {
         var cell,
             column,
+            delayFactor,
             row,
             updateCellRow;
-
-        function columnPosition(j) {
-            j = Math.max(0, j);
-            return columnPermute[j] * cellSize + 115 * views[j];
-        }
-
-        function rowPosition(i, j) {
-            j = Math.max(0, j);
-            var numParts = numPartitions[views[j]],
-                partOffset;
-            if (numParts === 1) {
-                partOffset = 100;
-            } else {
-                partOffset = 100 / (numParts - 1) * partitions[views[j]][i];
-            }
-            return rowPermute[views[j]][i] * cellSize + partOffset;
-        }
-
-        function cellOpacity(d) {
-            var opacity = 1;
-            if (d.value === 0) {
-                opacity = 0.5;
-            }
-            return opacity;
-        }
 
         function mouseover(p) {
             d3.selectAll(".row text.row-text").classed("active", function (d) { return d === rows[p.i]; });
@@ -56,16 +132,14 @@ function visCrossCat(spec) {
             d3.selectAll(".cell").attr("opacity", function (d) {
                 var opacity = cellOpacity(d);
                 if (d.i !== p.i) {
-                    opacity *= 0.25;
+                    opacity *= 0.1;
                 }
                 return opacity;
             });
         }
 
         function mouseout() {
-            d3.selectAll("text").classed("active", false);
-            d3.selectAll(".cell").classed("active", false);
-            d3.selectAll(".cell").attr("opacity", cellOpacity);
+            updateSelection();
         }
 
         updateCellRow = function (partition, viewIndex) {
@@ -81,10 +155,12 @@ function visCrossCat(spec) {
                 .attr("text-anchor", "end")
                 .text(function (d, i) { return d; });
             rowText.style("visibility", col < 0 ? "hidden" : "visible");
-            rowText.transition().duration(1000)
-                .delay(function (d) { return columnPosition(col); })
+            rowText.transition().duration(transitionDuration)
+                .delay(function (d) { return delayFactor * columnPosition(col); })
                 .attr("transform", function (d, i) { return "translate(" + columnPosition(col) + "," + rowPosition(i, col) + ")"; });
         };
+
+        delayFactor = 0.5 * transitionDuration / (cellSize * columns.length + 115 * partitions.length);
 
         column = svg.selectAll(".column")
             .data(columns);
@@ -97,8 +173,8 @@ function visCrossCat(spec) {
             .attr("dy", ".32em")
             .attr("text-anchor", "start")
             .text(function (d) { return d; });
-        column.transition().duration(1000)
-            .delay(function (d, i) { return columnPosition(i); })
+        column.transition().duration(transitionDuration)
+            .delay(function (d, i) { return delayFactor * columnPosition(i); })
             .attr("transform", function (d, i) { return "translate(" + columnPosition(i) + ")rotate(-90)"; });
 
         row = svg.selectAll(".row")
@@ -107,7 +183,7 @@ function visCrossCat(spec) {
             .attr("class", "row")
             .each(updateCellRow);
         row.exit().remove();
-        row.transition().duration(1000)
+        row.transition().duration(transitionDuration)
             .each(updateCellRow);
 
         cell = svg.selectAll(".cell")
@@ -116,18 +192,20 @@ function visCrossCat(spec) {
             .attr("class", "cell")
             .attr("x", function (d) { return columnPosition(d.j); })
             .attr("y", function (d) { return rowPosition(d.i, d.j); })
-            .attr("width", cellSize + 1)
-            .attr("height", cellSize + 1)
+            .attr("width", cellSize)
+            .attr("height", cellSize)
             .attr("opacity", cellOpacity)
             .style("fill", function (d) { return color(d.value); })
             .on("mouseover", mouseover)
             .on("mouseout", mouseout)
             .append("title")
             .text(function (d) { return rows[d.i] + " " + columns[d.j] + "? " + (d.value ? "YES" : "NO"); });
-        cell.transition().duration(1000)
-            .delay(function (d) { return columnPosition(d.j); })
+        cell.transition().duration(transitionDuration)
+            .delay(function (d) { return delayFactor * columnPosition(d.j); })
             .attr("x", function (d) { return columnPosition(d.j); })
             .attr("y", function (d) { return rowPosition(d.i, d.j); });
+
+        updateTransform(transitionDuration);
     }
 
     function updateData(columnOrder, rowOrder, columnPartitions, rowPartitions) {
@@ -249,7 +327,7 @@ function visCrossCat(spec) {
         firstColumnInView = [];
         for (column = 0; column < views.length; column = column + 1) {
             while (views[columnPermuteInverted[column]] >= firstColumnInView.length) {
-                firstColumnInView.push(columnPermuteInverted[column]);
+                firstColumnInView[views[columnPermuteInverted[column]]] = columnPermuteInverted[column];
             }
         }
         while (firstColumnInView.length < partitions.length) {
@@ -257,17 +335,21 @@ function visCrossCat(spec) {
         }
 
         updateVisualization();
+        updateSelection();
     }
 
     // Set up defaults
     matrix = spec.matrix;
-    margin = spec.margin || {top: 200, right: 800, bottom: 200, left: 150};
+    margin = spec.margin || {top: 150, right: 800, bottom: 200, left: 150};
     color = spec.color || d3.scale.category20().domain([1, 0]);
-    cellSize = spec.cellSize || 15;
+    cellSize = spec.cellSize || 20;
+    zoom = spec.zoom || 0.3;
+    transitionDuration = spec.transitionDuration || 1000;
+    view = 0;
 
-    svg = d3.select("#svg")
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    svg = d3.select("#svg").append("g").attr("id", "transform");
+    updateTransform();
+    $(window).resize(updateTransform);
 
     that = {};
 
@@ -281,6 +363,41 @@ function visCrossCat(spec) {
                 });
             });
         });
+    };
+
+    that.zoom = function (level) {
+        if (level === undefined) {
+            return zoom;
+        }
+        zoom = level;
+        updateTransform(1000);
+    };
+
+    that.view = function (index) {
+        if (index === undefined) {
+            return view;
+        }
+        view = index;
+        if (partitions !== undefined) {
+            view = Math.max(0, Math.min(view, partitions.length - 1));
+        }
+        updateTransform(1000);
+    };
+
+    that.rowFilter = function (text) {
+        if (text === undefined) {
+            return rowFilter;
+        }
+        rowFilter = text;
+        updateSelection();
+    };
+
+    that.columnFilter = function (text) {
+        if (text === undefined) {
+            return columnFilter;
+        }
+        columnFilter = text;
+        updateSelection();
     };
 
     return that;
@@ -351,9 +468,33 @@ window.onload = function () {
             }
         });
 
+        d3.select("#zoom-in").on("click", function () {
+            vis.zoom(vis.zoom() * 1.5);
+        });
+
+        d3.select("#zoom-out").on("click", function () {
+            vis.zoom(vis.zoom() / 1.5);
+        });
+
+        d3.select("#prev").on("click", function () {
+            vis.view(vis.view() - 1);
+        });
+
+        d3.select("#next").on("click", function () {
+            vis.view(vis.view() + 1);
+        });
+
+        d3.select("#row-search").on("keyup", function () {
+            vis.rowFilter(this.value);
+        });
+
+        d3.select("#column-search").on("keyup", function () {
+            vis.columnFilter(this.value);
+        });
+
         vis.update(d3.select("#time").node().value);
         if (playing) {
-            timerId = setInterval(updater, 5000);
+            timerId = setInterval(updater, 2000);
         }
     });
 };
