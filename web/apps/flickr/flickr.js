@@ -791,19 +791,25 @@ window.onload = function () {
                     .duration(500)
                     .style("height", iconheight);
 
+                button.classed("icon-chevron-down", false)
+                    .classed("icon-chevron-up", true);
+
                 state = 'collapsed';
             } else if (state === 'collapsed') {
                 div.transition()
                     .duration(500)
                     .style("height", divheight);
 
+                button.classed("icon-chevron-down", true)
+                    .classed("icon-chevron-up", false);
+
                 state = 'uncollapsed';
             } else {
                 throw "Illegal state: " + state;
             }
         };
-    }("#control-panel", "#collapse-panel"));
+    }("#control-panel", "#collapse-icon"));
 
-    d3.select("#collapse-panel")
+    d3.select("#collapse-icon")
         .on("click", panel_toggle);
 };
