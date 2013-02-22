@@ -29,7 +29,7 @@ flickr.configPageletHTML = function () {
         .replace(/%SERVER%/g, config.server)
         .replace(/%DATABASE%/g, config.db)
         .replace(/%COLLECTION%/g, config.coll);
-}
+};
 
 function updateConfig() {
     "use strict";
