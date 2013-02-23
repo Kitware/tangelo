@@ -624,14 +624,15 @@ window.onload = function () {
         };
     }());
 
+    // Whenever the slider changes or moves, update the display showing the
+    // current time range; whenever the slider changes (i.e., stops moving),
+    // also perform a new database lookup (to get the new set of records based
+    // on the time range).
     flickr.timeslider = xdw.slider.rangeSlider(d3.select("#time-slider").node(), {
-        onchange: displayFunc,
+        onchange: function (low, high) { displayFunc(low, high); retrieveData(); },
         onslide: displayFunc
     });
     flickr.timeslider.initialize();
-
-    // Attach an action to the "data" button.
-    d3.select("#data-button").node().onclick = retrieveData;
 
     // Some options for initializing the google map.
     //
@@ -684,6 +685,11 @@ window.onload = function () {
     flickr.opacityslider.setMax(100);
     flickr.opacityslider.setValue(100);
     flickr.opacityslider.initialize();
+
+    // The database lookup should happen again when the hashtag list or record
+    // count limit field changes.
+    d3.select("#hashtags").node().onchange = retrieveData;
+    d3.select("#record-limit").node().onchange = retrieveData;
 
     // Attach actions to the zoom and unzoom buttons.
     zoomfunc = (function () {
