@@ -112,6 +112,10 @@ function getMinMaxDates(zoom) {
                             if(zoom){
                                 zoom(flickr.timeslider);
                             }
+
+                            // Finally, retrieve the initial data to bootstrap
+                            // the application.
+                            retrieveData();
                         }
                     }
                 });
