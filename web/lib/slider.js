@@ -46,8 +46,8 @@
 
         // Capture the user-supplied callbacks (missing ones will be captures as
         // "undefined").
-        onchange = callbacks.onchange;
-        onslide = callbacks.onslide;
+        onchange = callbacks && callbacks.onchange;
+        onslide = callbacks && callbacks.onslide;
 
         // Set up a config that uses the user-supplied callbacks.
         config = {
@@ -119,8 +119,8 @@
 
         // Capture the two callbacks (if these were not specified, they will be
         // captured as "undefined").
-        onchange = callbacks.onchange;
-        onslide = callbacks.onslide;
+        onchange = callbacks && callbacks.onchange;
+        onslide = callbacks && callbacks.onslide;
 
         // Set up a basic configuration that simply calls the user-supplied
         // callbacks.
