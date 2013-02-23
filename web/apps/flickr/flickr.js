@@ -510,12 +510,7 @@ window.onload = function () {
         }());
 
         // Get the opacity value.
-        opacity = parseFloat(d3.select("#opacity").node().value);
-        if (isNaN(opacity) || opacity > 1.0) {
-            opacity = 1.0;
-        } else if (opacity < 0.0) {
-            opacity = 0.0;
-        }
+        opacity = flickr.opacityslider.getValue() / 100;
 
         // Compute a data join with the current list of marker locations, using
         // the MongoDB unique id value as the key function.
@@ -668,8 +663,14 @@ window.onload = function () {
         buttons[i].onclick = redraw;
     }
 
-    // Direct the opacity control to redraw.
-    document.getElementById("opacity").onchange = redraw;
+    // Create a regular slider for setting the opacity and direct it to redraw
+    // when it changes (but not on every slide action - that would be bulky and
+    // too slow; the UI doesn't demand that level of responsivity).
+    flickr.opacityslider = xdw.slider.slider(d3.select("#opacity").node(), { onchange: redraw });
+    flickr.opacityslider.setMin(0);
+    flickr.opacityslider.setMax(100);
+    flickr.opacityslider.setValue(100);
+    flickr.opacityslider.initialize();
 
     // Direct the size control to redraw.
     document.getElementById("size").onchange = redraw;
