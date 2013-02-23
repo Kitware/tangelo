@@ -797,7 +797,13 @@ window.onload = function () {
         state = 'uncollapsed'
 
         // Save the original height of the panel.
-        divheight = div.style("height");
+        //
+        // TODO(choudhury): when the panel is collapsed and then uncollapsed, it
+        // is too short for some reason.  Adding 50 pixels on makes things so
+        // all the panel content can be seen, but it would be better to figure
+        // out why this happens.
+        divheight = +div.style("height").slice(0,-2) + 50 + "px";
+        console.log(divheight);
 
         // The glyphicon halfings are around 22.875 pixels tall.
         iconheight = "23px";
