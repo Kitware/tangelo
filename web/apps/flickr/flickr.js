@@ -673,6 +673,9 @@ window.onload = function () {
         buttons[i].onclick = redraw;
     }
 
+    // Direct the size control to redraw.
+    document.getElementById("size").onchange = redraw;
+
     // Create a regular slider for setting the opacity and direct it to redraw
     // when it changes (but not on every slide action - that would be bulky and
     // too slow; the UI doesn't demand that level of responsivity).
@@ -681,9 +684,6 @@ window.onload = function () {
     flickr.opacityslider.setMax(100);
     flickr.opacityslider.setValue(100);
     flickr.opacityslider.initialize();
-
-    // Direct the size control to redraw.
-    document.getElementById("size").onchange = redraw;
 
     // Attach actions to the zoom and unzoom buttons.
     zoomfunc = (function () {
