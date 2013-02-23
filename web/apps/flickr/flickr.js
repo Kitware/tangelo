@@ -52,7 +52,7 @@ function updateConfig() {
     $("#config-popover").popover('hide');
 }
 
-function getMinMaxDates() {
+function getMinMaxDates(zoom) {
     "use strict";
 
     var mongo,
@@ -106,6 +106,12 @@ function getMinMaxDates() {
                             // This time value makes a nice time window for a
                             // demo.
                             flickr.timeslider.setLowValue(july30);
+
+                            // Go ahead and zoom the slider to this range, if
+                            // requested.
+                            if(zoom){
+                                zoom(flickr.timeslider);
+                            }
                         }
                     }
                 });
@@ -675,10 +681,6 @@ window.onload = function () {
     // Direct the size control to redraw.
     document.getElementById("size").onchange = redraw;
 
-    // Get the earliest and latest times in the database, to create a suitable
-    // range for the time slider.
-    getMinMaxDates();
-
     // Attach actions to the zoom and unzoom buttons.
     zoomfunc = (function () {
         var zoom,
@@ -747,6 +749,11 @@ window.onload = function () {
     d3.select("#unzoom")
         .data([flickr.timeslider])
         .on('click', zoomfunc.unzoomer);
+
+    // Get the earliest and latest times in the database, to create a suitable
+    // range for the time slider.  Pass in the "zoomer" function so the initial
+    // range can be properly zoomed to begin with.
+    getMinMaxDates(zoomfunc.zoomer);
 
     // Make a spinner out of the opacity control.
     //$("#opacity").spinner();
