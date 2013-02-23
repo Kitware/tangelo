@@ -84,6 +84,12 @@
              */
             setMax: function (max) { config.max = max; s.slider(config); },
 
+            /** Sets the current slider value.
+             *
+             * @param {v} The new value.
+             */
+            setValue: function (v) { s.slider("value", v); },
+
             /** Returns the current slider value.
              *
              * @returns {number} The current slider value.
