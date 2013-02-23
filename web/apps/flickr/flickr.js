@@ -195,11 +195,12 @@ function retrieveData() {
     // Stitch all the queries together into a "superquery".
     query = {$and : [timequery, hashtagquery]};
 
-    // Issue the query to the mongo module.
+    // Enable the abort button and issue the query to the mongo module.
     mongo = flickr.getMongoDBInfo();
     panel = d3.select("#information")
                     .html("Querying database...");
-    $.ajax({
+    d3.select("#abort").classed("disabled", false);
+    flickr.currentAjax = $.ajax({
         type: 'POST',
         url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
         data: {
@@ -211,6 +212,12 @@ function retrieveData() {
         success: function (response) {
             var N,
                 data;
+
+            // Disable the abort button.
+            d3.select("#abort").classed("disabled", true);
+
+            // Remove the stored XHR object.
+            flickr.currentAjax = null;
 
             // Error check.
             if (response.error !== null) {
@@ -836,4 +843,18 @@ window.onload = function () {
 
     d3.select("#collapse-icon")
         .on("click", panel_toggle);
+
+    // Install the abort action on the button.
+    d3.select("#abort")
+        .on("click", function () {
+            // If there is a current ajax call in flight, abort it (it is theoretically possible that the abort button is clicked between the time it's activated, and the time an ajax call is sent).
+            console.log("abort!");
+            if(flickr.currentAjax){
+                flickr.currentAjax.abort();
+                flickr.currentAjax = null;
+            }
+
+            // Disable the button.
+            d3.select("#abort").classed("disabled", true);
+        });
 };
