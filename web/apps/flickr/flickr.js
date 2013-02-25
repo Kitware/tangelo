@@ -117,8 +117,10 @@ function getMinMaxDates(zoom) {
                             // the application.
                             retrieveData();
 
-                            // Re-enable callbacks on the slider.
-                            flickr.timeslider.enableCallbacks(true);
+                            // Add the 'retrieveData' behavior to the slider's
+                            // onchange callback (which starts out ONLY doing
+                            // the 'displayFunc' part).
+                            flickr.timeslider.setCallback('onchange', function (low, high) { displayFunc(low, high); retrieveData(); });
                         }
                     }
                 });
@@ -635,20 +637,17 @@ window.onload = function () {
     }());
 
     // Whenever the slider changes or moves, update the display showing the
-    // current time range; whenever the slider changes (i.e., stops moving),
-    // also perform a new database lookup (to get the new set of records based
-    // on the time range).
+    // current time range.  Eventually, the "onchange" callback (which fires
+    // when the user releases the mouse button when making a change to the
+    // slider position) will also trigger a database lookup, but at the moment
+    // we omit that functionality to avoid spurious database lookups as the
+    // engine puts the slider together and sets the positions of the sliders
+    // programmatically.
     flickr.timeslider = xdw.slider.rangeSlider(d3.select("#time-slider").node(), {
-        onchange: function (low, high) { displayFunc(low, high); retrieveData(); },
+        onchange: displayFunc,
         onslide: displayFunc
     });
 
-    // Keep the callbacks disabled for now, until the initial dataset is loaded
-    // into the application.  This is because under normal circumstances,
-    // setting the initial state of the slider will cause database lookups to
-    // happen, but we want to prevent that until AFTER the initialization is
-    // done.
-    flickr.timeslider.enableCallbacks(false);
     flickr.timeslider.initialize();
 
     // Some options for initializing the google map.
