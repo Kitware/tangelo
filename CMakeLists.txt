@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
-project(XDATA-Web)
+
+# This project doesn't require any of the standard compilers, hence the "NONE"
+# argument.
+project(XDATA-Web NONE)
 
 # Extend cmake module path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
