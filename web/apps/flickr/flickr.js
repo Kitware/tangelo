@@ -116,6 +116,9 @@ function getMinMaxDates(zoom) {
                             // Finally, retrieve the initial data to bootstrap
                             // the application.
                             retrieveData();
+
+                            // Re-enable callbacks on the slider.
+                            flickr.timeslider.enableCallbacks(true);
                         }
                     }
                 });
@@ -639,6 +642,13 @@ window.onload = function () {
         onchange: function (low, high) { displayFunc(low, high); retrieveData(); },
         onslide: displayFunc
     });
+
+    // Keep the callbacks disabled for now, until the initial dataset is loaded
+    // into the application.  This is because under normal circumstances,
+    // setting the initial state of the slider will cause database lookups to
+    // happen, but we want to prevent that until AFTER the initialization is
+    // done.
+    flickr.timeslider.enableCallbacks(false);
     flickr.timeslider.initialize();
 
     // Some options for initializing the google map.

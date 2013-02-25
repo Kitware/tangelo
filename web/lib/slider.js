@@ -118,6 +118,8 @@
         var slider,
             onchange,
             onslide,
+            callbackConfig,
+            dummyConfig,
             config;
 
         // Make the slider element into a jQuery selection.
@@ -130,7 +132,7 @@
 
         // Set up a basic configuration that simply calls the user-supplied
         // callbacks.
-        config = {
+        callbackConfig = {
             range: true,
 
             /** @ignore */
@@ -147,6 +149,14 @@
                 }
             }
         };
+
+        // Also create one that disables the callbacks.
+        dummyConfig = {
+            range: true,
+        };
+
+        // Default to using the callback config.
+        config = callbackConfig;
 
         // Return the user an interface object.
         /**
@@ -188,7 +198,14 @@
 
             /** Returns an array of two values indicating the current slider
              * values. */
-            getValue: function () { return slider.slider("values"); }
+            getValue: function () { return slider.slider("values"); },
+
+            /** Enable/disable the installed callbacks. */
+            enableCallbacks: function (on) {
+                config = on ? callbackConfig : dummyConfig;
+                slider.slider(config);
+            }
+
         };
     };
 }());
