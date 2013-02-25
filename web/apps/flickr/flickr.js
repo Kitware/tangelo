@@ -806,10 +806,10 @@ window.onload = function () {
         // Save the original height of the panel.
         //
         // TODO(choudhury): when the panel is collapsed and then uncollapsed, it
-        // is too short for some reason.  Adding 50 pixels on makes things so
-        // all the panel content can be seen, but it would be better to figure
-        // out why this happens.
-        divheight = +div.style("height").slice(0,-2) + 50 + "px";
+        // is too short for some reason.  Adding 40 pixels makes things so all
+        // the panel content can be seen, but it would be better to figure out
+        // why this happens.
+        divheight = +div.style("height").slice(0,-2) + 40 + "px";
         console.log(divheight);
 
         // The glyphicon halfings are around 22.875 pixels tall.
@@ -847,11 +847,16 @@ window.onload = function () {
     // Install the abort action on the button.
     d3.select("#abort")
         .on("click", function () {
-            // If there is a current ajax call in flight, abort it (it is theoretically possible that the abort button is clicked between the time it's activated, and the time an ajax call is sent).
-            console.log("abort!");
+            // If there is a current ajax call in flight, abort it (it is
+            // theoretically possible that the abort button is clicked between
+            // the time it's activated, and the time an ajax call is sent).
             if(flickr.currentAjax){
                 flickr.currentAjax.abort();
                 flickr.currentAjax = null;
+
+                // Place a message in the information div.
+                d3.select("#information")
+                    .html("DB lookup aborted");
             }
 
             // Disable the button.

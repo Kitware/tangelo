@@ -38,73 +38,70 @@
 
 <div id=map style="width:100%;height:100%"></div>
 
-<div id=control-panel class=container style="position:fixed; bottom:0px; width:100%; background:white; opacity:0.8;">
-    <div class=row>
-        <div class="span12 centered">
-            <i id=collapse-icon class="icon-chevron-down pointer"></i>
-        </div>
-    </div>
-
-    <div class=row>
-        <div class=span3>
-            <h4>Time filter</h4>
-            <div id="time-slider"></div>
-            <div class=code id="low"></div>
-            <div class=code id="high"></div>
-            <a class="btn btn-small" id=zoom>Zoom to range</a>
-            <a class="btn btn-small disabled" id=unzoom>Unzoom</a>
+<div id=control-panel style="position:fixed; bottom:0px; width:100%; background:rgba(255,255,255,0.7);">
+    <div class=container>
+        <div class=row>
+            <div class="span12 centered">
+                <i id=collapse-icon class="icon-chevron-down pointer"></i>
+            </div>
         </div>
 
-        <div class=span3>
-            <h4>Hashtag filter</h4>
-            <input id=hashtags type=text>
+        <div class=row>
+            <div class=span3>
+                <h4>Time filter</h4>
+                <div id="time-slider"></div>
+                <div class=code id="low"></div>
+                <div class=code id="high"></div>
+                <a class="btn btn-small" id=zoom>Zoom to range</a>
+                <a class="btn btn-small disabled" id=unzoom>Unzoom</a>
+            </div>
+
+            <div class=span3>
+                <h4>Hashtag filter</h4>
+                <input id=hashtags type=text>
+            </div>
+
+            <div class=span3>
+                <h4>Opacity</h4>
+                <div id=opacity class=span2></div>
+            </div>
+
+            <div class=span3>
+                <a id=abort class="btn btn-danger disabled">Abort</a>
+                <div id=information></div>
+            </div>
         </div>
 
-        <div class=span3>
-            <h4>Opacity</h4>
-            <div id=opacity class=span2></div>
-        </div>
+        <div class=row>
+            <div class=span3>
+                <h4>Day filter</h4>
+                <label class="checkbox">
+                    <input type=checkbox id=Sun> Sunday
+                </label>
 
-        <div class=span3>
-            <h4>Information</h4>
-            <div id=information></div>
-        </div>
+                <label class="checkbox">
+                    <input type=checkbox id=Mon> Monday
+                </label>
 
-        <div class=span3>
-            <a id=abort class="btn btn-danger disabled">Abort</a>
-        </div>
-    </div>
+                <label class="checkbox">
+                    <input type=checkbox id=Tue> Tuesday
+                </label>
 
-    <div class=row>
-        <div class=span3>
-            <h4>Day filter</h4>
-            <label class="checkbox">
-                <input type=checkbox id=Sun> Sunday
-            </label>
+                <label class="checkbox">
+                    <input type=checkbox id=Wed> Wednesday
+                </label>
 
-            <label class="checkbox">
-                <input type=checkbox id=Mon> Monday
-            </label>
+                <label class="checkbox">
+                    <input type=checkbox id=Thu> Thursday
+                </label>
 
-            <label class="checkbox">
-                <input type=checkbox id=Tue> Tuesday
-            </label>
+                <label class="checkbox">
+                    <input type=checkbox id=Fri> Friday
+                </label>
 
-            <label class="checkbox">
-                <input type=checkbox id=Wed> Wednesday
-            </label>
-
-            <label class="checkbox">
-                <input type=checkbox id=Thu> Thursday
-            </label>
-
-            <label class="checkbox">
-                <input type=checkbox id=Fri> Friday
-            </label>
-
-            <label class="checkbox">
-                <input type=checkbox id=Sat> Saturday
-            </label>
+                <label class="checkbox">
+                    <input type=checkbox id=Sat> Saturday
+                </label>
             </ul>
         </div>
 
@@ -156,4 +153,6 @@
             <input id=record-limit type=text value=1000>
         </div>
     </div>
+
+</div>
 </div>
