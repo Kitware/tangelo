@@ -46,6 +46,7 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/web/apps/flickr/flickr.js
     ${CMAKE_SOURCE_DIR}/web/apps/flickr/flickr-config.js
     ${CMAKE_SOURCE_DIR}/web/apps/mapping/mapping.js
+    ${CMAKE_SOURCE_DIR}/web/apps/noaa/climate.js
 )
 
 # These files should be uglified and concatenated.
@@ -77,6 +78,10 @@ set(SOURCES
     modules/NERmongo.py
     modules/NER.py
     modules/phylomongo.py
+    web/apps/noaa/index.html
+    web/apps/noaa/climate.js
+    web/apps/noaa/circularHeatChart.js
+    web/apps/noaa/sealevel.csv
     web/apps/DataTwiddle/DataTwiddle.js
     web/apps/DataTwiddle/index.html
     web/apps/flickr/flickr.js

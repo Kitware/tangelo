@@ -64,3 +64,10 @@ input[type="file"] {
     margin-top: 3px;
 }
 
+.gmap img {
+    max-width: none;
+}
+
+.gmap label {
+    width: auto; display:inline;
+}
