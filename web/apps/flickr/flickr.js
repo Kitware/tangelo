@@ -17,7 +17,42 @@ flickr.getMongoDBInfo = function () {
     };
 };
 
-function getMinMaxDates() {
+flickr.configPageletHTML = function () {
+    "use strict";
+    var config;
+
+    // Retrieve the configuration options.
+    config = flickr.getMongoDBInfo();
+
+    // Instantiate the template with the current config values.
+    return flickr.configHtml
+        .replace(/%SERVER%/g, config.server)
+        .replace(/%DATABASE%/g, config.db)
+        .replace(/%COLLECTION%/g, config.coll);
+};
+
+function updateConfig() {
+    "use strict";
+
+    var server,
+        db,
+        coll;
+
+    // Grab the elements.
+    server = document.getElementById("mongodb-server");
+    db = document.getElementById("mongodb-db");
+    coll = document.getElementById("mongodb-coll");
+
+    // Read the options into DOM storage.
+    localStorage.setItem('flickr:mongodb-server', server.value);
+    localStorage.setItem('flickr:mongodb-db', db.value);
+    localStorage.setItem('flickr:mongodb-coll', coll.value);
+
+    // Close the config popover.
+    $("#config-popover").popover('hide');
+}
+
+function getMinMaxDates(zoom) {
     "use strict";
 
     var mongo,
@@ -71,6 +106,21 @@ function getMinMaxDates() {
                             // This time value makes a nice time window for a
                             // demo.
                             flickr.timeslider.setLowValue(july30);
+
+                            // Go ahead and zoom the slider to this range, if
+                            // requested.
+                            if(zoom){
+                                zoom(flickr.timeslider);
+                            }
+
+                            // Finally, retrieve the initial data to bootstrap
+                            // the application.
+                            retrieveData();
+
+                            // Add the 'retrieveData' behavior to the slider's
+                            // onchange callback (which starts out ONLY doing
+                            // the 'displayFunc' part).
+                            flickr.timeslider.setCallback('onchange', function (low, high) { displayFunc(low, high); retrieveData(); });
                         }
                     }
                 });
@@ -150,11 +200,12 @@ function retrieveData() {
     // Stitch all the queries together into a "superquery".
     query = {$and : [timequery, hashtagquery]};
 
-    // Issue the query to the mongo module.
+    // Enable the abort button and issue the query to the mongo module.
     mongo = flickr.getMongoDBInfo();
     panel = d3.select("#information")
                     .html("Querying database...");
-    $.ajax({
+    d3.select("#abort").classed("disabled", false);
+    flickr.currentAjax = $.ajax({
         type: 'POST',
         url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
         data: {
@@ -166,6 +217,12 @@ function retrieveData() {
         success: function (response) {
             var N,
                 data;
+
+            // Disable the abort button.
+            d3.select("#abort").classed("disabled", true);
+
+            // Remove the stored XHR object.
+            flickr.currentAjax = null;
 
             // Error check.
             if (response.error !== null) {
@@ -238,7 +295,14 @@ window.onload = function () {
         checkbox,
         dayboxes,
         zoomfunc,
-        redraw;
+        redraw,
+        panel_toggle;
+
+    // Enable the popovers.
+    $("#info-popover").popover();
+    $("#config-popover").popover({
+        content: flickr.configPageletHTML
+    });
 
     // TODO(choudhury): Probably the GMap prototype extension stuff should all
     // go in its own .js file.
@@ -468,12 +532,7 @@ window.onload = function () {
         }());
 
         // Get the opacity value.
-        opacity = parseFloat(d3.select("#opacity").node().value);
-        if (isNaN(opacity) || opacity > 1.0) {
-            opacity = 1.0;
-        } else if (opacity < 0.0) {
-            opacity = 0.0;
-        }
+        opacity = flickr.opacityslider.getValue() / 100;
 
         // Compute a data join with the current list of marker locations, using
         // the MongoDB unique id value as the key function.
@@ -577,14 +636,19 @@ window.onload = function () {
         };
     }());
 
+    // Whenever the slider changes or moves, update the display showing the
+    // current time range.  Eventually, the "onchange" callback (which fires
+    // when the user releases the mouse button when making a change to the
+    // slider position) will also trigger a database lookup, but at the moment
+    // we omit that functionality to avoid spurious database lookups as the
+    // engine puts the slider together and sets the positions of the sliders
+    // programmatically.
     flickr.timeslider = xdw.slider.rangeSlider(d3.select("#time-slider").node(), {
         onchange: displayFunc,
         onslide: displayFunc
     });
-    flickr.timeslider.initialize();
 
-    // Attach an action to the "data" button.
-    d3.select("#data-button").node().onclick = retrieveData;
+    flickr.timeslider.initialize();
 
     // Some options for initializing the google map.
     //
@@ -626,15 +690,22 @@ window.onload = function () {
         buttons[i].onclick = redraw;
     }
 
-    // Direct the opacity control to redraw.
-    document.getElementById("opacity").onchange = redraw;
-
     // Direct the size control to redraw.
     document.getElementById("size").onchange = redraw;
 
-    // Get the earliest and latest times in the database, to create a suitable
-    // range for the time slider.
-    getMinMaxDates();
+    // Create a regular slider for setting the opacity and direct it to redraw
+    // when it changes (but not on every slide action - that would be bulky and
+    // too slow; the UI doesn't demand that level of responsivity).
+    flickr.opacityslider = xdw.slider.slider(d3.select("#opacity").node(), { onchange: redraw });
+    flickr.opacityslider.setMin(0);
+    flickr.opacityslider.setMax(100);
+    flickr.opacityslider.setValue(100);
+    flickr.opacityslider.initialize();
+
+    // The database lookup should happen again when the hashtag list or record
+    // count limit field changes.
+    d3.select("#hashtags").node().onchange = retrieveData;
+    d3.select("#record-limit").node().onchange = retrieveData;
 
     // Attach actions to the zoom and unzoom buttons.
     zoomfunc = (function () {
@@ -705,6 +776,99 @@ window.onload = function () {
         .data([flickr.timeslider])
         .on('click', zoomfunc.unzoomer);
 
+    // Get the earliest and latest times in the database, to create a suitable
+    // range for the time slider.  Pass in the "zoomer" function so the initial
+    // range can be properly zoomed to begin with.
+    getMinMaxDates(zoomfunc.zoomer);
+
     // Make a spinner out of the opacity control.
     //$("#opacity").spinner();
+
+    // Read in the configuration template.
+    d3.text("config.html", function (text) {
+        if(text === undefined){
+            flickr.configHtml = "<b>Error reading in configuration template.</b>";
+        }
+        else{
+            flickr.configHtml = text;
+        }
+    });
+
+    // Make the control panel tray button active.
+    //
+    // Start by defining a function that can tell what state the button is in
+    // (collapsed or not) and take the appropriate action.
+    panel_toggle = (function (divsel, buttonsel) {
+        var div,
+            button,
+            state,
+            divheight,
+            iconheight;
+
+        // Use the selectors to grab the DOM elements.
+        div = d3.select(divsel);
+        button = d3.select(buttonsel);
+
+        // Initially, the panel is open.
+        state = 'uncollapsed'
+
+        // Save the original height of the panel.
+        //
+        // TODO(choudhury): when the panel is collapsed and then uncollapsed, it
+        // is too short for some reason.  Adding 40 pixels makes things so all
+        // the panel content can be seen, but it would be better to figure out
+        // why this happens.
+        divheight = +div.style("height").slice(0,-2) + 40 + "px";
+        console.log(divheight);
+
+        // The glyphicon halfings are around 22.875 pixels tall.
+        iconheight = "23px";
+
+        // This function, when called, will toggle the state of the panel.
+        return function () {
+            if(state === 'uncollapsed'){
+                div.transition()
+                    .duration(500)
+                    .style("height", iconheight);
+
+                button.classed("icon-chevron-down", false)
+                    .classed("icon-chevron-up", true);
+
+                state = 'collapsed';
+            } else if (state === 'collapsed') {
+                div.transition()
+                    .duration(500)
+                    .style("height", divheight);
+
+                button.classed("icon-chevron-down", true)
+                    .classed("icon-chevron-up", false);
+
+                state = 'uncollapsed';
+            } else {
+                throw "Illegal state: " + state;
+            }
+        };
+    }("#control-panel", "#collapse-icon"));
+
+    d3.select("#collapse-icon")
+        .on("click", panel_toggle);
+
+    // Install the abort action on the button.
+    d3.select("#abort")
+        .on("click", function () {
+            // If there is a current ajax call in flight, abort it (it is
+            // theoretically possible that the abort button is clicked between
+            // the time it's activated, and the time an ajax call is sent).
+            if(flickr.currentAjax){
+                flickr.currentAjax.abort();
+                flickr.currentAjax = null;
+
+                // Place a message in the information div.
+                d3.select("#information")
+                    .html("DB lookup aborted");
+            }
+
+            // Disable the button.
+            d3.select("#abort").classed("disabled", true);
+        });
 };

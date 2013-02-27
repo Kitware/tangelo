@@ -5,90 +5,103 @@
 <script src=http://code.jquery.com/ui/1.9.1/jquery-ui.js></script>
 <script src=http://d3js.org/d3.v2.min.js></script>
 <script src=/lib/xdataweb.min.js></script>
+<script src=/lib/bootstrap.js></script>
 <script src=https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false></script>
 <link href=http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css rel=stylesheet type=text/css>
 
 <link href=/css/bootstrap.css rel=stylesheet type=text/css>
 <link href=/css/bootstrap-xdata.css rel=stylesheet type=text/css>
 
+<style>
+    html {
+        height: 100%;
+    }
+
+    body {
+        padding-top: 60px;
+        height: 100%;
+    }
+</style>
+
 <title>Flickr Metadata Maps</title>
 
-<div class=container>
-    <div class=masthead>
-        <a href="/"><h3 class=muted>XDATA Web</h3></a>
+<div class="navbar navbar-fixed-top">
+    <div class=navbar-inner>
+        <a class=brand href=/>XDATA Web</a>
+        <ul class=nav>
+            <li class=active><a>Flickr Maps</a>
+            <li><a id=info-popover class=pointer data-placement=bottom data-content="Explore the locations where millions of Flickr photos were taken"><i class=icon-info-sign></i> Info</a>
+            <li><a id=config-popover class=pointer data-placement=bottom data-html=true><i class=icon-cog></i> Config</a>
+        </ul>
     </div>
+</div>
 
-    <hr>
+<div id=map style="width:100%;height:100%"></div>
 
-    <div class=jumbotron>
-        <h1 class=title>Flickr Metadata Maps</h1>
-        <p class=lead>Explore the locations where millions of Flickr photos were taken</p>
-    </div>
-
-    <p class=centered><a href="flickr-config.html" target=_blank>[Configure this app]</a>
-
-    <hr>
-
-    <div class=row>
-        <div id=map class="span12 centered" style="height:500px;"></div>
-    </div>
-
-    <div class=row>
-        <div class=span3>
-            <h4>Time filter</h4>
-            <div id="time-slider"></div>
-            <div class=code id="low"></div>
-            <div class=code id="high"></div>
-            <a class="btn btn-small" id=zoom>Zoom to range</a>
-            <a class="btn btn-small disabled" id=unzoom>Unzoom</a>
+<div id=control-panel style="position:fixed; bottom:0px; width:100%; background:rgba(255,255,255,0.7);">
+    <div class=container>
+        <div class=row>
+            <div class="span12 centered">
+                <i id=collapse-icon class="icon-chevron-down pointer"></i>
+            </div>
         </div>
 
-        <div class=span3>
-            <h4>Hashtag filter</h4>
-            <textarea id=hashtags rows=4 cols=20></textarea>
+        <div class=row>
+            <div class=span3>
+                <h4>Time filter</h4>
+                <div id="time-slider"></div>
+                <div class=code id="low"></div>
+                <div class=code id="high"></div>
+                <a class="btn btn-small" id=zoom>Zoom to range</a>
+                <a class="btn btn-small disabled" id=unzoom>Unzoom</a>
+            </div>
+
+            <div class=span3>
+                <h4>Hashtag filter</h4>
+                <input id=hashtags type=text>
+            </div>
+
+            <div class=span3>
+                <h4>Opacity</h4>
+                <div id=opacity class=span2></div>
+            </div>
+
+            <div class=span3>
+                <a id=abort class="btn btn-danger disabled">Abort</a>
+                <div id=information></div>
+            </div>
         </div>
 
-        <div class=span3>
-            <h4>Opacity</h4>
-            <input id=opacity type=text class=span2 value=1.0>
-        </div>
+        <div class=row>
+            <div class=span3>
+                <h4>Day filter</h4>
+                <label class="checkbox">
+                    <input type=checkbox id=Sun> Sunday
+                </label>
 
-        <div class=span3>
-            <h4>Information</h4>
-            <div id=information></div>
-        </div>
-    </div>
+                <label class="checkbox">
+                    <input type=checkbox id=Mon> Monday
+                </label>
 
-    <div class=row>
-        <div class=span3>
-            <h4>Day filter</h4>
-            <label class="checkbox">
-                <input type=checkbox id=Sun> Sunday
-            </label>
+                <label class="checkbox">
+                    <input type=checkbox id=Tue> Tuesday
+                </label>
 
-            <label class="checkbox">
-                <input type=checkbox id=Mon> Monday
-            </label>
+                <label class="checkbox">
+                    <input type=checkbox id=Wed> Wednesday
+                </label>
 
-            <label class="checkbox">
-                <input type=checkbox id=Tue> Tuesday
-            </label>
+                <label class="checkbox">
+                    <input type=checkbox id=Thu> Thursday
+                </label>
 
-            <label class="checkbox">
-                <input type=checkbox id=Wed> Wednesday
-            </label>
+                <label class="checkbox">
+                    <input type=checkbox id=Fri> Friday
+                </label>
 
-            <label class="checkbox">
-                <input type=checkbox id=Thu> Thursday
-            </label>
-
-            <label class="checkbox">
-                <input type=checkbox id=Fri> Friday
-            </label>
-
-            <label class="checkbox">
-                <input type=checkbox id=Sat> Saturday
-            </label>
+                <label class="checkbox">
+                    <input type=checkbox id=Sat> Saturday
+                </label>
             </ul>
         </div>
 
@@ -141,9 +154,5 @@
         </div>
     </div>
 
-    <div class=row>
-        <div class="span2 offset5">
-            <a class="btn btn-small" id=data-button>Update</a>
-        </div>
-    </div>
+</div>
 </div>
