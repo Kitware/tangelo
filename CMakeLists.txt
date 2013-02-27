@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
-project(XDATA-Web)
+
+# This project doesn't require any of the standard compilers, hence the "NONE"
+# argument.
+project(XDATA-Web NONE)
 
 # Extend cmake module path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
@@ -44,7 +47,6 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/web/apps/VegaLab/vegalab.js
     ${CMAKE_SOURCE_DIR}/web/apps/ssci/ssci.js
     ${CMAKE_SOURCE_DIR}/web/apps/flickr/flickr.js
-    ${CMAKE_SOURCE_DIR}/web/apps/flickr/flickr-config.js
     ${CMAKE_SOURCE_DIR}/web/apps/mapping/mapping.js
     ${CMAKE_SOURCE_DIR}/web/apps/noaa/climate.js
 )
@@ -86,8 +88,7 @@ set(SOURCES
     web/apps/DataTwiddle/index.html
     web/apps/flickr/flickr.js
     web/apps/flickr/index.html
-    web/apps/flickr/flickr-config.js
-    web/apps/flickr/flickr-config.html
+    web/apps/flickr/config.html
     web/apps/mapping/cities.json
     web/apps/mapping/dots.json
     web/apps/mapping/index.html
@@ -197,10 +198,13 @@ set(SOURCES
     web/img/glyphicons-halflings-white.png
     web/img/glyphicons-halflings.png
     web/lib/vgd3-template.js.txt
+    web/lib/bootstrap.js
     web/css/xdataweb.css
     web/css/bootstrap.css
     web/css/bootstrap-xdata.css
     web/css/bootswatch/bootstrap-readable.css
+    web/img/glyphicons-halflings.png
+    web/img/glyphicons-halflings-white.png
     web/apps.json
     web/index.html
     web/index.js
