@@ -120,7 +120,7 @@ function getMinMaxDates(zoom) {
                             // Add the 'retrieveData' behavior to the slider's
                             // onchange callback (which starts out ONLY doing
                             // the 'displayFunc' part).
-                            flickr.timeslider.setCallback('onchange', function (low, high) { displayFunc(low, high); retrieveData(); });
+                            flickr.timeslider.setCallback('onchange', function (low, high) { flickr.displayFunc(low, high); retrieveData(); });
                         }
                     }
                 });
@@ -622,8 +622,8 @@ window.onload = function () {
         //}
     };
 
-    // Create a range slider for slicing by time.
-    displayFunc = (function () {
+    // This function is used to display the current state of the time slider.
+    flickr.displayFunc = (function () {
         var lowdiv,
             highdiv;
 
@@ -636,16 +636,16 @@ window.onload = function () {
         };
     }());
 
-    // Whenever the slider changes or moves, update the display showing the
-    // current time range.  Eventually, the "onchange" callback (which fires
-    // when the user releases the mouse button when making a change to the
-    // slider position) will also trigger a database lookup, but at the moment
-    // we omit that functionality to avoid spurious database lookups as the
-    // engine puts the slider together and sets the positions of the sliders
-    // programmatically.
+    // Create a range slider for slicing by time.  Whenever the slider changes
+    // or moves, update the display showing the current time range.  Eventually,
+    // the "onchange" callback (which fires when the user releases the mouse
+    // button when making a change to the slider position) will also trigger a
+    // database lookup, but at the moment we omit that functionality to avoid
+    // spurious database lookups as the engine puts the slider together and sets
+    // the positions of the sliders programmatically.
     flickr.timeslider = xdw.slider.rangeSlider(d3.select("#time-slider").node(), {
-        onchange: displayFunc,
-        onslide: displayFunc
+        onchange: flickr.displayFunc,
+        onslide: flickr.displayFunc
     });
 
     flickr.timeslider.initialize();
