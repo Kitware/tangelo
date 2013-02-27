@@ -249,7 +249,7 @@ function visCrossCat(spec) {
         // so that all values not present in the array are skipped,
         // preserving the original ordering of the values.
         // For example,
-        //     > result = removeNonEmpty([1, 4, 1, 3]);
+        //     > result = removeEmpty([1, 4, 1, 3]);
         //     > result;
         //     [0, 2, 0, 1]
         // The returned array also contains a remappedIndex field
@@ -260,7 +260,7 @@ function visCrossCat(spec) {
         //     > remappedIndex[1] => 0
         //     > remappedIndex[3] => 1
         //     > remappedIndex[4] => 2
-        function removeNonEmpty(arr) {
+        function removeEmpty(arr) {
             var i,
                 notEmpty = [],
                 numEmpty = 0,
@@ -301,11 +301,11 @@ function visCrossCat(spec) {
         }
 
         // Reindex all indices to be zero-based and eliminate empty views/partitions.
-        views = removeNonEmpty(columnPartitions.columnPartitionAssignments);
+        views = removeEmpty(columnPartitions.columnPartitionAssignments);
         partitions = [];
         for (view = 0; view < rowPartitions.rowPartitionAssignments.length; view = view + 1) {
             if (views.remappedIndex[view + 1] !== undefined) {
-                partitions[views.remappedIndex[view + 1]] = removeNonEmpty(rowPartitions.rowPartitionAssignments[view]);
+                partitions[views.remappedIndex[view + 1]] = removeEmpty(rowPartitions.rowPartitionAssignments[view]);
             }
         }
 
