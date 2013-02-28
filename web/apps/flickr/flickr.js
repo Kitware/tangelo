@@ -315,8 +315,6 @@ window.onload = function () {
     // onAdd() signals that the map's panes are ready to receive the overlaid
     // DOM element.
     GMap.prototype.onAdd = function () {
-        var div;
-
         console.log("onAdd()!");
 
         // Grab the overlay mouse target element (because it can accept, e.g.,
@@ -346,21 +344,27 @@ window.onload = function () {
         // Record the SVG element in the object for later use.
         this.overlay = svg.node();
 
-        // Try to add an SVG element to the map's div.
-        div = d3.select(this.map.getDiv());
-        this.legend = div.append("svg")
+        // Add an SVG element to the map's div to serve as a color legend.
+        svg = d3.select(this.map.getDiv())
+            .append("svg")
             .style("position", "fixed")
             .style("top", "100px")
             .style("right", "0px")
             .attr("height", "570");
 
-        this.legend.append("rect")
+        // Place a transparent rect in the SVG element to serve as its
+        // container.
+        svg.append("rect")
             .attr("x", 0)
             .attr("y", 0)
             .attr("width", "100%")
             .attr("height", "100%")
             .style("stroke", "darkslategray")
             .style("fill-opacity", 0.1);
+
+        // Add an SVG group whose contents will change or disappear based on the
+        // active colormap.
+        this.legend = svg.append("g");
     };
 
     // draw() sizes and places the overlaid SVG element.
@@ -451,14 +455,16 @@ window.onload = function () {
             var which,
                 colormap,
                 elemtext,
+                legend,
                 li,
                 retval,
                 invert,
                 range,
                 scale;
 
-            // Empty the color legend div.
-            d3.select("#legend").selectAll("*").remove();
+            // Empty the color legend SVG group element.
+            legend = that.legend;
+            legend.selectAll("*").remove();
 
             // Determine which radio button is currently selected.
             which = $("input[name=colormap]:radio:checked").attr("id");
@@ -471,17 +477,14 @@ window.onload = function () {
                 };
 
                 $.each(xdw.date.monthNames(), function (i, d) {
-                    elemtext = d3.select(document.createElement("div"))
-                        .style("border", "solid black 1px")
-                        .style("background", colormap({'month': d}))
-                        .style("display", "inline-block")
-                        .style("width", "20px")
-                        .html("&nbsp;")
-                        .node().outerHTML;
-
-                    li = d3.select("#legend")
-                        .append("li")
-                        .html(elemtext + "&nbsp;" + d);
+                    legend.append("rect")
+                        .attr("x", 10)
+                        .attr("y", 10 + i*10)
+                        .attr("width", 20)
+                        .attr("height", 9)
+                        .style("stroke", "black")
+                        .style("stroke-width", 1)
+                        .style("fill", colormap({'month': d}));
                 });
 
                 retval = colormap;
@@ -491,17 +494,14 @@ window.onload = function () {
                 };
 
                 $.each(xdw.date.dayNames(), function (i, d) {
-                    elemtext = d3.select(document.createElement("div"))
-                        .style("border", "solid black 1px")
-                        .style("background", colormap({'day': d}))
-                        .style("display", "inline-block")
-                        .style("width", "20px")
-                        .html("&nbsp;")
-                        .node().outerHTML;
-
-                    li = d3.select("#legend")
-                        .append("li")
-                        .html(elemtext + "&nbsp;" + d);
+                    legend.append("rect")
+                        .attr("x", 10)
+                        .attr("y", 10 + i*10)
+                        .attr("width", 20)
+                        .attr("height", 9)
+                        .style("stroke", "black")
+                        .style("stroke-width", 1)
+                        .style("fill", colormap({'day': d}));
                 });
 
                 retval = colormap;
