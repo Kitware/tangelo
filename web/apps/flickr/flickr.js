@@ -315,6 +315,8 @@ window.onload = function () {
     // onAdd() signals that the map's panes are ready to receive the overlaid
     // DOM element.
     GMap.prototype.onAdd = function () {
+        var div;
+
         console.log("onAdd()!");
 
         // Grab the overlay mouse target element (because it can accept, e.g.,
@@ -343,6 +345,22 @@ window.onload = function () {
 
         // Record the SVG element in the object for later use.
         this.overlay = svg.node();
+
+        // Try to add an SVG element to the map's div.
+        div = d3.select(this.map.getDiv());
+        this.legend = div.append("svg")
+            .style("position", "fixed")
+            .style("top", "100px")
+            .style("right", "0px")
+            .attr("height", "570");
+
+        this.legend.append("rect")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", "100%")
+            .attr("height", "100%")
+            .style("stroke", "darkslategray")
+            .style("fill-opacity", 0.1);
     };
 
     // draw() sizes and places the overlaid SVG element.
