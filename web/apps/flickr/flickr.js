@@ -75,9 +75,9 @@ function getMinMaxDates(zoom) {
         success: function (response) {
             var val;
 
-            if (response.error !== null) {
+            if (response.error !== null || response.result.data.length === 0) {
                 // Error condition.
-                console.log("error: could not get maximum time value from database - " + response.error);
+                console.log("error: could not get maximum time value from database - " + response.error ? response.error : "no results returned from server");
             } else {
                 val = +response.result.data[0].date.$date;
                 flickr.timeslider.setMax(val);
@@ -94,9 +94,9 @@ function getMinMaxDates(zoom) {
                     success: function (response) {
                         var val;
 
-                        if (response.error !== null) {
+                        if (response.error !== null || response.result.data.length === 0) {
                             // Error condition.
-                            console.log("error: could not get minimum time value from database - " + response.error);
+                            console.log("error: could not get minimum time value from database - " + response.error ? response.error : "no results returned from server");
                         } else {
                             //val = +response.result.data[0]['date']['$date'];
                             val = +response.result.data[0].date.$date;
