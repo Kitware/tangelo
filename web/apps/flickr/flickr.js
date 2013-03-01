@@ -474,6 +474,12 @@ window.onload = function () {
         // etc., that can occur without warning.
         proj = this.getProjection();
 
+        // If proj is undefined, the map has not yet been initialized, so return
+        // right away.
+        if (proj === undefined) {
+            return;
+        }
+
         // Shift the container div to cover the "whole world".
         //
         // First, compute the pixel coordinates of the bounds of the "whole
