@@ -16,6 +16,18 @@ NER.getMongoDBServer = function () {
     return localStorage.getItem('NER:mongodb-server') || 'localhost';
 };
 
+NER.configPageletHTML = function () {
+    "use strict";
+
+    var dbserver;
+
+    // Retrieve the configuration options.
+    dbserver = NER.getMongoDBServer();
+
+    // Instantiate the template with the current options.
+    return NER.configHtml.replace(/%SERVER%/g, dbserver);
+};
+
 // "nodes" is a table of entity names, mapping to an array position generated
 // uniquely by the "counter" variable.  Once the table is complete, the nodes
 // table can be recast into an array.
@@ -357,6 +369,21 @@ function handleFileSelect(evt) {
 
 window.onload = function () {
     "use strict";
+
+    // Enable the popovers.
+    $("#info-popover").popover();
+    $("#config-popover").popover({
+        content: NER.configPageletHTML
+    });
+
+    // Get the configuration HTML template.
+    d3.text("config.html", function (text) {
+        if (text === undefined) {
+            NER.configHtml = "<b>Error reading in configuration template.</b>";
+        } else {
+            NER.configHtml = text;
+        }
+    });
 
     graph = (function () {
         var fade_time,
