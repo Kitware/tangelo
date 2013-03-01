@@ -850,7 +850,9 @@ window.onload = function () {
         };
     }("#control-panel", "#collapse-icon"));
 
-    d3.select("#collapse-icon")
+    // Allow clicking anywhere along the div holding the icon to trigger the
+    // collapse.
+    d3.select("#drawer")
         .on("click", panel_toggle);
 
     // Install the abort action on the button.

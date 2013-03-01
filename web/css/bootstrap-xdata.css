@@ -81,3 +81,9 @@ input[type="file"] {
 .pointer {
     cursor: pointer;
 }
+
+/* Use this for "drawer handles", to help the user see that clicking on the edge
+ * of a div will make it roll out/in. */
+.drawer:hover {
+    background-color: gray;
+}
