@@ -13,20 +13,28 @@
 
 <link href=NER.css rel=stylesheet type=text/css>
 
+<style>
+    html {
+        position: relative;
+        top: 70px;
+        height: 100%;
+    }
+</style>
+
 <title>Document Entity Relationships</title>
 
+<div class="navbar navbar-fixed-top">
+    <div class=navbar-inner>
+        <a class=brand href=/>XDATA Web</a>
+        <ul class=nav>
+            <li class=active><a>Document Entities</a>
+            <li><a id=info-popover class=pointer data-placement=bottom data-content="See the network of named entities in your text documents"><i class=icon-info-sign></i> Info</a>
+            <li><a id=config-popover class=pointer data-placement=bottom data-html=true><i class=icon-cog></i> Config</a>
+        </ul>
+    </div>
+</div>
+
 <div class=container>
-    <div class=masthead>
-        <a href="/"><h3 class=muted>XDATA Web</h3></a>
-    </div>
-
-    <hr>
-
-    <div class=jumbotron>
-        <h1 class=title>Document Entity Relationships</h1>
-        <p class=lead>See the network of named entities in your text documents</p>
-    </div>
-
     <p class=centered><a href="NER-config.html" target=_blank>[Configure this app]</a>
 
     <hr>
@@ -35,50 +43,50 @@
     <p class=centered><input type=file id=docs multiple>
 
     <div class=row>
-        <div class=span7>
+        <div class="span12 centered">
             <svg id=graph width=540 height=540>
-            <rect x=1.5 y=1.5 rx=10 ry=10 width=537 height=537 style="fill:rgb(221,221,221); stroke:black; stroke-width:3;" />
+                <rect x=1.5 y=1.5 rx=10 ry=10 width=537 height=537 style="fill:rgb(221,221,221); stroke:black; stroke-width:3;" />
 
-            <g id="links"></g>
-            <g id="nodes"></g>
-
+                <g id="links"></g>
+                <g id="nodes"></g>
             </svg>
         </div>
+    </div>
+</div>
 
-        <div class=span5>
-            <div class=row>
-                <div class=span2>
-                    <h4>Graph</h4>
-                    <label class=checkbox>
-                        <input type=checkbox id=nodefreq onchange="graph.updateConfig(); graph.applyConfig(); graph.render();"> Scale nodes by frequency
-                    </label>
+<div id=control-panel style="position:fixed; bottom:0px; width:100%; background:rgba(255,255,255,0.7);">
+    <div class=container>
+        <div class=row>
+            <div id=drawer class="centered pointer drawer">
+                <i id=collapse-icon class=icon-chevron-down></i>
+            </div>
+        </div>
 
-                    <label class=checkbox>
-                        <input type=checkbox id=linkfreq onchange="graph.updateConfig(); graph.applyConfig();"> Thicken links by frequency
-                    </label>
+        <div class=row>
+            <div class=span4>
+                <h4>Graph</h4>
+                <label class=checkbox>
+                    <input type=checkbox id=nodefreq onchange="graph.updateConfig(); graph.applyConfig(); graph.render();"> Scale nodes by frequency
+                </label>
 
-                    <label class=checkbox>
-                        <input type=checkbox id=usetext onchange="graph.updateConfig(); graph.reset();"> Render text labels
-                    </label>
-                </div>
+                <label class=checkbox>
+                    <input type=checkbox id=linkfreq onchange="graph.updateConfig(); graph.applyConfig();"> Thicken links by frequency
+                </label>
 
-                <div class=span3>
-                    <h4>Filtering</h4>
-                    <div id=slider></div>
-                    Nodes must have at least <span id=value></span> mentions.
-                </div>
+                <label class=checkbox>
+                    <input type=checkbox id=usetext onchange="graph.updateConfig(); graph.reset();"> Render text labels
+                </label>
             </div>
 
-            <div class=row>
-                <div class=span3>
-                    <h4>Legend</h4>
-                    <div id=color-legend></div>
-                </div>
+            <div class=span4>
+                <h4>Filtering</h4>
+                <div id=slider></div>
+                Nodes must have at least <span id=value></span> mentions.
+            </div>
 
-                <div class=span2>
-                    <h4>Information</h4>
-                    <div id=file-info></div>
-                </div>
+            <div class=span4>
+                <h4>Information</h4>
+                <div id=file-info></div>
             </div>
         </div>
     </div>
