@@ -350,17 +350,19 @@ window.onload = function () {
             .style("position", "fixed")
             .style("top", "100px")
             .style("right", "0px")
-            .attr("height", "570");
+            .attr("width", 100)
+            .attr("height", 570);
 
         // Place a transparent rect in the SVG element to serve as its
         // container.
-        svg.append("rect")
-            .attr("x", 0)
-            .attr("y", 0)
-            .attr("width", "100%")
-            .attr("height", "100%")
-            .style("stroke", "darkslategray")
-            .style("fill-opacity", 0.1);
+        //
+/*        svg.append("rect")*/
+            //.attr("x", 0)
+            //.attr("y", 0)
+            //.attr("width", "100%")
+            //.attr("height", "100%")
+            //.style("stroke", "darkslategray")
+            //.style("fill-opacity", 0.1);
 
         // Add an SVG group whose contents will change or disappear based on the
         // active colormap.
@@ -453,14 +455,19 @@ window.onload = function () {
         that = this;
         color = (function () {
             var which,
+                bbox,
                 colormap,
                 elemtext,
+                heightfunc,
                 legend,
                 li,
+                maxheight,
+                maxwidth,
                 retval,
                 invert,
                 range,
-                scale;
+                scale,
+                text;
 
             // Empty the color legend SVG group element.
             legend = that.legend;
@@ -476,16 +483,60 @@ window.onload = function () {
                     return that.monthColor(d.month);
                 };
 
+                maxwidth = 0;
+                maxheight = 0;
+
                 $.each(xdw.date.monthNames(), function (i, d) {
                     legend.append("rect")
+                        .classed("colorbox", true)
                         .attr("x", 10)
-                        .attr("y", 10 + i*10)
+                        .attr("y", 10 + i*20)
                         .attr("width", 20)
-                        .attr("height", 9)
-                        .style("stroke", "black")
-                        .style("stroke-width", 1)
+                        .attr("height", 20)
                         .style("fill", colormap({'month': d}));
+
+                    legend.append("rect")
+                        .classed("textbg", true)
+                        .attr("x", 10 + 20)
+                        .attr("y", 10 + i*20)
+                        .attr("height", 20)
+                        .style("fill", "gray");
+
+                    text = legend.append("text")
+                        .classed("legendtext", true)
+                        .attr("x", 10 + 20 + 5)
+                        .attr("y", 10 + 17 + i*20)
+                        .text(d);
+
+                    // Compute the max height and width out of all the text bgs.
+                    bbox = text[0][0].getBBox();
+
+                    if (bbox.width > maxwidth) {
+                        maxwidth = bbox.width;
+                    }
+
+                    if (bbox.height > maxheight) {
+                        maxheight = bbox.height;
+                    }
                 });
+
+                // Set the width and height of all the textbg boxes to be the
+                // same, the max width.  Also set the y positions to reflect the
+                // changing height.
+                heightfunc = function (d, i) { return 10 + i * (maxheight + 5); };
+                legend.selectAll(".textbg")
+                    .attr("width", maxwidth + 7)
+                    .attr("height", maxheight + 5)
+                    .attr("y", heightfunc);
+
+                // Same treatment of the y positions of the colorboxes.
+                legend.selectAll(".colorbox")
+                    .attr("height", maxheight + 5)
+                    .attr("y", heightfunc);
+
+                // And also for the text items themselves.
+                legend.selectAll(".legendtext")
+                    .attr("y", function (d, i) { return 19 + heightfunc(d, i); });
 
                 retval = colormap;
             } else if (which === 'day') {
