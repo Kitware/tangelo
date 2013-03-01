@@ -75,9 +75,9 @@ function getMinMaxDates(zoom) {
         success: function (response) {
             var val;
 
-            if (response.error !== null) {
+            if (response.error !== null || response.result.data.length === 0) {
                 // Error condition.
-                console.log("error: could not get maximum time value from database - " + response.error);
+                console.log("error: could not get maximum time value from database - " + response.error ? response.error : "no results returned from server");
             } else {
                 val = +response.result.data[0].date.$date;
                 flickr.timeslider.setMax(val);
@@ -94,9 +94,9 @@ function getMinMaxDates(zoom) {
                     success: function (response) {
                         var val;
 
-                        if (response.error !== null) {
+                        if (response.error !== null || response.result.data.length === 0) {
                             // Error condition.
-                            console.log("error: could not get minimum time value from database - " + response.error);
+                            console.log("error: could not get minimum time value from database - " + response.error ? response.error : "no results returned from server");
                         } else {
                             //val = +response.result.data[0]['date']['$date'];
                             val = +response.result.data[0].date.$date;
@@ -120,7 +120,7 @@ function getMinMaxDates(zoom) {
                             // Add the 'retrieveData' behavior to the slider's
                             // onchange callback (which starts out ONLY doing
                             // the 'displayFunc' part).
-                            flickr.timeslider.setCallback('onchange', function (low, high) { displayFunc(low, high); retrieveData(); });
+                            flickr.timeslider.setCallback('onchange', function (low, high) { flickr.displayFunc(low, high); retrieveData(); });
                         }
                     }
                 });
@@ -284,6 +284,85 @@ function GMap(elem, options) {
     google.maps.event.addListener(this.map, "drag", function () { that.draw(); });
 }
 
+function color_legend(legend, cmap_func, xoffset, yoffset, field_name, categories, height_padding, width_padding, text_spacing) {
+    "use strict";
+
+    var bbox,
+        height,
+        heightfunc,
+        maxheight,
+        maxwidth,
+        obj,
+        text,
+        width;
+
+    maxwidth = 0;
+    maxheight = 0;
+
+
+    $.each(categories, function (i, d) {
+        obj = {};
+        obj[field_name] = d;
+
+        legend.append("rect")
+            .classed("colorbox", true)
+            .attr("x", xoffset)
+            //.attr("y", yoffset + i * 20)
+/*            .attr("width", 20)*/
+            /*.attr("height", 20)*/
+            .style("fill", cmap_func(obj));
+
+        legend.append("rect")
+            .classed("textbg", true)
+/*            .attr("x", xoffset + 20)*/
+            //.attr("y", yoffset + i * 20)
+            /*.attr("height", 20)*/
+            .style("fill", "gray");
+
+        text = legend.append("text")
+            .classed("legendtext", true)
+/*            .attr("x", xoffset + 20 + width_padding)*/
+            /*.attr("y", yoffset + text_spacing + i * 20)*/
+            .text(d);
+
+        // Compute the max height and width out of all the text bgs.
+        bbox = text[0][0].getBBox();
+
+        if (bbox.width > maxwidth) {
+            maxwidth = bbox.width;
+        }
+
+        if (bbox.height > maxheight) {
+            maxheight = bbox.height;
+        }
+    });
+
+    height = maxheight + height_padding;
+    width = height;
+
+    heightfunc = function (d, i) {
+        return yoffset + i * height;
+    };
+
+    legend.selectAll(".textbg")
+        .attr("width", maxwidth + width_padding)
+        .attr("height", height)
+        .attr("x", xoffset + width)
+        .attr("y", heightfunc);
+
+    legend.selectAll(".colorbox")
+        .attr("width", height)
+        .attr("height", height)
+        .attr("y", heightfunc);
+
+    legend.selectAll(".legendtext")
+        .attr("x", xoffset + width + width_padding)
+        .attr("y", function (d, i) {
+            //return 19 + heightfunc(d, i);
+            return text_spacing + heightfunc(d, i);
+        });
+}
+
 window.onload = function () {
     "use strict";
 
@@ -343,6 +422,30 @@ window.onload = function () {
 
         // Record the SVG element in the object for later use.
         this.overlay = svg.node();
+
+        // Add an SVG element to the map's div to serve as a color legend.
+        svg = d3.select(this.map.getDiv())
+            .append("svg")
+            .style("position", "fixed")
+            .style("top", "100px")
+            .style("right", "0px")
+            .attr("width", 100)
+            .attr("height", 570);
+
+        // Place a transparent rect in the SVG element to serve as its
+        // container.
+        //
+/*        svg.append("rect")*/
+            //.attr("x", 0)
+            //.attr("y", 0)
+            //.attr("width", "100%")
+            //.attr("height", "100%")
+            //.style("stroke", "darkslategray")
+            //.style("fill-opacity", 0.1);
+
+        // Add an SVG group whose contents will change or disappear based on the
+        // active colormap.
+        this.legend = svg.append("g");
     };
 
     // draw() sizes and places the overlaid SVG element.
@@ -364,12 +467,6 @@ window.onload = function () {
             radius,
             opacity,
             markers;
-
-        //console.log("draw()!");
-        if (this.locationData === null || typeof this.locationData === 'undefined' || this.locationData.length === 0) {
-            console.log("returning early: locationData is " + this.locationData);
-            return;
-        }
 
         // Get the transformation from lat/long to pixel coordinates - the
         // lat/long data will be "pushed through" it just prior to being drawn.
@@ -431,16 +528,23 @@ window.onload = function () {
         that = this;
         color = (function () {
             var which,
+                bbox,
                 colormap,
                 elemtext,
+                heightfunc,
+                legend,
                 li,
+                maxheight,
+                maxwidth,
                 retval,
                 invert,
                 range,
-                scale;
+                scale,
+                text;
 
-            // Empty the color legend div.
-            d3.select("#legend").selectAll("*").remove();
+            // Empty the color legend SVG group element.
+            legend = that.legend;
+            legend.selectAll("*").remove();
 
             // Determine which radio button is currently selected.
             which = $("input[name=colormap]:radio:checked").attr("id");
@@ -452,19 +556,7 @@ window.onload = function () {
                     return that.monthColor(d.month);
                 };
 
-                $.each(xdw.date.monthNames(), function (i, d) {
-                    elemtext = d3.select(document.createElement("div"))
-                        .style("border", "solid black 1px")
-                        .style("background", colormap({'month': d}))
-                        .style("display", "inline-block")
-                        .style("width", "20px")
-                        .html("&nbsp;")
-                        .node().outerHTML;
-
-                    li = d3.select("#legend")
-                        .append("li")
-                        .html(elemtext + "&nbsp;" + d);
-                });
+                color_legend(legend, colormap, 10, 10, "month", xdw.date.monthNames(), 5, 7, 19);
 
                 retval = colormap;
             } else if (which === 'day') {
@@ -472,19 +564,7 @@ window.onload = function () {
                     return that.dayColor(d.day);
                 };
 
-                $.each(xdw.date.dayNames(), function (i, d) {
-                    elemtext = d3.select(document.createElement("div"))
-                        .style("border", "solid black 1px")
-                        .style("background", colormap({'day': d}))
-                        .style("display", "inline-block")
-                        .style("width", "20px")
-                        .html("&nbsp;")
-                        .node().outerHTML;
-
-                    li = d3.select("#legend")
-                        .append("li")
-                        .html(elemtext + "&nbsp;" + d);
-                });
+                color_legend(legend, colormap, 10, 10, "day", xdw.date.dayNames(), 5, 7, 19);
 
                 retval = colormap;
             } else if (which === 'rb') {
@@ -622,8 +702,8 @@ window.onload = function () {
         //}
     };
 
-    // Create a range slider for slicing by time.
-    displayFunc = (function () {
+    // This function is used to display the current state of the time slider.
+    flickr.displayFunc = (function () {
         var lowdiv,
             highdiv;
 
@@ -636,16 +716,16 @@ window.onload = function () {
         };
     }());
 
-    // Whenever the slider changes or moves, update the display showing the
-    // current time range.  Eventually, the "onchange" callback (which fires
-    // when the user releases the mouse button when making a change to the
-    // slider position) will also trigger a database lookup, but at the moment
-    // we omit that functionality to avoid spurious database lookups as the
-    // engine puts the slider together and sets the positions of the sliders
-    // programmatically.
+    // Create a range slider for slicing by time.  Whenever the slider changes
+    // or moves, update the display showing the current time range.  Eventually,
+    // the "onchange" callback (which fires when the user releases the mouse
+    // button when making a change to the slider position) will also trigger a
+    // database lookup, but at the moment we omit that functionality to avoid
+    // spurious database lookups as the engine puts the slider together and sets
+    // the positions of the sliders programmatically.
     flickr.timeslider = xdw.slider.rangeSlider(d3.select("#time-slider").node(), {
-        onchange: displayFunc,
-        onslide: displayFunc
+        onchange: flickr.displayFunc,
+        onslide: flickr.displayFunc
     });
 
     flickr.timeslider.initialize();
