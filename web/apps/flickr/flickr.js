@@ -284,6 +284,85 @@ function GMap(elem, options) {
     google.maps.event.addListener(this.map, "drag", function () { that.draw(); });
 }
 
+function color_legend(legend, cmap_func, xoffset, yoffset, field_name, categories, height_padding, width_padding, text_spacing) {
+    "use strict";
+
+    var bbox,
+        height,
+        heightfunc,
+        maxheight,
+        maxwidth,
+        obj,
+        text,
+        width;
+
+    maxwidth = 0;
+    maxheight = 0;
+
+
+    $.each(categories, function (i, d) {
+        obj = {};
+        obj[field_name] = d;
+
+        legend.append("rect")
+            .classed("colorbox", true)
+            .attr("x", xoffset)
+            //.attr("y", yoffset + i * 20)
+/*            .attr("width", 20)*/
+            /*.attr("height", 20)*/
+            .style("fill", cmap_func(obj));
+
+        legend.append("rect")
+            .classed("textbg", true)
+/*            .attr("x", xoffset + 20)*/
+            //.attr("y", yoffset + i * 20)
+            /*.attr("height", 20)*/
+            .style("fill", "gray");
+
+        text = legend.append("text")
+            .classed("legendtext", true)
+/*            .attr("x", xoffset + 20 + width_padding)*/
+            /*.attr("y", yoffset + text_spacing + i * 20)*/
+            .text(d);
+
+        // Compute the max height and width out of all the text bgs.
+        bbox = text[0][0].getBBox();
+
+        if (bbox.width > maxwidth) {
+            maxwidth = bbox.width;
+        }
+
+        if (bbox.height > maxheight) {
+            maxheight = bbox.height;
+        }
+    });
+
+    height = maxheight + height_padding;
+    width = height;
+
+    heightfunc = function (d, i) {
+        return yoffset + i * height;
+    };
+
+    legend.selectAll(".textbg")
+        .attr("width", maxwidth + width_padding)
+        .attr("height", height)
+        .attr("x", xoffset + width)
+        .attr("y", heightfunc);
+
+    legend.selectAll(".colorbox")
+        .attr("width", height)
+        .attr("height", height)
+        .attr("y", heightfunc);
+
+    legend.selectAll(".legendtext")
+        .attr("x", xoffset + width + width_padding)
+        .attr("y", function (d, i) {
+            //return 19 + heightfunc(d, i);
+            return text_spacing + heightfunc(d, i);
+        });
+}
+
 window.onload = function () {
     "use strict";
 
@@ -389,12 +468,6 @@ window.onload = function () {
             opacity,
             markers;
 
-        //console.log("draw()!");
-        if (this.locationData === null || typeof this.locationData === 'undefined' || this.locationData.length === 0) {
-            console.log("returning early: locationData is " + this.locationData);
-            return;
-        }
-
         // Get the transformation from lat/long to pixel coordinates - the
         // lat/long data will be "pushed through" it just prior to being drawn.
         // It is deferred this way to deal with changes in the window size,
@@ -483,60 +556,7 @@ window.onload = function () {
                     return that.monthColor(d.month);
                 };
 
-                maxwidth = 0;
-                maxheight = 0;
-
-                $.each(xdw.date.monthNames(), function (i, d) {
-                    legend.append("rect")
-                        .classed("colorbox", true)
-                        .attr("x", 10)
-                        .attr("y", 10 + i*20)
-                        .attr("width", 20)
-                        .attr("height", 20)
-                        .style("fill", colormap({'month': d}));
-
-                    legend.append("rect")
-                        .classed("textbg", true)
-                        .attr("x", 10 + 20)
-                        .attr("y", 10 + i*20)
-                        .attr("height", 20)
-                        .style("fill", "gray");
-
-                    text = legend.append("text")
-                        .classed("legendtext", true)
-                        .attr("x", 10 + 20 + 5)
-                        .attr("y", 10 + 17 + i*20)
-                        .text(d);
-
-                    // Compute the max height and width out of all the text bgs.
-                    bbox = text[0][0].getBBox();
-
-                    if (bbox.width > maxwidth) {
-                        maxwidth = bbox.width;
-                    }
-
-                    if (bbox.height > maxheight) {
-                        maxheight = bbox.height;
-                    }
-                });
-
-                // Set the width and height of all the textbg boxes to be the
-                // same, the max width.  Also set the y positions to reflect the
-                // changing height.
-                heightfunc = function (d, i) { return 10 + i * (maxheight + 5); };
-                legend.selectAll(".textbg")
-                    .attr("width", maxwidth + 7)
-                    .attr("height", maxheight + 5)
-                    .attr("y", heightfunc);
-
-                // Same treatment of the y positions of the colorboxes.
-                legend.selectAll(".colorbox")
-                    .attr("height", maxheight + 5)
-                    .attr("y", heightfunc);
-
-                // And also for the text items themselves.
-                legend.selectAll(".legendtext")
-                    .attr("y", function (d, i) { return 19 + heightfunc(d, i); });
+                color_legend(legend, colormap, 10, 10, "month", xdw.date.monthNames(), 5, 7, 19);
 
                 retval = colormap;
             } else if (which === 'day') {
@@ -544,16 +564,7 @@ window.onload = function () {
                     return that.dayColor(d.day);
                 };
 
-                $.each(xdw.date.dayNames(), function (i, d) {
-                    legend.append("rect")
-                        .attr("x", 10)
-                        .attr("y", 10 + i*10)
-                        .attr("width", 20)
-                        .attr("height", 9)
-                        .style("stroke", "black")
-                        .style("stroke-width", 1)
-                        .style("fill", colormap({'day': d}));
-                });
+                color_legend(legend, colormap, 10, 10, "day", xdw.date.dayNames(), 5, 7, 19);
 
                 retval = colormap;
             } else if (which === 'rb') {
