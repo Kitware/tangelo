@@ -22,6 +22,10 @@
      */
     mod = xdw.namespace("util");
 
+    mod.drawer_size = function () {
+        return 23;
+    };
+
     mod.drawer_toggle = function (divsel, buttonsel) {
         var div,
             button,
@@ -46,7 +50,7 @@
         console.log(divheight);
 
         // The glyphicon halfings are around 22.875 pixels tall.
-        iconheight = "23px";
+        iconheight = mod.drawer_size() + "px";
 
         // This function, when called, will toggle the state of the panel.
         return function () {
