@@ -39,6 +39,7 @@ set(JS_LINT_FILES
     #${CMAKE_SOURCE_DIR}/web/lib/id.js
     ${CMAKE_SOURCE_DIR}/web/lib/slider.js
     ${CMAKE_SOURCE_DIR}/web/lib/date.js
+    ${CMAKE_SOURCE_DIR}/web/lib/util.js
     #${CMAKE_SOURCE_DIR}/web/lib/barchart.js
     ${CMAKE_SOURCE_DIR}/web/apps/NER/NER.js
     ${CMAKE_SOURCE_DIR}/web/apps/stats/stats.js
@@ -57,6 +58,7 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/web/lib/slider.js
     ${CMAKE_SOURCE_DIR}/web/lib/date.js
     #${CMAKE_SOURCE_DIR}/web/lib/barchart.js
+    ${CMAKE_SOURCE_DIR}/web/lib/util.js
     ${CMAKE_SOURCE_DIR}/web/lib/vgd3.js
     ${CMAKE_SOURCE_DIR}/web/lib/vg.util.js
 )
@@ -65,6 +67,7 @@ set(JS_UGLIFY_FILES
 set(JS_DOCUMENT_FILES
     ${CMAKE_SOURCE_DIR}/web/lib/date.js
     ${CMAKE_SOURCE_DIR}/web/lib/slider.js
+    ${CMAKE_SOURCE_DIR}/web/lib/util.js
     ${CMAKE_SOURCE_DIR}/web/lib/xdw.js
 )
 

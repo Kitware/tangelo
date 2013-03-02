@@ -370,6 +370,8 @@ function handleFileSelect(evt) {
 window.onload = function () {
     "use strict";
 
+    var drawer_toggle;
+
     // Enable the popovers.
     $("#info-popover").popover();
     $("#config-popover").popover({
@@ -384,6 +386,11 @@ window.onload = function () {
             NER.configHtml = text;
         }
     });
+
+    // Activate the drawer toggle for the control panel.
+    drawer_toggle = xdw.util.drawer_toggle("#control-panel", "#collapse-icon");
+    d3.select("#drawer")
+        .on("click", drawer_toggle);
 
     graph = (function () {
         var fade_time,
