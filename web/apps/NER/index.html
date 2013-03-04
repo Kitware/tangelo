@@ -15,39 +15,58 @@
 <link href=NER.css rel=stylesheet type=text/css>
 
 <style>
-    html {
-        position: relative;
-        top: 70px;
+    html, body, #graph {
+        width: 100%;
         height: 100%;
+    }
+
+    #graph {
+        position: fixed;
+        top: 0px;
+        z-index: -1;
     }
 </style>
 
 <title>Document Entity Relationships</title>
 
-<div class="navbar navbar-fixed-top">
+<div class="navbar navbar-top" style="margin-bottom:0px">
     <div class=navbar-inner>
         <a class=brand href=/>XDATA Web</a>
         <ul class=nav>
             <li class=active><a>Document Entities</a>
-            <li><a id=info-popover class=pointer data-placement=bottom data-content="See the network of named entities in your text documents"><i class=icon-info-sign></i> Info</a>
-            <li><a id=config-popover class=pointer data-placement=bottom data-html=true><i class=icon-cog></i> Config</a>
+            <li><a id=info-popover class=pointer data-toggle="modal" data-target="#info-panel"><i class=icon-info-sign></i> Info</a>
+            <li><a id=config-popover class=pointer data-toggle="modal" data-target="#config-panel"><i class=icon-cog></i> Config</a>
         </ul>
     </div>
 </div>
 
-<div class=container>
-    <p class=centered>Select a group of text files to analyze.
-    <p class=centered><input type=file id=docs multiple>
+<svg id=graph>
+    <rect width="100%" height="100%" style="fill:red;stroke-width:10px;stroke:black">
+    <g id="links"></g>
+    <g id="nodes"></g>
+</svg>
 
-    <div class=row>
-        <div class="span12 centered">
-            <svg id=graph width=540 height=540>
-                <rect x=1.5 y=1.5 rx=10 ry=10 width=537 height=537 style="fill:rgb(221,221,221); stroke:black; stroke-width:3;" />
+<div id="info-panel" class="modal hide fade">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      <h3>Information</h3>
+    </div>
+    <div class="modal-body">
+        See the network of named entities in your text documents.
+    </div>
+</div>
 
-                <g id="links"></g>
-                <g id="nodes"></g>
-            </svg>
-        </div>
+<div id="config-panel" class="modal hide fade">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      <h3>Configuration</h3>
+    </div>
+    <div class="modal-body">
+        MongoDB host <input id="mongodb-server" type=text>
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="btn" data-dismiss="modal">Cancel</a>
+        <a href="#" id="save-config" class="btn btn-primary" data-dismiss="modal">Save changes</a>
     </div>
 </div>
 
@@ -56,6 +75,12 @@
         <div class=row>
             <div id=drawer class="centered pointer drawer">
                 <i id=collapse-icon class=icon-chevron-down></i>
+            </div>
+        </div>
+
+        <div class=row>
+            <div class=span12>
+                Files to analyze: <input type=file id=docs multiple>
             </div>
         </div>
 

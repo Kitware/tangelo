@@ -16,6 +16,13 @@ NER.getMongoDBServer = function () {
     return localStorage.getItem('NER:mongodb-server') || 'localhost';
 };
 
+// Save the mongo server to use to the configuration.
+NER.setMongoDBServer = function (val) {
+    "use strict";
+
+    return localStorage.setItem('NER:mongodb-server', val);
+};
+
 NER.configPageletHTML = function () {
     "use strict";
 
@@ -372,19 +379,9 @@ window.onload = function () {
 
     var drawer_toggle;
 
-    // Enable the popovers.
-    $("#info-popover").popover();
-    $("#config-popover").popover({
-        content: NER.configPageletHTML
-    });
-
-    // Get the configuration HTML template.
-    d3.text("config.html", function (text) {
-        if (text === undefined) {
-            NER.configHtml = "<b>Error reading in configuration template.</b>";
-        } else {
-            NER.configHtml = text;
-        }
+    $("#mongodb-server").val(NER.getMongoDBServer());
+    d3.select("#save-config").on("click", function () {
+        NER.setMongoDBServer($("#mongodb-server").val());
     });
 
     // Activate the drawer toggle for the control panel.
