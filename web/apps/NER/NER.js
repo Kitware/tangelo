@@ -1,6 +1,6 @@
-/*jslint browser: true */
+/*jslint browser: true, unparam: true */
 
-/*globals xdw, CryptoJS, $, d3, escape, FileReader */
+/*globals xdw, CryptoJS, $, d3, escape, FileReader, console */
 
 // This is declared null for now - it will be initialized in the window's
 // onready method, as it depends on elements being loaded in the page.
@@ -439,14 +439,20 @@ window.onload = function () {
 
         svg = d3.select("#graph");
 
-        width = svg.attr("width");
-        height = svg.attr("height");
-
+        width = $(window).width();
+        height = $(window).height();
         nodeCharge = -120;
         textCharge = -600;
         force = d3.layout.force()
             .linkDistance(30)
             .size([width, height]);
+
+        $(window).resize(function () {
+            width = $(window).width();
+            height = $(window).height();
+            force.size([width, height]);
+            force.start();
+        });
 
         return {
             assemble: function (nodedata, linkdata, typedata, nodecount_threshold) {
@@ -488,7 +494,7 @@ window.onload = function () {
             recompute: function (nodecount_threshold) {
                 var fixup;
 
-                if (typeof nodecount_threshold === "undefined") {
+                if (nodecount_threshold === undefined) {
                     throw "recompute must be called with a threshold!";
                 }
 

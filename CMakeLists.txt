@@ -103,7 +103,6 @@ set(SOURCES
     web/apps/NER/letters.csv
     web/apps/NER/NER.css
     web/apps/NER/NER.js
-    web/apps/NER/config.html
     web/apps/ssci/index.html
     web/apps/ssci/ssci.js
     web/apps/ssci/ssci.json
