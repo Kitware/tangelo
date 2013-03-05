@@ -327,7 +327,13 @@ function handleFileSelect(evt) {
 
         // Create globally usable names to use to refer to the current file.
         filename = escape(f.name);
-        id = filename.replace(".", "-");
+
+        // TODO(choudhury): technically, this can lead to identical ids (e.g.,
+        // "letter_1.txt" and "letter 1.txt" will both wind up with
+        // "letter_1-txt" as their id string).
+        id = f.name
+            .replace(/\./g, "-")
+            .replace(/ /g, "_");
 
         // Decide whether to process a selected file or not - accept everything
         // with a mime-type of text/*, as well as those with unspecified type
