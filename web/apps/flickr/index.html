@@ -34,9 +34,8 @@
         <a id=brand class=brand href=/>XDATA Web</a>
         <ul class=nav>
             <li class=active><a>Flickr Maps</a>
-            <!--<li><a id=info-popover class=pointer data-placement=bottom data-content="Explore the locations where millions of Flickr photos were taken"><i class=icon-info-sign></i> Info</a>-->
-            <li><a id=info-popover class=pointer data-toggle=modal data-target=#info-panel><i class=icon-info-sign></i> Info</a>
-            <li><a id=config-popover class=pointer data-placement=bottom data-html=true><i class=icon-cog></i> Config</a>
+            <li><a id=info-trigger class=pointer data-toggle=modal data-target=#info-panel><i class=icon-info-sign></i> Info</a>
+            <li><a id=config-trigger class=pointer data-toggle=modal data-target=#config-panel><i class=icon-cog></i> Config</a>
         </ul>
     </div>
 </div>
@@ -49,6 +48,28 @@
 
     <div class=modal-body>
         Explore the locations where millions of Flickr photos were taken.
+    </div>
+
+    <div class=modal-footer>
+        <a class=btn data-dismiss=modal>OK</a>
+    </div>
+</div>
+
+<div id=config-panel class="modal hide fade">
+    <div class=modal-header>
+        <button type=button class=close data-dismiss=modal aria-hidden=true>&times;</button>
+        <h3>Configuration</h3>
+    </div>
+
+    <div class=modal-body>
+        MongoDB host <input id=mongodb-server type=text><br>
+        MongoDB database <input id=mongodb-db type=text><br>
+        MongoDB collection <input id=mongodb-coll type=text>
+    </div>
+
+    <div class=modal-footer>
+        <a href=# class=btn data-dismiss=modal>Cancel</a>
+        <a href=# id=save-config class="btn btn-primary" data-dismiss=modal>Save changes</a>
     </div>
 </div>
 

@@ -43,13 +43,10 @@ function updateConfig() {
     db = document.getElementById("mongodb-db");
     coll = document.getElementById("mongodb-coll");
 
-    // Read the options into DOM storage.
+    // Write the options into DOM storage.
     localStorage.setItem('flickr:mongodb-server', server.value);
     localStorage.setItem('flickr:mongodb-db', db.value);
     localStorage.setItem('flickr:mongodb-coll', coll.value);
-
-    // Close the config popover.
-    $("#config-popover").popover('hide');
 }
 
 function getMinMaxDates(zoom) {
@@ -377,11 +374,17 @@ window.onload = function () {
         redraw,
         drawer_toggle;
 
-    // Enable the popovers.
-    $("#info-popover").popover();
-    $("#config-popover").popover({
-        content: flickr.configPageletHTML
+    $("#config-panel").on("show", function () {
+        var cfg;
+
+        cfg = flickr.getMongoDBInfo();
+        d3.select("#mongodb-server").property("value", cfg.server);
+        d3.select("#mongodb-db").property("value", cfg.db);
+        d3.select("#mongodb-coll").property("value", cfg.coll);
     });
+
+    d3.select("#save-config").on("click", updateConfig);
+
 
     // TODO(choudhury): Probably the GMap prototype extension stuff should all
     // go in its own .js file.
