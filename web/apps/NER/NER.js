@@ -1,6 +1,6 @@
-/*jslint browser: true */
+/*jslint browser: true, unparam: true */
 
-/*globals xdw, CryptoJS, $, d3, escape, FileReader */
+/*globals xdw, CryptoJS, $, d3, escape, FileReader, console */
 
 // This is declared null for now - it will be initialized in the window's
 // onready method, as it depends on elements being loaded in the page.
@@ -14,6 +14,25 @@ NER.getMongoDBServer = function () {
     "use strict";
 
     return localStorage.getItem('NER:mongodb-server') || 'localhost';
+};
+
+// Save the mongo server to use to the configuration.
+NER.setMongoDBServer = function (val) {
+    "use strict";
+
+    return localStorage.setItem('NER:mongodb-server', val);
+};
+
+NER.configPageletHTML = function () {
+    "use strict";
+
+    var dbserver;
+
+    // Retrieve the configuration options.
+    dbserver = NER.getMongoDBServer();
+
+    // Instantiate the template with the current options.
+    return NER.configHtml.replace(/%SERVER%/g, dbserver);
 };
 
 // "nodes" is a table of entity names, mapping to an array position generated
@@ -358,6 +377,18 @@ function handleFileSelect(evt) {
 window.onload = function () {
     "use strict";
 
+    var drawer_toggle;
+
+    $("#mongodb-server").val(NER.getMongoDBServer());
+    d3.select("#save-config").on("click", function () {
+        NER.setMongoDBServer($("#mongodb-server").val());
+    });
+
+    // Activate the drawer toggle for the control panel.
+    drawer_toggle = xdw.util.drawer_toggle("#control-panel", "#collapse-icon");
+    d3.select("#drawer")
+        .on("click", drawer_toggle);
+
     graph = (function () {
         var fade_time,
             orignodes,
@@ -408,14 +439,20 @@ window.onload = function () {
 
         svg = d3.select("#graph");
 
-        width = svg.attr("width");
-        height = svg.attr("height");
-
+        width = $(window).width();
+        height = $(window).height();
         nodeCharge = -120;
         textCharge = -600;
         force = d3.layout.force()
             .linkDistance(30)
             .size([width, height]);
+
+        $(window).resize(function () {
+            width = $(window).width();
+            height = $(window).height();
+            force.size([width, height]);
+            force.start();
+        });
 
         return {
             assemble: function (nodedata, linkdata, typedata, nodecount_threshold) {
@@ -457,7 +494,7 @@ window.onload = function () {
             recompute: function (nodecount_threshold) {
                 var fixup;
 
-                if (typeof nodecount_threshold === "undefined") {
+                if (nodecount_threshold === undefined) {
                     throw "recompute must be called with a threshold!";
                 }
 

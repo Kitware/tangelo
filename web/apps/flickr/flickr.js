@@ -375,7 +375,7 @@ window.onload = function () {
         dayboxes,
         zoomfunc,
         redraw,
-        panel_toggle;
+        drawer_toggle;
 
     // Enable the popovers.
     $("#info-popover").popover();
@@ -884,62 +884,12 @@ window.onload = function () {
     //
     // Start by defining a function that can tell what state the button is in
     // (collapsed or not) and take the appropriate action.
-    panel_toggle = (function (divsel, buttonsel) {
-        var div,
-            button,
-            state,
-            divheight,
-            iconheight;
-
-        // Use the selectors to grab the DOM elements.
-        div = d3.select(divsel);
-        button = d3.select(buttonsel);
-
-        // Initially, the panel is open.
-        state = 'uncollapsed'
-
-        // Save the original height of the panel.
-        //
-        // TODO(choudhury): when the panel is collapsed and then uncollapsed, it
-        // is too short for some reason.  Adding 40 pixels makes things so all
-        // the panel content can be seen, but it would be better to figure out
-        // why this happens.
-        divheight = +div.style("height").slice(0,-2) + 40 + "px";
-        console.log(divheight);
-
-        // The glyphicon halfings are around 22.875 pixels tall.
-        iconheight = "23px";
-
-        // This function, when called, will toggle the state of the panel.
-        return function () {
-            if(state === 'uncollapsed'){
-                div.transition()
-                    .duration(500)
-                    .style("height", iconheight);
-
-                button.classed("icon-chevron-down", false)
-                    .classed("icon-chevron-up", true);
-
-                state = 'collapsed';
-            } else if (state === 'collapsed') {
-                div.transition()
-                    .duration(500)
-                    .style("height", divheight);
-
-                button.classed("icon-chevron-down", true)
-                    .classed("icon-chevron-up", false);
-
-                state = 'uncollapsed';
-            } else {
-                throw "Illegal state: " + state;
-            }
-        };
-    }("#control-panel", "#collapse-icon"));
+    drawer_toggle = xdw.util.drawer_toggle("#control-panel", "#collapse-icon");
 
     // Allow clicking anywhere along the div holding the icon to trigger the
     // collapse.
     d3.select("#drawer")
-        .on("click", panel_toggle);
+        .on("click", drawer_toggle);
 
     // Install the abort action on the button.
     d3.select("#abort")

@@ -39,9 +39,9 @@ set(JS_LINT_FILES
     #${CMAKE_SOURCE_DIR}/web/lib/id.js
     ${CMAKE_SOURCE_DIR}/web/lib/slider.js
     ${CMAKE_SOURCE_DIR}/web/lib/date.js
+    ${CMAKE_SOURCE_DIR}/web/lib/util.js
     #${CMAKE_SOURCE_DIR}/web/lib/barchart.js
     ${CMAKE_SOURCE_DIR}/web/apps/NER/NER.js
-    ${CMAKE_SOURCE_DIR}/web/apps/NER/NER-config.js
     ${CMAKE_SOURCE_DIR}/web/apps/stats/stats.js
     ${CMAKE_SOURCE_DIR}/web/apps/DataTwiddle/DataTwiddle.js
     ${CMAKE_SOURCE_DIR}/web/apps/VegaLab/vegalab.js
@@ -58,6 +58,7 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/web/lib/slider.js
     ${CMAKE_SOURCE_DIR}/web/lib/date.js
     #${CMAKE_SOURCE_DIR}/web/lib/barchart.js
+    ${CMAKE_SOURCE_DIR}/web/lib/util.js
     ${CMAKE_SOURCE_DIR}/web/lib/vgd3.js
     ${CMAKE_SOURCE_DIR}/web/lib/vg.util.js
 )
@@ -66,6 +67,7 @@ set(JS_UGLIFY_FILES
 set(JS_DOCUMENT_FILES
     ${CMAKE_SOURCE_DIR}/web/lib/date.js
     ${CMAKE_SOURCE_DIR}/web/lib/slider.js
+    ${CMAKE_SOURCE_DIR}/web/lib/util.js
     ${CMAKE_SOURCE_DIR}/web/lib/xdw.js
 )
 
@@ -101,8 +103,6 @@ set(SOURCES
     web/apps/NER/letters.csv
     web/apps/NER/NER.css
     web/apps/NER/NER.js
-    web/apps/NER/NER-config.js
-    web/apps/NER/NER-config.html
     web/apps/ssci/index.html
     web/apps/ssci/ssci.js
     web/apps/ssci/ssci.json
