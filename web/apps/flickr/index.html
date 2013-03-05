@@ -31,12 +31,24 @@
 
 <div class="navbar navbar-fixed-top">
     <div class=navbar-inner>
-        <a class=brand href=/>XDATA Web</a>
+        <a id=brand class=brand href=/>XDATA Web</a>
         <ul class=nav>
             <li class=active><a>Flickr Maps</a>
-            <li><a id=info-popover class=pointer data-placement=bottom data-content="Explore the locations where millions of Flickr photos were taken"><i class=icon-info-sign></i> Info</a>
+            <!--<li><a id=info-popover class=pointer data-placement=bottom data-content="Explore the locations where millions of Flickr photos were taken"><i class=icon-info-sign></i> Info</a>-->
+            <li><a id=info-popover class=pointer data-toggle=modal data-target=#info-panel><i class=icon-info-sign></i> Info</a>
             <li><a id=config-popover class=pointer data-placement=bottom data-html=true><i class=icon-cog></i> Config</a>
         </ul>
+    </div>
+</div>
+
+<div id=info-panel class="modal hide fade">
+    <div class=modal-header>
+        <button type=button class=close data-dismiss=modal aria-hidden=true>&times;</button>
+        <h3>Information</h3>
+    </div>
+
+    <div class=modal-body>
+        Explore the locations where millions of Flickr photos were taken.
     </div>
 </div>
 
