@@ -44,6 +44,18 @@ NER.files_processed = 0;
 // added to in different situations ("processing" to "processed", etc.).
 NER.filenames = {};
 
+function clearAll() {
+    NER.nodes = {};
+    NER.links = {};
+    NER.counter = 0;
+    NER.linkcounter = 0;
+
+    NER.types = {};
+
+    NER.num_files = 0;
+    NER.files_processed = 0;
+}
+
 // This function can be called with a filename to *generate* an AJAX-success
 // callback function to process the contents of some file.  The parameter passed
 // into the generator is so that the callback has access to the name of the file
@@ -293,6 +305,12 @@ function handleFileSelect(evt) {
         msg,
         li,
         reader;
+
+    // Clear the graph.
+    graph.reset();
+
+    // Clear the data.
+    clearAll();
 
     // Grab the list of files selected by the user.
     files = evt.target.files;
