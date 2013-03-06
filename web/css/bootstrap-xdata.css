@@ -87,3 +87,9 @@ input[type="file"] {
 .drawer:hover {
     background-color: gray;
 }
+
+/* This causes the "brand" item in fixed-navbars to not have a negative left
+ * margin. */
+.navbar-fixed-top .brand {
+    margin-left: auto;
+}
