@@ -23,18 +23,6 @@ NER.setMongoDBServer = function (val) {
     return localStorage.setItem('NER:mongodb-server', val);
 };
 
-NER.configPageletHTML = function () {
-    "use strict";
-
-    var dbserver;
-
-    // Retrieve the configuration options.
-    dbserver = NER.getMongoDBServer();
-
-    // Instantiate the template with the current options.
-    return NER.configHtml.replace(/%SERVER%/g, dbserver);
-};
-
 // "nodes" is a table of entity names, mapping to an array position generated
 // uniquely by the "counter" variable.  Once the table is complete, the nodes
 // table can be recast into an array.
