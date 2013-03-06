@@ -32,10 +32,6 @@ import os.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 class Server(object):
-    @cherrypy.expose
-    def index(self):
-        # Redirect the user to the actual front page.
-        raise cherrypy.HTTPRedirect("/index.html")
 
     @cherrypy.expose
     def service(self, module, *pargs, **kwargs):

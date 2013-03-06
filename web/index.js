@@ -26,7 +26,7 @@ window.onload = function () {
             app = apps[i];
 
             col.append("a")
-                .attr("href", "/apps/" + app.path + "/index.html")
+                .attr("href", "/app/" + app.path + "/")
                 .append("h4")
                     .html(app.name);
             col.append("p")

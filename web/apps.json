@@ -1,7 +1,7 @@
 [
     {
         "name": "Document Entity Relationships",
-        "path": "NER",
+        "path": "ner",
         "description": "Discover the network of <em>named entities</em> hidden within text documents"
     },
 
@@ -25,7 +25,7 @@
 
     {
         "name": "Vega Laboratory",
-        "path": "VegaLab",
+        "path": "vegalab",
         "description": "Load, edit, compile, and view Vega specifications in real time"
     }
 ]

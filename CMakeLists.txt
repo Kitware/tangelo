@@ -35,29 +35,25 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/stamps)
 
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
-    ${CMAKE_SOURCE_DIR}/web/index.js
-    #${CMAKE_SOURCE_DIR}/web/lib/id.js
+    ${CMAKE_SOURCE_DIR}/web/app/index.js
     ${CMAKE_SOURCE_DIR}/web/lib/slider.js
     ${CMAKE_SOURCE_DIR}/web/lib/date.js
     ${CMAKE_SOURCE_DIR}/web/lib/util.js
-    #${CMAKE_SOURCE_DIR}/web/lib/barchart.js
-    ${CMAKE_SOURCE_DIR}/web/apps/NER/NER.js
-    ${CMAKE_SOURCE_DIR}/web/apps/stats/stats.js
-    ${CMAKE_SOURCE_DIR}/web/apps/DataTwiddle/DataTwiddle.js
-    ${CMAKE_SOURCE_DIR}/web/apps/VegaLab/vegalab.js
-    ${CMAKE_SOURCE_DIR}/web/apps/ssci/ssci.js
-    ${CMAKE_SOURCE_DIR}/web/apps/flickr/flickr.js
-    ${CMAKE_SOURCE_DIR}/web/apps/mapping/mapping.js
-    ${CMAKE_SOURCE_DIR}/web/apps/noaa/climate.js
+    ${CMAKE_SOURCE_DIR}/web/app/ner/ner.js
+    ${CMAKE_SOURCE_DIR}/web/app/stats/stats.js
+    ${CMAKE_SOURCE_DIR}/web/app/datatwiddle/datatwiddle.js
+    ${CMAKE_SOURCE_DIR}/web/app/vegalab/vegalab.js
+    ${CMAKE_SOURCE_DIR}/web/app/ssci/ssci.js
+    ${CMAKE_SOURCE_DIR}/web/app/flickr/flickr.js
+    ${CMAKE_SOURCE_DIR}/web/app/mapping/mapping.js
+    ${CMAKE_SOURCE_DIR}/web/app/noaa/climate.js
 )
 
 # These files should be uglified and concatenated.
 set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/web/lib/xdw.js
-    #${CMAKE_SOURCE_DIR}/web/lib/id.js
     ${CMAKE_SOURCE_DIR}/web/lib/slider.js
     ${CMAKE_SOURCE_DIR}/web/lib/date.js
-    #${CMAKE_SOURCE_DIR}/web/lib/barchart.js
     ${CMAKE_SOURCE_DIR}/web/lib/util.js
     ${CMAKE_SOURCE_DIR}/web/lib/vgd3.js
     ${CMAKE_SOURCE_DIR}/web/lib/vg.util.js
@@ -79,122 +75,125 @@ set(SOURCES
     modules/datatwiddle.py
     modules/echo.py
     modules/mongo.py
-    modules/NERmongo.py
-    modules/NER.py
+    modules/nermongo.py
+    modules/ner.py
     modules/phylomongo.py
-    web/apps/noaa/index.html
-    web/apps/noaa/climate.js
-    web/apps/noaa/circularHeatChart.js
-    web/apps/noaa/sealevel.csv
-    web/apps/DataTwiddle/DataTwiddle.js
-    web/apps/DataTwiddle/index.html
-    web/apps/flickr/flickr.js
-    web/apps/flickr/index.html
-    web/apps/flickr/config.html
-    web/apps/mapping/cities.json
-    web/apps/mapping/dots.json
-    web/apps/mapping/index.html
-    web/apps/mapping/map.json
-    web/apps/mapping/mapping.css
-    web/apps/mapping/mapping.js
-    web/apps/mapping/vgd3.js
-    web/apps/mapping/world-countries.json
-    web/apps/NER/index.html
-    web/apps/NER/letters.csv
-    web/apps/NER/NER.css
-    web/apps/NER/NER.js
-    web/apps/ssci/index.html
-    web/apps/ssci/ssci.js
-    web/apps/ssci/ssci.json
-    web/apps/ssci/data/animals_data.json
-    web/apps/ssci/data/Cc_73524567995_00.json
-    web/apps/ssci/data/Cc_73524568270_01.json
-    web/apps/ssci/data/Cc_73524568278_02.json
-    web/apps/ssci/data/Cc_73524568287_03.json
-    web/apps/ssci/data/Cc_73524568298_04.json
-    web/apps/ssci/data/Cc_73524568305_05.json
-    web/apps/ssci/data/Cc_73524568313_06.json
-    web/apps/ssci/data/Cc_73524568322_07.json
-    web/apps/ssci/data/Cc_73524568328_08.json
-    web/apps/ssci/data/Cc_73524568338_09.json
-    web/apps/ssci/data/Cc_73524568345_10.json
-    web/apps/ssci/data/Cc_73524568352_11.json
-    web/apps/ssci/data/Cr_73524567995_00.json
-    web/apps/ssci/data/Cr_73524568270_01.json
-    web/apps/ssci/data/Cr_73524568278_02.json
-    web/apps/ssci/data/Cr_73524568287_03.json
-    web/apps/ssci/data/Cr_73524568298_04.json
-    web/apps/ssci/data/Cr_73524568305_05.json
-    web/apps/ssci/data/Cr_73524568313_06.json
-    web/apps/ssci/data/Cr_73524568322_07.json
-    web/apps/ssci/data/Cr_73524568328_08.json
-    web/apps/ssci/data/Cr_73524568338_09.json
-    web/apps/ssci/data/Cr_73524568345_10.json
-    web/apps/ssci/data/Cr_73524568352_11.json
-    web/apps/ssci/data/XD_73524567995_00.json
-    web/apps/ssci/data/XD_73524568270_01.json
-    web/apps/ssci/data/XD_73524568278_02.json
-    web/apps/ssci/data/XD_73524568287_03.json
-    web/apps/ssci/data/XD_73524568298_04.json
-    web/apps/ssci/data/XD_73524568305_05.json
-    web/apps/ssci/data/XD_73524568313_06.json
-    web/apps/ssci/data/XD_73524568322_07.json
-    web/apps/ssci/data/XD_73524568328_08.json
-    web/apps/ssci/data/XD_73524568338_09.json
-    web/apps/ssci/data/XD_73524568345_10.json
-    web/apps/ssci/data/XD_73524568352_11.json
-    web/apps/ssci/data/XL_73524567995_00.json
-    web/apps/ssci/data/XL_73524568270_01.json
-    web/apps/ssci/data/XL_73524568278_02.json
-    web/apps/ssci/data/XL_73524568287_03.json
-    web/apps/ssci/data/XL_73524568298_04.json
-    web/apps/ssci/data/XL_73524568305_05.json
-    web/apps/ssci/data/XL_73524568313_06.json
-    web/apps/ssci/data/XL_73524568322_07.json
-    web/apps/ssci/data/XL_73524568328_08.json
-    web/apps/ssci/data/XL_73524568338_09.json
-    web/apps/ssci/data/XL_73524568345_10.json
-    web/apps/ssci/data/XL_73524568352_11.json
-    web/apps/stats/index.html
-    web/apps/stats/stats.js
-    web/apps/VegaLab/data/7zip.png
-    web/apps/VegaLab/data/cities.json
-    web/apps/VegaLab/data/ffox.png
-    web/apps/VegaLab/data/gimp.png
-    web/apps/VegaLab/data/letters.json
-    web/apps/VegaLab/data/world-countries.json
-    web/apps/VegaLab/examples/histogram/histogram-data.js
-    web/apps/VegaLab/examples/histogram/histogram.js
-    web/apps/VegaLab/examples/histogram/histogram.json
-    web/apps/VegaLab/examples/histogram-json/histogram-json-data.json
-    web/apps/VegaLab/examples/histogram-json/histogram-json.js
-    web/apps/VegaLab/examples/histogram-json/histogram-json.json
-    web/apps/VegaLab/examples/ordinal-bars/ordinal-bars.json
-    web/apps/VegaLab/examples/vega-arc/vega-arc-data.json
-    web/apps/VegaLab/examples/vega-arc/vega-arc.js
-    web/apps/VegaLab/examples/vega-arc/vega-arc.json
-    web/apps/VegaLab/examples/vega-bars/vega-bars-data.json
-    web/apps/VegaLab/examples/vega-bars/vega-bars.json
-    web/apps/VegaLab/examples/vega-data.js
-    web/apps/VegaLab/examples/vega-image/vega-image.json
-    web/apps/VegaLab/examples/vega-line/vega-line-data.js
-    web/apps/VegaLab/examples/vega-line/vega-line.json
-    web/apps/VegaLab/examples/vega-map/vega-map.json
-    web/apps/VegaLab/examples/vega-stack_area/vega-stack_area-data.js
-    web/apps/VegaLab/examples/vega-stack_area/vega-stack_area.json
-    web/apps/VegaLab/examples/vega-stack_bars/vega-stack_bars-data.js
-    web/apps/VegaLab/examples/vega-stack_bars/vega-stack_bars.json
-    web/apps/VegaLab/examples/vega-symbol/vega-symbol-data.js
-    web/apps/VegaLab/examples/vega-symbol/vega-symbol.json
-    web/apps/VegaLab/examples/vega-treemap/vega-treemap-data.js
-    web/apps/VegaLab/examples/vega-treemap/vega-treemap.json
-    web/apps/VegaLab/index.html
-    web/apps/VegaLab/lib/projection.js
-    web/apps/VegaLab/vegalab.css
-    web/apps/VegaLab/vegalab.js
-    web/apps/Phylotree/heliconia.json
-    web/apps/Phylotree/index.html
-    web/apps/Phylotree/phylotree.js
+    web/apps.json
+    web/index.html
+    web/index.js
+    web/app/noaa/index.html
+    web/app/noaa/climate.js
+    web/app/noaa/circularHeatChart.js
+    web/app/noaa/sealevel.csv
+    web/app/datatwiddle/datatwiddle.js
+    web/app/datatwiddle/index.html
+    web/app/flickr/flickr.js
+    web/app/flickr/index.html
+    web/app/flickr/config.html
+    web/app/mapping/cities.json
+    web/app/mapping/dots.json
+    web/app/mapping/index.html
+    web/app/mapping/map.json
+    web/app/mapping/mapping.css
+    web/app/mapping/mapping.js
+    web/app/mapping/vgd3.js
+    web/app/mapping/world-countries.json
+    web/app/ner/index.html
+    web/app/ner/letters.csv
+    web/app/ner/ner.css
+    web/app/ner/ner.js
+    web/app/ssci/index.html
+    web/app/ssci/ssci.js
+    web/app/ssci/ssci.json
+    web/app/ssci/data/animals_data.json
+    web/app/ssci/data/Cc_73524567995_00.json
+    web/app/ssci/data/Cc_73524568270_01.json
+    web/app/ssci/data/Cc_73524568278_02.json
+    web/app/ssci/data/Cc_73524568287_03.json
+    web/app/ssci/data/Cc_73524568298_04.json
+    web/app/ssci/data/Cc_73524568305_05.json
+    web/app/ssci/data/Cc_73524568313_06.json
+    web/app/ssci/data/Cc_73524568322_07.json
+    web/app/ssci/data/Cc_73524568328_08.json
+    web/app/ssci/data/Cc_73524568338_09.json
+    web/app/ssci/data/Cc_73524568345_10.json
+    web/app/ssci/data/Cc_73524568352_11.json
+    web/app/ssci/data/Cr_73524567995_00.json
+    web/app/ssci/data/Cr_73524568270_01.json
+    web/app/ssci/data/Cr_73524568278_02.json
+    web/app/ssci/data/Cr_73524568287_03.json
+    web/app/ssci/data/Cr_73524568298_04.json
+    web/app/ssci/data/Cr_73524568305_05.json
+    web/app/ssci/data/Cr_73524568313_06.json
+    web/app/ssci/data/Cr_73524568322_07.json
+    web/app/ssci/data/Cr_73524568328_08.json
+    web/app/ssci/data/Cr_73524568338_09.json
+    web/app/ssci/data/Cr_73524568345_10.json
+    web/app/ssci/data/Cr_73524568352_11.json
+    web/app/ssci/data/XD_73524567995_00.json
+    web/app/ssci/data/XD_73524568270_01.json
+    web/app/ssci/data/XD_73524568278_02.json
+    web/app/ssci/data/XD_73524568287_03.json
+    web/app/ssci/data/XD_73524568298_04.json
+    web/app/ssci/data/XD_73524568305_05.json
+    web/app/ssci/data/XD_73524568313_06.json
+    web/app/ssci/data/XD_73524568322_07.json
+    web/app/ssci/data/XD_73524568328_08.json
+    web/app/ssci/data/XD_73524568338_09.json
+    web/app/ssci/data/XD_73524568345_10.json
+    web/app/ssci/data/XD_73524568352_11.json
+    web/app/ssci/data/XL_73524567995_00.json
+    web/app/ssci/data/XL_73524568270_01.json
+    web/app/ssci/data/XL_73524568278_02.json
+    web/app/ssci/data/XL_73524568287_03.json
+    web/app/ssci/data/XL_73524568298_04.json
+    web/app/ssci/data/XL_73524568305_05.json
+    web/app/ssci/data/XL_73524568313_06.json
+    web/app/ssci/data/XL_73524568322_07.json
+    web/app/ssci/data/XL_73524568328_08.json
+    web/app/ssci/data/XL_73524568338_09.json
+    web/app/ssci/data/XL_73524568345_10.json
+    web/app/ssci/data/XL_73524568352_11.json
+    web/app/stats/index.html
+    web/app/stats/stats.js
+    web/app/vegalab/data/7zip.png
+    web/app/vegalab/data/cities.json
+    web/app/vegalab/data/ffox.png
+    web/app/vegalab/data/gimp.png
+    web/app/vegalab/data/letters.json
+    web/app/vegalab/data/world-countries.json
+    web/app/vegalab/examples/histogram/histogram-data.js
+    web/app/vegalab/examples/histogram/histogram.js
+    web/app/vegalab/examples/histogram/histogram.json
+    web/app/vegalab/examples/histogram-json/histogram-json-data.js
+    web/app/vegalab/examples/histogram-json/histogram-json.js
+    web/app/vegalab/examples/histogram-json/histogram-json.json
+    web/app/vegalab/examples/ordinal-bars/ordinal-bars.json
+    web/app/vegalab/examples/vega-arc/vega-arc-data.js
+    web/app/vegalab/examples/vega-arc/vega-arc.js
+    web/app/vegalab/examples/vega-arc/vega-arc.json
+    web/app/vegalab/examples/vega-bars/vega-bars-data.json
+    web/app/vegalab/examples/vega-bars/vega-bars.json
+    web/app/vegalab/examples/vega-data.js
+    web/app/vegalab/examples/vega-image/vega-image.json
+    web/app/vegalab/examples/vega-line/vega-line-data.js
+    web/app/vegalab/examples/vega-line/vega-line.json
+    web/app/vegalab/examples/vega-map/vega-map.json
+    web/app/vegalab/examples/vega-stack_area/vega-stack_area-data.js
+    web/app/vegalab/examples/vega-stack_area/vega-stack_area.json
+    web/app/vegalab/examples/vega-stack_bars/vega-stack_bars-data.js
+    web/app/vegalab/examples/vega-stack_bars/vega-stack_bars.json
+    web/app/vegalab/examples/vega-symbol/vega-symbol-data.js
+    web/app/vegalab/examples/vega-symbol/vega-symbol.json
+    web/app/vegalab/examples/vega-treemap/vega-treemap-data.js
+    web/app/vegalab/examples/vega-treemap/vega-treemap.json
+    web/app/vegalab/index.html
+    web/app/vegalab/lib/projection.js
+    web/app/vegalab/vegalab.css
+    web/app/vegalab/vegalab.js
+    web/app/phylotree/heliconia.json
+    web/app/phylotree/index.html
+    web/app/phylotree/phylotree.js
     web/img/glyphicons-halflings-white.png
     web/img/glyphicons-halflings.png
     web/lib/vgd3-template.js.txt
@@ -205,9 +204,6 @@ set(SOURCES
     web/css/bootswatch/bootstrap-readable.css
     web/img/glyphicons-halflings.png
     web/img/glyphicons-halflings-white.png
-    web/apps.json
-    web/index.html
-    web/index.js
 )
 
 if(DEPLOY_TEST_SERVICES)
@@ -302,7 +298,7 @@ endforeach()
 # Python web service tests.
 set(PYTEST ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/xdwpytest.py)
 
-add_test(xdw-NER ${PYTEST} NER "Toto, I've got a feeling we're not in Kansas anymore." "{\"result\": [[\"GPE\", \"Toto\"], [\"GPE\", \"Kansas\"]], \"error\": null}")
+add_test(xdw-ner ${PYTEST} ner "Toto, I've got a feeling we're not in Kansas anymore." "{\"result\": [[\"GPE\", \"Toto\"], [\"GPE\", \"Kansas\"]], \"error\": null}")
 
 if(DEPLOY_TEST_SERVICES)
     add_test(xdw-echo-blank ${PYTEST} echo "(No arguments passed)")

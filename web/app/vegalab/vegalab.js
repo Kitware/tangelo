@@ -151,7 +151,7 @@ function loadspec() {
     // appropriate files.
     //
     // NOTE: the directory name is the same as the filename base.
-    filename_prefix = "/apps/VegaLab/examples/" + opt + "/" + opt;
+    filename_prefix = "examples/" + opt + "/" + opt;
 
     // Fill in the Vega spec text box.
     filename = filename_prefix + ".json";

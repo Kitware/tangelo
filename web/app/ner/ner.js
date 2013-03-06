@@ -100,7 +100,7 @@ function processFileContents(filename, id, file_hash) {
             ok = true;
             $.ajax({
                 type: 'POST',
-                url: '/service/NERmongo/' + NER.getMongoDBServer() + '/xdata/ner-cache',
+                url: '/service/nermongo/' + NER.getMongoDBServer() + '/xdata/ner-cache',
                 data: {
                     file_hash: file_hash,
                     data: JSON.stringify(entities)
@@ -226,7 +226,7 @@ function processFile(filename, id) {
         // when it finishes!).
         $.ajax({
             type: 'POST',
-            url: '/service/NERmongo/' + NER.getMongoDBServer() + '/xdata/ner-cache',
+            url: '/service/nermongo/' + NER.getMongoDBServer() + '/xdata/ner-cache',
             data: {
                 file_hash: file_hash
             },
@@ -257,7 +257,7 @@ function processFile(filename, id) {
                 if (response.error !== null || response.result.length === 0) {
                     $.ajax({
                         type: 'POST',
-                        url: '/service/NER',
+                        url: '/service/ner',
                         data: {
                             text: text
                         },
