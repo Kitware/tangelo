@@ -17,20 +17,6 @@ flickr.getMongoDBInfo = function () {
     };
 };
 
-flickr.configPageletHTML = function () {
-    "use strict";
-    var config;
-
-    // Retrieve the configuration options.
-    config = flickr.getMongoDBInfo();
-
-    // Instantiate the template with the current config values.
-    return flickr.configHtml
-        .replace(/%SERVER%/g, config.server)
-        .replace(/%DATABASE%/g, config.db)
-        .replace(/%COLLECTION%/g, config.coll);
-};
-
 function updateConfig() {
     "use strict";
 
@@ -886,23 +872,7 @@ window.onload = function () {
     // range can be properly zoomed to begin with.
     getMinMaxDates(zoomfunc.zoomer);
 
-    // Make a spinner out of the opacity control.
-    //$("#opacity").spinner();
-
-    // Read in the configuration template.
-    d3.text("config.html", function (text) {
-        if(text === undefined){
-            flickr.configHtml = "<b>Error reading in configuration template.</b>";
-        }
-        else{
-            flickr.configHtml = text;
-        }
-    });
-
     // Make the control panel tray button active.
-    //
-    // Start by defining a function that can tell what state the button is in
-    // (collapsed or not) and take the appropriate action.
     drawer_toggle = xdw.util.drawer_toggle("#control-panel", "#collapse-icon");
 
     // Allow clicking anywhere along the div holding the icon to trigger the

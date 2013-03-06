@@ -89,7 +89,6 @@ set(SOURCES
     web/app/datatwiddle/index.html
     web/app/flickr/flickr.js
     web/app/flickr/index.html
-    web/app/flickr/config.html
     web/app/mapping/cities.json
     web/app/mapping/dots.json
     web/app/mapping/index.html
