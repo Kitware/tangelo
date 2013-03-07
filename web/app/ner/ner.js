@@ -44,6 +44,15 @@ NER.files_processed = 0;
 // added to in different situations ("processing" to "processed", etc.).
 NER.filenames = {};
 
+NER.datasets = [
+    {
+        option: "Bin Laden Papers",
+        dir: "data/bin-laden-papers"
+    }
+];
+
+NER.customdata = "Custom (use file selector)";
+
 function clearAll() {
     NER.nodes = {};
     NER.links = {};
@@ -410,9 +419,16 @@ window.onload = function () {
     d3.select("#drawer")
         .on("click", drawer_toggle);
 
-    // Activate the dataset select tag.
+    // Activate the dataset select tag, and fill it with entries.
     d3.select("#dataset")
-        .on("change", loaddata);
+        .on("change", loaddata)
+        .data(NER.datasets)
+        .append("option")
+        .text(function (d) { return d.option; });
+
+    d3.select("#dataset")
+        .append("option")
+        .text(NER.customdata);
 
     graph = (function () {
         var fade_time,
