@@ -312,6 +312,9 @@ function handleFileSelect(evt) {
     // Clear the data.
     clearAll();
 
+    // Set the dataset selector element to show the "custom" item.
+    d3.select("#dataset").node().value = "Custom (file selector)";
+
     // Grab the list of files selected by the user.
     files = evt.target.files;
 
@@ -386,6 +389,12 @@ function handleFileSelect(evt) {
         .remove();
 }
 
+function loaddata(){
+    "use strict";
+
+    console.log("loaddata");
+}
+
 window.onload = function () {
     "use strict";
 
@@ -400,6 +409,10 @@ window.onload = function () {
     drawer_toggle = xdw.util.drawer_toggle("#control-panel", "#collapse-icon");
     d3.select("#drawer")
         .on("click", drawer_toggle);
+
+    // Activate the dataset select tag.
+    d3.select("#dataset")
+        .on("change", loaddata);
 
     graph = (function () {
         var fade_time,
