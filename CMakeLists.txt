@@ -101,6 +101,24 @@ set(SOURCES
     web/app/ner/letters.csv
     web/app/ner/ner.css
     web/app/ner/ner.js
+    web/app/ner/data/bin-laden-papers/control.json
+    web/app/ner/data/bin-laden-papers/SOCOM-2012-0000003.txt
+    web/app/ner/data/bin-laden-papers/SOCOM-2012-0000004.txt
+    web/app/ner/data/bin-laden-papers/SOCOM-2012-0000005.txt
+    web/app/ner/data/bin-laden-papers/SOCOM-2012-0000006.txt
+    web/app/ner/data/bin-laden-papers/SOCOM-2012-0000007.txt
+    web/app/ner/data/bin-laden-papers/SOCOM-2012-0000008.txt
+    web/app/ner/data/bin-laden-papers/SOCOM-2012-0000009.txt
+    web/app/ner/data/bin-laden-papers/SOCOM-2012-0000010.txt
+    web/app/ner/data/bin-laden-papers/SOCOM-2012-0000011.txt
+    web/app/ner/data/bin-laden-papers/SOCOM-2012-0000012.txt
+    web/app/ner/data/bin-laden-papers/SOCOM-2012-0000013.txt
+    web/app/ner/data/bin-laden-papers/SOCOM-2012-0000014.txt
+    web/app/ner/data/bin-laden-papers/SOCOM-2012-0000015.txt
+    web/app/ner/data/bin-laden-papers/SOCOM-2012-0000016.txt
+    web/app/ner/data/bin-laden-papers/SOCOM-2012-0000017.txt
+    web/app/ner/data/bin-laden-papers/SOCOM-2012-0000018.txt
+    web/app/ner/data/bin-laden-papers/SOCOM-2012-0000019.txt
     web/app/ssci/index.html
     web/app/ssci/ssci.js
     web/app/ssci/ssci.json

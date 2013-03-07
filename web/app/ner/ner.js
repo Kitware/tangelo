@@ -406,7 +406,57 @@ function handleFileSelect(evt) {
 function loaddata(){
     "use strict";
 
-    console.log("loaddata");
+    console.log("blah");
+
+    var callback,
+        dir,
+        i,
+        sel;
+
+    // Determine which option was selected.
+    //
+    // NOTE: the index will be equal to the length of the available datasets
+    // when it is pointing "beyond" all of the dataset choices, i.e., at the
+    // custom item.
+    sel = d3.select("#dataset").node();
+    if (sel.selectedIndex === NER.datasets.length) {
+        console.log("custom selected");
+        return;
+    }
+
+    // Get the directory containing the files in the data set.
+    dir = sel.options[sel.selectedIndex].__data__.dir;
+
+    // Open the json file describing which files to load.
+    d3.json(dir + "/control.json", function (data) {
+        // Set the number of files to load.
+        NER.num_files = data.files.length;
+
+        // Write a callback generator that will construct an id, pass the
+        // filename and id to processFile, then immediately invoke the resulting
+        // function with a fake event object containing the text to process.
+        callback = function (i) {
+            return function (text) {
+                var e;
+
+                console.log(text);
+
+                // Pack the text into a form the processFile function will
+                // recognize.
+                e = {};
+                e.target = {};
+                e.target.result = text;
+
+                // Call the function.
+                processFile(data.files[i], generate_id(data.files[i]))(e);
+            };
+        };
+
+        // Fire off ajax calls to retrieve the text and pass it to processFile.
+        for(i = 0; i < data.files.length; i = i + 1) {
+            d3.text(dir + "/" + data.files[i], callback(i));
+        }
+    });
 }
 
 window.onload = function () {
