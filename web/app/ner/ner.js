@@ -308,10 +308,11 @@ function generate_id(filename){
         .replace(/ /g, "_");
 }
 
-function handleFileSelect(evt) {
+function handleFileSelect() {
     "use strict";
 
-    var files,
+    var evt,
+        files,
         output,
         i,
         f,
@@ -323,6 +324,8 @@ function handleFileSelect(evt) {
         li,
         reader;
 
+    evt = d3.event;
+
     // Clear the graph.
     graph.reset();
 
@@ -330,7 +333,7 @@ function handleFileSelect(evt) {
     clearAll();
 
     // Set the dataset selector element to show the "custom" item.
-    d3.select("#dataset").node().value = "Custom (file selector)";
+    d3.select("#dataset").node().value = NER.customdata;
 
     // Grab the list of files selected by the user.
     files = evt.target.files;
@@ -403,6 +406,25 @@ function handleFileSelect(evt) {
         .remove();
 }
 
+function freshFileInput(){
+    "use strict";
+
+    console.log("freshfile");
+
+    var holder;
+
+    holder = d3.select("#file-input-holder");
+
+    holder.selectAll("*")
+        .remove();
+
+    holder.append("input")
+        .attr("multiple", "true")
+        .attr("type", "file")
+        .attr("id", "docs")
+        .on("change", handleFileSelect);
+}
+
 function loaddata(){
     "use strict";
 
@@ -423,6 +445,9 @@ function loaddata(){
         console.log("custom selected");
         return;
     }
+
+    // Clear the file input.
+    freshFileInput();
 
     // Get the directory containing the files in the data set.
     dir = sel.options[sel.selectedIndex].__data__.dir;
@@ -854,22 +879,10 @@ window.onload = function () {
     // slider API help).
     d3.select("#value").html($("#slider").slider("value"));
 
-    document.getElementById('docs').addEventListener('change', handleFileSelect, false);
-
-/*    // TODO(choudhury): this is just testing code - get rid of it at the right*/
-    //// time.
-    //var h = null;
-    //d3.csv("letters.csv", function(rows){
-        //rows.sort(function(a,b) { return a.frequency < b.frequency; });
-        //h = barchart.barchart({
-                //table: rows,
-                //xcolumn: "letter",
-                //ycolumn: "frequency",
-                //yrange: [0, 0.13],
-                //svgselector: "#barchart",
-                //position: [3, 3],
-                //size: [794, 144],
-                //border: false
-        //});
-    /*});*/
+    // Install a new file input.
+    //
+    // NOTE: this is done via a function so we have a way to "clear" the
+    // filename appearing inside it, when the user uses the dropdown menu to
+    // select a prepared dataset, etc.
+    freshFileInput();
 };
