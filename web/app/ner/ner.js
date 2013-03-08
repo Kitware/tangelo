@@ -832,6 +832,9 @@ window.onload = function () {
     }());
 
     // Initialize the slider for use in filtering.
+    //
+    // Set the slider to "5" (to give a reasonable amount of data as the
+    // default).
     NER.nodeSlider = xdw.slider.slider(d3.select("#slider").node(), {
         onchange: function (v) {
             graph.recompute(v);
@@ -847,6 +850,7 @@ window.onload = function () {
         }())
     });
     NER.nodeSlider.setMax(10);
+    NER.nodeSlider.setValue(5);
     NER.nodeSlider.initialize();
 
     // Bootstrap showing the slider value here (none of the callbacks in the
