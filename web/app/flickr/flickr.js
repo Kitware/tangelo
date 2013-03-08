@@ -372,6 +372,7 @@ window.onload = function () {
         displayFunc,
         checkbox,
         dayboxes,
+        popover_cfg,
         zoomfunc,
         redraw,
         drawer_toggle;
@@ -389,6 +390,33 @@ window.onload = function () {
     // Update the internal datastore when the user saves the configuration.
     d3.select("#save-config").on("click", updateConfig);
 
+    // Enable the popover help items.
+    //
+    // First create a config object with the common options preset.
+    popover_cfg = {
+        html: true,
+        container: "body",
+        placement: "top",
+        trigger: "hover",
+        title: null,
+        content: null,
+        delay: {
+            show: 100,
+            hide: 100
+        }
+    };
+
+    // Time slider help.
+    popover_cfg.title = "Time Filtering";
+    popover_cfg.content = "Display photos taken between two particular dates/times.<br><br>" +
+        "The 'zoom to range' button will make the slider represent the currently selected time slice, " +
+        "while the 'unzoom' button undoes one zoom.";
+    $("#time-filter-help").popover(popover_cfg);
+
+    // Hashtag help.
+    popover_cfg.title = "Hashtag Filtering";
+    popover_cfg.content = "Display photos including the list of hashtags specified.  Be sure to include the initial '#'!";
+    $("#hashtag-filter-help").popover(popover_cfg);
 
     // TODO(choudhury): Probably the GMap prototype extension stuff should all
     // go in its own .js file.

@@ -72,7 +72,7 @@ input[type="file"] {
     width: auto; display:inline;
 }
 
-.popover {
+.popover-expand {
     max-width: none;
 }
 
