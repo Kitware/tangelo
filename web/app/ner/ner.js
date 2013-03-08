@@ -458,10 +458,10 @@ function loaddata(){
 window.onload = function () {
     "use strict";
 
+    var drawer_toggle;
+
     // Capture the console element.
     NER.con = d3.select("#console");
-
-    var drawer_toggle;
 
     $("#mongodb-server").val(NER.getMongoDBServer());
     d3.select("#save-config").on("click", function () {
