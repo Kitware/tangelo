@@ -46,8 +46,8 @@ NER.filenames = {};
 
 NER.datasets = [
     {
-        option: "Bin Laden Papers",
-        dir: "data/bin-laden-papers"
+        option: "Letters from Abbottabad",
+        dir: "data/letters-from-abbottabad"
     }
 ];
 
@@ -458,10 +458,44 @@ function loaddata(){
 window.onload = function () {
     "use strict";
 
-    var drawer_toggle;
+    var drawer_toggle,
+        popover_cfg;
 
     // Capture the console element.
     NER.con = d3.select("#console");
+
+    // Enable the popover help items.
+    //
+    // First create a config object with the common options present.
+    popover_cfg = {
+        html: true,
+        container: "body",
+        placement: "top",
+        trigger: "hover",
+        title: null,
+        content: null,
+        delay: {
+            show: 100,
+            hide: 100
+        }
+    };
+
+    // Dataset pulldown help.
+    popover_cfg.content = "A description of the included datasets:<br><br>" +
+        "<b>Letters from Abbottabad</b>. " +
+        "Correspondence written by Al Qaeda leadership, including Osama bin Laden, " +
+        "discovered by the SEALs during the raid in which he was killed.<br><br>";
+    $("#dataset-help").popover(popover_cfg);
+
+    // Graph menu help.
+    popover_cfg.content = "<b>Scale nodes by frequency</b>. Display the nodes, representing entities, " +
+        "with size proportional to the <i>total number of mentions in all the documents</i>.<br><br>" +
+        "<b>Thicken links by frequency</b>. Display the links, representing the mention of an entity " +
+        "in a document, with thickness proportional to the <i>number of times that entity is mentioned " +
+        "in that document</i>.<br><br>" +
+        "<b>Render text labels</b>.  Instead of circles to represent entities, use a text placard with " +
+        "the name of the entity displayed with text.";
+    $("#graph-help").popover(popover_cfg);
 
     $("#mongodb-server").val(NER.getMongoDBServer());
     d3.select("#save-config").on("click", function () {

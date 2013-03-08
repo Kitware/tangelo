@@ -60,7 +60,10 @@
 
         Upload several text files and this application will detect the named entities
         (people, places, organizations, etc.) in each file, showing a graph of
-        the shared entities between the several documents.
+        the shared entities between the several documents.<br><br>
+
+        The application can optionally use a MongoDB server (set in the Configuration menu)
+        to cache the results of the named entity recognition computations.
     </div>
 
     <div class=modal-footer>
@@ -92,7 +95,7 @@
 
         <div class=row>
             <div class=span3>
-                <h4>Select a dataset</h4>
+                <h4>Select a dataset <i id=dataset-help class=icon-question-sign></i></h4>
                 <select id=dataset></select>
              </div>
 
@@ -109,7 +112,7 @@
 
         <div class=row>
             <div class=span3>
-                <h4>Graph</h4>
+                <h4>Graph <i id=graph-help class=icon-question-sign></i></h4>
                 <label class=checkbox>
                     <input type=checkbox id=nodefreq onchange="graph.updateConfig(); graph.applyConfig(); graph.render();"> Scale nodes by frequency
                 </label>
