@@ -87,14 +87,19 @@
                 <select id=dataset></select>
              </div>
 
-            <div class=span7>
+            <div class=span4>
                 <h4>Or upload your own</h4>
                 <div id=file-input-holder></div>
+            </div>
+
+            <div class=span4>
+                <h4>Information</h4>
+                <textarea id=console class=code height=15 readonly></textarea>
             </div>
         </div>
 
         <div class=row>
-            <div class=span4>
+            <div class=span3>
                 <h4>Graph</h4>
                 <label class=checkbox>
                     <input type=checkbox id=nodefreq onchange="graph.updateConfig(); graph.applyConfig(); graph.render();"> Scale nodes by frequency
@@ -113,11 +118,6 @@
                 <h4>Filtering</h4>
                 <div id=slider></div>
                 Nodes must have at least <span id=value></span> mentions.
-            </div>
-
-            <div class=span4>
-                <h4>Information</h4>
-                <textarea id=console class=code readonly></textarea>
             </div>
         </div>
     </div>
