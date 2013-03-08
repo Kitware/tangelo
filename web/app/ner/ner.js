@@ -53,6 +53,15 @@ NER.datasets = [
 
 NER.customdata = "Custom (use file selector)";
 
+function appendInfo(msg){
+    "use strict";
+
+    var con;
+
+    con = d3.select("#console");
+    con.text(con.text() + msg + "\n");
+}
+
 function clearAll() {
     NER.nodes = {};
     NER.links = {};
@@ -82,25 +91,15 @@ function processFileContents(filename, id, file_hash) {
         // write the error message in the information window and abort the
         // operation.
         if (response.error !== null) {
-            d3.select("#file-info")
-                .append("li")
-                .classed("error", true)
-                .html(response.error)
-                .style("opacity", 0.0)
-                .transition()
-                .duration(1000)
-                .style("opacity", 1.0);
-
+            appendInfo(response.error);
             return;
         }
 
         // Extract the actual result from the response object.
         entities = response.result;
 
-        li = d3.select("#" + id)
-            .classed("inprogress", false)
-            .classed("processing done", true);
-        li.html(NER.filenames[filename] + ' processed');
+        // Write a message.
+        appendInfo(filename + " processed");
 
         // If the "store" parameter is set to true, store the data in the
         // database (caching it for future retrieval).
@@ -121,14 +120,6 @@ function processFileContents(filename, id, file_hash) {
                     // already have the data in hand.
                     if (resp.error !== null) {
                         console.log("error: " + resp.error);
-/*                        d3.select("#file-info")*/
-                            //.append("li")
-                            //.classed("error", true)
-                            //.html(resp.error)
-                            //.style("opacity", 0.0)
-                            //.transition()
-                            //.duration(1000)
-                            /*.style("opacity", 1.0);*/
                     }
                 }
             });
@@ -245,20 +236,11 @@ function processFile(filename, id) {
 
                 // Error checking.
                 if (response.error !== null) {
-                    d3.select("#file-info")
-                        .append("li")
-                        .classed("error", true)
-                        .html(response.error)
-                        .style("opacity", 0.0)
-                        .transition()
-                        .duration(1000)
-                        .style("opacity", 1.0);
+                    appendInfo(response.error);
                 }
 
                 // Mark the appropriate list item as being processed.
-                li = d3.select("#" + id);
-                li.html(NER.filenames[filename] + " processing")
-                    .classed("processing inprogress", true);
+                appendInfo(filename + " processing");
 
                 // Check the response - if it is an empty list, or there was a
                 // database error, launch the second AJAX call to directly
@@ -273,7 +255,7 @@ function processFile(filename, id) {
                         dataType: 'json',
                         success: processFileContents(filename, id, file_hash),
                         error: function () {
-                            $("#" + filename.replace(".", "-")).removeClass("inprogress").addClass("failed").get(0).innerHTML = filename + " processed";
+                            appendInfo(filename + " processed");
                         }
                     });
                 } else {
@@ -385,9 +367,7 @@ function handleFileSelect() {
         // so it can be updated later.
         li = d3.select("#file-info").append("li");
         NER.filenames[filename] = '<span class=filename>' + filename + '</span>';
-        li.attr("id", id)
-            .classed("rejected", !using)
-            .html(NER.filenames[filename] + '<span class=filename>(' + (f.type || 'n/a') + ')</span> - ' + f.size + ' bytes ' + (using ? '<span class=ok>(ok)</span>' : '<span class=rejected>(rejected)</span>'));
+        appendInfo(filename + " (" + (f.type || "n/a") + ") - " + f.size + " bytes " + (using ? "(ok)" : "(rejected)"));
 
         if (using) {
             reader = new FileReader();
@@ -395,15 +375,6 @@ function handleFileSelect() {
             reader.readAsText(f);
         }
     }
-
-    // Remove the "rejected" list items by fading them away.
-    d3.selectAll("li.rejected")
-        .transition()
-        .delay(1000)
-        .duration(2000)
-        .style("opacity", 0.0)
-        .style("height", "0px")
-        .remove();
 }
 
 function freshFileInput(){
@@ -486,6 +457,9 @@ function loaddata(){
 
 window.onload = function () {
     "use strict";
+
+    // Capture the console element.
+    NER.con = d3.select("#console");
 
     var drawer_toggle;
 
