@@ -885,4 +885,7 @@ window.onload = function () {
     // filename appearing inside it, when the user uses the dropdown menu to
     // select a prepared dataset, etc.
     freshFileInput();
+
+    // Trigger the loading of the default selected dataset from the dropdown.
+    loaddata();
 };
