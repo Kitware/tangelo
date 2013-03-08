@@ -376,6 +376,7 @@ window.onload = function () {
         redraw,
         drawer_toggle;
 
+    // Display the configuration dialog when clicked.
     $("#config-panel").on("show", function () {
         var cfg;
 
@@ -385,6 +386,7 @@ window.onload = function () {
         d3.select("#mongodb-coll").property("value", cfg.coll);
     });
 
+    // Update the internal datastore when the user saves the configuration.
     d3.select("#save-config").on("click", updateConfig);
 
 
