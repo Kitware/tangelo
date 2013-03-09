@@ -523,6 +523,11 @@ window.onload = function () {
         .on("click", function () {
             clearAll();
             graph.clear();
+
+            // Clear the file selector, and set the dataset selector to
+            // "custom".
+            freshFileInput();
+            d3.select("#dataset").node().value = NER.customdata;
         });
 
     graph = (function () {
@@ -687,8 +692,15 @@ window.onload = function () {
             },
 
             clear: function () {
+                // Clear the svg elements.
                 svg.select("g#nodes").selectAll("*").remove();
                 svg.select("g#links").selectAll("*").remove();
+
+                // Make the graph forget its connectivity data.
+                origlinks = {};
+                orignodes = {};
+                links = [];
+                nodes = [];
             },
 
             render: function () {
