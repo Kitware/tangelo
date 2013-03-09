@@ -518,6 +518,13 @@ window.onload = function () {
         .append("option")
         .text(NER.customdata);
 
+    // Activate the clear button.
+    d3.select("#clear")
+        .on("click", function () {
+            clearAll();
+            graph.clear();
+        });
+
     graph = (function () {
         var fade_time,
             orignodes,
@@ -677,6 +684,11 @@ window.onload = function () {
 
                 // Re-render.
                 this.render();
+            },
+
+            clear: function () {
+                svg.select("g#nodes").selectAll("*").remove();
+                svg.select("g#links").selectAll("*").remove();
             },
 
             render: function () {
