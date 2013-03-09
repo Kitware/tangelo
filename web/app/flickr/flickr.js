@@ -185,9 +185,12 @@ function retrieveData() {
 
     // Enable the abort button and issue the query to the mongo module.
     mongo = flickr.getMongoDBInfo();
-    panel = d3.select("#information")
-                    .html("Querying database...");
-    d3.select("#abort").classed("disabled", false);
+    d3.select("#abort")
+        .classed("btn-success", false)
+        .classed("btn-danger", true)
+        .classed("disabled", false)
+        .text("Abort query...");
+
     flickr.currentAjax = $.ajax({
         type: 'POST',
         url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
@@ -201,9 +204,6 @@ function retrieveData() {
             var N,
                 data;
 
-            // Disable the abort button.
-            d3.select("#abort").classed("disabled", true);
-
             // Remove the stored XHR object.
             flickr.currentAjax = null;
 
@@ -215,9 +215,14 @@ function retrieveData() {
                 return;
             }
 
-            // Report how many results there were.
+            // Indicate success, display the number of records, and disable the
+            // button.
             N = response.result.data.length;
-            panel.html("Got " + N + " result" + (N === 0 || N > 1 ? "s" : ""));
+            d3.select("#abort")
+                .classed("btn-danger", false)
+                .classed("btn-success", true)
+                .classed("disabled", true)
+                .text("Got " + N + " result" + (N === 0 || N > 1 ? "s" : ""));
 
             // Process the data to add some interesting features
             //
@@ -920,9 +925,10 @@ window.onload = function () {
                 flickr.currentAjax.abort();
                 flickr.currentAjax = null;
 
-                // Place a message in the information div.
-                d3.select("#information")
-                    .html("DB lookup aborted");
+                // Place a message in the abort button.
+                d3.select("#abort")
+                    .classed("disabled", true)
+                    .text("Query aborted");
             }
 
             // Disable the button.
