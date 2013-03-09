@@ -189,7 +189,7 @@ function retrieveData() {
         .classed("btn-success", false)
         .classed("btn-danger", true)
         .classed("disabled", false)
-        .text("Abort query...");
+        .html("Abort query <i class=\"icon-repeat icon-white\" style=\"animation:2s linear 0s normal none infinite spin\">");
 
     flickr.currentAjax = $.ajax({
         type: 'POST',
