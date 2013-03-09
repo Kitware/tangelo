@@ -213,6 +213,7 @@ set(SOURCES
     web/app/phylotree/phylotree.js
     web/img/glyphicons-halflings-white.png
     web/img/glyphicons-halflings.png
+    web/img/tangelo.ico
     web/lib/vgd3-template.js.txt
     web/lib/bootstrap.js
     web/css/xdataweb.css
