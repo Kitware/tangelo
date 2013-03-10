@@ -78,7 +78,7 @@
         };
     };
 
-    mod.svgColorLegend = function (legend, cmap_func, xoffset, yoffset, field_name, categories, height_padding, width_padding, text_spacing, legend_margins) {
+    mod.svgColorLegend = function (legend, cmap_func, xoffset, yoffset, categories, height_padding, width_padding, text_spacing, legend_margins) {
         var bbox,
             bg,
             bottom,

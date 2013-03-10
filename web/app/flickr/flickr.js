@@ -507,7 +507,7 @@ window.onload = function () {
                     return that.monthColor(d.month);
                 };
 
-                xdw.util.svgColorLegend(legend, that.monthColor, 10, 10, "month", xdw.date.monthNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5});
+                xdw.util.svgColorLegend(legend, that.monthColor, 10, 10, xdw.date.monthNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5});
 
                 retval = colormap;
             } else if (which === 'day') {
@@ -515,7 +515,7 @@ window.onload = function () {
                     return that.dayColor(d.day);
                 };
 
-                xdw.util.svgColorLegend(legend, that.dayColor, 10, 10, "day", xdw.date.dayNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5});
+                xdw.util.svgColorLegend(legend, that.dayColor, 10, 10, xdw.date.dayNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5});
 
                 retval = colormap;
             } else if (which === 'rb') {
