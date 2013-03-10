@@ -283,7 +283,6 @@ function color_legend(legend, cmap_func, xoffset, yoffset, field_name, categorie
         left,
         maxheight,
         maxwidth,
-        obj,
         right,
         text,
         top,
@@ -303,14 +302,11 @@ function color_legend(legend, cmap_func, xoffset, yoffset, field_name, categorie
         .style("opacity", 0.7);
 
     $.each(categories, function (i, d) {
-        obj = {};
-        obj[field_name] = d;
-
         legend.append("rect")
             .classed("colorbox", true)
             .attr("x", xoffset)
             // "y", "width", and "height" intentionally left unset
-            .style("fill", cmap_func(obj));
+            .style("fill", cmap_func(d));
 
         text = legend.append("text")
             .classed("legendtext", true)
@@ -602,7 +598,7 @@ window.onload = function () {
                     return that.monthColor(d.month);
                 };
 
-                color_legend(legend, colormap, 10, 10, "month", xdw.date.monthNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5});
+                color_legend(legend, that.monthColor, 10, 10, "month", xdw.date.monthNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5});
 
                 retval = colormap;
             } else if (which === 'day') {
@@ -610,7 +606,7 @@ window.onload = function () {
                     return that.dayColor(d.day);
                 };
 
-                color_legend(legend, colormap, 10, 10, "day", xdw.date.dayNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5});
+                color_legend(legend, that.dayColor, 10, 10, "day", xdw.date.dayNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5});
 
                 retval = colormap;
             } else if (which === 'rb') {
