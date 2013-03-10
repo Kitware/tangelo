@@ -498,7 +498,7 @@ window.onload = function () {
 
         vis.update(d3.select("#time").node().value);
         if (playing) {
-            timerId = setInterval(updater, 2000);
+            timerId = setInterval(updater, 4000);
         }
     });
 };
