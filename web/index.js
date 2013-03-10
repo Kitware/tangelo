@@ -13,7 +13,8 @@ window.onload = function () {
             external,
             i,
             left,
-            right;
+            right,
+            text;
 
         if (err !== null) {
             console.log("fatal error: could not load app list from /apps.json");
@@ -44,14 +45,21 @@ window.onload = function () {
                 .html(app.description);
         }
 
-        // List out the external links in the unordered list.
-        d3.select("#external")
-            .data(external)
-            .append("li")
-            .html(function (d) {
-                return "<a href=\"" + d.link + "\">" + "<strong>" + d.name + "</strong>" + "</a>" +
-                    " (<a href=\"" + d.institution_link + "\">" + d.institution + "</a>) - " +
-                    d.description;
-            });
+        // List out the external links in the two columns, as above.
+        left = d3.select("#external-left");
+        right = d3.select("#external-right");
+        cols = [left, right];
+        text = function (d) {
+            return "<a href=\"" + d.link + "\">" + "<strong>" + d.name + "</strong>" + "</a>" +
+                " (<a href=\"" + d.institution_link + "\">" + d.institution + "</a>) - " +
+                d.description;
+        };
+        for (i = 0; i < external.length; i = i + 1) {
+            col = cols[i % 2];
+            app = external[i];
+
+            col.append("div")
+                .html(text(app));
+        }
     });
 };
