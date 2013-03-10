@@ -25,33 +25,47 @@ text {
 </style>
 <script src=http://d3js.org/d3.v2.min.js?2.8.1></script>
 <script src=http://code.jquery.com/jquery-1.8.2.min.js></script>
+<script src=/lib/bootstrap.js></script>
+<link href=http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css rel=stylesheet type=text/css>
 
-<div class=container style="display:none">
-    <div class=masthead>
-        <a href="/"><h3 class=muted>XDATA Web</h3></a>
+<div class="navbar navbar-fixed-top">
+    <div class=navbar-inner>
+        <a class=brand href=/>XDATA@Kitware</a>
+        <ul class=nav>
+            <li class=active><a>Cross-Cat Animation</a>
+            <li><a id=info-trigger class=pointer data-toggle=modal data-target=#info-panel><i class=icon-info-sign></i> Info</a>
+            <!--<li><a id=config-trigger class=pointer data-toggle=modal data-target=#config-panel><i class=icon-cog></i> Config</a>-->
+        </ul>
+    </div>
+</div>
+
+<div id=info-panel class="modal hide fade">
+    <div class=modal-header>
+        <button type=button class=close data-dismiss=modal aria-hidden=true>&times;</button>
+        <h3>Information</h3>
     </div>
 
-    <hr>
+    <div class=modal-body>
+        This demo shows an animation of the sequence of operations performed by
+        the <a href="http://web.mit.edu/vkm/www/crosscat.pdf">Cross-Cat</a>
+        clustering algorithm developed by Vikash Mansinghka et al. at
+        MIT.<br><br>
 
-    <div class=jumbotron>
-        <h1 class=title>Cross-Cat Animation</h1>
+        The rows of the table represent the objects (here, animal species) and
+        the columns represent attributes.  A Cross-Cat clustering consists of a
+        set of views, or groups of attributes, where each object is assigned to
+        a partition in each view.  The number of views and the number of
+        partitions per view are free variables that are detected dynamically
+        based on properties of the data.<br><br>
 
-        <p class=lead>Watch a predictive database crunch the numbers</p>
-
-        <p class=description>This demo shows an animation of the sequence of operations performed by the <a href="http://web.mit.edu/vkm/www/crosscat.pdf">Cross-Cat</a> clustering
-        algorithm developed by Vikash Mansinghka et al. at MIT. This is an example of a visualization that will be possible using the Vega visualization grammar and
-        the Visualization Design Environment, whose goal is to make advanced visualization apps such as this producable by non-programmers.
-        This combines efforts from a DARPA XDATA TA1 analysis team (SSCI / MIT) with a TA2 visualization team (Kitware / Stanford / Georgia Tech / Harvard / U. Utah / KnowledgeVis).
-        The rows of the table represent the objects (here, animal species) and the columns represent attributes.
-        A Cross-Cat clustering consists of a set of views, or groups of attributes, where each object is assigned to a partition in each view.
-        The number of views and the number of partitions per view are free variables that are detected dynamically based on properties of the data.</p>
-
-        <p class=description>Hover over a row to see its corresponding location in other views.
-        Press the play/pause button to start and stop the looping animation. The animation will be smoothest on the latest Google Chrome.</p>
+        Hover over a row to see its corresponding location in other views.
+        Press the play/pause button to start and stop the looping animation. The
+        animation will be smoothest on the latest Google Chrome.<br><br>
     </div>
 
-    <hr>
-
+    <div class=modal-footer>
+        <a class=btn data-dismiss=modal>OK</a>
+    </div>
 </div>
 
 <div class="container gutter">
