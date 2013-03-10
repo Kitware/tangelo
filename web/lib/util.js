@@ -78,7 +78,7 @@
         };
     };
 
-    mod.svgColorLegend = function (legend, cmap_func, xoffset, yoffset, categories, height_padding, width_padding, text_spacing, legend_margins) {
+    mod.svgColorLegend = function (legend, cmap_func, xoffset, yoffset, categories, height_padding, width_padding, text_spacing, legend_margins, clear) {
         var bbox,
             bg,
             bottom,
@@ -93,6 +93,12 @@
             totalheight,
             totalwidth,
             width;
+
+        // Clear the svg element, if requested.
+        clear = clear || false;
+        if (clear) {
+            legend.selectAll("*").remove();
+        }
 
         maxwidth = 0;
         maxheight = 0;

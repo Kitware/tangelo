@@ -493,9 +493,8 @@ window.onload = function () {
                 scale,
                 text;
 
-            // Empty the color legend SVG group element.
+            // Capture the color legend SVG group element.
             legend = that.legend;
-            legend.selectAll("*").remove();
 
             // Determine which radio button is currently selected.
             which = $("input[name=colormap]:radio:checked").attr("id");
@@ -507,7 +506,7 @@ window.onload = function () {
                     return that.monthColor(d.month);
                 };
 
-                xdw.util.svgColorLegend(legend, that.monthColor, 10, 10, xdw.date.monthNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5});
+                xdw.util.svgColorLegend(legend, that.monthColor, 10, 10, xdw.date.monthNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5}, true);
 
                 retval = colormap;
             } else if (which === 'day') {
@@ -515,7 +514,7 @@ window.onload = function () {
                     return that.dayColor(d.day);
                 };
 
-                xdw.util.svgColorLegend(legend, that.dayColor, 10, 10, xdw.date.dayNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5});
+                xdw.util.svgColorLegend(legend, that.dayColor, 10, 10, xdw.date.dayNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5}, true);
 
                 retval = colormap;
             } else if (which === 'rb') {

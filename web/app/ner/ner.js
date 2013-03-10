@@ -611,20 +611,8 @@ window.onload = function () {
                     origlinks[k] = v;
                 });
 
-                // Loop through the types and place a color swatch in the legend
-                // area for each one.
-                $.each(typedata, function (t) {
-                    elemtext = d3.select(document.createElement("div"))
-                        .style("border", "solid black 1px")
-                        .style("background", color(t))
-                        .style("display", "inline-block")
-                        .style("width", "20px")
-                        .html("&nbsp;")
-                        .node().outerHTML;
-
-                    li = legend.append("li")
-                        .html(elemtext + "&nbsp;" + t);
-                });
+                // Construct a color legend.
+                xdw.util.svgColorLegend(d3.select("#legend"), color, 10, 10, Object.keys(typedata), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5}, true);
 
                 // Read the current state of the option inputs (these might not
                 // be the default values if the user did a "soft" reload of the
