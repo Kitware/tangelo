@@ -1,31 +1,43 @@
-[
-    {
-        "name": "Document Entity Relationships",
-        "path": "ner",
-        "description": "Discover the network of <em>named entities</em> hidden within text documents"
-    },
+{
+    "apps": [
+        {
+            "name": "Document Entity Relationships",
+            "path": "ner",
+            "description": "Discover the network of <em>named entities</em> hidden within text documents"
+        },
 
-    {
-        "name": "Flickr Metadata Maps",
-        "path": "flickr",
-        "description": "Explore the locations where millions of Flickr photos were taken"
-    },
+        {
+            "name": "Flickr Metadata Maps",
+            "path": "flickr",
+            "description": "Explore the locations where millions of Flickr photos were taken"
+        },
 
-    {
-        "name": "Histogram Statistics",
-        "path": "stats",
-        "description": "See the distribution of data values with an interactive histogram"
-    },
+        {
+            "name": "Histogram Statistics",
+            "path": "stats",
+            "description": "See the distribution of data values with an interactive histogram"
+        },
 
-    {
-        "name": "SSCI Predictive Database",
-        "path": "ssci",
-        "description": "Explore the progression of table partitioning in a predictive database."
-    },
+        {
+            "name": "SSCI Predictive Database",
+            "path": "ssci",
+            "description": "Explore the progression of table partitioning in a predictive database."
+        },
 
-    {
-        "name": "Vega Laboratory",
-        "path": "vegalab",
-        "description": "Load, edit, compile, and view Vega specifications in real time"
-    }
-]
+        {
+            "name": "Vega Laboratory",
+            "path": "vegalab",
+            "description": "Load, edit, compile, and view Vega specifications in real time"
+        }
+    ],
+
+    "external": [
+        {
+            "name": "Vega",
+            "link": "http://trifacta.github.com/vega",
+            "institution": "Trifacta, Inc.",
+            "institution_link": "http://trifacta.com",
+            "description": "A visualization grammar, based on JSON, for specifying and representing visualizations"
+        }
+    ]
+}
