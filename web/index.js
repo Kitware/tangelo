@@ -1,6 +1,6 @@
 /*jslint browser: true */
 
-/*global d3 */
+/*global d3, console */
 
 window.onload = function () {
     "use strict";
