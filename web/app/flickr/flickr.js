@@ -1,6 +1,6 @@
 /*jslint browser: true */
 
-/*globals xdw, flickr, $, google, d3, date */
+/*globals xdw, flickr, $, google, d3, date, console */
 
 var flickr = {};
 flickr.map = null;
@@ -518,6 +518,8 @@ window.onload = function () {
 
                 retval = colormap;
             } else if (which === 'rb') {
+                legend.selectAll("*").remove();
+
                 invert = document.getElementById("invert").checked;
                 range = invert ? ['blue', 'red'] : ['red', 'blue'];
                 scale = d3.scale.linear()
@@ -528,6 +530,7 @@ window.onload = function () {
                     return scale(i);
                 };
             } else {
+                legend.selectAll("*").remove();
                 retval = "pink";
             }
 
