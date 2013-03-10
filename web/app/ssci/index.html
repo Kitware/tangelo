@@ -4,23 +4,18 @@
 <link href=/css/bootstrap.css rel=stylesheet type=text/css>
 <link href=/css/bootstrap-xdata.css rel=stylesheet type=text/css>
 <link rel="shortcut icon" href=/img/tangelo.ico>
+<script src=/lib/xdataweb.min.js></script>
 <style>
 html, body, svg {
     width: 100%;
     height: 100%;
+    background: silver;
 }
 text {
     opacity: 0.25;
 }
 .active {
     opacity: 1.0;
-}
-.gutter {
-    position: fixed;
-    bottom: 0;
-    background: rgba(200, 200, 200, 0.5);
-    padding: 20px;
-    width: 100%;
 }
 </style>
 <script src=http://d3js.org/d3.v2.min.js?2.8.1></script>
@@ -68,27 +63,35 @@ text {
     </div>
 </div>
 
-<div class="container gutter">
-    <div class="row">
-        <div class="span1">
-            <select id="time" class="span1"></select>
+<div id=control-panel style="position:fixed; bottom:0px; width:100%; background:rgba(255,255,255,0.7);">
+    <div class=container>
+        <div class=row>
+            <div id=drawer class="centered pointer drawer">
+                <i id=collapse-icon class="icon-chevron-down"></i>
+            </div>
         </div>
-        <a id="play" class="btn btn-success"><i class="icon-pause icon-white"></i></a>
-        <div class="btn-group">
-            <a id="prev" class="btn btn-success" title="Previous View"><i class="icon-arrow-left icon-white"></i></a>
-            <a id="next" class="btn btn-success" title="Next View"><i class="icon-arrow-right icon-white"></i></a>
+
+        <div class="row offset4">
+            <div class="span1">
+                <select id="time" class="span1"></select>
+            </div>
+            <a id="play" class="btn btn-success"><i class="icon-pause icon-white"></i></a>
+            <div class="btn-group">
+                <a id="prev" class="btn btn-success" title="Previous View"><i class="icon-arrow-left icon-white"></i></a>
+                <a id="next" class="btn btn-success" title="Next View"><i class="icon-arrow-right icon-white"></i></a>
+            </div>
+            <div class="btn-group">
+                <a id="zoom-in" class="btn btn-success" title="Zoom In"><i class="icon-zoom-in icon-white"></i></a>
+                <a id="zoom-out" class="btn btn-success" title="Zoom Out"><i class="icon-zoom-out icon-white"></i></a>
+            </div>
         </div>
-        <div class="btn-group">
-            <a id="zoom-in" class="btn btn-success" title="Zoom In"><i class="icon-zoom-in icon-white"></i></a>
-            <a id="zoom-out" class="btn btn-success" title="Zoom Out"><i class="icon-zoom-out icon-white"></i></a>
-        </div>
-    </div>
-    <div class="row">
-        <div class="span12">
-            <form class="form-inline">
-                <input type="text" class="input" id="row-search" placeholder="Row search">
-                <input type="text" class="input" id="column-search" placeholder="Column search">
-            </form>
+        <div class="row offset3">
+            <div class="span6">
+                <form class="form-inline">
+                    <input type="text" class="input" id="row-search" placeholder="Row search">
+                    <input type="text" class="input" id="column-search" placeholder="Column search">
+                </form>
+            </div>
         </div>
     </div>
 </div>
