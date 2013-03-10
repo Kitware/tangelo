@@ -17,10 +17,12 @@ $(function () {
             nodeColor,
             linkColor,
             mode,
+            shadow,
             margin,
             links;
 
         mode = "bfs";
+        shadow = false;
 
         data.nodes.forEach(function (d, i) {
             d.degree = 0;
@@ -93,9 +95,9 @@ $(function () {
         });
 
         links = [];
-        data.nodes.forEach(function (d) {
+        nodes.forEach(function (d) {
             d.incident.forEach(function (e) {
-                if (!e.placed) {
+                if (shadow || !e.placed) {
                     e.placed = true;
                     links.push(e);
                 }
