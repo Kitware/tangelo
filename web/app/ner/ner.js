@@ -380,8 +380,6 @@ function handleFileSelect() {
 function freshFileInput(){
     "use strict";
 
-    console.log("freshfile");
-
     var holder;
 
     holder = d3.select("#file-input-holder");
@@ -399,8 +397,6 @@ function freshFileInput(){
 function loaddata(){
     "use strict";
 
-    console.log("blah");
-
     var callback,
         dir,
         i,
@@ -413,7 +409,6 @@ function loaddata(){
     // custom item.
     sel = d3.select("#dataset").node();
     if (sel.selectedIndex === NER.datasets.length) {
-        console.log("custom selected");
         return;
     }
 
@@ -434,8 +429,6 @@ function loaddata(){
         callback = function (i) {
             return function (text) {
                 var e;
-
-                console.log(text);
 
                 // Pack the text into a form the processFile function will
                 // recognize.
