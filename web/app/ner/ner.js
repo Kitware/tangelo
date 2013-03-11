@@ -684,11 +684,59 @@ window.onload = function () {
                 nodes = [];
             },
 
+            recenter: function () {
+                // Compute the average position of the nodes, and transform the
+                // entire svg element so that this position is the center of the
+                // element.
+
+                var avg_x,
+                    avg_y,
+                    center_x,
+                    center_y,
+                    translate;
+
+                // If there are no nodes, return right away.
+                if (nodes.length === 0){
+                    return;
+                }
+
+                // Compute the average position.
+                avg_x = 0;
+                avg_y = 0;
+
+                $.each(nodes, function (i, d) {
+                    avg_x += d.x;
+                    avg_y += d.y;
+                });
+
+                avg_x /= nodes.length;
+                avg_y /= nodes.length;
+
+                // Compute the svg canvas's center point.
+                center_x = d3.select("#graph")
+                            .style("width");
+                center_y = d3.select("#graph")
+                            .style("height");
+
+                // Extract the numeric portion of the size (the last two
+                // characters should read "px").
+                center_x = +center_x.slice(0, -2) / 2.0;
+                center_y = +center_y.slice(0, -2) / 2.0;
+
+                // Translate the average position to the center of the canvas.
+                translate = "translate(" + (center_x - avg_x) + ", " + (center_y - avg_y) + ")";
+                d3.select("g#nodes")
+                    .attr("transform", translate);
+                d3.select("g#links")
+                    .attr("transform", translate);
+            },
+
             render: function () {
                 var link,
                     node,
                     charge,
                     scaler,
+                    that,
                     cards;
 
                 link = svg.select("g#links").selectAll("line.link")
@@ -782,6 +830,7 @@ window.onload = function () {
                     .links(links)
                     .start();
 
+                that = this;
                 force.on("tick", function () {
                     link.attr("x1", function (d) { return d.source.x; })
                         .attr("y1", function (d) { return d.source.y; })
@@ -797,6 +846,8 @@ window.onload = function () {
                         node.attr("cx", function (d) { return d.x; })
                             .attr("cy", function (d) { return d.y; });
                     }
+
+                    that.recenter();
                 });
             },
 
