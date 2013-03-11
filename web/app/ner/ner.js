@@ -732,7 +732,7 @@ window.onload = function () {
                     scaler = this.nodeScalingFunction();
                     cards = node.enter().append("g")
                         .attr("id", function (d) { return d.id; })
-                        .attr("scale", function (d) { return "scale(" + scaler(d) + ")"; })
+                        .attr("scale", function (d) { return "scale(" + Math.sqrt(scaler(d)) + ")"; })
                         .attr("translate", "translate(0,0)")
                         .classed("node", true)
                         .call(force.drag);
@@ -830,7 +830,7 @@ window.onload = function () {
                     svg.selectAll("g#nodes *.node")
                         .transition()
                         .duration(1000)
-                        .attr("scale", function (d) { return "scale(" + scaler(d) + ")"; })
+                        .attr("scale", function (d) { return "scale(" + Math.sqrt(scaler(d)) + ")"; })
                         .attr("transform", function () { return this.getAttribute("translate") + " " + this.getAttribute("scale"); });
                     //.attr("transform", function() { return this.getAttribute("translate"); });
                     //.attr("transform", function() { return this.getAttribute("scale"); });
@@ -844,11 +844,13 @@ window.onload = function () {
 
             nodeScalingFunction: function () {
                 var base,
+                    factor,
                     ret;
 
-                base = config.useTextLabels ? 1 : 5;
+                base = config.useTextLabels ? 0.5 : 5;
+                factor = config.useTextLabels ? 0.5 : 1;
                 if (config.nodeScale) {
-                    ret = function (d) { return base * Math.sqrt(d.count); };
+                    ret = function (d) { return base + factor*Math.log(Math.sqrt(d.count)); };
                 } else {
                     ret = function () { return base; };
                 }
