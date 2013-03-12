@@ -21,9 +21,6 @@ set(DEPLOY_DIR deploy)
 # Find JSLint.
 find_package(JSLint)
 
-# Find UglifyJS.
-find_package(UglifyJS REQUIRED)
-
 # Find JSDoc.
 find_package(JSDoc)
 
@@ -259,19 +256,36 @@ foreach(m ${SOURCES})
 endforeach()
 
 # Uglify and concatenate the library js files.
-if(NOT ${MINIFY})
-    set(MINIFY_FLAG "-b")
-endif()
+if(${MINIFY} OR ${MANGLE})
+    find_package(UglifyJS REQUIRED)
+    set(concatenator ${UglifyJS_EXECUTABLE})
+    set(output_operator "-o")
 
-if(${MINIFY} AND ${MANGLE})
-    set(MANGLE_FLAG "-m")
+    if(NOT ${MINIFY})
+        set(MINIFY_FLAG "-b")
+    else()
+        unset(MINIFY_FLAG)
+    endif()
+
+    if(${MANGLE})
+        set(MANGLE_FLAG "-m")
+    else()
+        unset(MANGLE_FLAG)
+    endif()
+else()
+    # TODO(choudhury): if platform is windows, use "type" instead of "cat"
+    set(concatenator cat)
+    set(output_operator ">")
+
+    unset(MINIFY_FLAG)
+    unset(MANGLE_FLAG)
 endif()
 
 set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/lib/xdataweb.min.js)
 
 add_custom_command(
     OUTPUT ${MIN_JS_FILE}
-    COMMAND ${UglifyJS_EXECUTABLE} -o ${MIN_JS_FILE} ${JS_UGLIFY_FILES} ${MINIFY_FLAG} ${MANGLE_FLAG}
+    COMMAND ${concatenator} ${JS_UGLIFY_FILES} ${MINIFY_FLAG} ${MANGLE_FLAG} ${output_operator} ${MIN_JS_FILE}
     DEPENDS ${JS_UGLIFY_FILES}
 )
 
