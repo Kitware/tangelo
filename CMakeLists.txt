@@ -21,9 +21,6 @@ set(DEPLOY_DIR deploy)
 # Find JSLint.
 find_package(JSLint)
 
-# Find JSDoc.
-find_package(JSDoc)
-
 # Find a Python2 interpreter.
 find_package(PythonInterp 2.7)
 
@@ -293,6 +290,10 @@ add_custom_command(
 set(DOCUMENTATION_STAMP ${CMAKE_BINARY_DIR}/stamps/documentation.txt)
 set(DOCUMENTATION_DIR ${CMAKE_BINARY_DIR}/jsdoc)
 if(${DOCUMENT})
+    # Find JSDoc.
+    find_package(JSDoc REQUIRED)
+
+    # A command to generate the documentation.
     add_custom_command(
         OUTPUT ${DOCUMENTATION_STAMP}
         COMMAND ${CMAKE_COMMAND} -E remove_directory ${DOCUMENTATION_DIR}
