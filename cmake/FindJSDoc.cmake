@@ -34,4 +34,4 @@ if(NOT JSDoc_EXECUTABLE)
 
 endif()
 
-find_package_handle_standard_args(JSDoc DEFAULT_MSG JSDoc_PATH JSDoc_EXECUTABLE JSDoc_TEMPLATEPATH)
+find_package_handle_standard_args(JSDoc DEFAULT_MSG JSDoc_EXECUTABLE)
