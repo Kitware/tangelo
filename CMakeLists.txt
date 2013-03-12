@@ -327,9 +327,11 @@ include(CTest)
 enable_testing()
 
 # JSLint tests.
-foreach(f ${JS_LINT_FILES})
-    add_test(jslint-${f} ${JSLint_EXECUTABLE} ${f})
-endforeach()
+if(${JSLINT_FOUND})
+    foreach(f ${JS_LINT_FILES})
+        add_test(jslint-${f} ${JSLint_EXECUTABLE} ${f})
+    endforeach()
+endif()
 
 # Python web service tests.
 set(PYTEST ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/xdwpytest.py)
