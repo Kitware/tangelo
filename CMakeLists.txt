@@ -39,6 +39,7 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/web/lib/slider.js
     ${CMAKE_SOURCE_DIR}/web/lib/date.js
     ${CMAKE_SOURCE_DIR}/web/lib/util.js
+    ${CMAKE_SOURCE_DIR}/web/app/biofabric/biofabric.js
     ${CMAKE_SOURCE_DIR}/web/app/ner/ner.js
     ${CMAKE_SOURCE_DIR}/web/app/stats/stats.js
     ${CMAKE_SOURCE_DIR}/web/app/datatwiddle/datatwiddle.js
@@ -81,6 +82,9 @@ set(SOURCES
     web/apps.json
     web/index.html
     web/index.js
+    web/app/biofabric/biofabric.js
+    web/app/biofabric/index.html
+    web/app/biofabric/miserables.json
     web/app/noaa/index.html
     web/app/noaa/climate.js
     web/app/noaa/circularHeatChart.js
