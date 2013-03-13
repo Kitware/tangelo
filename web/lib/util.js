@@ -215,7 +215,7 @@
                 text;
 
             if (err !== null) {
-                console.log("fatal error: could not load app list from /apps.json");
+                console.log("fatal error: could not load app list from " + specFile);
                 return;
             }
 
