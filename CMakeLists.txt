@@ -214,7 +214,6 @@ set(SOURCES
     web/img/tangelo.ico
     web/lib/vgd3-template.js.txt
     web/lib/bootstrap.js
-    web/css/xdataweb.css
     web/css/bootstrap.css
     web/css/bootstrap-xdata.css
     web/css/bootswatch/bootstrap-readable.css
