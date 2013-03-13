@@ -209,6 +209,9 @@ set(SOURCES
     web/app/phylotree/heliconia.json
     web/app/phylotree/index.html
     web/app/phylotree/phylotree.js
+    web/arbor/arbor.js
+    web/arbor/arbor-apps.json
+    web/arbor/index.html
     web/img/glyphicons-halflings-white.png
     web/img/glyphicons-halflings.png
     web/img/tangelo.ico
