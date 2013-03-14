@@ -1,6 +1,6 @@
 /*jslint */
 
-/*globals xdw, $ */
+/*globals tangelo, $ */
 
 /**
  * @fileOverview This file supplies the interface for creating and managing
@@ -12,15 +12,15 @@
 
     /**
      * @name slider
-     * @memberOf xdw
+     * @memberOf tangelo
      *
      * @namespace Classes for creating and controlling jQuery slider elements.
      */
-    var mod = xdw.namespace("slider");
+    var mod = tangelo.namespace("slider");
 
     /**
      * @name slider
-     * @memberOf xdw.slider
+     * @memberOf tangelo.slider
      *
      * @class A single-value jQuery slider control.
      *
@@ -66,7 +66,7 @@
 
         // Return an interface object.
         /**
-         * @lends xdw.slider.slider.prototype
+         * @lends tangelo.slider.slider.prototype
          */
         return {
             /** Initializes the slider element. */
@@ -99,7 +99,7 @@
     };
 
     /**
-     * @name xdw.slider.rangeSlider
+     * @name tangelo.slider.rangeSlider
      *
      * @class A range-valued jQuery slider control.
      *
@@ -161,7 +161,7 @@
 
         // Return the user an interface object.
         /**
-         * @lends xdw.slider.rangeSlider.prototype
+         * @lends tangelo.slider.rangeSlider.prototype
          */
         return {
             /** Initializes the slider element. */

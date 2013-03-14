@@ -29,6 +29,7 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/stamps)
 
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
+    ${CMAKE_SOURCE_DIR}/web/app/core.js
     ${CMAKE_SOURCE_DIR}/web/app/index.js
     ${CMAKE_SOURCE_DIR}/web/lib/slider.js
     ${CMAKE_SOURCE_DIR}/web/lib/date.js
@@ -46,7 +47,7 @@ set(JS_LINT_FILES
 
 # These files should be uglified and concatenated.
 set(JS_UGLIFY_FILES
-    ${CMAKE_SOURCE_DIR}/web/lib/xdw.js
+    ${CMAKE_SOURCE_DIR}/web/lib/core.js
     ${CMAKE_SOURCE_DIR}/web/lib/slider.js
     ${CMAKE_SOURCE_DIR}/web/lib/date.js
     ${CMAKE_SOURCE_DIR}/web/lib/util.js
@@ -59,13 +60,13 @@ set(JS_DOCUMENT_FILES
     ${CMAKE_SOURCE_DIR}/web/lib/date.js
     ${CMAKE_SOURCE_DIR}/web/lib/slider.js
     ${CMAKE_SOURCE_DIR}/web/lib/util.js
-    ${CMAKE_SOURCE_DIR}/web/lib/xdw.js
+    ${CMAKE_SOURCE_DIR}/web/lib/core.js
 )
 
 # These files should be copied to the deployment directory.
 set(SOURCES
-    xdwctl
-    xdataweb.py
+    tangelo
+    tangelo.py
     modules/__init__.py
     modules/datatwiddle.py
     modules/echo.py
@@ -218,17 +219,17 @@ set(SOURCES
     web/lib/vgd3-template.js.txt
     web/lib/bootstrap.js
     web/css/bootstrap.css
-    web/css/bootstrap-xdata.css
     web/css/bootswatch/bootstrap-readable.css
+    web/css/tangelo.css
     web/img/glyphicons-halflings.png
     web/img/glyphicons-halflings-white.png
 )
 
 if(DEPLOY_TEST_SERVICES)
     list(APPEND SOURCES
-        xdataweb/modules/broken.py
-        xdataweb/modules/exceptional.py
-        xdataweb/modules/testapp.py)
+        modules/broken.py
+        modules/exceptional.py
+        modules/testapp.py)
 endif()
 
 # Configure the server config file.
@@ -238,8 +239,8 @@ configure_file(
 
 # Configure the Python testing driver.
 configure_file(
-    testing/xdwpytest.py.in
-    ${CMAKE_BINARY_DIR}/xdwpytest.py
+    testing/tangelo-pytest.py.in
+    ${CMAKE_BINARY_DIR}/tangelo-pytest.py
 )
 
 # Copy the files to the deployment directory.
@@ -280,7 +281,7 @@ else()
     unset(MANGLE_FLAG)
 endif()
 
-set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/lib/xdataweb.min.js)
+set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/lib/tangelo.min.js)
 
 add_custom_command(
     OUTPUT ${MIN_JS_FILE}
@@ -337,11 +338,11 @@ if(${JSLINT_FOUND})
 endif()
 
 # Python web service tests.
-set(PYTEST ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/xdwpytest.py)
+set(PYTEST ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/tangelo-pytest.py)
 
-add_test(xdw-ner ${PYTEST} ner "Toto, I've got a feeling we're not in Kansas anymore." "{\"result\": [[\"GPE\", \"Toto\"], [\"GPE\", \"Kansas\"]], \"error\": null}")
+add_test(service-ner ${PYTEST} ner "Toto, I've got a feeling we're not in Kansas anymore." "{\"result\": [[\"GPE\", \"Toto\"], [\"GPE\", \"Kansas\"]], \"error\": null}")
 
 if(DEPLOY_TEST_SERVICES)
-    add_test(xdw-echo-blank ${PYTEST} echo "(No arguments passed)")
-    add_test(xdw-echo ${PYTEST} echo jan feb mar color=red answer=42 "[jan, feb, mar]\ncolor -> red\nanswer -> 42\n")
+    add_test(service-echo-blank ${PYTEST} echo "(No arguments passed)")
+    add_test(service-echo ${PYTEST} echo jan feb mar color=red answer=42 "[jan, feb, mar]\ncolor -> red\nanswer -> 42\n")
 endif()

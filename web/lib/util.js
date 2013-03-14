@@ -1,6 +1,6 @@
 /*jslint */
 
-/*global xdw */
+/*global tangelo */
 
 /** 
  *
@@ -16,11 +16,11 @@
      *
      * @name util
      *
-     * @memberOf xdw
+     * @memberOf tangelo
      *
      * @namespace General utilities cutting across several application needs.
      */
-    mod = xdw.namespace("util");
+    mod = tangelo.namespace("util");
 
     mod.drawer_size = function () {
         return 23;
@@ -225,7 +225,7 @@
             external = spec.external;
 
             if (apps !== undefined) {
-                if (!xdw.util.allDefined(appLeftSelector, appRightSelector)){
+                if (!tangelo.util.allDefined(appLeftSelector, appRightSelector)){
                     throw "Required config argument property appLeftSelector or appRightSelector missing!";
                 }
 
@@ -250,7 +250,7 @@
             }
 
             if (external !== undefined) {
-                if (!xdw.util.allDefined(extLeftSelector, extRightSelector)) {
+                if (!tangelo.util.allDefined(extLeftSelector, extRightSelector)) {
                     throw "Required config argument property extLeftSelector or extRightSelector missing!";
                 }
 

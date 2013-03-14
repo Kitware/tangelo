@@ -1,6 +1,6 @@
 /*jslint browser: true, unparam: true */
 
-/*globals xdw, CryptoJS, $, d3, escape, FileReader, console */
+/*globals tangelo, CryptoJS, $, d3, escape, FileReader, console */
 
 // This is declared null for now - it will be initialized in the window's
 // onready method, as it depends on elements being loaded in the page.
@@ -496,7 +496,7 @@ window.onload = function () {
     });
 
     // Activate the drawer toggle for the control panel.
-    drawer_toggle = xdw.util.drawer_toggle("#control-panel", "#collapse-icon");
+    drawer_toggle = tangelo.util.drawer_toggle("#control-panel", "#collapse-icon");
     d3.select("#drawer")
         .on("click", drawer_toggle);
 
@@ -605,7 +605,7 @@ window.onload = function () {
                 });
 
                 // Construct a color legend.
-                xdw.util.svgColorLegend(d3.select("#legend"), color, 10, 10, Object.keys(typedata), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5}, true);
+                tangelo.util.svgColorLegend(d3.select("#legend"), color, 10, 10, Object.keys(typedata), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5}, true);
 
                 // Read the current state of the option inputs (these might not
                 // be the default values if the user did a "soft" reload of the
@@ -927,7 +927,7 @@ window.onload = function () {
     //
     // Set the slider to "5" (to give a reasonable amount of data as the
     // default).
-    NER.nodeSlider = xdw.slider.slider(d3.select("#slider").node(), {
+    NER.nodeSlider = tangelo.slider.slider(d3.select("#slider").node(), {
         onchange: function (v) {
             graph.recompute(v);
             graph.render();

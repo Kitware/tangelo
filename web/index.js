@@ -5,7 +5,7 @@
 window.onload = function () {
     "use strict";
 
-    xdw.util.landingPage({
+    tangelo.util.landingPage({
         specFile: "/apps.json",
         appLeftSelector: "#left",
         appRightSelector: "#right",

@@ -2,7 +2,7 @@ import pymongo
 import bson.json_util
 from bson import ObjectId
 import json
-import xdataweb
+import tangelo
 
 def decode(s, argname, resp):
 	try:
@@ -46,7 +46,7 @@ class Handler:
 			return phylo
 
 		# Construct an empty response object.
-		response = xdataweb.empty_response();
+		response = tangelo.empty_response();
 
 		query = dict()
 		# Decode the query strings into Python objects.
@@ -57,21 +57,21 @@ class Handler:
 			if accession is not None: decodeAndAdd(accession, query, 'sequences.accession.source', response)
 			if scientific_name is not None: decodeAndAdd(scientific_name, query, 'taxonomies.scientific_name', response)
 		except ValueError:
-			return xdataweb.dumps(response)
+			return tangelo.dumps(response)
 
 		# Cast the maxdepth value to an int.
 		try:
 			maxdepth = int(maxdepth)
 		except ValueError:
 			response['error'] = "Argument 'limit' ('%s') could not be converted to int." % (maxdepth)
-			return xdataweb.dumps(response)
+			return tangelo.dumps(response)
 
 		# Create database connection.
 		try:
 			c = pymongo.Connection(servername)[dbname][data_coll]
 		except pymongo.errors.AutoReconnect:
 			response['error'] = "Could not connect to MongoDB server '%s'" % (servername)
-			return xdataweb.dumps(response)
+			return tangelo.dumps(response)
 
 		# if no arguments given just search from root
 		if not query:
@@ -88,4 +88,4 @@ class Handler:
 		else:
 			response['error'] = "Search returned %s object(s) to root the tree" % (it.count())
 			response['error'] += "| %s" %(str(query))
-			return xdataweb.dumps(response)
+			return tangelo.dumps(response)

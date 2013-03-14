@@ -3,13 +3,13 @@ environment: 'production'
 log.error_file: 'error.log'
 log.screen: True
 
-tree.xdataweb: cherrypy.Application(xdataweb.Server())
+tree.tangelo: cherrypy.Application(tangelo.Server())
 
 server.socket_host = "@SERVER_HOSTNAME@"
 server.socket_port = @SERVER_PORT@
 
 [/]
-tools.staticdir.root: xdataweb.current_dir
+tools.staticdir.root: tangelo.current_dir
 tools.staticdir.on: True
 tools.staticdir.dir: 'web/'
 tools.staticdir.index: 'index.html'

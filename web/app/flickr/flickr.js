@@ -1,6 +1,6 @@
 /*jslint browser: true */
 
-/*globals xdw, flickr, $, google, d3, date, console */
+/*globals tangelo, flickr, $, google, d3, date, console */
 
 var flickr = {};
 flickr.map = null;
@@ -463,7 +463,7 @@ window.onload = function () {
         });
 
         // Filter the results by day (if any of the boxes is checked).
-        days = xdw.date.dayNames().filter(function (d) {
+        days = tangelo.date.dayNames().filter(function (d) {
             return document.getElementById(d).checked;
         });
         if (days.length > 0) {
@@ -506,7 +506,7 @@ window.onload = function () {
                     return that.monthColor(d.month);
                 };
 
-                xdw.util.svgColorLegend(legend, that.monthColor, 10, 10, xdw.date.monthNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5}, true);
+                tangelo.util.svgColorLegend(legend, that.monthColor, 10, 10, tangelo.date.monthNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5}, true);
 
                 retval = colormap;
             } else if (which === 'day') {
@@ -514,7 +514,7 @@ window.onload = function () {
                     return that.dayColor(d.day);
                 };
 
-                xdw.util.svgColorLegend(legend, that.dayColor, 10, 10, xdw.date.dayNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5}, true);
+                tangelo.util.svgColorLegend(legend, that.dayColor, 10, 10, tangelo.date.dayNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5}, true);
 
                 retval = colormap;
             } else if (which === 'rb') {
@@ -676,7 +676,7 @@ window.onload = function () {
     // database lookup, but at the moment we omit that functionality to avoid
     // spurious database lookups as the engine puts the slider together and sets
     // the positions of the sliders programmatically.
-    flickr.timeslider = xdw.slider.rangeSlider(d3.select("#time-slider").node(), {
+    flickr.timeslider = tangelo.slider.rangeSlider(d3.select("#time-slider").node(), {
         onchange: flickr.displayFunc,
         onslide: flickr.displayFunc
     });
@@ -709,7 +709,7 @@ window.onload = function () {
     };
 
     // Direct the day filter checkboxes to redraw the map when clicked.
-    dayboxes = xdw.date.dayNames().map(function (d) {
+    dayboxes = tangelo.date.dayNames().map(function (d) {
         return document.getElementById(d);
     });
 
@@ -729,7 +729,7 @@ window.onload = function () {
     // Create a regular slider for setting the opacity and direct it to redraw
     // when it changes (but not on every slide action - that would be bulky and
     // too slow; the UI doesn't demand that level of responsivity).
-    flickr.opacityslider = xdw.slider.slider(d3.select("#opacity").node(), { onchange: redraw });
+    flickr.opacityslider = tangelo.slider.slider(d3.select("#opacity").node(), { onchange: redraw });
     flickr.opacityslider.setMin(0);
     flickr.opacityslider.setMax(100);
     flickr.opacityslider.setValue(100);
@@ -815,7 +815,7 @@ window.onload = function () {
     getMinMaxDates(zoomfunc.zoomer);
 
     // Make the control panel tray button active.
-    drawer_toggle = xdw.util.drawer_toggle("#control-panel", "#collapse-icon");
+    drawer_toggle = tangelo.util.drawer_toggle("#control-panel", "#collapse-icon");
 
     // Allow clicking anywhere along the div holding the icon to trigger the
     // collapse.

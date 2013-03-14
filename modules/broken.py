@@ -1,6 +1,6 @@
 # This module, which contains a Handler class with no go() method, is meant for
-# testing the error handling capabilities of the xdataweb's web service module
-# loader system.
+# testing the error handling capabilities of Tangelo's web service module loader
+# system.
 
 class Handler:
     def start():
