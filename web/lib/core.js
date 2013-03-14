@@ -45,4 +45,36 @@ var tangelo = {};
 
         return mod;
     };
+
+    // Initialization function that will handle tangelo-specific elements
+    // automatically.
+    $(function () {
+        var initialize_control_panel,
+            selection;
+
+        initialize_control_panel = function (s) {
+            var toggle;
+
+            // Style the control panel div appropriately, then add a div as the
+            // first child to act as the drawer handle (and place an appropriate
+            // icon in the middle of it).
+            s.attr("id", "tangelo-control-panel")
+                .classed("control-panel", true)
+                .insert("div", ":first-child")
+                    .attr("id", "tangelo-drawer-handle")
+                    .classed("centered", true)
+                    .classed("pointer", true)
+                    .classed("drawer", true)
+                    .append("i")
+                        .attr("id", "tangelo-drawer-icon")
+                        .classed("icon-chevron-down", true);
+
+            toggle = tangelo.util.drawer_toggle("#tangelo-control-panel", "#tangelo-drawer-icon");
+            d3.select("#tangelo-drawer-handle")
+                .on("click", toggle);
+        };
+
+        selection = d3.select("[data-tangelo-type=control-panel]");
+        initialize_control_panel(selection);
+    });
 }());

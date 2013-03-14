@@ -90,6 +90,14 @@ input[type="file"] {
     background-color: gray;
 }
 
+/* Translucent control panel, fixed at bottom of window. */
+.control-panel {
+    position: fixed;
+    bottom: 0px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.7);
+}
+
 /* This causes the "brand" item in fixed-navbars to not have a negative left
  * margin. */
 .navbar-fixed-top .brand {

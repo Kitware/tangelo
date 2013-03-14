@@ -814,14 +814,6 @@ window.onload = function () {
     // range can be properly zoomed to begin with.
     getMinMaxDates(zoomfunc.zoomer);
 
-    // Make the control panel tray button active.
-    drawer_toggle = tangelo.util.drawer_toggle("#control-panel", "#collapse-icon");
-
-    // Allow clicking anywhere along the div holding the icon to trigger the
-    // collapse.
-    d3.select("#drawer")
-        .on("click", drawer_toggle);
-
     // Install the abort action on the button.
     d3.select("#abort")
         .on("click", function () {
