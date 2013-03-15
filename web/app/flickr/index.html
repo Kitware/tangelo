@@ -26,24 +26,8 @@
 
 <title>Flickr Metadata Maps</title>
 
-<div class="navbar navbar-fixed-top">
-    <div class=navbar-inner>
-        <a class=brand href=/>XDATA@Kitware</a>
-        <ul class=nav>
-            <li class=active><a>Flickr Maps</a>
-            <li><a id=info-trigger class=pointer data-toggle=modal data-target=#info-panel><i class=icon-info-sign></i> Info</a>
-            <li><a id=config-trigger class=pointer data-toggle=modal data-target=#config-panel><i class=icon-cog></i> Config</a>
-        </ul>
-    </div>
-</div>
-
-<div id=info-panel class="modal hide fade">
-    <div class=modal-header>
-        <button type=button class=close data-dismiss=modal aria-hidden=true>&times;</button>
-        <h3>Information</h3>
-    </div>
-
-    <div class=modal-body>
+<div data-tangelo-type=navbar data-tangelo-brand=XDATA@Kitware data-tangelo-brand-href=/ data-tangelo-app="Flickr Maps">
+    <div data-tangelo-type=info data-tangelo-ok-button>
         <p>Explore the locations where millions of Flickr photos were taken.</p>
 
         <p>This application retrieves Flickr metadata stored in a database and
@@ -51,18 +35,7 @@
         new lookup, or change the visualization properties.</p>
     </div>
 
-    <div class=modal-footer>
-        <a class=btn data-dismiss=modal>OK</a>
-    </div>
-</div>
-
-<div id=config-panel class="modal hide fade">
-    <div class=modal-header>
-        <button type=button class=close data-dismiss=modal aria-hidden=true>&times;</button>
-        <h3>Configuration</h3>
-    </div>
-
-    <div class=modal-body>
+    <div data-tangelo-type=config>
         <div class="alert alert-danger">
             WARNING: hostnames in this configuration are relative to the <b>server</b>
             (e.g., "localhost" refers to the <b>webserver</b> itself, <b>not</b> your local machine).
@@ -70,11 +43,6 @@
         MongoDB host <input id=mongodb-server type=text><br>
         MongoDB database <input id=mongodb-db type=text><br>
         MongoDB collection <input id=mongodb-coll type=text>
-    </div>
-
-    <div class=modal-footer>
-        <a href=# class=btn data-dismiss=modal>Cancel</a>
-        <a href=# id=save-config class="btn btn-primary" data-dismiss=modal>Save changes</a>
     </div>
 </div>
 

@@ -17,7 +17,7 @@ flickr.getMongoDBInfo = function () {
     };
 };
 
-function updateConfig() {
+function tangeloSaveConfig() {
     "use strict";
 
     var server,
@@ -288,7 +288,7 @@ window.onload = function () {
         drawer_toggle;
 
     // Display the configuration dialog when clicked.
-    $("#config-panel").on("show", function () {
+    $("#tangelo-config-panel").on("show", function () {
         var cfg;
 
         cfg = flickr.getMongoDBInfo();
@@ -298,7 +298,7 @@ window.onload = function () {
     });
 
     // Update the internal datastore when the user saves the configuration.
-    d3.select("#save-config").on("click", updateConfig);
+    d3.select("#save-config").on("click", tangeloSaveConfig);
 
     // Enable the popover help items.
     //
