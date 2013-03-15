@@ -1,19 +1,19 @@
 import pymongo
 import json
 
-import xdataweb
+import tangelo
 
 class Handler:
     def go(self, servername, dbname, datatype):
         # Construct an empty response object.
-        response = xdataweb.empty_response();
+        response = tangelo.empty_response();
 
         # Establish a connection to the MongoDB server.
         try:
             conn = pymongo.Connection(servername)
         except pymongo.errors.AutoReconnect as e:
             response['error'] = "error: %s" % (e.message)
-            return xdataweb.dumps(response)
+            return tangelo.dumps(response)
 
         # Extract the requested database and collection.
         db = conn[dbname]
@@ -30,4 +30,4 @@ class Handler:
             respose['error'] = "error: unknown datatype requested"
 
         # Convert to JSON and return the result.
-        return xdataweb.dumps(response)
+        return tangelo.dumps(response)
