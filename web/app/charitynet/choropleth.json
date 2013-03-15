@@ -1,0 +1,72 @@
+{
+  "width": 960,
+  "height": 500,
+  "data": [
+    {
+      "name": "donors",
+      "url": "/service/charitynet/mongo/xdata/full"
+    },
+    {
+      "name": "counties",
+      "url": "us-counties.json",
+      "format": {"type": "json", "property": "features"},
+      "transform": [
+        {"type": "geopath", "value": "data", "projection": "albersUsa"},
+        {
+          "type": "zip",
+          "key": "data.id",
+          "with": "donors",
+          "withKey": "data.0",
+          "as": "value"
+        },
+        {"type": "filter", "test": "d.value !== undefined"}
+      ]
+    },
+    {
+      "name": "states",
+      "url": "us-states.json",
+      "format": {"type": "json", "property": "features"},
+      "transform": [
+        {"type":"geopath", "value":"data", "projection":"albersUsa"}
+      ]
+    }
+  ],
+  "scales": [
+    {
+      "name": "color",
+      "domain": {"data": "donors", "field": "data.1"},
+      "range": ["#f5f5f5","#00b"],
+      "type": "log"
+    }
+  ],
+  "marks": [
+    {
+      "type": "path",
+      "from": {"data": "counties"},
+      "properties": {
+        "enter": {
+          "stroke": {"value": "#fff"},
+          "strokeWidth": {"value": 0.25},
+          "path": {"field": "path"}
+        },
+        "update": {
+          "fill": {"scale": "color", "field": "value.data.1"}
+        },
+        "hover": {
+          "fill": {"value": "red"}
+        }
+      }
+    },
+    {
+      "type": "path",
+      "from": {"data": "states"},
+      "properties": {
+        "enter": {
+          "stroke": {"value": "#fff"},
+          "strokeWidth": {"value": 1.5},
+          "path": {"field": "path"}
+        }
+      }
+    }
+  ]
+}

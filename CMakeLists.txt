@@ -67,6 +67,7 @@ set(SOURCES
     xdwctl
     xdataweb.py
     modules/__init__.py
+    modules/charitynet.py
     modules/datatwiddle.py
     modules/echo.py
     modules/mongo.py
@@ -79,6 +80,10 @@ set(SOURCES
     web/app/biofabric/biofabric.js
     web/app/biofabric/index.html
     web/app/biofabric/miserables.json
+    web/app/charitynet/index.html
+    web/app/charitynet/us-counties.json
+    web/app/charitynet/us-states.json
+    web/app/charitynet/choropleth.json
     web/app/noaa/index.html
     web/app/noaa/climate.js
     web/app/noaa/circularHeatChart.js
@@ -214,6 +219,7 @@ set(SOURCES
     web/img/tangelo.ico
     web/lib/vgd3-template.js.txt
     web/lib/bootstrap.js
+    web/lib/vega.js
     web/css/bootstrap.css
     web/css/bootstrap-xdata.css
     web/css/bootswatch/bootstrap-readable.css
