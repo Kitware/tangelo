@@ -7,13 +7,13 @@ import sys
 
 def start():
     if os.path.exists(pidfile):
-        sys.stderr.write("error: xdataweb already seems to be running")
+        sys.stderr.write("error: tangelo already seems to be running")
         return 1
 
     os.chdir(path)
     return subprocess.call([cherry,
         "-d",
-        "-i", "xdataweb",
+        "-i", "tangelo",
         "-c", "server.conf",
         "-p", pidfile,
         "-P", path])
@@ -27,7 +27,7 @@ def stop():
         try:
             pid = int(f.read())
         except ValueError:
-            sys.stderr.write("error: xdataweb.pid does not contain a valid process id")
+            sys.stderr.write("error: tangelo.pid does not contain a valid process id")
             return 1
 
         retval = os.kill(pid, signal.SIGKILL)
@@ -40,7 +40,7 @@ def restart():
     return start()
 
 def usage():
-    sys.stderr.write("usage: xdwctl [start|stop|restart]\n")
+    sys.stderr.write("usage: tangelo [start|stop|restart]\n")
 
 # Read the action argument.
 if len(sys.argv) < 2:
@@ -67,7 +67,7 @@ if cherry is None:
 
 # Determine the path to this script.
 path = os.path.dirname(os.path.abspath(sys.argv[0]))
-pidfile = path + "/xdataweb.pid"
+pidfile = path + "/tangelo.pid"
 
 # Dispatch on action argument.
 action = sys.argv[1]

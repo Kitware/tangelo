@@ -1,3 +1,5 @@
+@import "bootstrap.css";
+
 body {
     background: white;
 }
@@ -86,6 +88,14 @@ input[type="file"] {
  * of a div will make it roll out/in. */
 .drawer:hover {
     background-color: gray;
+}
+
+/* Translucent control panel, fixed at bottom of window. */
+.control-panel {
+    position: fixed;
+    bottom: 0px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.7);
 }
 
 /* This causes the "brand" item in fixed-navbars to not have a negative left

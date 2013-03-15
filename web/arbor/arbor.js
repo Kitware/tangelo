@@ -6,7 +6,7 @@ window.onload = function () {
     "use strict";
 
     tangelo.util.landingPage({
-        specFile: "/apps.json",
+        specFile: "arbor-apps.json",
         appLeftSelector: "#left",
         appRightSelector: "#right",
         extLeftSelector: "#external-left",

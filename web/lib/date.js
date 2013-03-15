@@ -1,6 +1,6 @@
 /*jslint */
 
-/*global xdw */
+/*global tangelo */
 
 /**
  * @fileOverview Provides a few utility functions dealing with dates - in
@@ -17,12 +17,12 @@
 
     /**
      * @name date
-     * @memberOf xdw
+     * @memberOf tangelo
      *
      * @namespace Some utilities for dealing with Date objects and dates in
      * general.
      */
-    mod = xdw.namespace("date");
+    mod = tangelo.namespace("date");
 
     month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     day_names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -31,7 +31,7 @@
      *
      * @name monthNames
      *
-     * @memberOf xdw.date
+     * @memberOf tangelo.date
      *
      * @function
      *
@@ -44,7 +44,7 @@
     /** Returns an array of abbreviated day names.
      *
      * @name dayNames
-     * @memberOf xdw.date
+     * @memberOf tangelo.date
      * @function
      *
      * @returns {Array} The array of names.
@@ -56,7 +56,7 @@
     /** Formats a date in the form "Oct 30, 1981 (05:31:00)"
      *
      * @name toShortString
-     * @memberOf xdw.date
+     * @memberOf tangelo.date
      * @function
      *
      * @param {Date} d The date to format.
@@ -90,7 +90,7 @@
     };
 
     Date.prototype.toString = function () {
-        return xdw.date.toShortString(this);
+        return tangelo.date.toShortString(this);
     };
 
     Date.prototype.getMonthName = function () {

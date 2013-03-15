@@ -3,7 +3,7 @@ import nltk
 import nltk.chunk.named_entity
 import json
 
-from xdataweb import empty_response
+from tangelo import empty_response
 
 # This service performs named entity recognition on input text.
 class Handler:

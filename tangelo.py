@@ -52,13 +52,13 @@ class Server(object):
         try:
             exec(import_string)
         except ImportError:
-            response['error'] = "xdataweb: error: no such module '%s'" % (module)
+            response['error'] = "tangelo: error: no such module '%s'" % (module)
             return json.dumps(response)
 
         # Report an error if the module has no Handler object.
         m = eval("modules.%s" % (module))
         if 'Handler' not in dir(m):
-            response['error'] = "xdataweb: error: no Handler class defined in module '%s'" % (module)
+            response['error'] = "tangelo: error: no Handler class defined in module '%s'" % (module)
             return json.dumps(response)
 
         # Construct a Handler object from the imported module.
@@ -66,7 +66,7 @@ class Server(object):
 
         # Report an error if the Handler object has no go() method.
         if 'go' not in dir(handler):
-            response['error'] = "xdataweb: error: no method go() defined in class 'Handler' in module '%s'" % (module)
+            response['error'] = "tangelo: error: no method go() defined in class 'Handler' in module '%s'" % (module)
             return json.dumps(response)
 
         # Call the go() method of the handler object, passing it the positional
@@ -75,7 +75,7 @@ class Server(object):
             return handler.go(*pargs, **kwargs)
         except Exception as e:
             # Error message.
-            response['error'] = "xdataweb: error: %s: %s" % (e.__class__.__name__, e.message)
+            response['error'] = "tangelo: error: %s: %s" % (e.__class__.__name__, e.message)
 
             cherrypy.log("Caught exception - %s: %s" % (e.__class__.__name__, e.message))
 

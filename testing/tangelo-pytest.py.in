@@ -3,7 +3,7 @@
 import sys
 
 if len(sys.argv) < 2:
-    print >>sys.stderr, "usage: xdwpytest.py [web-service-module]"
+    print >>sys.stderr, "usage: tangelo-pytest.py [web-service-module]"
     sys.exit(1)
 
 # Grab the module to test.

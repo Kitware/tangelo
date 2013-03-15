@@ -1,5 +1,5 @@
 # This module, which contains a Handler class whose go() method raises an
-# exception, is meant for testing the error handling of xdataweb's web service
+# exception, is meant for testing the error handling of Tangelo's web service
 # module loader system.
 
 class Handler:
