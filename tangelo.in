@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!${PYTHON_EXECUTABLE}
 
 import os
 import signal
@@ -11,7 +11,7 @@ def start():
         return 1
 
     os.chdir(path)
-    return subprocess.call([cherry,
+    return subprocess.call([sys.executable, cherry,
         "-d",
         "-i", "tangelo",
         "-c", "server.conf",
@@ -51,19 +51,7 @@ if len(sys.argv) < 2:
 #
 # TODO(choudhury): Check the environment first, rather than always running this
 # test.
-cherry = "cherryd2"
-try:
-    subprocess.check_output(["which", cherry])
-except subprocess.CalledProcessError:
-    cherry = "cherryd"
-    try:
-        subprocess.check_output(["which", cherry])
-    except subprocess.CalledProcessError:
-        cherry = None
-
-if cherry is None:
-    sys.stderr.write("Neither `cherryd2` nor `cherry` seem to be in your path")
-    sys.exit(1)
+cherry = "${CherryPy_EXECUTABLE}"
 
 # Determine the path to this script.
 path = os.path.dirname(os.path.abspath(sys.argv[0]))
