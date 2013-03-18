@@ -1,16 +1,29 @@
 <!doctype html>
 <meta charset=utf-8>
+
+<!-- Driver script for this app -->
 <script src=flickr.js></script>
+
+<!-- JQuery -->
 <script src=http://code.jquery.com/jquery-1.8.2.min.js></script>
 <script src=http://code.jquery.com/ui/1.9.1/jquery-ui.js></script>
+
+<!-- D3 -->
 <script src=http://d3js.org/d3.v2.min.js></script>
+
+<!-- Tangelo -->
 <script src=/lib/tangelo.min.js></script>
 <script src=/lib/bootstrap.js></script>
+
+<!-- Google Maps API -->
 <script src=https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false></script>
+
+<!-- Styling for UI elements -->
 <link href=http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css rel=stylesheet type=text/css>
 
-<!--<link href=/css/bootstrap.css rel=stylesheet type=text/css>-->
+<!-- Styling for app -->
 <link href=/css/tangelo.css rel=stylesheet type=text/css>
+
 <link rel="shortcut icon" href=/img/tangelo.ico>
 
 <style>
@@ -26,6 +39,7 @@
 
 <title>Flickr Metadata Maps</title>
 
+<!-- Create a navbar with info and config panels -->
 <div data-tangelo-type=navbar data-tangelo-brand=XDATA@Kitware data-tangelo-brand-href=/ data-tangelo-app="Flickr Maps">
     <div data-tangelo-type=info data-tangelo-ok-button>
         <p>Explore the locations where millions of Flickr photos were taken.</p>
@@ -46,8 +60,10 @@
     </div>
 </div>
 
+<!-- Create a fullscreen Google map -->
 <div id=map class=gmap style="width:100%;height:100%"></div>
 
+<!-- Create a drawer panel with the controls in it -->
 <div data-tangelo-type=control-panel>
     <div class=container>
         <div class=row>
