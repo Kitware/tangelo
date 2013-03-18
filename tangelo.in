@@ -16,7 +16,7 @@ def start():
         "-c", "server.conf",
         "-P", path]
     if not is_windows:
-        args.append(["-d", "-p", pidfile])
+        args += ["-d", "-p", pidfile]
     return subprocess.call(args)
 
 def stop():
@@ -49,8 +49,8 @@ if len(sys.argv) < 2:
     sys.exit(1)
 
 # Configured variables.
-cherry = "${CherryPy_EXECUTABLE}"
-is_windows = ${WIN32}
+cherry = "@CherryPy_EXECUTABLE@"
+is_windows = @is_windows@
 
 # Determine the path to this script.
 path = os.path.dirname(os.path.abspath(sys.argv[0]))
