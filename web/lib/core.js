@@ -187,11 +187,11 @@ var tangelo = {};
                         .attr("data-dismiss", "modal")
                         .text(oktext === "" ? "Cancel" : oktext);
                     footer.append("a")
+                        .attr("id", "tangelo-config-submit")
                         .classed("btn", true)
                         .classed("btn-primary", true)
                         .attr("data-dismiss", "modal")
-                        .text(oktext === "" ? "Save changes" : oktext)
-                        .on("click", typeof tangeloSaveConfig === "undefined" ? function () { throw "error: no tangeloSaveConfig() callback defined"; } : tangeloSaveConfig);
+                        .text(oktext === "" ? "Save changes" : oktext);
 
                     item.remove();
 
