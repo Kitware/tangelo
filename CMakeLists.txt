@@ -24,6 +24,9 @@ find_package(JSLint)
 # Find a Python2 interpreter.
 find_package(PythonInterp 2.7)
 
+# Find CherryPy daemon.
+find_package(CherryPy)
+
 # Create a "stamps" directory for storing fake targets for custom commands.
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/stamps)
 
@@ -65,7 +68,6 @@ set(JS_DOCUMENT_FILES
 
 # These files should be copied to the deployment directory.
 set(SOURCES
-    tangelo
     tangelo.py
     modules/__init__.py
     modules/charitynet.py
@@ -224,8 +226,7 @@ set(SOURCES
     web/lib/vgd3-template.js.txt
     web/lib/bootstrap.js
     web/lib/vega.js
-    web/css/bootstrap.css
-    web/css/bootswatch/bootstrap-readable.css
+    web/css/bootstrap-readable.css
     web/css/tangelo.css
     web/img/glyphicons-halflings.png
     web/img/glyphicons-halflings-white.png
@@ -248,6 +249,11 @@ configure_file(
     testing/tangelo-pytest.py.in
     ${CMAKE_BINARY_DIR}/tangelo-pytest.py
 )
+
+# Configure the controller.
+configure_file(
+    tangelo.in
+    ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/tangelo)
 
 # Copy the files to the deployment directory.
 set(ALL_TARGETS)

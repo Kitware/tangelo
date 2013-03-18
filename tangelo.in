@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!${PYTHON_EXECUTABLE}
 
 import os
 import signal
@@ -7,16 +7,17 @@ import sys
 
 def start():
     if os.path.exists(pidfile):
-        sys.stderr.write("error: tangelo already seems to be running")
+        sys.stderr.write("error: tangelo already seems to be running\n")
         return 1
 
     os.chdir(path)
-    return subprocess.call([cherry,
-        "-d",
+    args = [sys.executable, cherry,
         "-i", "tangelo",
         "-c", "server.conf",
-        "-p", pidfile,
-        "-P", path])
+        "-P", path]
+    if not is_windows:
+        args.append(["-d", "-p", pidfile])
+    return subprocess.call(args)
 
 def stop():
     retval = 0
@@ -47,23 +48,9 @@ if len(sys.argv) < 2:
     usage()
     sys.exit(1)
 
-# Determine the correct executable.
-#
-# TODO(choudhury): Check the environment first, rather than always running this
-# test.
-cherry = "cherryd2"
-try:
-    subprocess.check_output(["which", cherry])
-except subprocess.CalledProcessError:
-    cherry = "cherryd"
-    try:
-        subprocess.check_output(["which", cherry])
-    except subprocess.CalledProcessError:
-        cherry = None
-
-if cherry is None:
-    sys.stderr.write("Neither `cherryd2` nor `cherry` seem to be in your path")
-    sys.exit(1)
+# Configured variables.
+cherry = "${CherryPy_EXECUTABLE}"
+is_windows = ${WIN32}
 
 # Determine the path to this script.
 path = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -75,8 +62,14 @@ code = 1
 if action == "start":
     code = start()
 elif action == "stop":
+    if is_windows:
+        sys.stderr.write("error: stop action not supported on Windows\n")
+        sys.exit(1)
     code = stop()
 elif action == "restart":
+    if is_windows:
+        sys.stderr.write("error: restart action not supported on Windows\n")
+        sys.exit(1)
     code = restart()
 else:
     usage()
