@@ -1,16 +1,29 @@
 <!doctype html>
 <meta charset=utf-8>
+
+<!-- Driver script for this app -->
 <script src=flickr.js></script>
+
+<!-- JQuery -->
 <script src=http://code.jquery.com/jquery-1.8.2.min.js></script>
 <script src=http://code.jquery.com/ui/1.9.1/jquery-ui.js></script>
+
+<!-- D3 -->
 <script src=http://d3js.org/d3.v2.min.js></script>
+
+<!-- Tangelo -->
 <script src=/lib/tangelo.min.js></script>
 <script src=/lib/bootstrap.js></script>
+
+<!-- Google Maps API -->
 <script src=https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false></script>
+
+<!-- Styling for UI elements -->
 <link href=http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css rel=stylesheet type=text/css>
 
-<!--<link href=/css/bootstrap.css rel=stylesheet type=text/css>-->
+<!-- Styling for app -->
 <link href=/css/tangelo.css rel=stylesheet type=text/css>
+
 <link rel="shortcut icon" href=/img/tangelo.ico>
 
 <style>
@@ -26,24 +39,9 @@
 
 <title>Flickr Metadata Maps</title>
 
-<div class="navbar navbar-fixed-top">
-    <div class=navbar-inner>
-        <a class=brand href=/>XDATA@Kitware</a>
-        <ul class=nav>
-            <li class=active><a>Flickr Maps</a>
-            <li><a id=info-trigger class=pointer data-toggle=modal data-target=#info-panel><i class=icon-info-sign></i> Info</a>
-            <li><a id=config-trigger class=pointer data-toggle=modal data-target=#config-panel><i class=icon-cog></i> Config</a>
-        </ul>
-    </div>
-</div>
-
-<div id=info-panel class="modal hide fade">
-    <div class=modal-header>
-        <button type=button class=close data-dismiss=modal aria-hidden=true>&times;</button>
-        <h3>Information</h3>
-    </div>
-
-    <div class=modal-body>
+<!-- Create a navbar with info and config panels -->
+<div data-tangelo-type=navbar data-tangelo-brand=XDATA@Kitware data-tangelo-brand-href=/ data-tangelo-app="Flickr Maps">
+    <div data-tangelo-type=info>
         <p>Explore the locations where millions of Flickr photos were taken.</p>
 
         <p>This application retrieves Flickr metadata stored in a database and
@@ -51,18 +49,7 @@
         new lookup, or change the visualization properties.</p>
     </div>
 
-    <div class=modal-footer>
-        <a class=btn data-dismiss=modal>OK</a>
-    </div>
-</div>
-
-<div id=config-panel class="modal hide fade">
-    <div class=modal-header>
-        <button type=button class=close data-dismiss=modal aria-hidden=true>&times;</button>
-        <h3>Configuration</h3>
-    </div>
-
-    <div class=modal-body>
+    <div data-tangelo-type=config>
         <div class="alert alert-danger">
             WARNING: hostnames in this configuration are relative to the <b>server</b>
             (e.g., "localhost" refers to the <b>webserver</b> itself, <b>not</b> your local machine).
@@ -71,16 +58,13 @@
         MongoDB database <input id=mongodb-db type=text><br>
         MongoDB collection <input id=mongodb-coll type=text>
     </div>
-
-    <div class=modal-footer>
-        <a href=# class=btn data-dismiss=modal>Cancel</a>
-        <a href=# id=save-config class="btn btn-primary" data-dismiss=modal>Save changes</a>
-    </div>
 </div>
 
+<!-- Create a fullscreen Google map -->
 <div id=map class=gmap style="width:100%;height:100%"></div>
 
-<div data-tangelo-type=control-panel>
+<!-- Create a drawer panel with the controls in it -->
+<div data-tangelo-type=control-panel data-tangelo-callback=>
     <div class=container>
         <div class=row>
             <div class=span3>

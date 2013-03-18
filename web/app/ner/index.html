@@ -1,19 +1,33 @@
 <!doctype html>
 <meta charset=utf-8>
+
+<!-- JQuery -->
 <script src=http://code.jquery.com/jquery-1.8.2.min.js></script>
 <script src=http://code.jquery.com/ui/1.9.1/jquery-ui.js></script>
+
+<!-- D3 -->
 <script src=http://d3js.org/d3.v2.min.js></script>
+
+<!-- MD5 hash function -->
 <script src=http://crypto-js.googlecode.com/svn/tags/3.0.2/build/rollups/md5.js></script>
+
+<!-- Support for sliders -->
 <link href=http://code.jquery.com/ui/1.9.1/themes/base/jquery-ui.css rel=stylesheet type=text/css>
 <script src=/lib/bootstrap.js></script>
+
+<!-- Tangelo -->
 <script src=/lib/tangelo.min.js></script>
+
+<!-- Driver script for this app -->
 <script src=ner.js></script>
 
-<!--<link href=/css/bootstrap.css rel=stylesheet type=text/css>-->
+<!-- Tangelo styling -->
 <link href=/css/tangelo.css rel=stylesheet type=text/css>
-<link rel="shortcut icon" href=/img/tangelo.ico>
 
+<!-- Specific styling for this app -->
 <link href=ner.css rel=stylesheet type=text/css>
+
+<link rel="shortcut icon" href=/img/tangelo.ico>
 
 <style>
     html, body, #graph {
@@ -33,73 +47,41 @@
 
 <title>Document Entity Relationships</title>
 
-<div class="navbar navbar-fixed-top" style="margin-bottom:0px">
-    <div class=navbar-inner>
-        <a class=brand href=/>XDATA@Kitware</a>
-        <ul class=nav>
-            <li class=active><a>Document Entities</a>
-            <li><a id=info-popover class=pointer data-toggle="modal" data-target="#info-panel"><i class=icon-info-sign></i> Info</a>
-            <li><a id=config-popover class=pointer data-toggle="modal" data-target="#config-panel"><i class=icon-cog></i> Config</a>
-        </ul>
-    </div>
-</div>
+<!-- Create a navbar -->
+<div data-tangelo-type=navbar data-tangelo-brand=XDATA@Kitware data-tangelo-brand-href=/ data-tangelo-app="Document Entities">
+    <div data-tangelo-type=info>
+        <p>See the network of named entities in your text documents.
 
-<svg id=graph>
-    <rect width=100% height=100% style="fill:silver;" />
-    <g id="links"></g>
-    <g id="nodes"></g>
-</svg>
-
-<svg id=legend height=100% style="position:fixed; top:100px; right:0px; pointer-events:none;"></svg>
-
-<div id="info-panel" class="modal hide fade">
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-      <h3>Information</h3>
-    </div>
-
-    <div class="modal-body">
-        See the network of named entities in your text documents.<br><br>
-
-        Upload several text files and this application will detect the named entities
+        <p>Upload several text files and this application will detect the named entities
         (people, places, organizations, etc.) in each file, showing a graph of
-        the shared entities between the several documents.<br><br>
+        the shared entities between the several documents.
 
-        The application can optionally use a MongoDB server (set in the Configuration menu)
+        <p>The application can optionally use a MongoDB server (set in the Configuration menu)
         to cache the results of the named entity recognition computations.
     </div>
 
-    <div class=modal-footer>
-        <a class=btn data-dismiss=modal>OK</a>
-    </div>
-</div>
-
-<div id="config-panel" class="modal hide fade">
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-      <h3>Configuration</h3>
-    </div>
-    <div class="modal-body">
+    <div data-tangelo-type=config>
         <div class="alert alert-danger">
             WARNING: hostnames in this configuration are relative to the <b>server</b>
             (e.g., "localhost" refers to the <b>webserver</b> itself, <b>not</b> your local machine).
         </div>
         MongoDB host <input id="mongodb-server" type=text>
     </div>
-    <div class="modal-footer">
-        <a href="#" class="btn" data-dismiss="modal">Cancel</a>
-        <a href="#" id="save-config" class="btn btn-primary" data-dismiss="modal">Save changes</a>
-    </div>
 </div>
 
-<div id=control-panel style="position:fixed; bottom:0px; width:100%; background:rgba(255,255,255,0.7);">
-    <div class=container>
-        <div class=row>
-            <div id=drawer class="centered pointer drawer">
-                <i id=collapse-icon class=icon-chevron-down></i>
-            </div>
-        </div>
+<!-- Create a fullscreen SVG element -->
+<svg id=graph>
+    <rect width=100% height=100% style="fill:silver;" />
+    <g id="links"></g>
+    <g id="nodes"></g>
+</svg>
 
+<!-- Create an SVG element to represent the legend -->
+<svg id=legend height=100% style="position:fixed; top:100px; right:0px; pointer-events:none;"></svg>
+
+<!-- Create a drawer with the control panel in it -->
+<div data-tangelo-type=control-panel>
+    <div class=container>
         <div class=row>
             <div class=span7>
                 <div class=row>
@@ -147,6 +129,5 @@
                 <textarea id=console class=code rows=15 cols=30 readonly></textarea>
             </div>
         </div>
-
     </div>
 </div>

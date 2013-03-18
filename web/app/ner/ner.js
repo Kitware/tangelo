@@ -491,14 +491,9 @@ window.onload = function () {
     $("#graph-help").popover(popover_cfg);
 
     $("#mongodb-server").val(NER.getMongoDBServer());
-    d3.select("#save-config").on("click", function () {
+    d3.select("#tangelo-config-submit").on("click", function () {
         NER.setMongoDBServer($("#mongodb-server").val());
     });
-
-    // Activate the drawer toggle for the control panel.
-    drawer_toggle = tangelo.util.drawer_toggle("#control-panel", "#collapse-icon");
-    d3.select("#drawer")
-        .on("click", drawer_toggle);
 
     // Activate the dataset select tag, and fill it with entries.
     d3.select("#dataset")
