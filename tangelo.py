@@ -5,6 +5,8 @@ import StringIO
 import sys
 import traceback
 
+from cherrypy.lib.static import serve_file
+
 # This function defines the structure of a service response.  Each service
 # module should import this function from this package.
 #
@@ -32,6 +34,41 @@ import os.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 class Server(object):
+    @cherrypy.expose
+    def default(self, *path):
+        # If there are no positional arguments, behave as though the root
+        # index.html was requested.
+        if len(path) == 0:
+            cherrypy.log("no path")
+            path = ["index.html"]
+
+        # Check the first character of the first path component.  If it's a
+        # tilde, then assume the path points into a user's home directory.
+        if path[0][0] == "~":
+            # Make sure there is a username after the tilde.
+            if len(path[0]) == 1:
+                cherrypy.log("only tilde")
+                raise cherrypy.HTTPError(404)
+
+            # Get the actual path corresponding to the tilde-name (after
+            # converting the positional args tuple to a list so we can assign to
+            # its elements).
+
+            #path = list(path)
+            userpath = os.path.expanduser(path[0]) + "/tangelo_html"
+
+            # Check to make sure there was an actual user by that name - if it
+            # wasn't, the function will not change the input and it will still
+            # have a tilde in the first position.
+            if userpath[0] == "~":
+                cherrypy.log("no user: " + userpath)
+                raise cherrypy.HTTPError(404)
+
+            cherrypy.log("serving user dir: " + "/".join(path))
+            return serve_file(userpath + "/" +  "/".join(path[1:]))
+        else:
+            cherrypy.log("serving from root: " + current_dir + "/web/" + "/".join(path))
+            return serve_file(current_dir + "/web/" + "/".join(path))
 
     @cherrypy.expose
     def service(self, module, *pargs, **kwargs):
