@@ -57,21 +57,21 @@ class Handler:
 			if accession is not None: decodeAndAdd(accession, query, 'sequences.accession.source', response)
 			if scientific_name is not None: decodeAndAdd(scientific_name, query, 'taxonomies.scientific_name', response)
 		except ValueError:
-			return tangelo.dumps(response)
+			return bson.json_util.dumps(response)
 
 		# Cast the maxdepth value to an int.
 		try:
 			maxdepth = int(maxdepth)
 		except ValueError:
 			response['error'] = "Argument 'limit' ('%s') could not be converted to int." % (maxdepth)
-			return tangelo.dumps(response)
+			return bson.json_util.dumps(response)
 
 		# Create database connection.
 		try:
 			c = pymongo.Connection(servername)[dbname][data_coll]
 		except pymongo.errors.AutoReconnect:
 			response['error'] = "Could not connect to MongoDB server '%s'" % (servername)
-			return tangelo.dumps(response)
+			return bson.json_util.dumps(response)
 
 		# if no arguments given just search from root
 		if not query:
@@ -88,4 +88,4 @@ class Handler:
 		else:
 			response['error'] = "Search returned %s object(s) to root the tree" % (it.count())
 			response['error'] += "| %s" %(str(query))
-			return tangelo.dumps(response)
+			return bson.json_util.dumps(response)

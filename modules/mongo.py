@@ -18,7 +18,7 @@ class Handler:
         # Check the requested method.
         if method not in ['find', 'insert']:
             response['error'] = "Unsupported MongoDB operation '%s'" % (method)
-            return tangelo.dumps(response)
+            return bson.json_util.dumps(response)
 
         # Decode the query strings into Python objects.
         try:
@@ -30,21 +30,21 @@ class Handler:
             else:
                 fill = True
         except ValueError:
-            return tangelo.dumps(response)
+            return bson.json_util.dumps(response)
 
         # Cast the limit value to an int.
         try:
             limit = int(limit)
         except ValueError:
             response['error'] = "Argument 'limit' ('%s') could not be converted to int." % (limit)
-            return tangelo.dumps(response)
+            return bson.json_util.dumps(response)
 
         # Create database connection.
         try:
             c = pymongo.Connection(server)[db][coll]
         except pymongo.errors.AutoReconnect:
             response['error'] = "Could not connect to MongoDB server '%s'" % (server)
-            return tangelo.dumps(response)
+            return bson.json_util.dumps(response)
 
         # Perform the requested action.
         if method == 'find':
@@ -68,4 +68,4 @@ class Handler:
             raise RuntimeError("illegal method '%s' in module 'mongo'")
 
         # Return the response object.
-        return tangelo.dumps(response)
+        return bson.json_util.dumps(response)
