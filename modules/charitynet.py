@@ -1,3 +1,4 @@
+import bson.json_util
 import pymongo
 import json
 
@@ -13,7 +14,7 @@ class Handler:
             conn = pymongo.Connection(servername)
         except pymongo.errors.AutoReconnect as e:
             response['error'] = "error: %s" % (e.message)
-            return tangelo.dumps(response)
+            return bson.json_util.dumps(response)
 
         # Extract the requested database and collection.
         db = conn[dbname]
@@ -30,4 +31,4 @@ class Handler:
             respose['error'] = "error: unknown datatype requested"
 
         # Convert to JSON and return the result.
-        return tangelo.dumps(response)
+        return bson.json_util.dumps(response)

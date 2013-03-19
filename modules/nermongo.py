@@ -1,3 +1,4 @@
+import bson.json_util
 import pymongo
 import json
 
@@ -13,14 +14,14 @@ class Handler:
         # TODO(choudhury): see comment below about error codes, etc.
         if file_hash == None:
             response['error'] = "no file hash"
-            return tangelo.dumps(response)
+            return bson.json_util.dumps(response)
 
         # Establish a connection to the MongoDB server.
         try:
             conn = pymongo.Connection(servername)
         except pymongo.errors.AutoReconnect as e:
             response['error'] = "error: %s" % (e.message)
-            return tangelo.dumps(response)
+            return bson.json_util.dumps(response)
 
         # Extract the requested database and collection.
         db = conn[dbname]
@@ -38,10 +39,10 @@ class Handler:
         else:
             # Convert the JSON object "data" to a Python object.
             try:
-                pydata = tangelo.loads(data)
+                pydata = bson.json_util.loads(data)
             except ValueError as e:
                 response['error'] = e.message
-                return tangelo.dumps(response)
+                return bson.json_util.dumps(response)
 
             # Apply the schema to an insert request.
             coll.insert({'file_hash': file_hash, 'data': data})
@@ -50,4 +51,4 @@ class Handler:
             response['result'] = "ok"
 
         # Convert to JSON and return the result.
-        return tangelo.dumps(response)
+        return bson.json_util.dumps(response)
