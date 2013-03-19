@@ -5,6 +5,8 @@ import StringIO
 import sys
 import traceback
 
+from cherrypy.lib.static import serve_file
+
 # This function defines the structure of a service response.  Each service
 # module should import this function from this package.
 #
@@ -32,6 +34,56 @@ import os.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 class Server(object):
+    @cherrypy.expose
+    def default(self, *path):
+        # Convert the path argument into a list (from a tuple).
+        path = list(path)
+
+        # If there are no positional arguments, behave as though the root
+        # index.html was requested.
+        if len(path) == 0:
+            path = ["index.html"]
+
+        # Check the first character of the first path component.  If it's a
+        # tilde, then assume the path points into a user's home directory.
+        if path[0][0] == "~":
+            # Only treat this component as a home directory if there is actually
+            # text following the tilde (rather than making the server serve
+            # files from the home directory of whatever user account it is using
+            # to run).
+            if len(path[0]) > 1:
+                # Expand the home directory, append the tangelo_html
+                # subdirectory, and then the tail of the original path.
+                path = os.path.expanduser(path[0]).split("/") + ["tangelo_html"] + path[1:]
+        else:
+            # TODO(choudhury): check a table of configured custom mappings to
+            # see if the first path component should be mapped to some other
+            # filesystem path.
+
+            # Reaching this point means the path is relative to the server's web
+            # root.
+            path = current_dir.split("/") + ["web"] + path
+
+        # Form a path name from the path components.
+        finalpath = "/".join(path)
+
+        # If the path represents a directory, first check if the URL is missing
+        # a trailing slash - if it is, redirect to a URL with the slash
+        # appended; otherwise, append "index.html" to the path spec and
+        # continue.
+        if os.path.isdir(finalpath):
+            if cherrypy.request.path_info[-1] != "/":
+                raise cherrypy.HTTPRedirect(cherrypy.request.path_info + "/")
+            else:
+                finalpath += "/index.html"
+
+        # If the home directory expansion above failed (or something else went
+        # wrong), then the filepath will not be an absolute path, and we bail.
+        if not os.path.isabs(finalpath):
+            raise cherrypy.HTTPError(404)
+
+        # Serve the file.
+        return serve_file(finalpath)
 
     @cherrypy.expose
     def service(self, module, *pargs, **kwargs):
