@@ -153,8 +153,7 @@ function retrieveData() {
         hashtags,
         hashtagquery,
         query,
-        mongo,
-        panel;
+        mongo;
 
     // Interrogate the UI elements to build up a query object for the database.
     //
@@ -210,8 +209,11 @@ function retrieveData() {
             // Error check.
             if (response.error !== null) {
                 console.log("fatal error: " + response.error);
-                panel.classed("error", true)
-                    .html("fatal error: " + response.error);
+                d3.select("#abort")
+                    .classed("btn-success", false)
+                    .classed("btn-danger", true)
+                    .classed("disabled", true)
+                    .html("error: " + response.error);
                 return;
             }
 
