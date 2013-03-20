@@ -13,21 +13,15 @@
         },
 
         {
-            "name": "Histogram Statistics",
-            "path": "stats",
-            "description": "See the distribution of data values with an interactive histogram"
-        },
-
-        {
             "name": "SSCI Predictive Database",
             "path": "ssci",
             "description": "Explore the progression of table partitioning in a predictive database."
         },
 
         {
-            "name": "Vega Laboratory",
-            "path": "vegalab",
-            "description": "Load, edit, compile, and view Vega specifications in real time"
+            "name": "Biofabric Graph Visualization",
+            "path": "biofabric",
+            "description": "An implementation of the Biofabric algorithm for visualizing large graphs."
         }
     ],
 
