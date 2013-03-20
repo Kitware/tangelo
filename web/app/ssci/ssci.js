@@ -406,9 +406,6 @@ function visCrossCat(spec) {
 window.onload = function () {
     "use strict";
 
-    d3.select("#drawer")
-        .on("click", tangelo.util.drawer_toggle("#control-panel", "#collapse-icon"));
-
     d3.json("data/animals_data.json", function (data) {
         var i,
             ids,
