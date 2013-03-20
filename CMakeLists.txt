@@ -214,7 +214,6 @@ set(SOURCES
     web/app/vegalab/lib/projection.js
     web/app/vegalab/vegalab.css
     web/app/vegalab/vegalab.js
-    web/app/phylotree/heliconia.json
     web/app/phylotree/index.html
     web/app/phylotree/phylotree.js
     web/arbor/arbor.js
