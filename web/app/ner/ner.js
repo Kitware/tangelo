@@ -9,11 +9,13 @@ var graph = null;
 // Top-level container object for this js file.
 var NER = {};
 
+NER.cfgDefaults = tangelo.util.defaults("defaults.json");
+
 // Get the mongo server to use from the configuration.
 NER.getMongoDBServer = function () {
     "use strict";
 
-    return localStorage.getItem('NER:mongodb-server') || 'localhost';
+    return localStorage.getItem('NER:mongodb-server') || NER.cfgDefaults.get("mongodb-server") || 'localhost';
 };
 
 // Save the mongo server to use to the configuration.
