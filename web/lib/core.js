@@ -67,6 +67,12 @@ var tangelo = {};
                 ul,
                 x;
 
+            // Bail out if the selection is empty.
+            if (s.empty()) {
+                console.log("initialize_navbar: input selection was empty!");
+                return;
+            }
+
             // Convert the top-level element into a bootstrap navbar element,
             // then embed a "navbar-inner" div within it.
             navbar_inner = s.classed("navbar", true)
@@ -208,6 +214,12 @@ var tangelo = {};
         // Create CSS styled control panel at bottom of screen.
         initialize_control_panel = function (s) {
             var toggle;
+
+            // Bail out if the selection is empty.
+            if (s.empty()) {
+                console.log("initialize_control_panel: input selection was empty!");
+                return;
+            }
 
             // Style the control panel div appropriately, then add a div as the
             // first child to act as the drawer handle (and place an appropriate
