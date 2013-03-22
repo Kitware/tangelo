@@ -1,5 +1,7 @@
 /*jslint browser: true */
 
+/*global $, d3 */
+
 /**
  *
  * @fileOverview Defines the global namespace <i>tangelo</i> and provides a
@@ -30,17 +32,35 @@ var tangelo = {};
     tangelo.namespace = function (ns_spec) {
         var ns_path,
             mod,
+            messageFunction,
+            namingFunction,
             i,
             path_component;
+
+        namingFunction = function (name) {
+            return function () {
+                return name;
+            };
+        };
+
+        messageFunction = function (name) {
+            return function (f, m) {
+                return "[" + name + "." + f + "] " + m;
+            };
+        };
 
         ns_path = ns_spec.split(".");
 
         mod = tangelo;
+        mod.name = namingFunction("tangelo");
+        mod.message = messageFunction(mod.name());
         for (i = 0; i < ns_path.length; i += 1) {
             path_component = ns_path[i];
 
             mod[path_component] = mod[path_component] || {};
             mod = mod[path_component];
+            mod.name = namingFunction("tangelo." + ns_path.slice(0, i + 1));
+            mod.message = messageFunction(mod.name());
         }
 
         return mod;
@@ -112,7 +132,7 @@ var tangelo = {};
             // Go through and check the type field, taking approriate action for
             // each.
             for (i = 0; i < items.length; i += 1) {
-                item = items[i]
+                item = items[i];
                 type = item.attr("data-tangelo-type");
 
                 if (type === "info") {
@@ -189,9 +209,14 @@ var tangelo = {};
                     footer = modal.append("div")
                         .classed("modal-footer", true);
                     footer.append("a")
+                        .attr("id", "tangelo-config-cancel")
                         .classed("btn", true)
                         .attr("data-dismiss", "modal")
                         .text(oktext === "" ? "Cancel" : oktext);
+                    footer.append("a")
+                        .attr("id", "tangelo-config-defaults")
+                        .classed("btn", true)
+                        .text("Defaults");
                     footer.append("a")
                         .attr("id", "tangelo-config-submit")
                         .classed("btn", true)
@@ -200,9 +225,8 @@ var tangelo = {};
                         .text(oktext === "" ? "Save changes" : oktext);
 
                     item.remove();
-
                 } else if (type === "other") {
-
+                    // TODO(choudhury): implement this code path.
                 } else {
                     throw "unknown navbar item type '" + type + "'";
                 }
