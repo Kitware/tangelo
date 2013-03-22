@@ -496,6 +496,10 @@ window.onload = function () {
     d3.select("#tangelo-config-submit").on("click", function () {
         NER.setMongoDBServer($("#mongodb-server").val());
     });
+    d3.select("#tangelo-config-defaults").on("click", function () {
+        localStorage.removeItem("NER:mongodb-server");
+        $("#mongodb-server").val(NER.getMongoDBServer());
+    });
 
     // Activate the dataset select tag, and fill it with entries.
     d3.select("#dataset")

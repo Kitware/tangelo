@@ -209,9 +209,14 @@ var tangelo = {};
                     footer = modal.append("div")
                         .classed("modal-footer", true);
                     footer.append("a")
+                        .attr("id", "tangelo-config-cancel")
                         .classed("btn", true)
                         .attr("data-dismiss", "modal")
                         .text(oktext === "" ? "Cancel" : oktext);
+                    footer.append("a")
+                        .attr("id", "tangelo-config-defaults")
+                        .classed("btn", true)
+                        .text("Defaults");
                     footer.append("a")
                         .attr("id", "tangelo-config-submit")
                         .classed("btn", true)
@@ -220,9 +225,8 @@ var tangelo = {};
                         .text(oktext === "" ? "Save changes" : oktext);
 
                     item.remove();
-
                 } else if (type === "other") {
-
+                    // TODO(choudhury): implement this code path.
                 } else {
                     throw "unknown navbar item type '" + type + "'";
                 }
