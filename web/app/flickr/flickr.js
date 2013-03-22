@@ -5,16 +5,18 @@
 var flickr = {};
 flickr.map = null;
 
+flickr.cfgDefaults = tangelo.util.defaults("defaults.json");
+
 flickr.getMongoDBInfo = function () {
     "use strict";
 
     // Read in the config options regarding which MongoDB
     // server/database/collection to use.
     return {
-        server: localStorage.getItem('flickr:mongodb-server') || 'localhost',
-        db: localStorage.getItem('flickr:mongodb-db') || 'xdata',
-        coll: localStorage.getItem('flickr:mongodb-coll') || 'flickr_paris'
-    };
+        server: localStorage.getItem('flickr:mongodb-server') || flickr.cfgDefaults.get("mongodb-server") || 'localhost',
+        db: localStorage.getItem('flickr:mongodb-db') || flickr.cfgDefaults.get("mongodb-db") || 'xdata',
+        coll: localStorage.getItem('flickr:mongodb-coll') || flickr.cfgDefaults.get("mongodb-coll") || 'flickr_paris'
+  };
 };
 
 function updateConfig() {
@@ -33,6 +35,23 @@ function updateConfig() {
     localStorage.setItem('flickr:mongodb-server', server.value);
     localStorage.setItem('flickr:mongodb-db', db.value);
     localStorage.setItem('flickr:mongodb-coll', coll.value);
+}
+
+function setConfigDefaults() {
+    "use strict";
+
+    var cfg;
+
+    // Clear out the locally stored options.
+    localStorage.removeItem('flickr:mongodb-server');
+    localStorage.removeItem('flickr:mongodb-db');
+    localStorage.removeItem('flickr:mongodb-coll');
+
+    // Retrieve the new config values, and set them into the fields.
+    cfg = flickr.getMongoDBInfo();
+    d3.select("#mongodb-server").property("value", cfg.server);
+    d3.select("#mongodb-db").property("value", cfg.db);
+    d3.select("#mongodb-coll").property("value", cfg.coll);
 }
 
 function getMinMaxDates(zoom) {
@@ -302,6 +321,10 @@ window.onload = function () {
     // Update the internal datastore when the user saves the configuration.
     d3.select("#tangelo-config-submit")
         .on("click", updateConfig);
+
+    // Use default configuration values when the defaults button is pressed.
+    d3.select("#tangelo-config-defaults")
+        .on("click", setConfigDefaults);
 
     // Enable the popover help items.
     //
