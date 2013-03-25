@@ -22,10 +22,59 @@ def empty_response():
 import os.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
-def invoke_service(servicepath, pargs, kwargs):
-    cherrypy.log("service path: %s" % (servicepath))
-    cherrypy.log("pargs: %s" % (pargs))
-    cherrypy.log("kwargs: %s" % (kwargs))
+def invoke_service(module, *pargs, **kwargs):
+    # TODO(choudhury): This method should attempt to load the named module, then invoke it
+    # with the given arguments.  However, if the named module is "config" or
+    # something similar, the method should instead launch a special "config"
+    # app, which lists the available app modules, along with docstrings or
+    # similar.  It should also allow the user to add/delete search paths for
+    # other modules.
+    cherrypy.response.headers['Content-type'] = 'text/plain'
+
+    # Construct a response container for reporting possible errors, as the
+    # service modules themselves do.
+    response = empty_response()
+
+    # Import the module.
+    try:
+        m = imp.load_source("service", module)
+    except IOError as e:
+        response['error'] = "IOError: %s" % (e)
+        return json.dumps(response)
+
+    # Report an error if the module has no Handler object.
+    if 'Handler' not in dir(m):
+        response['error'] = "tangelo: error: no Handler class defined in module '%s'" % (module)
+        return json.dumps(response)
+
+    # Construct a Handler object from the imported module.
+    handler = m.Handler()
+
+    # Report an error if the Handler object has no go() method.
+    if 'go' not in dir(handler):
+        response['error'] = "tangelo: error: no method go() defined in class 'Handler' in module '%s'" % (module)
+        return json.dumps(response)
+
+    # Call the go() method of the handler object, passing it the positional
+    # and keyword args that came into this method.
+    try:
+        return handler.go(*pargs, **kwargs)
+    except Exception as e:
+        # Error message.
+        response['error'] = "tangelo: error: %s: %s" % (e.__class__.__name__, e.message)
+
+        cherrypy.log("Caught exception - %s: %s" % (e.__class__.__name__, e.message))
+
+        # Full Python traceback stack.
+        s = StringIO.StringIO()
+        traceback.print_exc(file=s)
+        if 'traceback' in response:
+            response['traceback'] += "\n" + s.getvalue()
+        else:
+            response['traceback'] = "\n" + s.getvalue()
+
+        # Serialize to JSON.
+        return json.dumps(response)
 
 class Server(object):
     @cherrypy.expose
@@ -78,7 +127,7 @@ class Server(object):
             pargs = path[(service+2):]
 
             # Invoke the service and return the result.
-            return self.service(service_path, *pargs, **args)
+            return invoke_service(service_path, *pargs, **args)
         except ValueError:
             pass
 
@@ -103,56 +152,4 @@ class Server(object):
         # Serve the file.
         return serve_file(finalpath)
 
-    def service(self, module, *pargs, **kwargs):
-        # TODO(choudhury): This method should attempt to load the named module, then invoke it
-        # with the given arguments.  However, if the named module is "config" or
-        # something similar, the method should instead launch a special "config"
-        # app, which lists the available app modules, along with docstrings or
-        # similar.  It should also allow the user to add/delete search paths for
-        # other modules.
-        cherrypy.response.headers['Content-type'] = 'text/plain'
 
-        # Construct a response container for reporting possible errors, as the
-        # service modules themselves do.
-        response = empty_response()
-
-        # Import the module.
-        try:
-            m = imp.load_source("service", module)
-        except IOError as e:
-            response['error'] = "IOError: %s" % (e)
-            return json.dumps(response)
-
-        # Report an error if the module has no Handler object.
-        if 'Handler' not in dir(m):
-            response['error'] = "tangelo: error: no Handler class defined in module '%s'" % (module)
-            return json.dumps(response)
-
-        # Construct a Handler object from the imported module.
-        handler = m.Handler()
-
-        # Report an error if the Handler object has no go() method.
-        if 'go' not in dir(handler):
-            response['error'] = "tangelo: error: no method go() defined in class 'Handler' in module '%s'" % (module)
-            return json.dumps(response)
-
-        # Call the go() method of the handler object, passing it the positional
-        # and keyword args that came into this method.
-        try:
-            return handler.go(*pargs, **kwargs)
-        except Exception as e:
-            # Error message.
-            response['error'] = "tangelo: error: %s: %s" % (e.__class__.__name__, e.message)
-
-            cherrypy.log("Caught exception - %s: %s" % (e.__class__.__name__, e.message))
-
-            # Full Python traceback stack.
-            s = StringIO.StringIO()
-            traceback.print_exc(file=s)
-            if 'traceback' in response:
-                response['traceback'] += "\n" + s.getvalue()
-            else:
-                response['traceback'] = "\n" + s.getvalue()
-
-            # Serialize to JSON.
-            return json.dumps(response)
