@@ -1,4 +1,5 @@
 import cherrypy
+import imp
 import json
 import StringIO
 import sys
@@ -68,19 +69,18 @@ class Server(object):
             if len(path) == service + 1:
                 raise cherrypy.HTTPError(404, "Did you forget the service name?")
 
-            # Grab the portion of the path that names the service.
-            service_path = "/".join(path[:(service+2)])
+            # Grab the portion of the path that names the service (appending the
+            # standard python file extension as well).
+            service_path = "/".join(path[:(service+2)]) + ".py"
 
             # Grab the rest of the path list, as the positional arguments for
             # the service invocation.
             pargs = path[(service+2):]
 
             # Invoke the service and return the result.
-            return invoke_service(service_path, pargs, args)
+            return self.service(service_path, *pargs, **args)
         except ValueError:
             pass
-
-        #cherrypy.log("service at %s" % (service))
 
         # Form a path name from the path components.
         finalpath = "/".join(path)
@@ -103,7 +103,6 @@ class Server(object):
         # Serve the file.
         return serve_file(finalpath)
 
-    @cherrypy.expose
     def service(self, module, *pargs, **kwargs):
         # TODO(choudhury): This method should attempt to load the named module, then invoke it
         # with the given arguments.  However, if the named module is "config" or
@@ -117,16 +116,14 @@ class Server(object):
         # service modules themselves do.
         response = empty_response()
 
-        # Construct import statement.
-        import_string = "import modules.%s" % (module)
+        # Import the module.
         try:
-            exec(import_string)
-        except ImportError:
-            response['error'] = "tangelo: error: no such module '%s'" % (module)
+            m = imp.load_source("service", module)
+        except IOError as e:
+            response['error'] = "IOError: %s" % (e)
             return json.dumps(response)
 
         # Report an error if the module has no Handler object.
-        m = eval("modules.%s" % (module))
         if 'Handler' not in dir(m):
             response['error'] = "tangelo: error: no Handler class defined in module '%s'" % (module)
             return json.dumps(response)
