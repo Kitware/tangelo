@@ -21,9 +21,14 @@ def empty_response():
 import os.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
+def invoke_service(servicepath, pargs, kwargs):
+    cherrypy.log("service path: %s" % (servicepath))
+    cherrypy.log("pargs: %s" % (pargs))
+    cherrypy.log("kwargs: %s" % (kwargs))
+
 class Server(object):
     @cherrypy.expose
-    def default(self, *path):
+    def default(self, *path, **args):
         # Convert the path argument into a list (from a tuple).
         path = list(path)
 
@@ -51,6 +56,31 @@ class Server(object):
             # Reaching this point means the path is relative to the server's web
             # root.
             path = current_dir.split("/") + ["web"] + path
+
+        # Check for the word "service" in the path - this indicates the
+        # invocation of a web service placed somewhere besides the global
+        # services list.
+        try:
+            service = path.index("service")
+
+            # Make sure there is an actual service name after the "service" path
+            # component.
+            if len(path) == service + 1:
+                raise cherrypy.HTTPError(404, "Did you forget the service name?")
+
+            # Grab the portion of the path that names the service.
+            service_path = "/".join(path[:(service+2)])
+
+            # Grab the rest of the path list, as the positional arguments for
+            # the service invocation.
+            pargs = path[(service+2):]
+
+            # Invoke the service and return the result.
+            return invoke_service(service_path, pargs, args)
+        except ValueError:
+            pass
+
+        #cherrypy.log("service at %s" % (service))
 
         # Form a path name from the path components.
         finalpath = "/".join(path)
