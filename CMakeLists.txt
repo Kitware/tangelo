@@ -71,14 +71,6 @@ set(JS_DOCUMENT_FILES
 # These files should be copied to the deployment directory.
 set(SOURCES
     tangelo.py
-    modules/__init__.py
-    modules/charitynet.py
-    modules/datatwiddle.py
-    modules/echo.py
-    modules/mongo.py
-    modules/nermongo.py
-    modules/ner.py
-    modules/phylomongo.py
     web/apps.json
     web/index.html
     web/index.js
@@ -231,13 +223,21 @@ set(SOURCES
     web/css/tangelo.css
     web/img/glyphicons-halflings.png
     web/img/glyphicons-halflings-white.png
+    web/service/__init__.py
+    web/service/charitynet.py
+    web/service/datatwiddle.py
+    web/service/echo.py
+    web/service/mongo.py
+    web/service/nermongo.py
+    web/service/ner.py
+    web/service/phylomongo.py
 )
 
 if(DEPLOY_TEST_SERVICES)
     list(APPEND SOURCES
-        modules/broken.py
-        modules/exceptional.py
-        modules/testapp.py)
+        web/service/broken.py
+        web/service/exceptional.py
+        web/service/testapp.py)
 endif()
 
 # Configure the server config file.
