@@ -4,7 +4,7 @@
 [CherryPy](http://www.cherrypy.org/) for producing rich web applications
 that pair your data with cutting-edge visual interfaces.
 
-In a nutshell, Tangelo is flexible HTML5 web server architecture that cleanly separates
+In a nutshell, Tangelo is a flexible HTML5 web server architecture that cleanly separates
 your web *applications* (pure Javascript, HTML, and CSS) and web *services*
 (pure Python), bundled with some great tools to get you started. Mix and match
 from the following to create your own breed:
