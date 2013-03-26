@@ -225,6 +225,7 @@ set(SOURCES
     web/img/glyphicons-halflings.png
     web/img/glyphicons-halflings-white.png
     web/service/__init__.py
+    web/service/census.py
     web/service/charitynet.py
     web/service/datatwiddle.py
     web/service/echo.py
