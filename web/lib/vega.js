@@ -1682,9 +1682,10 @@ vg.error = function(msg) {
     var id = "#" + p.attr("id");
     var m = p.selectAll(id+" > "+tag).data(data);  
     var e = m.enter().append(tag);
-    if (tag !== "g") e.each(function(d) {
-      (d.mark ? d : d[0])._svg = this;
-    });
+    if (tag !== "g") {
+      p.style("pointer-events", scene.interactive===false ? "none" : null);
+      e.each(function(d) { (d.mark ? d : d[0])._svg = this; });
+    }
     
     m.exit().remove();
     m.each(attr);
@@ -3007,6 +3008,8 @@ vg.data.size = function(size, group) {
     vg.keys(props).forEach(function(k) {
       props[k] = vg.parse.properties(props[k]);
     });
+    // parse delay function
+    if (mark.delay) mark.delay = vg.parse.properties({delay: mark.delay});
         
     // parse mark data definition
     if (mark.from) {
@@ -3359,6 +3362,7 @@ vg.scene.item = function(mark) {
     // build node and items
     node = buildNode(model, node);
     node.items = buildItems(model, data, node);
+    buildTrans(model, node);
     
     // recurse if group
     if (model.type === GROUP) {
@@ -3381,7 +3385,7 @@ vg.scene.item = function(mark) {
         prev = node.items || [],
         next = [],
         map = {},
-        i, key, len, item, datum;
+        i, key, len, item, datum, enter;
 
     for (i=0, len=prev.length; i<len; ++i) {
       item = prev[i];
@@ -3423,6 +3427,15 @@ vg.scene.item = function(mark) {
         group.items[m] = build(marks[m], db, group.items[m], group.datum);
         group.items[m].group = group;
       }
+    }
+  }
+
+  function buildTrans(model, node) {
+    if (model.duration) node.duration = model.duration;
+    if (model.ease) node.ease = d3.ease(model.ease)
+    if (model.delay) {
+      var items = node.items, group = node.group, n = items.length, i;
+      for (i=0; i<n; ++i) model.delay.call(this, items[i], group);
     }
   }
   
@@ -3523,7 +3536,7 @@ vg.scene.item = function(mark) {
       // exit set
       if (item.status === EXIT) {
         if (exit && trans) exit.call(this, item, group, trans);
-        (trans ? trans.remove(item) : items[i--].remove());
+        if (!trans) items[i--].remove();
       }
     }
   }
@@ -3532,9 +3545,8 @@ vg.scene.item = function(mark) {
 })();vg.scene.Transition = (function() {
   function trans(duration, ease) {
     this.duration = duration || 500;
-    this.ease = ease || d3.ease("cubic-in-out");
-    this.updates = [];
-    this.exits = [];
+    this.ease = ease && d3.ease(ease) || d3.ease("cubic-in-out");
+    this.updates = {next: null};
   }
   
   var prototype = trans.prototype;
@@ -3554,48 +3566,51 @@ vg.scene.item = function(mark) {
 
     if (interp) {
       list.item = item;
-      list.ease = this.ease; // TODO parametrize
-      this.updates.push(list);
+      list.ease = item.mark.ease || this.ease;
+      list.next = this.updates.next;
+      this.updates.next = list;
     }
     return this;
   };
   
-  prototype.remove = function(item) {
-    this.exits.push(item);
-    return this;
-  };
-
   prototype.start = function(callback) {
-    var t = this, duration = t.duration;
-    d3.timer(function(elapsed) {
-      if (elapsed >= duration) {
-        return (t.stop(), callback(), true);
-      } else {
-        (t.step(elapsed, duration), callback());
-      }
-    });
+    var t = this, prev = t.updates, curr = prev.next;
+    for (; curr!=null; prev=curr, curr=prev.next) {
+      if (curr.item.status === vg.scene.EXIT) curr.remove = true;
+    }
+    t.callback = callback;
+    d3.timer(function(elapsed) { return step.call(t, elapsed); });
   };
 
-  prototype.step = function(elapsed, duration) {
-    var updates = this.updates,
-        frac = elapsed / duration,
-        list, item, f, i, j, n, m;
+  function step(elapsed) {
+    var list = this.updates, prev = list, curr = prev.next,
+        duration = this.duration,
+        item, delay, f, e, i, n, stop = true;
 
-    for (i=0, n=updates.length; i<n; ++i) {
-      list = updates[i];
-      item = list.item;
-      f = list.ease(frac);
-      for (j=0, m=list.length; j<m; ++j) {
-        item[list[j].property] = list[j](f);
+    for (; curr!=null; prev=curr, curr=prev.next) {
+      item = curr.item;
+      delay = item.delay || 0;
+
+      f = (elapsed - delay) / duration;
+      if (f < 0) { stop = false; continue; }
+      if (f > 1) f = 1;
+      e = curr.ease(f);
+
+      for (i=0, n=curr.length; i<n; ++i) {
+        item[curr[i].property] = curr[i](e);
+      }
+
+      if (f === 1) {
+        if (curr.remove) item.remove();
+        prev.next = curr.next;
+        curr = prev;
+      } else {
+        stop = false;
       }
     }
-    return this;
-  };
-  
-  prototype.stop = function() {
-    this.step(1, 1);
-    for (var e=this.exits, i=e.length; --i>=0;) e[i].remove();
-    return this;
+
+    this.callback();
+    return stop;
   };
   
   return trans;
@@ -3648,8 +3663,9 @@ vg.scene.transition = function(dur, ease) {
     return this._el;
   };
   
-  prototype.update = function(model, duration) {
+  prototype.update = function(model, duration, ease) {
     duration = duration || 0;
+    ease = ease || "cubic-in-out";
     var init = this._init; this._init = true;
     var dom = d3.select(this._el).selectAll("svg.axes").select("g");
     var axes = collectAxes(model.scene(), 0, 0, []);
@@ -3661,7 +3677,7 @@ vg.scene.transition = function(dur, ease) {
         .attr('class', function(d, i) { return 'axis axis-'+i; });
     }
     
-    var sel = duration && init ? dom.transition(duration) : dom,
+    var sel = duration && init ? dom.transition(duration).ease(ease) : dom,
         w = this._width,
         h = this._height;
 
@@ -3943,14 +3959,23 @@ vg.scene.transition = function(dur, ease) {
     return this;
   };
   
-  prototype.update = function(duration, request, items) {
-    if (arguments.length && vg.isString(duration)) {
-      items = request;
-      request = duration;
-      duration = 0;
+  prototype.update = function() {
+    var duration = 0, ease = null, request = null, items = null,
+        len = arguments.length, idx = 0;
+
+    if (len) { // parse parameters
+      if (vg.isString(arguments[idx])) { // request and items
+        request = arguments[idx++];
+        if (len>idx && !vg.isNumber(arguments[idx])) items = arguments[idx++];
+      }
+      if (len>idx && vg.isNumber(arguments[idx])) { // duration and easing
+        duration = arguments[idx++];
+        if (len>idx) ease = arguments[idx];
+      }
     }
+
     var view = this;
-    var trans = duration ? vg.scene.transition(duration) : null;
+    var trans = duration ? vg.scene.transition(duration, ease) : null;
 
     view._build = view._build || (view._model.build(), true);
     view._model.encode(trans, request, items);
@@ -3959,7 +3984,7 @@ vg.scene.transition = function(dur, ease) {
       trans.start(function(items) {
         view._renderer.render(view._model.scene(), items);
       });
-      this._axes.update(this._model, duration);
+      this._axes.update(this._model, duration, ease);
     }
     else view.render(items);
     return view;
