@@ -3,13 +3,10 @@
   "height": 500,
   "data": [
     {
-      "name": "donors",
-      "url": "/service/charitynet/mongo/xdata/full"
+      "name": "donors"
     },
     {
       "name": "counties",
-      "url": "us-counties.json",
-      "format": {"type": "json", "property": "features"},
       "transform": [
         {"type": "geopath", "value": "data", "projection": "albersUsa"},
         {
@@ -24,8 +21,6 @@
     },
     {
       "name": "states",
-      "url": "us-states.json",
-      "format": {"type": "json", "property": "features"},
       "transform": [
         {"type":"geopath", "value":"data", "projection":"albersUsa"}
       ]
@@ -34,18 +29,19 @@
   "scales": [
     {
       "name": "color",
-      "domain": {"data": "donors", "field": "data.1"},
+      "domain": [0.01, 1000000],
       "range": ["#f5f5f5","#00b"],
-      "type": "log"
+      "clamp": true
     }
   ],
   "marks": [
     {
       "type": "path",
       "from": {"data": "counties"},
+      "key": "data.id",
       "properties": {
         "enter": {
-          "stroke": {"value": "#fff"},
+          "stroke": {"value": "#aaa"},
           "strokeWidth": {"value": 0.25},
           "path": {"field": "path"}
         },
@@ -62,7 +58,7 @@
       "from": {"data": "states"},
       "properties": {
         "enter": {
-          "stroke": {"value": "#fff"},
+          "stroke": {"value": "#aaa"},
           "strokeWidth": {"value": 1.5},
           "path": {"field": "path"}
         }

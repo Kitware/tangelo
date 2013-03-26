@@ -35,10 +35,26 @@ The four CSV files may be imported directly into mongo:
     mongoimport --type csv --headerline --drop --host mongo --db xdata --collection charitynet.normalized.transactions --file transactions.csv
     ```
 
-* The following python script fixes up the dates and performs a lookup on the donor location
-to assign latitude and longitude coordinates.
+* Fix up the dates in transactions:
+
+    ```
+    python charitynet-datefix.py
+    ```
+
+* Performs a lookup on the donor location to assign latitude and longitude coordinates:
 
     ```
     python charitynet-fixup.py
     ```
- 
+
+* Perform a lookup on the donor coordinates to assign census block and county ids:
+
+    ```
+    python charitynet-lookup-county.py
+    ```
+
+* Cache location information in the transactions table:
+
+    ```
+    python charitynet-join.py
+    ```
