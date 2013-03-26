@@ -1,6 +1,6 @@
 /*jslint */
 
-/*global tangelo */
+/*global tangelo, d3, console, window, $ */
 
 /** 
  *
@@ -54,7 +54,7 @@
 
         // This function, when called, will toggle the state of the panel.
         return function () {
-            if(state === 'uncollapsed'){
+            if (state === 'uncollapsed') {
                 div.transition()
                     .duration(500)
                     .style("height", iconheight);
@@ -113,26 +113,26 @@
 
         $.each(categories, function (i, d) {
             legend.append("rect")
-            .classed("colorbox", true)
-            .attr("x", xoffset)
-            // "y", "width", and "height" intentionally left unset
-            .style("fill", cmap_func(d));
+                .classed("colorbox", true)
+                .attr("x", xoffset)
+                // "y", "width", and "height" intentionally left unset
+                .style("fill", cmap_func(d));
 
-        text = legend.append("text")
-            .classed("legendtext", true)
-            // "x" and "y" intentionally left unset
-            .text(d);
+            text = legend.append("text")
+                .classed("legendtext", true)
+                // "x" and "y" intentionally left unset
+                .text(d);
 
-        // Compute the max height and width out of all the text bgs.
-        bbox = text[0][0].getBBox();
+            // Compute the max height and width out of all the text bgs.
+            bbox = text[0][0].getBBox();
 
-        if (bbox.width > maxwidth) {
-            maxwidth = bbox.width;
-        }
+            if (bbox.width > maxwidth) {
+                maxwidth = bbox.width;
+            }
 
-        if (bbox.height > maxheight) {
-            maxheight = bbox.height;
-        }
+            if (bbox.height > maxheight) {
+                maxheight = bbox.height;
+            }
         });
 
         // Compute the height and width of each color swatch.
@@ -225,7 +225,7 @@
             external = spec.external;
 
             if (apps !== undefined) {
-                if (!tangelo.util.allDefined(appLeftSelector, appRightSelector)){
+                if (!tangelo.util.allDefined(appLeftSelector, appRightSelector)) {
                     throw "Required config argument property appLeftSelector or appRightSelector missing!";
                 }
 
