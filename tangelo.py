@@ -17,6 +17,17 @@ def empty_response():
     return {'result' : None,
             'error' : None}
 
+def content_type(t=None):
+    r = cherrypy.response.headers['Content-type']
+
+    if t is not None:
+        cherrypy.response.headers['Content-type'] = t
+
+    return r
+
+def log(msg):
+    cherrypy.log(msg)
+
 # 'current_dir' is used by the CherryPy config file to set the root for static
 # file service.
 import os.path
@@ -29,7 +40,7 @@ def invoke_service(module, *pargs, **kwargs):
     # app, which lists the available app modules, along with docstrings or
     # similar.  It should also allow the user to add/delete search paths for
     # other modules.
-    cherrypy.response.headers['Content-type'] = 'text/plain'
+    content_type("text/plain")
 
     # Construct a response container for reporting possible errors, as the
     # service modules themselves do.
@@ -74,7 +85,7 @@ def invoke_service(module, *pargs, **kwargs):
         # Error message.
         response['error'] = "tangelo: error: %s: %s" % (e.__class__.__name__, e.message)
 
-        cherrypy.log("Caught exception - %s: %s" % (e.__class__.__name__, e.message))
+        log("Caught exception - %s: %s" % (e.__class__.__name__, e.message))
 
         # Full Python traceback stack.
         s = StringIO.StringIO()
