@@ -1,7 +1,6 @@
 import cherrypy
 import nltk
 import nltk.chunk.named_entity
-import json
 
 from tangelo import empty_response
 
@@ -14,7 +13,7 @@ class Handler:
 
         # If nothing passed in, return an empty result.
         if text == "":
-            return json.dumps(response)
+            return response
 
         # Otherwise, perform named entity recognition.
         sentences = nltk.sent_tokenize(text)
@@ -26,4 +25,4 @@ class Handler:
             for subtree in filter(lambda x: x.node != 'S', c.subtrees()):
                 response['result'].append( (subtree.node, ' '.join(map(lambda x: x[0], subtree.leaves())) ) )
 
-        return json.dumps(response)
+        return response
