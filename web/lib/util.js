@@ -1,6 +1,6 @@
 /*jslint */
 
-/*global tangelo */
+/*global tangelo, d3, console, window, $ */
 
 /** 
  *
@@ -38,23 +38,23 @@
         button = d3.select(buttonsel);
 
         // Initially, the panel is open.
-        state = 'uncollapsed'
-
-        // Save the original height of the panel.
-        //
-        // TODO(choudhury): when the panel is collapsed and then uncollapsed, it
-        // is too short for some reason.  Adding 40 pixels makes things so all
-        // the panel content can be seen, but it would be better to figure out
-        // why this happens.
-        divheight = +div.style("height").slice(0,-2) + 40 + "px";
-        console.log(divheight);
+        state = 'uncollapsed';
 
         // The glyphicon halfings are around 22.875 pixels tall.
         iconheight = mod.drawer_size() + "px";
 
+        // Save the original height of the panel.
+        // This requires a DOM update to do this correctly, so we wait a second.
+        // I have found that waiting less than 200ms can cause undefined behavior,
+        // since there may be other callback that need to populate the panel.
+        function updateHeight() {
+            divheight = $(div.node()).height() + "px";
+        }
+        window.setTimeout(updateHeight, 1000);
+
         // This function, when called, will toggle the state of the panel.
         return function () {
-            if(state === 'uncollapsed'){
+            if (state === 'uncollapsed') {
                 div.transition()
                     .duration(500)
                     .style("height", iconheight);
@@ -113,26 +113,26 @@
 
         $.each(categories, function (i, d) {
             legend.append("rect")
-            .classed("colorbox", true)
-            .attr("x", xoffset)
-            // "y", "width", and "height" intentionally left unset
-            .style("fill", cmap_func(d));
+                .classed("colorbox", true)
+                .attr("x", xoffset)
+                // "y", "width", and "height" intentionally left unset
+                .style("fill", cmap_func(d));
 
-        text = legend.append("text")
-            .classed("legendtext", true)
-            // "x" and "y" intentionally left unset
-            .text(d);
+            text = legend.append("text")
+                .classed("legendtext", true)
+                // "x" and "y" intentionally left unset
+                .text(d);
 
-        // Compute the max height and width out of all the text bgs.
-        bbox = text[0][0].getBBox();
+            // Compute the max height and width out of all the text bgs.
+            bbox = text[0][0].getBBox();
 
-        if (bbox.width > maxwidth) {
-            maxwidth = bbox.width;
-        }
+            if (bbox.width > maxwidth) {
+                maxwidth = bbox.width;
+            }
 
-        if (bbox.height > maxheight) {
-            maxheight = bbox.height;
-        }
+            if (bbox.height > maxheight) {
+                maxheight = bbox.height;
+            }
         });
 
         // Compute the height and width of each color swatch.
@@ -225,7 +225,7 @@
             external = spec.external;
 
             if (apps !== undefined) {
-                if (!tangelo.util.allDefined(appLeftSelector, appRightSelector)){
+                if (!tangelo.util.allDefined(appLeftSelector, appRightSelector)) {
                     throw "Required config argument property appLeftSelector or appRightSelector missing!";
                 }
 
