@@ -25,9 +25,10 @@ expected = sys.argv[-1]
 
 # Modify the module path.
 sys.path.append("@CMAKE_BINARY_DIR@/@DEPLOY_DIR@")
+sys.path.append("@CMAKE_BINARY_DIR@/@DEPLOY_DIR@/web/service")
 
 # Import the module.
-exec("import modules.%s as m" % (module))
+exec("import %s as m" % (module))
 
 # Instantiate the service module.
 test = m.Handler()
