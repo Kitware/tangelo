@@ -38,19 +38,19 @@
         button = d3.select(buttonsel);
 
         // Initially, the panel is open.
-        state = 'uncollapsed'
-
-        // Save the original height of the panel.
-        //
-        // TODO(choudhury): when the panel is collapsed and then uncollapsed, it
-        // is too short for some reason.  Adding 40 pixels makes things so all
-        // the panel content can be seen, but it would be better to figure out
-        // why this happens.
-        divheight = +div.style("height").slice(0,-2) + 40 + "px";
-        console.log(divheight);
+        state = 'uncollapsed';
 
         // The glyphicon halfings are around 22.875 pixels tall.
         iconheight = mod.drawer_size() + "px";
+
+        // Save the original height of the panel.
+        // This requires a DOM update to do this correctly, so we wait a second.
+        // I have found that waiting less than 200ms can cause undefined behavior,
+        // since there may be other callback that need to populate the panel.
+        function updateHeight() {
+            divheight = $(div.node()).height() + "px";
+        }
+        window.setTimeout(updateHeight, 1000);
 
         // This function, when called, will toggle the state of the panel.
         return function () {
