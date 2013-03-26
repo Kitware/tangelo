@@ -1,4 +1,3 @@
-import json
 import tangelo
 import urllib
 
@@ -19,4 +18,4 @@ class Handler:
         response = tangelo.empty_response()
         response['result'] = f.read()
 
-        return json.dumps(response)
+        return response

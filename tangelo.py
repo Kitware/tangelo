@@ -58,7 +58,18 @@ def invoke_service(module, *pargs, **kwargs):
     # Call the go() method of the handler object, passing it the positional
     # and keyword args that came into this method.
     try:
-        return handler.go(*pargs, **kwargs)
+        result = handler.go(*pargs, **kwargs)
+
+        # Check the type of the result - if it's anything other than a string,
+        # assume it needs to be converted to JSON.
+        #
+        # This allows the services to return a Python object if they wish, or to
+        # perform custom serialization (such as for MongoDB results, etc.).
+        if type(result) != str:
+            result = json.dumps(result)
+
+        return result
+
     except Exception as e:
         # Error message.
         response['error'] = "tangelo: error: %s: %s" % (e.__class__.__name__, e.message)

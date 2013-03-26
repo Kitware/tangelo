@@ -2,6 +2,10 @@
 
 import sys
 
+# Modify the module path.
+sys.path.append("@CMAKE_BINARY_DIR@/@DEPLOY_DIR@")
+import tangelo
+
 if len(sys.argv) < 2:
     print >>sys.stderr, "usage: tangelo-pytest.py [web-service-module]"
     sys.exit(1)
@@ -23,17 +27,8 @@ kw_args = {k: v for (k,v) in map(lambda x: x.split("="), filter(lambda x: '=' in
 # level, so it doesn't have to be done here?
 expected = sys.argv[-1]
 
-# Modify the module path.
-sys.path.append("@CMAKE_BINARY_DIR@/@DEPLOY_DIR@")
-
-# Import the module.
-exec("import modules.%s as m" % (module))
-
-# Instantiate the service module.
-test = m.Handler()
-
-# Run the service and capture the output.
-output = test.go(*pos_args, **kw_args)
+# Run the service and grab the output.
+output = tangelo.invoke_service("@CMAKE_BINARY_DIR@/@DEPLOY_DIR@/web/service/" + module + ".py", *pos_args, **kw_args)
 
 print "Exepcted output:"
 print expected
