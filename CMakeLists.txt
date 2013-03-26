@@ -77,6 +77,7 @@ set(SOURCES
     web/app/biofabric/biofabric.js
     web/app/biofabric/index.html
     web/app/biofabric/miserables.json
+    web/app/charitynet/charitynet.js
     web/app/charitynet/index.html
     web/app/charitynet/us-counties.json
     web/app/charitynet/us-states.json
