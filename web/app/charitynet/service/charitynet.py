@@ -40,12 +40,11 @@ class Handler:
             query = {"$and": [{"date": {"$gte": date_min}}, {"date": {"$lt": date_max}}]}
             group = {"_id": "$county", "amount": {"$sum": "$amount"}}
 
-
-            #agg = [{"$match": {$and: [{date: {$gte: ISODate("2012-01-01")}}, {date: {$lt: ISODate("2012-02-01")}}]}}, {$group: {_id: "$county", amount: {$sum: "$amount"}}}])
-
-
             result = coll.aggregate([{"$match": query}, {"$group": group}])
             response = [["%05d" % d['_id'], float(d['amount'])] for d in result["result"] if d["_id"] != None]
+        elif datatype == "population":
+            coll = db["census"]
+            response = [[d["_id"], int(d["pop2010"])] for d in coll.find()]
         else:
             response['error'] = "error: unknown datatype requested"
 
