@@ -38,7 +38,7 @@ function load() {
 
     $.ajax({
         type: 'POST',
-        url: '/service/datatwiddle/mongo/xdata/twiddles',
+        url: 'service/datatwiddle/mongo/xdata/twiddles',
         data: {
             name: d3.select("#name")[0][0].value,
         },
