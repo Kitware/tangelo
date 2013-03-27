@@ -4,6 +4,7 @@ import json
 import StringIO
 import sys
 import traceback
+import types
 
 from cherrypy.lib.static import serve_file
 
@@ -48,39 +49,30 @@ def invoke_service(module, *pargs, **kwargs):
 
     # Import the module.
     try:
-        m = imp.load_source("service", module)
+        service = imp.load_source("service", module)
     except IOError as e:
         response['error'] = "IOError: %s" % (e)
         return json.dumps(response)
 
-    # Report an error if the module has no Handler object.
-    if 'Handler' not in dir(m):
-        response['error'] = "tangelo: error: no Handler class defined in module '%s'" % (module)
-        return json.dumps(response)
-
-    # Construct a Handler object from the imported module.
-    handler = m.Handler()
-
     # Report an error if the Handler object has no go() method.
-    if 'go' not in dir(handler):
-        response['error'] = "tangelo: error: no method go() defined in class 'Handler' in module '%s'" % (module)
+    if 'run' not in dir(service):
+        response['error'] = "tangelo: error: no function `run()` defined in module '%s'" % (module)
         return json.dumps(response)
 
-    # Call the go() method of the handler object, passing it the positional
-    # and keyword args that came into this method.
+    # Call the module's run() method, passing it the positional and keyword args
+    # that came into this method.
     try:
-        result = handler.go(*pargs, **kwargs)
+        result = service.run(*pargs, **kwargs)
 
         # Check the type of the result - if it's anything other than a string,
         # assume it needs to be converted to JSON.
         #
         # This allows the services to return a Python object if they wish, or to
         # perform custom serialization (such as for MongoDB results, etc.).
-        if type(result) != str:
+        if not isinstance(result, types.StringTypes):
             result = json.dumps(result)
 
         return result
-
     except Exception as e:
         # Error message.
         response['error'] = "tangelo: error: %s: %s" % (e.__class__.__name__, e.message)
@@ -173,5 +165,3 @@ class Server(object):
 
         # Serve the file.
         return serve_file(finalpath)
-
-
