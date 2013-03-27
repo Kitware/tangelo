@@ -77,6 +77,7 @@ set(SOURCES
     web/app/biofabric/biofabric.js
     web/app/biofabric/index.html
     web/app/biofabric/miserables.json
+    web/app/charitynet/service/charitynet.py
     web/app/charitynet/charitynet.js
     web/app/charitynet/index.html
     web/app/charitynet/us-counties.json
@@ -226,7 +227,6 @@ set(SOURCES
     web/img/glyphicons-halflings-white.png
     web/service/__init__.py
     web/service/census.py
-    web/service/charitynet.py
     web/service/datatwiddle.py
     web/service/echo.py
     web/service/mongo.py
