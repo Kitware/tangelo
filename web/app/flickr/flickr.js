@@ -480,7 +480,7 @@ window.onload = function () {
 
         // Process the data by adjoining pixel locations to each entry.
         data = this.locationData.map(function (d) {
-            d.pixelLocation = proj.fromLatLngToDivPixel(new google.maps.LatLng(d.location[0], d.location[1]));
+            d.pixelLocation = proj.fromLatLngToDivPixel(new google.maps.LatLng(d.location[1], d.location[0]));
             d.pixelLocation.x -= divPixels.x;
             d.pixelLocation.y -= divPixels.y;
             return d;
@@ -645,7 +645,7 @@ window.onload = function () {
 
                 msg = "";
                 msg += "Date: " + date.getDayName() + " " + date + "\n";
-                msg += "Location: (" + d.location[0] + ", " + d.location[1] + ")\n";
+                msg += "Location: (" + d.location[1] + ", " + d.location[0] + ")\n";
                 msg += "Author: " + d.author + "\n";
                 msg += "Description: " + d.title + "\n";
 
