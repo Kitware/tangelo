@@ -607,7 +607,18 @@ window.onload = function () {
                 });
 
                 // Construct a color legend.
-                tangelo.util.svgColorLegend(d3.select("#legend"), color, 10, 10, Object.keys(typedata), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5}, true);
+                tangelo.util.svgColorLegend({
+                    legend: "#legend",
+                    cmap_func: color,
+                    xoffset: 10,
+                    yoffset: 10,
+                    categories: Object.keys(typedata),
+                    height_padding: 5,
+                    width_padding: 7,
+                    text_spacing: 19,
+                    legend_margins: {top: 5, left: 5, bottom: 5, right: 5},
+                    clear: true
+                });
 
                 // Read the current state of the option inputs (these might not
                 // be the default values if the user did a "soft" reload of the

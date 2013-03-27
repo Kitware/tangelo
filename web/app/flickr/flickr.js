@@ -530,7 +530,18 @@ window.onload = function () {
                     return that.monthColor(d.month);
                 };
 
-                tangelo.util.svgColorLegend(legend, that.monthColor, 10, 10, tangelo.date.monthNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5}, true);
+                tangelo.util.svgColorLegend({
+                    legend: legend.node(),
+                    cmap_func: that.monthColor,
+                    xoffset: 10,
+                    yoffset: 10,
+                    categories: tangelo.date.monthNames(),
+                    height_padding: 5,
+                    width_padding: 7,
+                    text_spacing: 19,
+                    legend_margins: {top: 5, left: 5, bottom: 5, right: 5},
+                    clear: true
+                });
 
                 retval = colormap;
             } else if (which === 'day') {
@@ -538,7 +549,18 @@ window.onload = function () {
                     return that.dayColor(d.day);
                 };
 
-                tangelo.util.svgColorLegend(legend, that.dayColor, 10, 10, tangelo.date.dayNames(), 5, 7, 19, {top: 5, left: 5, bottom: 5, right: 5}, true);
+                tangelo.util.svgColorLegend({
+                    legend: legend.node(),
+                    cmap_func: that.dayColor,
+                    xoffset: 10,
+                    yoffset: 10,
+                    categories: tangelo.date.dayNames(),
+                    height_padding: 5,
+                    width_padding: 7,
+                    text_spacing: 19,
+                    legend_margins: {top: 5, left: 5, bottom: 5, right: 5},
+                    clear: true
+                });
 
                 retval = colormap;
             } else if (which === 'rb') {
