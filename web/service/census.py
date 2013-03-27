@@ -11,11 +11,10 @@ states = {
     # TODO(choudhury): fill in the rest.
 }
 
-class Handler:
-    def go(self, *dataspec, **query):
-        f = urllib.urlopen("http://api.census.gov/data/" + "/".join(dataspec) + "?" + urllib.urlencode(query))
-        
-        response = tangelo.empty_response()
-        response['result'] = f.read()
+def run(*dataspec, **query):
+    f = urllib.urlopen("http://api.census.gov/data/" + "/".join(dataspec) + "?" + urllib.urlencode(query))
 
-        return response
+    response = tangelo.empty_response()
+    response['result'] = f.read()
+
+    return response
