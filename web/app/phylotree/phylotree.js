@@ -72,7 +72,7 @@ function updateJSON(oldJSON, node, callback) {
 	// had some major problems getting that new JSON data to play nice with
 	// d3.cluster()
 	oldJSON._clades.forEach(function(el,index,arr) {
-		d3.json('/service/phylomongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll + '?maxdepth=3&_id=' + el, function(json) {
+		d3.json('service/phylomongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll + '?maxdepth=3&_id=' + el, function(json) {
 		//d3.json("phpparse.php?oid=" + el, function(json) {
 			oldJSON._clades[index] = json;
 			// counter used to tell when all async calls have been complete
@@ -116,7 +116,7 @@ mongo = phylotree.getMongoDBInfo();
 
 // 50c8ef4cf7db5011970002ae is the root noode of the heliconia tree.
 // Can probably make this a better API
-d3.json('/service/phylomongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll + '?maxdepth=' + '3', function(json) {
+d3.json('service/phylomongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll + '?maxdepth=' + '3', function(json) {
 //d3.json("phpparse.php?oid=50c8ef4cf7db5011970002ae", function(json) {
 	root = json;
 	root.x0 = height / 2;

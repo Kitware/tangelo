@@ -89,6 +89,7 @@ set(SOURCES
     web/app/noaa/sealevel.csv
     web/app/datatwiddle/datatwiddle.js
     web/app/datatwiddle/index.html
+    web/app/datatwiddle/service/datatwiddle.py
     web/app/flickr/flickr.js
     web/app/flickr/index.html
     web/app/mapping/cities.json
@@ -121,6 +122,8 @@ set(SOURCES
     web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000017.txt
     web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000018.txt
     web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000019.txt
+    web/app/ner/service/ner.py
+    web/app/ner/service/nermongo.py
     web/app/ssci/index.html
     web/app/ssci/ssci.js
     web/app/ssci/ssci.json
@@ -210,6 +213,7 @@ set(SOURCES
     web/app/vegalab/lib/projection.js
     web/app/vegalab/vegalab.css
     web/app/vegalab/vegalab.js
+    web/app/phylotree/service/phylomongo.py
     web/app/phylotree/index.html
     web/app/phylotree/phylotree.js
     web/arbor/arbor.js
@@ -227,12 +231,8 @@ set(SOURCES
     web/img/glyphicons-halflings-white.png
     web/service/__init__.py
     web/service/census.py
-    web/service/datatwiddle.py
     web/service/echo.py
     web/service/mongo.py
-    web/service/nermongo.py
-    web/service/ner.py
-    web/service/phylomongo.py
 )
 
 if(DEPLOY_TEST_SERVICES)

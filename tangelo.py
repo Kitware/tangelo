@@ -51,6 +51,7 @@ def invoke_service(module, *pargs, **kwargs):
     try:
         service = imp.load_source("service", module)
     except IOError as e:
+        log("error: " + module)
         response['error'] = "IOError: %s" % (e)
         return json.dumps(response)
 
