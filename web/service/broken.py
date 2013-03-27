@@ -1,7 +1,5 @@
-# This module, which contains a Handler class with no go() method, is meant for
-# testing the error handling capabilities of Tangelo's web service module loader
-# system.
+# This module, which contains no run() function, is meant for testing the error
+# handling capabilities of Tangelo's web service module loader system.
 
-class Handler:
-    def start():
-        raise RuntimeError("this method is for testing only")
+def start():
+    raise RuntimeError("this method is for testing only")
