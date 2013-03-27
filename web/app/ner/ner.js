@@ -493,10 +493,11 @@ window.onload = function () {
     $("#graph-help").popover(popover_cfg);
 
     $("#mongodb-server").val(NER.getMongoDBServer());
-    d3.select("#tangelo-config-submit").on("click", function () {
+    tangelo.onConfigSave(function () {
         NER.setMongoDBServer($("#mongodb-server").val());
     });
-    d3.select("#tangelo-config-defaults").on("click", function () {
+
+    tangelo.onConfigDefault(function () {
         localStorage.removeItem("NER:mongodb-server");
         $("#mongodb-server").val(NER.getMongoDBServer());
     });
