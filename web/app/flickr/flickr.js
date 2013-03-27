@@ -611,7 +611,7 @@ window.onload = function () {
         }());
 
         // Get the opacity value.
-        opacity = flickr.opacityslider.getValue() / 100;
+        opacity = flickr.opacityslider.slider("value") / 100;
 
         // Compute a data join with the current list of marker locations, using
         // the MongoDB unique id value as the key function.
@@ -775,11 +775,13 @@ window.onload = function () {
     // Create a regular slider for setting the opacity and direct it to redraw
     // when it changes (but not on every slide action - that would be bulky and
     // too slow; the UI doesn't demand that level of responsivity).
-    flickr.opacityslider = tangelo.slider.slider(d3.select("#opacity").node(), { onchange: redraw });
-    flickr.opacityslider.setMin(0);
-    flickr.opacityslider.setMax(100);
-    flickr.opacityslider.setValue(100);
-    flickr.opacityslider.initialize();
+    flickr.opacityslider = $("#opacity");
+    flickr.opacityslider.slider({
+        min: 0,
+        max: 100,
+        value: 100,
+        change: redraw
+    });
 
     // The database lookup should happen again when the hashtag list or record
     // count limit field changes.
