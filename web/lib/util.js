@@ -78,7 +78,7 @@
         };
     };
 
-    mod.svgColorLegend = function (legend, cmap_func, xoffset, yoffset, categories, height_padding, width_padding, text_spacing, legend_margins, clear) {
+    mod.svgColorLegend = function (cfg) {
         var bbox,
             bg,
             bottom,
@@ -92,7 +92,32 @@
             top,
             totalheight,
             totalwidth,
-            width;
+            width,
+            legend,
+            cmap_func,
+            xoffset,
+            yoffset,
+            categories,
+            height_padding,
+            width_padding,
+            text_spacing,
+            legend_margins,
+            clear;
+
+        // Extract arguments from the config argument.
+        legend = cfg.legend;
+        cmap_func = cfg.cmap_func;
+        xoffset = cfg.xoffset;
+        yoffset = cfg.yoffset;
+        categories = cfg.categories;
+        height_padding = cfg.height_padding;
+        width_padding = cfg.width_padding;
+        text_spacing = cfg.text_spacing;
+        legend_margins = cfg.legend_margins;
+        clear = cfg.clear;
+
+        // Create a d3 selection from the legend argument.
+        legend = d3.select(legend);
 
         // Clear the svg element, if requested.
         clear = clear || false;
