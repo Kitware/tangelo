@@ -24,7 +24,8 @@ $(function () {
             var minDate,
                 maxDate,
                 url,
-                next;
+                next,
+                d;
 
             // Construct query url with date range
             minDate = date.year + "-" + numFormat(date.month) + "-01";
@@ -34,7 +35,7 @@ $(function () {
                 next.month = 1;
             }
             maxDate = next.year + "-" + numFormat(next.month) + "-01";
-            url = "/service/charitynet/mongo/xdata/bydate?datemin=" + minDate + "&datemax=" + maxDate;
+            url = "/app/charitynet/service/charitynet/mongo/xdata/bydate?datemin=" + minDate + "&datemax=" + maxDate;
 
             // Update the donor data
             d3.json(url, function (error, donors) {
@@ -47,8 +48,9 @@ $(function () {
 
                 // Load aggregated amount into donors array
                 for (i = 0; i < donors.length; i += 1) {
-                    if (donorMap[donors[i][0]] !== undefined) {
-                        donorMap[donors[i][0]][1] = donors[i][1];
+                    d = donorMap[donors[i][0]];
+                    if (d !== undefined) {
+                        d[1] = donors[i][1] / d[2];
                     }
                 }
 
@@ -100,17 +102,19 @@ $(function () {
             }
         });
 
-        // Create map for looking up donors by county
-        for (i = 0; i < data.donors.length; i += 1) {
-            donorMap[data.donors[i][0]] = data.donors[i];
+        // Init donors array and create map for looking up donors by county
+        data.donors = [];
+        for (i = 0; i < data.counties.length; i += 1) {
+            d = [data.counties[i].id, 0.01];
+            data.donors.push(d);
+            donorMap[d[0]] = d;
         }
 
-        // Fill in missing counties
-        for (i = 0; i < data.counties.length; i += 1) {
-            if (donorMap[data.counties[i].id] === undefined) {
-                d = [data.counties[i].id, 0.01];
-                data.donors.push(d);
-                donorMap[d[0]] = d;
+        // Attach population for each county
+        for (i = 0; i < data.population.length; i += 1) {
+            d = data.population[i];
+            if (donorMap[d[0]] !== undefined) {
+                donorMap[d[0]][2] = d[1];
             }
         }
 
@@ -135,13 +139,13 @@ $(function () {
     // Load in the county, state, and initial contribution data
     d3.json("us-counties.json", function (error, counties) {
         d3.json("us-states.json", function (error, states) {
-            d3.json("/service/charitynet/mongo/xdata/bydate", function (error, donors) {
+            d3.json("/app/charitynet/service/charitynet/mongo/xdata/population", function (error, population) {
                 var i, d, data = {};
 
                 // Generate data object
                 data.counties = counties.features;
                 data.states = states.features;
-                data.donors = donors;
+                data.population = population;
 
                 init(data);
             });
