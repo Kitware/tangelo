@@ -309,7 +309,7 @@ window.onload = function () {
         drawer_toggle;
 
     // Display the configuration dialog when clicked.
-    $("#tangelo-config-panel").on("show", function () {
+    tangelo.onConfigLoad(function () {
         var cfg;
 
         cfg = flickr.getMongoDBInfo();
@@ -319,12 +319,10 @@ window.onload = function () {
     });
 
     // Update the internal datastore when the user saves the configuration.
-    d3.select("#tangelo-config-submit")
-        .on("click", updateConfig);
+    tangelo.onConfigSave(updateConfig);
 
     // Use default configuration values when the defaults button is pressed.
-    d3.select("#tangelo-config-defaults")
-        .on("click", setConfigDefaults);
+    tangelo.onConfigDefault(setConfigDefaults);
 
     // Enable the popover help items.
     //
