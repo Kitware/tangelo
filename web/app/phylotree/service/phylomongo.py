@@ -22,7 +22,7 @@ def decodeAndAdd(s, output, argname, resp):
 		resp['error'] = e.message + " (argument '%s' was '%s')" % (argname, s)
 		raise
 
-def run(self, servername, dbname, data_coll, name=None, objectid=None, _id=None, accession=None, scientific_name=None, noid=False, noloc=False, maxdepth=100):
+def run(servername, dbname, data_coll, name=None, objectid=None, _id=None, accession=None, scientific_name=None, noid=False, noloc=False, maxdepth=100):
     def recursiveHelper(child, depth = 0):
         it = c.find({'_id':child})
         phylo = it[0]
