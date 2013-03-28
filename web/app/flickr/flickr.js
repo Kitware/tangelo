@@ -117,7 +117,8 @@ function getMinMaxDates(zoom) {
                             // Go ahead and zoom the slider to this range, if
                             // requested.
                             if(zoom){
-                                zoom(flickr.timeslider);
+                                //zoom(flickr.timeslider);
+                                zoom(ts);
                             }
 
                             // Finally, retrieve the initial data to bootstrap
@@ -846,8 +847,10 @@ window.onload = function () {
                     bounds;
 
                 // Return immediately if the handles are already at the bounds.
-                value = slider.getValue();
-                bounds = [slider.getMin(), slider.getMax()];
+                //value = slider.getValue();
+                value = slider.slider("values");
+                //bounds = [slider.getMin(), slider.getMax()];
+                bounds = [slider.slider("option", "min"), slider.slider("option", "max")];
                 if (value[0] === bounds[0] && value[1] === bounds[1]) {
                     return;
                 }
@@ -856,8 +859,9 @@ window.onload = function () {
                 stack.push(bounds);
 
                 // Set the bounds of the slider to be its current value range.
-                slider.setMin(value[0]);
-                slider.setMax(value[1]);
+                //slider.setMin(value[0]);
+                slider.slider("option", "min", value[0]);
+                slider.slider("option", "max", value[1]);
 
                 // Activate the unzoom button if this is the first entry in the
                 // stack.
@@ -878,8 +882,10 @@ window.onload = function () {
                 // Pop a bounds value from the stack, and set it as the bounds
                 // for the slider.
                 bounds = stack.pop();
-                slider.setMin(bounds[0]);
-                slider.setMax(bounds[1]);
+                //slider.setMin(bounds[0]);
+                slider.slider("option", "min", bounds[0]);
+                //slider.setMax(bounds[1]);
+                slider.slider("option", "max", bounds[1]);
 
                 // If the stack now contains no entries, disable the unzoom
                 // button.
@@ -891,18 +897,17 @@ window.onload = function () {
     }());
 
     d3.select("#zoom")
-        .data([flickr.timeslider])
+        .data([ts])
         .on('click', zoomfunc.zoomer);
 
     d3.select("#unzoom")
-        .data([flickr.timeslider])
+        .data([ts])
         .on('click', zoomfunc.unzoomer);
 
     // Get the earliest and latest times in the database, to create a suitable
     // range for the time slider.  Pass in the "zoomer" function so the initial
     // range can be properly zoomed to begin with.
-    //getMinMaxDates(zoomfunc.zoomer);
-    getMinMaxDates();
+    getMinMaxDates(zoomfunc.zoomer);
 
     // Install the abort action on the button.
     d3.select("#abort")
