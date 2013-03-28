@@ -12,6 +12,41 @@ phylotree.getMongoDBInfo = function () {
     };
 };
 
+phylotree.updateConfig = function () {
+    "use strict";
+
+    var server,
+        db,
+        coll;
+
+    // Grab the elements.
+    server = document.getElementById("mongodb-server");
+    db = document.getElementById("mongodb-db");
+    coll = document.getElementById("mongodb-coll");
+
+    // Write the options into DOM storage.
+    localStorage.setItem('phylotree:mongodb-server', server.value);
+    localStorage.setItem('phylotree:mongodb-db', db.value);
+    localStorage.setItem('phylotree:mongodb-coll', coll.value);
+};
+
+phylotree.setConfigDefaults = function () {
+    "use strict";
+
+    var cfg;
+
+    // Clear out the locally stored options.
+    localStorage.removeItem('flickr:mongodb-server');
+    localStorage.removeItem('flickr:mongodb-db');
+    localStorage.removeItem('flickr:mongodb-coll');
+
+    // Retrieve the new config values, and set them into the fields.
+    cfg = flickr.getMongoDBInfo();
+    d3.select("#mongodb-server").property("value", cfg.server);
+    d3.select("#mongodb-db").property("value", cfg.db);
+    d3.select("#mongodb-coll").property("value", cfg.coll);
+};
+
 var lMargin = 50, rMargin = 50, tMargin = 120, bMargin = 120,
 	width = 1200 - lMargin - rMargin,
     height = 1000 - tMargin - bMargin,
@@ -60,7 +95,7 @@ function toggleAll(d, callback) {
 }
 
 function updateJSON(oldJSON, node, callback) {
-	count = 0;
+    count = 0;
 	togCount1 = 0;
 	len = oldJSON._clades.length;
 
@@ -71,14 +106,14 @@ function updateJSON(oldJSON, node, callback) {
 	// SHOULD PROBABLY BE... just one call for for the current node but have
 	// had some major problems getting that new JSON data to play nice with
 	// d3.cluster()
-	oldJSON._clades.forEach(function(el,index,arr) {
-		d3.json('service/phylomongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll + '?maxdepth=3&_id=' + el, function(json) {
+    oldJSON._clades.forEach(function(el,index,arr) {
+        d3.json('service/phylomongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll + '?maxdepth=3&_id=' + el, function(json) {
 		//d3.json("phpparse.php?oid=" + el, function(json) {
-			oldJSON._clades[index] = json;
+            oldJSON._clades[index] = json;
 			// counter used to tell when all async calls have been complete
-			count++;
+            count++;
 			// if all calls have been completed
-			if (count === len) {
+            if (count === len) {
 				oldJSON._clades.forEach(function(item) {
 					// counters for async control
                     togCount1++;
@@ -88,13 +123,13 @@ function updateJSON(oldJSON, node, callback) {
 							oldJSON.clades = oldJSON._clades;
 							oldJSON._clades = null;
 							callback();
-						});
-				    } else {
+                        });
+                    } else {
 				        toggleAll(item);
-				    }
-			    });
-			}
-		})
+                    }
+                });
+            }
+        });
 	});
 }
 
@@ -112,20 +147,39 @@ var vis = d3.select("#tree").append("svg:svg")
     .append("svg:g")
     .attr("transform", "translate(" + lMargin + "," + rMargin + ")");
 
-mongo = phylotree.getMongoDBInfo();
 
-// 50c8ef4cf7db5011970002ae is the root noode of the heliconia tree.
-// Can probably make this a better API
-d3.json('service/phylomongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll + '?maxdepth=' + '3', function(json) {
-//d3.json("phpparse.php?oid=50c8ef4cf7db5011970002ae", function(json) {
-	root = json;
-	root.x0 = height / 2;
-	root.y0 = 0;
+window.onload = function () {
+    mongo = phylotree.getMongoDBInfo();
+
+    // Display the configuration dialog when clicked.
+    tangelo.onConfigLoad(function () {
+        var cfg;
+
+        cfg = phylotree.getMongoDBInfo();
+        d3.select("#mongodb-server").property("value", cfg.server);
+        d3.select("#mongodb-db").property("value", cfg.db);
+        d3.select("#mongodb-coll").property("value", cfg.coll);
+    });
+
+    // Update the internal datastore when the user saves the configuration.
+    tangelo.onConfigSave(phylotree.updateConfig);
+
+    // Use default configuration values when the defaults button is pressed.
+    tangelo.onConfigDefault(phylotree.setConfigDefaults);
+
+    // 50c8ef4cf7db5011970002ae is the root noode of the heliconia tree.  Can
+    // probably make this a better API
+    d3.json('service/phylomongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll + '?maxdepth=' + '3', function(json) {
+        //d3.json("phpparse.php?oid=50c8ef4cf7db5011970002ae", function(json) {
+        root = json;
+        root.x0 = height / 2;
+        root.y0 = 0;
 	
-	// initialize the display to show children nodes
-	root.clades.forEach(toggleAll);
-	update(root);
-});
+        // initialize the display to show children nodes
+        root.clades.forEach(toggleAll);
+        update(root);
+    });
+};
 
 function update(source) {
 	var duration = d3.event && d3.event.altKey ? 5000 : 500;
