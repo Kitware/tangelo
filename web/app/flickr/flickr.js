@@ -2,6 +2,8 @@
 
 /*globals tangelo, flickr, $, google, d3, date, console */
 
+ts = null;
+
 var flickr = {};
 flickr.map = null;
 
@@ -82,8 +84,10 @@ function getMinMaxDates(zoom) {
                 console.log("error: could not get maximum time value from database - " + response.error ? response.error : "no results returned from server");
             } else {
                 val = +response.result.data[0].date.$date;
-                flickr.timeslider.setMax(val);
-                flickr.timeslider.setHighValue(val);
+                //flickr.timeslider.setMax(val);
+                ts.slider("option", "max", val);
+                //flickr.timeslider.setHighValue(val);
+                ts.slider("values", 1, val);
                 $.ajax({
                     type: 'POST',
                     url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
@@ -102,12 +106,13 @@ function getMinMaxDates(zoom) {
                         } else {
                             //val = +response.result.data[0]['date']['$date'];
                             val = +response.result.data[0].date.$date;
-                            flickr.timeslider.setMin(val);
-                            //flickr.timeslider.setLowValue(val);
+                            //flickr.timeslider.setMin(val);
+                            ts.slider("option", "min", val);
 
                             // This time value makes a nice time window for a
                             // demo.
-                            flickr.timeslider.setLowValue(july30);
+                            //flickr.timeslider.setLowValue(july30);
+                            ts.slider("values", 0, july30);
 
                             // Go ahead and zoom the slider to this range, if
                             // requested.
@@ -122,7 +127,17 @@ function getMinMaxDates(zoom) {
                             // Add the 'retrieveData' behavior to the slider's
                             // onchange callback (which starts out ONLY doing
                             // the 'displayFunc' part).
-                            flickr.timeslider.setCallback('onchange', function (low, high) { flickr.displayFunc(low, high); retrieveData(); });
+                            //flickr.timeslider.setCallback('onchange', function (low, high) { flickr.displayFunc(low, high); retrieveData(); });
+                            ts.slider("option", "change", function(evt, ui) {
+                                var low,
+                                    high;
+
+                                low = ui.values[0];
+                                high = ui.values[1];
+
+                                flickr.displayFunc(low, high);
+                                retrieveData();
+                            });
                         }
                     }
                 });
@@ -177,7 +192,8 @@ function retrieveData() {
     // Interrogate the UI elements to build up a query object for the database.
     //
     // Get the time slider range.
-    times = flickr.timeslider.getValue();
+    //times = flickr.timeslider.getValue();
+    times = ts.slider("values");
 
     // Construct a query that selects times between the two ends of the slider.
     timequery = {
@@ -307,6 +323,8 @@ window.onload = function () {
         zoomfunc,
         redraw,
         drawer_toggle;
+
+    ts = $("#time-slider");
 
     // Display the configuration dialog when clicked.
     tangelo.onConfigLoad(function () {
@@ -722,12 +740,35 @@ window.onload = function () {
     // database lookup, but at the moment we omit that functionality to avoid
     // spurious database lookups as the engine puts the slider together and sets
     // the positions of the sliders programmatically.
-    flickr.timeslider = tangelo.slider.rangeSlider(d3.select("#time-slider").node(), {
-        onchange: flickr.displayFunc,
-        onslide: flickr.displayFunc
-    });
+/*    flickr.timeslider = tangelo.slider.rangeSlider(d3.select("#time-slider").node(), {*/
+        //onchange: flickr.displayFunc,
+        //onslide: flickr.displayFunc
+    //});
 
-    flickr.timeslider.initialize();
+    //flickr.timeslider.initialize();
+    ts.slider({
+        range: true,
+
+        change: function(evt, ui) {
+            var low,
+                high;
+
+            low = ui.values[0];
+            high = ui.values[1];
+
+            flickr.displayFunc(low, high);
+        },
+
+        slide: function(evt, ui) {
+            var low,
+                high;
+
+            low = ui.values[0];
+            high = ui.values[1];
+
+            flickr.displayFunc(low, high);
+        }
+    });
 
     // Some options for initializing the google map.
     //
@@ -860,7 +901,8 @@ window.onload = function () {
     // Get the earliest and latest times in the database, to create a suitable
     // range for the time slider.  Pass in the "zoomer" function so the initial
     // range can be properly zoomed to begin with.
-    getMinMaxDates(zoomfunc.zoomer);
+    //getMinMaxDates(zoomfunc.zoomer);
+    getMinMaxDates();
 
     // Install the abort action on the button.
     d3.select("#abort")
