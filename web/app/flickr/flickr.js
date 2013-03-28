@@ -4,6 +4,7 @@
 
 var flickr = {};
 flickr.map = null;
+flickr.timeslider = null;
 
 flickr.cfgDefaults = tangelo.util.defaults("defaults.json");
 
@@ -82,8 +83,8 @@ function getMinMaxDates(zoom) {
                 console.log("error: could not get maximum time value from database - " + response.error ? response.error : "no results returned from server");
             } else {
                 val = +response.result.data[0].date.$date;
-                flickr.timeslider.setMax(val);
-                flickr.timeslider.setHighValue(val);
+                flickr.timeslider.slider("option", "max", val);
+                flickr.timeslider.slider("values", 1, val);
                 $.ajax({
                     type: 'POST',
                     url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
@@ -102,12 +103,11 @@ function getMinMaxDates(zoom) {
                         } else {
                             //val = +response.result.data[0]['date']['$date'];
                             val = +response.result.data[0].date.$date;
-                            flickr.timeslider.setMin(val);
-                            //flickr.timeslider.setLowValue(val);
+                            flickr.timeslider.slider("option", "min", val);
 
                             // This time value makes a nice time window for a
                             // demo.
-                            flickr.timeslider.setLowValue(july30);
+                            flickr.timeslider.slider("values", 0, july30);
 
                             // Go ahead and zoom the slider to this range, if
                             // requested.
@@ -122,7 +122,16 @@ function getMinMaxDates(zoom) {
                             // Add the 'retrieveData' behavior to the slider's
                             // onchange callback (which starts out ONLY doing
                             // the 'displayFunc' part).
-                            flickr.timeslider.setCallback('onchange', function (low, high) { flickr.displayFunc(low, high); retrieveData(); });
+                            flickr.timeslider.slider("option", "change", function(evt, ui) {
+                                var low,
+                                    high;
+
+                                low = ui.values[0];
+                                high = ui.values[1];
+
+                                flickr.displayFunc(low, high);
+                                retrieveData();
+                            });
                         }
                     }
                 });
@@ -177,7 +186,7 @@ function retrieveData() {
     // Interrogate the UI elements to build up a query object for the database.
     //
     // Get the time slider range.
-    times = flickr.timeslider.getValue();
+    times = flickr.timeslider.slider("values");
 
     // Construct a query that selects times between the two ends of the slider.
     timequery = {
@@ -307,6 +316,8 @@ window.onload = function () {
         zoomfunc,
         redraw,
         drawer_toggle;
+
+    flickr.timeslider = $("#time-slider");
 
     // Display the configuration dialog when clicked.
     tangelo.onConfigLoad(function () {
@@ -611,7 +622,7 @@ window.onload = function () {
         }());
 
         // Get the opacity value.
-        opacity = flickr.opacityslider.getValue() / 100;
+        opacity = flickr.opacityslider.slider("value") / 100;
 
         // Compute a data join with the current list of marker locations, using
         // the MongoDB unique id value as the key function.
@@ -722,12 +733,29 @@ window.onload = function () {
     // database lookup, but at the moment we omit that functionality to avoid
     // spurious database lookups as the engine puts the slider together and sets
     // the positions of the sliders programmatically.
-    flickr.timeslider = tangelo.slider.rangeSlider(d3.select("#time-slider").node(), {
-        onchange: flickr.displayFunc,
-        onslide: flickr.displayFunc
-    });
+    flickr.timeslider.slider({
+        range: true,
 
-    flickr.timeslider.initialize();
+        change: function(evt, ui) {
+            var low,
+                high;
+
+            low = ui.values[0];
+            high = ui.values[1];
+
+            flickr.displayFunc(low, high);
+        },
+
+        slide: function(evt, ui) {
+            var low,
+                high;
+
+            low = ui.values[0];
+            high = ui.values[1];
+
+            flickr.displayFunc(low, high);
+        }
+    });
 
     // Some options for initializing the google map.
     //
@@ -775,11 +803,13 @@ window.onload = function () {
     // Create a regular slider for setting the opacity and direct it to redraw
     // when it changes (but not on every slide action - that would be bulky and
     // too slow; the UI doesn't demand that level of responsivity).
-    flickr.opacityslider = tangelo.slider.slider(d3.select("#opacity").node(), { onchange: redraw });
-    flickr.opacityslider.setMin(0);
-    flickr.opacityslider.setMax(100);
-    flickr.opacityslider.setValue(100);
-    flickr.opacityslider.initialize();
+    flickr.opacityslider = $("#opacity");
+    flickr.opacityslider.slider({
+        min: 0,
+        max: 100,
+        value: 100,
+        change: redraw
+    });
 
     // The database lookup should happen again when the hashtag list or record
     // count limit field changes.
@@ -803,8 +833,10 @@ window.onload = function () {
                     bounds;
 
                 // Return immediately if the handles are already at the bounds.
-                value = slider.getValue();
-                bounds = [slider.getMin(), slider.getMax()];
+                //value = slider.getValue();
+                value = slider.slider("values");
+                //bounds = [slider.getMin(), slider.getMax()];
+                bounds = [slider.slider("option", "min"), slider.slider("option", "max")];
                 if (value[0] === bounds[0] && value[1] === bounds[1]) {
                     return;
                 }
@@ -813,8 +845,9 @@ window.onload = function () {
                 stack.push(bounds);
 
                 // Set the bounds of the slider to be its current value range.
-                slider.setMin(value[0]);
-                slider.setMax(value[1]);
+                //slider.setMin(value[0]);
+                slider.slider("option", "min", value[0]);
+                slider.slider("option", "max", value[1]);
 
                 // Activate the unzoom button if this is the first entry in the
                 // stack.
@@ -835,8 +868,10 @@ window.onload = function () {
                 // Pop a bounds value from the stack, and set it as the bounds
                 // for the slider.
                 bounds = stack.pop();
-                slider.setMin(bounds[0]);
-                slider.setMax(bounds[1]);
+                //slider.setMin(bounds[0]);
+                slider.slider("option", "min", bounds[0]);
+                //slider.setMax(bounds[1]);
+                slider.slider("option", "max", bounds[1]);
 
                 // If the stack now contains no entries, disable the unzoom
                 // button.

@@ -193,8 +193,8 @@ function processFileContents(filename, id, file_hash) {
         NER.files_processed += 1;
 
         if (NER.files_processed === NER.num_files) {
-            graph.assemble(NER.nodes, NER.links, NER.types, NER.nodeSlider.getValue());
-            graph.recompute(NER.nodeSlider.getValue());
+            graph.assemble(NER.nodes, NER.links, NER.types, NER.nodeSlider.slider("value"));
+            graph.recompute(NER.nodeSlider.slider("value"));
             graph.render();
         }
     };
@@ -679,7 +679,7 @@ window.onload = function () {
                 svg.select("g#links").selectAll("*").remove();
 
                 // Recompute the graph connectivity.
-                this.recompute(NER.nodeSlider.getValue());
+                this.recompute(NER.nodeSlider.slider("value"));
 
                 // Re-render.
                 this.render();
@@ -940,27 +940,26 @@ window.onload = function () {
     //
     // Set the slider to "5" (to give a reasonable amount of data as the
     // default).
-    NER.nodeSlider = tangelo.slider.slider(d3.select("#slider").node(), {
-        onchange: function (v) {
-            graph.recompute(v);
+    NER.nodeSlider = $("#slider");
+    NER.nodeSlider.slider({
+        max: 10,
+        value: 5,
+        change: function (evt, ui) {
+            graph.recompute(ui.value);
             graph.render();
         },
-
-        onslide: (function () {
+        slide: (function () {
             var display = d3.select("#value");
 
-            return function (v) {
-                display.html(v);
+            return function (evt, ui) {
+                display.html(ui.value);
             };
         }())
     });
-    NER.nodeSlider.setMax(10);
-    NER.nodeSlider.setValue(5);
-    NER.nodeSlider.initialize();
 
     // Bootstrap showing the slider value here (none of the callbacks in the
     // slider API help).
-    d3.select("#value").html($("#slider").slider("value"));
+    d3.select("#value").html(NER.nodeSlider.slider("value"));
 
     // Install a new file input.
     //
