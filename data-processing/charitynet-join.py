@@ -4,6 +4,8 @@ import pymongo
 donors = pymongo.Connection("mongo")["xdata"]["charitynet.normalized.donors"]
 donors.ensure_index("accountNumber")
 transactions = pymongo.Connection("mongo")["xdata"]["charitynet.normalized.transactions"]
+transactions.ensure_index("date")
+transactions.ensure_index("charity_id")
 
 count = 0
 for transaction in transactions.find():
