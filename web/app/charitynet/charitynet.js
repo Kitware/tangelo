@@ -12,15 +12,33 @@ $(function () {
         var view,
             donorMap = {},
             date,
+            charity = null,
+            charityMaxMonth = 10000000,
             dates,
             numFormat = d3.format("02d"),
             playing,
             timerId,
             time,
             i,
-            d;
+            d,
+            normalize = false;
 
-        function updateDate(date) {
+        function updateData() {
+            // Load aggregated amount into donors array
+            for (i = 0; i < data.donors.length; i += 1) {
+                d = data.donors[i];
+                if (normalize) {
+                    d[1] = d[2] === 0 ? 0 : (d[3] / d[2]);
+                } else {
+                    d[1] = d[3];
+                }
+            }
+
+            // Update the visualization
+            view.data(data).update();
+        }
+
+        function updateDate() {
             var minDate,
                 maxDate,
                 url,
@@ -35,34 +53,37 @@ $(function () {
                 next.month = 1;
             }
             maxDate = next.year + "-" + numFormat(next.month) + "-01";
-            url = "/app/charitynet/service/charitynet/mongo/xdata/bydate?datemin=" + minDate + "&datemax=" + maxDate;
+            url = "service/charitynet/mongo/xdata/transactions?datemin=" + minDate + "&datemax=" + maxDate;
+            if (charity !== null) {
+                url += "&charity=" + charity[0];
+            }
 
             // Update the donor data
             d3.json(url, function (error, donors) {
                 var i;
 
-                // Zero out data (keep positive in case we are using log scale).
+                // Zero out data
                 for (i = 0; i < data.donors.length; i += 1) {
-                    data.donors[i][1] = 0.01;
+                    data.donors[i][3] = 0;
                 }
 
                 // Load aggregated amount into donors array
                 for (i = 0; i < donors.length; i += 1) {
                     d = donorMap[donors[i][0]];
                     if (d !== undefined) {
-                        d[1] = donors[i][1] / d[2];
+                        d[3] = donors[i][1];
                     }
                 }
 
-                // Update the visualization
-                view.data(data).update(1000);
+                updateData();
             });
         }
 
         function updater() {
             var time = d3.select("#time").node();
             time.selectedIndex = (time.selectedIndex + 1) % dates.length;
-            updateDate(dates[time.selectedIndex]);
+            date = dates[time.selectedIndex];
+            updateDate();
         }
 
         date = {year: 2011, month: 1};
@@ -89,7 +110,8 @@ $(function () {
             d3.select("#play i").classed("icon-play", true).classed("icon-pause", false);
             clearTimeout(timerId);
             var time = d3.select("#time").node();
-            updateDate(dates[time.selectedIndex]);
+            date = dates[time.selectedIndex];
+            updateDate();
         });
 
         d3.select("#play").on("click", function () {
@@ -102,10 +124,35 @@ $(function () {
             }
         });
 
+        d3.select("#popnorm").on("click", function () {
+            normalize = this.checked;
+            view._model._defs.marks.scales[0].domain = [0, normalize ? (charityMaxMonth / 5000000) : charityMaxMonth];
+            updateData();
+        });
+
+        d3.select("#charity").selectAll("option")
+            .data(data.charities)
+            .enter().append("option")
+            .attr("value", function (d) { return d[0]; })
+            .text(function (d) { return d[1]; });
+
+        d3.select("#charity").on("change", function () {
+            var url;
+            charity = data.charities[this.selectedIndex];
+            url = "service/charitynet/mongo/xdata/transactions?by=month&charity=" + charity[0];
+            d3.json(url, function (error, months) {
+                console.log(months);
+                charityMaxMonth = d3.max(months, function (d) { return d[1]; }) / 100;
+                console.log(charityMaxMonth);
+                view._model._defs.marks.scales[0].domain = [0, normalize ? (charityMaxMonth / 5000000) : charityMaxMonth];
+                updateDate();
+            });
+        });
+
         // Init donors array and create map for looking up donors by county
         data.donors = [];
         for (i = 0; i < data.counties.length; i += 1) {
-            d = [data.counties[i].id, 0.01];
+            d = [data.counties[i].id, 0, 0, 0];
             data.donors.push(d);
             donorMap[d[0]] = d;
         }
@@ -121,17 +168,18 @@ $(function () {
         // Generate the visualization
         vg.parse.spec("choropleth.json", function (chart) {
             var padding = {};
-
             padding.top = ($(window).height() - 60 - 500) / 2;
             padding.left = ($(window).width() - 960) / 2;
             padding.bottom = padding.top;
             padding.right = padding.left;
+
             view = chart("#vis", data).width(960).height(500).padding(padding).update();
 
             time = d3.select("#time").node();
-            updateDate(dates[time.selectedIndex]);
+            date = dates[time.selectedIndex];
+            updateDate();
             if (playing) {
-                timerId = setInterval(updater, 5000);
+                timerId = setInterval(updater, 2000);
             }
         });
     }
@@ -139,15 +187,18 @@ $(function () {
     // Load in the county, state, and initial contribution data
     d3.json("us-counties.json", function (error, counties) {
         d3.json("us-states.json", function (error, states) {
-            d3.json("/app/charitynet/service/charitynet/mongo/xdata/population", function (error, population) {
-                var i, d, data = {};
+            d3.json("service/charitynet/mongo/xdata/population", function (error, population) {
+                d3.json("service/charitynet/mongo/xdata/charities", function (error, charities) {
+                    var i, d, data = {};
 
-                // Generate data object
-                data.counties = counties.features;
-                data.states = states.features;
-                data.population = population;
+                    // Generate data object
+                    data.counties = counties.features;
+                    data.states = states.features;
+                    data.population = population;
+                    data.charities = charities;
 
-                init(data);
+                    init(data);
+                });
             });
         });
     });
