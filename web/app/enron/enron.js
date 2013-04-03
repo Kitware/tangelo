@@ -3,7 +3,8 @@ graph = null;
 window.onload = function () {
     "use strict";
 
-    var force,
+    var color,
+        force,
         height,
         svg,
         width;
@@ -17,6 +18,8 @@ window.onload = function () {
         .linkDistance(50)
         .gravity(0.5)
         .size([width, height]);
+
+    color = d3.scale.category20();
 
     d3.json("service/emailers/mongo/xdata/enron?start_time=2000-12-13&end_time=2000-12-14&center=phillip.allen@enron.com&degree=2", function (error, data) {
         var //graph,
@@ -54,7 +57,9 @@ window.onload = function () {
         node.enter().append("circle")
             .classed("node", true)
             .attr("r", 5)
-            .style("fill", "steelblue")
+            .style("fill", function (d) {
+                return color(d.distance);
+            })
             .call(force.drag);
 
         node.append("title")

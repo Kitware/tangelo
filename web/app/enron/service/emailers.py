@@ -49,6 +49,9 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
     # center emailer.
     talkers = set([center])
 
+    # Also start a table of distances from the center.
+    distance = {center: 0}
+
     current_talkers = list(talkers)
     all_results = []
     for i in range(degree):
@@ -72,6 +75,11 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
         #current_talkers = list(set(map(lambda x: x["target"] if x["source"] == center else x["source"], results)))
         current_talkers = list(itertools.chain(*map(lambda x: [x["target"], x["source"]], results)))
         talkers = talkers.union(current_talkers)
+
+        # Compute updates to everyone's distance from center.
+        for t in current_talkers:
+            if t not in distance:
+                distance[t] = i+1
 
         # Rewind and save the cursor.
         results.rewind()
@@ -101,7 +109,7 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
 
         edges.append(rec)
 
-    talkers = [{"email": n} for n in talkers]
+    talkers = [{"email": n, "distance": distance[n]} for n in talkers]
 
     # Stuff the graph data into the response object, and return it.
     response["result"] = { "nodes": talkers,
