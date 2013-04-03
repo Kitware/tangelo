@@ -53,9 +53,12 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
     all_results = []
     for i in range(degree):
         # Construct and send a query to retrieve all records involving the
-        # current talkers, occurring within the time bounds specified.
+        # current talkers, occurring within the time bounds specified, and
+        # involving two known addresses.
         query = {"$and": [ {"date": {"$gte": start_time} }, 
             {"date": {"$lt": end_time} },
+            {"source": {"$ne": ""} },
+            {"target": {"$ne": ""} },
             {"$or": [
                 {"source": {"$in": current_talkers} },
                 {"target": {"$in": current_talkers} }
