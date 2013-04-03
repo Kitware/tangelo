@@ -98,6 +98,8 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
 
         edges.append(rec)
 
+    talkers = [{"email": n} for n in talkers]
+
     # Stuff the graph data into the response object, and return it.
     response["result"] = { "nodes": talkers,
                            "edges": edges }
