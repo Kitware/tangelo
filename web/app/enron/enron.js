@@ -13,8 +13,8 @@ window.onload = function () {
     width = $(window).width();
     height = $(window).height();
     force = d3.layout.force()
-        .charge(-120)
-        .linkDistance(30)
+        .charge(-240)
+        .linkDistance(50)
         .gravity(0.5)
         .size([width, height]);
 
@@ -58,7 +58,7 @@ window.onload = function () {
             .call(force.drag);
 
         node.append("title")
-            .text(function (d) { return d.email; });
+            .text(function (d) { return d.email? d.email : "(no email address)"; });
 
         force.on("tick", function () {
             link.attr("x1", function (d) { return d.source.x; })
