@@ -1,4 +1,5 @@
 import datetime
+import itertools
 import pymongo
 import tangelo
 
@@ -49,6 +50,7 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
     talkers = set([center])
 
     current_talkers = list(talkers)
+    all_results = []
     for i in range(degree):
         # Construct and send a query to retrieve all records involving the
         # current talkers, occurring within the time bounds specified.
@@ -61,25 +63,42 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
             }
             ]
         }
-        results = c.find(query)
+        results = c.find(query, fields=["target", "source"])
 
-        # Collect the names in the degree-1 set that are NOT the center.
-        current_talkers = list(set(map(lambda x: x["target"] if x["source"] == center else x["source"], results)))
+        # Collect the names.
+        #current_talkers = list(set(map(lambda x: x["target"] if x["source"] == center else x["source"], results)))
+        current_talkers = list(itertools.chain(*map(lambda x: [x["target"], x["source"]], results)))
         talkers = talkers.union(current_talkers)
 
-    # Fire one more query to retrieve all emails involving anyone in the talkers
-    # set.
-    talkers = list(talkers)
-    query = {"$and": [ {"date": {"$gte": start_time} },
-        {"date": {"$lt": end_time} },
-        {"$or": [
-            {"source": {"$in": talkers} },
-            {"target": {"$in": talkers} }
-            ]
-        }
-        ]
-    }
-    results = c.find(query)
+        # Rewind and save the cursor.
+        results.rewind()
+        all_results.append(results)
 
-    response["result"] = list(results)
+    # Construct a canonical graph structure from the set of talkers and the list
+    # of emails.
+    #
+    # Start with an index map of the talkers.
+    talkers = list(talkers)
+    talker_index = {name: index for (index, name) in enumerate(talkers)}
+
+    # Create a chained iterable from all the rewound partial results.
+    all_results = itertools.chain(*all_results)
+
+    # Create a list of graph edges suitable for use by D3 - replace each record
+    # in the data with one that carries an index into the emailers list.
+    edges = []
+    for result in all_results:
+        source = result["source"]
+        target = result["target"]
+        ident = str(result["_id"])
+
+        rec = { "source": talker_index[source],
+                "target": talker_index[target],
+                "id": ident }
+
+        edges.append(rec)
+
+    # Stuff the graph data into the response object, and return it.
+    response["result"] = { "nodes": talkers,
+                           "edges": edges }
     return response
