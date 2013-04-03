@@ -1,6 +1,7 @@
 #!${PYTHON_EXECUTABLE}
 
 import os
+import platform
 import signal
 import subprocess
 import sys
@@ -15,7 +16,7 @@ def start():
         "-i", "tangelo",
         "-c", "server.conf",
         "-P", path]
-    if not is_windows:
+    if os_name != "Windows":
         args += ["-d", "-p", pidfile]
     return subprocess.call(args)
 
@@ -50,7 +51,11 @@ if len(sys.argv) < 2:
 
 # Configured variables.
 cherry = "@CherryPy_EXECUTABLE@"
-is_windows = @is_windows@
+
+# Detect operating system (and OSX version, if applicable).
+os_name = platform.system()
+if os_name == "Darwin":
+    version = map(int, platform.mac_ver()[0].split("."))
 
 # Determine the path to this script.
 path = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -62,13 +67,13 @@ code = 1
 if action == "start":
     code = start()
 elif action == "stop":
-    if is_windows:
-        sys.stderr.write("error: stop action not supported on Windows\n")
+    if os_name == "Windows" or (os_name == "Darwin" and version[1] == 6):
+        sys.stderr.write("error: stop action not supported on this platform\n")
         sys.exit(1)
     code = stop()
 elif action == "restart":
-    if is_windows:
-        sys.stderr.write("error: restart action not supported on Windows\n")
+    if os == "Windows" or (os == "Darwin" and version[1] == 6):
+        sys.stderr.write("error: restart action not supported on this platform\n")
         sys.exit(1)
     code = restart()
 else:
