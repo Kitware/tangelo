@@ -16,7 +16,7 @@ def start():
         "-i", "tangelo",
         "-c", "server.conf",
         "-P", path]
-    if os_name != "Windows":
+    if not disable_daemonization:
         args += ["-d", "-p", pidfile]
     return subprocess.call(args)
 
@@ -57,6 +57,8 @@ os_name = platform.system()
 if os_name == "Darwin":
     version = map(int, platform.mac_ver()[0].split("."))
 
+disable_daemonization = os_name == "Windows" or (os_name == "Darwin" and version[1] == 6)
+
 # Determine the path to this script.
 path = os.path.dirname(os.path.abspath(sys.argv[0]))
 pidfile = path + "/tangelo.pid"
@@ -67,12 +69,12 @@ code = 1
 if action == "start":
     code = start()
 elif action == "stop":
-    if os_name == "Windows" or (os_name == "Darwin" and version[1] == 6):
+    if disable_daemonization:
         sys.stderr.write("error: stop action not supported on this platform\n")
         sys.exit(1)
     code = stop()
 elif action == "restart":
-    if os == "Windows" or (os == "Darwin" and version[1] == 6):
+    if disable_daemonization:
         sys.stderr.write("error: restart action not supported on this platform\n")
         sys.exit(1)
     code = restart()
