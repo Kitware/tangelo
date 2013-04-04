@@ -9,8 +9,7 @@ import time
 def start():
     sys.stderr.write("starting tangelo...")
     if os.path.exists(pidfile):
-        sys.stderr.write("failed\n")
-        sys.stderr.write("error: tangelo already seems to be running\n")
+        sys.stderr.write("failed (already seems to be running)\n")
         return 1
 
     devnull = open(os.devnull)
@@ -41,16 +40,16 @@ def start():
                     done = True
                 elif "Error" in line:
                     retval = 1
-                    sys.stderr.write("failed\n")
-                    sys.stderr.write("error: could not start tangelo - check error.log\n")
+                    sys.stderr.write("failed (check error.log for reason)\n")
                     done = True
     else:
         sys.stderr.write("running\n")
 
     return retval
 
-def stop(report=True):
+def stop():
     retval = 0
+    sys.stderr.write("stopping tangelo...")
 
     if os.path.exists(pidfile):
         f = open(pidfile)
@@ -59,21 +58,18 @@ def stop(report=True):
             pid = int(f.read())
         except ValueError:
             if report:
-                sys.stderr.write("error: tangelo.pid does not contain a valid process id\n")
+                sys.stderr.write("failed (tangelo.pid does not contain a valid process id)\n")
             return 1
 
         try:
             os.kill(pid, signal.SIGKILL)
+            os.remove(pidfile)
         except OSError:
+            sys.stderr.write("failed (could not kill process %d)\n" % (pid))
             retval = 1
 
-        os.remove(pidfile)
-
-    if report:
-        if retval == 0:
-            sys.stderr.write("tangelo stopped succesfully\n")
-        else:
-            sys.stderr.write("error: tangelo could not be stopped\n")
+    if retval == 0:
+        sys.stderr.write("success\n")
 
     return retval
 
