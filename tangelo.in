@@ -36,12 +36,14 @@ def start():
             else:
                 if "Bus STARTED" in line:
                     retval = 0
-                    sys.stderr.write("success\n")
+                    sys.stderr.write("success (serving on %s)\n" % location)
                     done = True
                 elif "Error" in line:
                     retval = 1
                     sys.stderr.write("failed (check error.log for reason)\n")
                     done = True
+                elif "Serving on" in line:
+                    location = line.split("Serving on")[1].strip()
     else:
         sys.stderr.write("running\n")
 
