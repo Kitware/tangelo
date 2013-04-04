@@ -4,11 +4,16 @@ import os
 import signal
 import subprocess
 import sys
+import time
 
 def start():
+    sys.stderr.write("starting tangelo...")
     if os.path.exists(pidfile):
+        sys.stderr.write("failed\n")
         sys.stderr.write("error: tangelo already seems to be running\n")
         return 1
+
+    devnull = open(os.devnull)
 
     os.chdir(path)
     args = [sys.executable, cherry,
@@ -17,9 +22,34 @@ def start():
         "-P", path]
     if not is_windows:
         args += ["-d", "-p", pidfile]
-    return subprocess.call(args)
+    retval = subprocess.call(args, stdout=devnull, stderr=devnull)
 
-def stop():
+    if not is_windows:
+        f = open(logfile)
+        f.seek(0, 2)
+        done = False
+        while not done:
+            time.sleep(1)
+            cur_pos = f.tell()
+            line = f.readline()
+            if not line:
+                f.seek(cur_pos)
+            else:
+                if "Bus STARTED" in line:
+                    retval = 0
+                    sys.stderr.write("success\n")
+                    done = True
+                elif "Error" in line:
+                    retval = 1
+                    sys.stderr.write("failed\n")
+                    sys.stderr.write("error: could not start tangelo - check error.log\n")
+                    done = True
+    else:
+        sys.stderr.write("running\n")
+
+    return retval
+
+def stop(report=True):
     retval = 0
 
     if os.path.exists(pidfile):
@@ -28,17 +58,31 @@ def stop():
         try:
             pid = int(f.read())
         except ValueError:
-            sys.stderr.write("error: tangelo.pid does not contain a valid process id")
+            if report:
+                sys.stderr.write("error: tangelo.pid does not contain a valid process id\n")
             return 1
 
-        retval = os.kill(pid, signal.SIGKILL)
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except OSError:
+            retval = 1
+
         os.remove(pidfile)
+
+    if report:
+        if retval == 0:
+            sys.stderr.write("tangelo stopped succesfully\n")
+        else:
+            sys.stderr.write("error: tangelo could not be stopped\n")
 
     return retval
 
 def restart():
-    stop()
-    return start()
+    stopval = stop()
+    if stopval == 0:
+        return start()
+    else:
+        return stopval
 
 def usage():
     sys.stderr.write("usage: tangelo [start|stop|restart]\n")
@@ -55,6 +99,7 @@ is_windows = @is_windows@
 # Determine the path to this script.
 path = os.path.dirname(os.path.abspath(sys.argv[0]))
 pidfile = path + "/tangelo.pid"
+logfile = path + "/error.log"
 
 # Dispatch on action argument.
 action = sys.argv[1]
