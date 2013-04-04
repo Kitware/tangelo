@@ -40,7 +40,7 @@ def start():
                     done = True
                 elif "Error" in line:
                     retval = 1
-                    sys.stderr.write("failed (check error.log for reason)\n")
+                    sys.stderr.write("failed (check tangelo.log for reason)\n")
                     done = True
                 elif "Serving on" in line:
                     location = line.split("Serving on")[1].strip()
@@ -97,7 +97,7 @@ is_windows = @is_windows@
 # Determine the path to this script.
 path = os.path.dirname(os.path.abspath(sys.argv[0]))
 pidfile = path + "/tangelo.pid"
-logfile = path + "/error.log"
+logfile = path + "/tangelo.log"
 
 # Dispatch on action argument.
 action = sys.argv[1]
