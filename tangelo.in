@@ -13,7 +13,7 @@ def start():
         sys.stderr.write("failed (already seems to be running)\n")
         return 1
 
-    if not disable_daemonization:
+    if daemonize:
         devnull = open(os.devnull)
     else:
         devnull = None
@@ -23,15 +23,15 @@ def start():
         "-i", "tangelo",
         "-c", "server.conf",
         "-P", path]
-    if not disable_daemonization:
+    if daemonize:
         args += ["-d", "-p", pidfile]
 
-    if disable_daemonization:
+    if not daemonize:
         sys.stderr.write("\n")
 
     retval = subprocess.call(args, stdout=devnull, stderr=devnull)
 
-    if not disable_daemonization:
+    if daemonize:
         f = open(logfile)
         f.seek(0, 2)
         done = False
@@ -97,11 +97,11 @@ if len(sys.argv) < 2:
     sys.exit(1)
 
 if len(sys.argv) > 2:
-    daemonize_disable_flag = sys.argv[1]
+    daemonize_flag = sys.argv[1]
     action = sys.argv[2]
 else:
     action = sys.argv[1]
-    daemonize_disable_flag = None
+    daemonize_flag = None
 
 # Configured variables.
 cherry = "@CherryPy_EXECUTABLE@"
@@ -111,7 +111,7 @@ os_name = platform.system()
 if os_name == "Darwin":
     version = map(int, platform.mac_ver()[0].split("."))
 
-disable_daemonization = daemonize_disable_flag == "-d" or os_name == "Windows" or (os_name == "Darwin" and version[1] == 6)
+daemonize = not(daemonize_flag == "-d" or os_name == "Windows" or (os_name == "Darwin" and version[1] == 6))
 
 # Determine the path to this script.
 path = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -123,12 +123,12 @@ code = 1
 if action == "start":
     code = start()
 elif action == "stop":
-    if disable_daemonization:
+    if not daemonize:
         sys.stderr.write("error: stop action not supported on this platform\n")
         sys.exit(1)
     code = stop()
 elif action == "restart":
-    if disable_daemonization:
+    if not daemonize:
         sys.stderr.write("error: restart action not supported on this platform\n")
         sys.exit(1)
     code = restart()
