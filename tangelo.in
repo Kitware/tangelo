@@ -1,6 +1,7 @@
 #!${PYTHON_EXECUTABLE}
 
 import os
+import platform
 import signal
 import subprocess
 import sys
@@ -19,7 +20,7 @@ def start():
         "-i", "tangelo",
         "-c", "server.conf",
         "-P", path]
-    if not is_windows:
+    if not disable_daemonization:
         args += ["-d", "-p", pidfile]
     retval = subprocess.call(args, stdout=devnull, stderr=devnull)
 
@@ -90,9 +91,21 @@ if len(sys.argv) < 2:
     usage()
     sys.exit(1)
 
+action = sys.argv[1]
+if len(sys.argv > 2):
+    daemonize_disable_flag = sys.argv[2]
+else:
+    daemonize_disable_flag = None
+
 # Configured variables.
 cherry = "@CherryPy_EXECUTABLE@"
-is_windows = @is_windows@
+
+# Detect operating system (and OSX version, if applicable).
+os_name = platform.system()
+if os_name == "Darwin":
+    version = map(int, platform.mac_ver()[0].split("."))
+
+disable_daemonization = daemonize_disable_flag == "-d" or os_name == "Windows" or (os_name == "Darwin" and version[1] == 6)
 
 # Determine the path to this script.
 path = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -105,13 +118,13 @@ code = 1
 if action == "start":
     code = start()
 elif action == "stop":
-    if is_windows:
-        sys.stderr.write("error: stop action not supported on Windows\n")
+    if disable_daemonization:
+        sys.stderr.write("error: stop action not supported on this platform\n")
         sys.exit(1)
     code = stop()
 elif action == "restart":
-    if is_windows:
-        sys.stderr.write("error: restart action not supported on Windows\n")
+    if disable_daemonization:
+        sys.stderr.write("error: restart action not supported on this platform\n")
         sys.exit(1)
     code = restart()
 else:

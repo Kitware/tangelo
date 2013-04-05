@@ -254,13 +254,6 @@ configure_file(
     ${CMAKE_BINARY_DIR}/tangelo-pytest.py
 )
 
-# Configure the controller.
-if(${WIN32})
-    set(is_windows "True")
-else()
-    set(is_windows "False")
-endif()
-
 configure_file(
     tangelo.in
     ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/tangelo)
