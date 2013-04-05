@@ -1,4 +1,5 @@
-(function(){if (typeof vg === 'undefined') { vg = {}; }
+vg = (function(){
+var vg = {};
 
 // semantic versioning
 vg.version = '1.0.0';
@@ -3251,23 +3252,28 @@ vg.data.size = function(size, group) {
       data: vg.parse.data(spec.data, function() { callback(chart); })
     };
 
-    var chart = function(el, input, renderer) {
-      return new vg.View()
+    var chart = function(opt) {
+      var view = new vg.View()
         .width(spec.width || 500)
         .height(spec.height || 500)
         .padding(parsePadding(spec.padding))
         .viewport(spec.viewport || null)
-        .renderer(renderer || "canvas")
-        .initialize(el)
+        .renderer(opt.renderer || "canvas")
+        .initialize(opt.el)
         .defs(defs)
         .data(defs.data.load)
-        .data(input)
-        .on("mouseover", function(evt, item) {
-          this.update("hover", item);
+        .data(opt.data);
+      
+      if (opt.hover !== false) {
+        view.on("mouseover", function(evt, item) {
+          this.update({props:"hover", items:item});
         })
         .on("mouseout", function(evt, item) {
-          this.update("update", item);
+          this.update({props:"update", items:item});
         });
+      }
+      
+      return view;
     };
   }
   
@@ -3959,34 +3965,23 @@ vg.scene.transition = function(dur, ease) {
     return this;
   };
   
-  prototype.update = function() {
-    var duration = 0, ease = null, request = null, items = null,
-        len = arguments.length, idx = 0;
-
-    if (len) { // parse parameters
-      if (vg.isString(arguments[idx])) { // request and items
-        request = arguments[idx++];
-        if (len>idx && !vg.isNumber(arguments[idx])) items = arguments[idx++];
-      }
-      if (len>idx && vg.isNumber(arguments[idx])) { // duration and easing
-        duration = arguments[idx++];
-        if (len>idx) ease = arguments[idx];
-      }
-    }
-
-    var view = this;
-    var trans = duration ? vg.scene.transition(duration, ease) : null;
+  prototype.update = function(opt) {
+    opt = opt || {};
+    var view = this,
+        trans = opt.duration
+          ? vg.scene.transition(opt.duration, opt.ease)
+          : null;
 
     view._build = view._build || (view._model.build(), true);
-    view._model.encode(trans, request, items);
+    view._model.encode(trans, opt.props, opt.items);
     
     if (trans) {
       trans.start(function(items) {
         view._renderer.render(view._model.scene(), items);
       });
-      this._axes.update(this._model, duration, ease);
+      this._axes.update(this._model, opt.duration, opt.ease);
     }
-    else view.render(items);
+    else view.render(opt.items);
     return view;
   };
     
@@ -4085,4 +4080,6 @@ vg.Spec = (function() {
 
 vg.spec = function(s) {
   return new vg.Spec(s);
-}})();
+};
+return vg;
+})();
