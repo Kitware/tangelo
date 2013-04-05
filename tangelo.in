@@ -13,18 +13,25 @@ def start():
         sys.stderr.write("failed (already seems to be running)\n")
         return 1
 
-    devnull = open(os.devnull)
+    if daemonize:
+        screen = open(os.devnull)
+    else:
+        screen = None
 
     os.chdir(path)
     args = [sys.executable, cherry,
         "-i", "tangelo",
         "-c", "server.conf",
         "-P", path]
-    if not disable_daemonization:
+    if daemonize:
         args += ["-d", "-p", pidfile]
-    retval = subprocess.call(args, stdout=devnull, stderr=devnull)
 
-    if not is_windows:
+    if not daemonize:
+        sys.stderr.write("\n")
+
+    retval = subprocess.call(args, stdout=screen, stderr=screen)
+
+    if daemonize:
         f = open(logfile)
         f.seek(0, 2)
         done = False
@@ -45,8 +52,6 @@ def start():
                     done = True
                 elif "Serving on" in line:
                     location = line.split("Serving on")[1].strip()
-    else:
-        sys.stderr.write("running\n")
 
     return retval
 
@@ -84,18 +89,23 @@ def restart():
         return stopval
 
 def usage():
-    sys.stderr.write("usage: tangelo [start|stop|restart]\n")
+    sys.stderr.write("usage: tangelo [-d|-D] <start|stop|restart>\n")
 
 # Read the action argument.
 if len(sys.argv) < 2:
     usage()
     sys.exit(1)
 
-action = sys.argv[1]
-if len(sys.argv > 2):
-    daemonize_disable_flag = sys.argv[2]
+if len(sys.argv) > 2:
+    daemonize_flag = sys.argv[1]
+    action = sys.argv[2]
+
+    if daemonize_flag not in ["-d", "-D"]:
+        usage()
+        sys.exit(1)
 else:
-    daemonize_disable_flag = None
+    action = sys.argv[1]
+    daemonize_flag = None
 
 # Configured variables.
 cherry = "@CherryPy_EXECUTABLE@"
@@ -105,7 +115,7 @@ os_name = platform.system()
 if os_name == "Darwin":
     version = map(int, platform.mac_ver()[0].split("."))
 
-disable_daemonization = daemonize_disable_flag == "-d" or os_name == "Windows" or (os_name == "Darwin" and version[1] == 6)
+daemonize = daemonize_flag != "-d" and not(os_name == "Windows" or (os_name == "Darwin" and version[1] == 6))
 
 # Determine the path to this script.
 path = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -113,17 +123,16 @@ pidfile = path + "/tangelo.pid"
 logfile = path + "/tangelo.log"
 
 # Dispatch on action argument.
-action = sys.argv[1]
 code = 1
 if action == "start":
     code = start()
 elif action == "stop":
-    if disable_daemonization:
+    if not daemonize:
         sys.stderr.write("error: stop action not supported on this platform\n")
         sys.exit(1)
     code = stop()
 elif action == "restart":
-    if disable_daemonization:
+    if not daemonize:
         sys.stderr.write("error: restart action not supported on this platform\n")
         sys.exit(1)
     code = restart()
