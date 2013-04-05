@@ -89,7 +89,7 @@ def restart():
         return stopval
 
 def usage():
-    sys.stderr.write("usage: tangelo [start|stop|restart]\n")
+    sys.stderr.write("usage: tangelo [-d|-D] <start|stop|restart>\n")
 
 # Read the action argument.
 if len(sys.argv) < 2:
@@ -99,6 +99,10 @@ if len(sys.argv) < 2:
 if len(sys.argv) > 2:
     daemonize_flag = sys.argv[1]
     action = sys.argv[2]
+
+    if daemonize_flag not in ["-d", "-D"]:
+        usage()
+        sys.exit(1)
 else:
     action = sys.argv[1]
     daemonize_flag = None
@@ -111,7 +115,7 @@ os_name = platform.system()
 if os_name == "Darwin":
     version = map(int, platform.mac_ver()[0].split("."))
 
-daemonize = not(daemonize_flag == "-d" or os_name == "Windows" or (os_name == "Darwin" and version[1] == 6))
+daemonize = daemonize_flag != "-d" and not(os_name == "Windows" or (os_name == "Darwin" and version[1] == 6))
 
 # Determine the path to this script.
 path = os.path.dirname(os.path.abspath(sys.argv[0]))
