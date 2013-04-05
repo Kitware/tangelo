@@ -49,6 +49,12 @@ if len(sys.argv) < 2:
     usage()
     sys.exit(1)
 
+action = sys.argv[1]
+if len(sys.argv > 2):
+    daemonize_disable_flag = sys.argv[2]
+else:
+    daemonize_disable_flag = None
+
 # Configured variables.
 cherry = "@CherryPy_EXECUTABLE@"
 
@@ -57,7 +63,7 @@ os_name = platform.system()
 if os_name == "Darwin":
     version = map(int, platform.mac_ver()[0].split("."))
 
-disable_daemonization = os_name == "Windows" or (os_name == "Darwin" and version[1] == 6)
+disable_daemonization = daemonize_disable_flag == "-d" or os_name == "Windows" or (os_name == "Darwin" and version[1] == 6)
 
 # Determine the path to this script.
 path = os.path.dirname(os.path.abspath(sys.argv[0]))
