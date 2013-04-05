@@ -14,9 +14,9 @@ def start():
         return 1
 
     if daemonize:
-        devnull = open(os.devnull)
+        screen = open(os.devnull)
     else:
-        devnull = None
+        screen = None
 
     os.chdir(path)
     args = [sys.executable, cherry,
@@ -29,7 +29,7 @@ def start():
     if not daemonize:
         sys.stderr.write("\n")
 
-    retval = subprocess.call(args, stdout=devnull, stderr=devnull)
+    retval = subprocess.call(args, stdout=screen, stderr=screen)
 
     if daemonize:
         f = open(logfile)
