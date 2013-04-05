@@ -173,7 +173,7 @@ $(function () {
             padding.bottom = padding.top;
             padding.right = padding.left;
 
-            view = chart("#vis", data).width(960).height(500).padding(padding).update();
+            view = chart({el: "#vis", data: data}).width(960).height(500).padding(padding).update();
 
             time = d3.select("#time").node();
             date = dates[time.selectedIndex];
