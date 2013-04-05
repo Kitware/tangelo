@@ -175,6 +175,11 @@ set(SOURCES
     web/app/ssci/data/XL_73524568352_11.json
     web/app/stats/index.html
     web/app/stats/stats.js
+    web/app/vegabuilder/index.html
+    web/app/vegabuilder/vegabuilder.js
+    web/app/vegabuilder/arc.json
+    web/app/vegabuilder/bar.json
+    web/app/vegabuilder/table.json
     web/app/vegalab/data/7zip.png
     web/app/vegalab/data/cities.json
     web/app/vegalab/data/ffox.png
