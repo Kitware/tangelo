@@ -13,7 +13,10 @@ def start():
         sys.stderr.write("failed (already seems to be running)\n")
         return 1
 
-    devnull = open(os.devnull)
+    if not disable_daemonization:
+        devnull = open(os.devnull)
+    else:
+        devnull = None
 
     os.chdir(path)
     args = [sys.executable, cherry,
@@ -22,9 +25,13 @@ def start():
         "-P", path]
     if not disable_daemonization:
         args += ["-d", "-p", pidfile]
+
+    if disable_daemonization:
+        sys.stderr.write("\n")
+
     retval = subprocess.call(args, stdout=devnull, stderr=devnull)
 
-    if not is_windows:
+    if not disable_daemonization:
         f = open(logfile)
         f.seek(0, 2)
         done = False
@@ -45,8 +52,6 @@ def start():
                     done = True
                 elif "Serving on" in line:
                     location = line.split("Serving on")[1].strip()
-    else:
-        sys.stderr.write("running\n")
 
     return retval
 
@@ -91,10 +96,11 @@ if len(sys.argv) < 2:
     usage()
     sys.exit(1)
 
-action = sys.argv[1]
-if len(sys.argv > 2):
-    daemonize_disable_flag = sys.argv[2]
+if len(sys.argv) > 2:
+    daemonize_disable_flag = sys.argv[1]
+    action = sys.argv[2]
 else:
+    action = sys.argv[1]
     daemonize_disable_flag = None
 
 # Configured variables.
@@ -113,7 +119,6 @@ pidfile = path + "/tangelo.pid"
 logfile = path + "/tangelo.log"
 
 # Dispatch on action argument.
-action = sys.argv[1]
 code = 1
 if action == "start":
     code = start()
