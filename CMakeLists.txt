@@ -15,6 +15,15 @@ set(MINIFY OFF CACHE BOOL "Minify the JavaScript files prior to concatenating.")
 set(MANGLE OFF CACHE BOOL "When minifying, also mangle non-public symbol names.")
 set(DOCUMENT OFF CACHE BOOL "Generate documentation for JavaScript files.")
 
+if("${WIN32}")
+    set(SERVER_USER "windows" CACHE STRING "The user Tangelo will run as, if started as root (unused on Windows)." FORCE)
+    set(SERVER_GROUP "windows" CACHE STRING "The group Tangelo will run as, if started as root (unused on Windows)." FORCE)
+    mark_as_advanced(FORCE SERVER_USER SERVER_GROUP)
+else()
+    set(SERVER_USER $ENV{USER} CACHE STRING "The user Tangelo will run as, if started as root.")
+    set(SERVER_GROUP "users" CACHE STRING "The group Tangelo will run as, if started as root.")
+endif()
+
 # Non-cache variables.
 set(DEPLOY_DIR deploy)
 
@@ -67,7 +76,6 @@ set(JS_DOCUMENT_FILES
 
 # These files should be copied to the deployment directory.
 set(SOURCES
-    tangelo.py
     web/apps.json
     web/index.html
     web/index.js
@@ -257,6 +265,10 @@ configure_file(
 configure_file(
     tangelo.in
     ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/tangelo)
+
+configure_file(
+    tangelo.py.in
+    ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/tangelo.py)
 
 # Copy the files to the deployment directory.
 set(ALL_TARGETS)

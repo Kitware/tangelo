@@ -1,12 +1,15 @@
 import cherrypy
+import grp
 import imp
 import json
+import pwd
 import StringIO
 import sys
 import traceback
 import types
 
 from cherrypy.lib.static import serve_file
+from cherrypy.process.plugins import DropPrivileges
 
 # This function defines the structure of a service response.  Each service
 # module should import this function from this package.
@@ -33,6 +36,31 @@ def log(msg):
 # file service.
 import os.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# If we are the superuser, try to drop privileges (since we've bound to whatever
+# port superuser privileges were needed for already).
+if os.getuid() == 0:
+    # Set the username and groupname to drop privileges down to.
+    user = "@SERVER_USER@"
+    group = "@SERVER_GROUP@"
+
+    # If we're on windows, don't supply any username/groupname.
+    if user == "windows" and group == "windows":
+        DropPrivileges(cherrypy.engine).subscribe()
+    else:
+        try:
+            uid = pwd.getpwnam(user).pw_uid
+        except KeyError:
+            log("error: no such user '%s' to drop privileges to" % (user))
+            sys.exit(1)
+
+        try:
+            gid = grp.getgrnam(group).gr_gid
+        except KeyError:
+            log("error: no such group '%s' to drop privileges to" % (group))
+            sys.exit(1)
+
+        DropPrivileges(cherrypy.engine, uid=uid, gid=gid).subscribe()
 
 def invoke_service(module, *pargs, **kwargs):
     # TODO(choudhury): This method should attempt to load the named module, then invoke it
