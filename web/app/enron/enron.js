@@ -1,5 +1,10 @@
 graph = null;
 
+enron = {};
+enron.date = null;
+enron.range = null;
+enron.degree = null;
+
 window.onload = function () {
     "use strict";
 
@@ -20,6 +25,23 @@ window.onload = function () {
         .size([width, height]);
 
     color = d3.scale.category20();
+
+    // Activate the jquery controls.
+    enron.date = $("#date");
+    enron.range = $("#range");
+    enron.degree = $("#degree");
+
+    tangelo.util.getMongoRange("mongo", "xdata", "enron", "date", function (r) {
+        console.log(r);
+        enron.date.slider({
+            min: r[0].$date,
+            max: r[1].$date,
+            slide: function (evt, ui) {
+                d3.select("#date-label")
+                    .text(ui.value);
+            }
+        });
+    });
 
     d3.json("service/emailers/mongo/xdata/enron?start_time=2000-12-13&end_time=2000-12-14&center=phillip.allen@enron.com&degree=2", function (error, data) {
         var //graph,

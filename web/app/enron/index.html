@@ -85,53 +85,32 @@
 
 <!-- Create a drawer with the control panel in it -->
 <div data-tangelo-type=control-panel>
-<!--    <div class=container>-->
-        <!--<div class=row>-->
-            <!--<div class=span7>-->
-                <!--<div class=row>-->
-                    <!--<div class=span3>-->
-                        <!--<h4>Select a dataset <i id=dataset-help class=icon-question-sign></i></h4>-->
-                        <!--<select id=dataset></select>-->
-                    <!--</div>-->
+    <div class=container>
+        <div class=row>
+            <div class=span3>
+                <!-- JQuery slider -->
+                <h4>Date</h4>
+                <div id=date></div>
+                <div id=date-label class=code></div>
+            </div>
 
-                    <!--<div class=span4>-->
-                        <!--<h4>Or upload your own</h4>-->
-                        <!--<div id=file-input-holder></div>-->
-                    <!--</div>-->
-                <!--</div>-->
+            <div class=span3>
+                <!-- JQuery slider -->
+                <h4>Date range</h4>
+                <div id=range></div>
+                <div id=range-label class=code></div>
+            </div>
 
-                <!--<div class=row>-->
-                    <!--<a id=clear class="btn span6">Clear</a>-->
-                <!--</div>-->
+            <div class=span3>
+                <h4>Central emailer</h4>
+                <input id=center>
+            </div>
 
-                <!--<div class=row>-->
-                    <!--<div class=span3>-->
-                        <!--<h4>Graph <i id=graph-help class=icon-question-sign></i></h4>-->
-                        <!--<label class=checkbox>-->
-                            <!--<input type=checkbox id=nodefreq onchange="graph.updateConfig(); graph.applyConfig(); graph.render();"> Scale nodes by frequency-->
-                        <!--</label>-->
-
-                        <!--<label class=checkbox>-->
-                            <!--<input type=checkbox id=linkfreq onchange="graph.updateConfig(); graph.applyConfig();"> Thicken links by frequency-->
-                        <!--</label>-->
-
-                        <!--<label class=checkbox>-->
-                            <!--<input type=checkbox id=usetext onchange="graph.updateConfig(); graph.reset();"> Render text labels-->
-                        <!--</label>-->
-                    <!--</div>-->
-
-                    <!--<div class=span4>-->
-                        <!--<h4>Filtering</h4>-->
-                        <!--<div id=slider></div>-->
-                        <!--Nodes must have at least <span id=value></span> mentions.-->
-                    <!--</div>-->
-                <!--</div>-->
-            <!--</div>-->
-
-            <!--<div class=span4>-->
-                <!--<h4>Information</h4>-->
-                <!--<textarea id=console class=code rows=15 cols=30 readonly></textarea>-->
-            <!--</div>-->
-        <!--</div>-->
-    <!--</div>-->
+            <div class=span3>
+                <!-- JQuery spinner -->
+                <h4>Degree of separation</h4>
+                <input id=degree>
+            </div>
+        </div>
+    </div>
 </div>
