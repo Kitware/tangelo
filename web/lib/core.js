@@ -247,6 +247,7 @@ var tangelo = {};
                     item.remove();
                 } else if (type === "other") {
                     // TODO(choudhury): implement this code path.
+                    throw "navbar item type 'other' currently unimplemented";
                 } else {
                     throw "unknown navbar item type '" + type + "'";
                 }
