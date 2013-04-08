@@ -17,7 +17,7 @@ flickr.getMongoDBInfo = function () {
         server: localStorage.getItem('flickr:mongodb-server') || flickr.cfgDefaults.get("mongodb-server") || 'localhost',
         db: localStorage.getItem('flickr:mongodb-db') || flickr.cfgDefaults.get("mongodb-db") || 'xdata',
         coll: localStorage.getItem('flickr:mongodb-coll') || flickr.cfgDefaults.get("mongodb-coll") || 'flickr_paris'
-  };
+    };
 };
 
 function updateConfig() {
@@ -53,123 +53,6 @@ function setConfigDefaults() {
     d3.select("#mongodb-server").property("value", cfg.server);
     d3.select("#mongodb-db").property("value", cfg.db);
     d3.select("#mongodb-coll").property("value", cfg.coll);
-}
-
-function getMinMaxDates(zoom) {
-    "use strict";
-
-    var mongo,
-        july30;
-
-    mongo = flickr.getMongoDBInfo();
-    july30 = Date.parse("Jul 30, 2012 01:31:06");
-
-    // Query the collection about the earliest and latest dates in the
-    // collection.
-    $.ajax({
-        type: 'POST',
-        url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
-        data: {
-            sort: JSON.stringify([['date', -1]]),
-            limit: 1,
-            fields: JSON.stringify(['date'])
-        },
-        dataType: 'json',
-        success: function (response) {
-            var val;
-
-            if (response.error !== null || response.result.data.length === 0) {
-                // Error condition.
-                console.log("error: could not get maximum time value from database - " + response.error ? response.error : "no results returned from server");
-            } else {
-                val = +response.result.data[0].date.$date;
-                flickr.timeslider.slider("option", "max", val);
-                flickr.timeslider.slider("values", 1, val);
-                $.ajax({
-                    type: 'POST',
-                    url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
-                    data: {
-                        sort: JSON.stringify([['date', 1]]),
-                        limit: 1,
-                        fields: JSON.stringify(['date'])
-                    },
-                    dataType: 'json',
-                    success: function (response) {
-                        var val;
-
-                        if (response.error !== null || response.result.data.length === 0) {
-                            // Error condition.
-                            console.log("error: could not get minimum time value from database - " + response.error ? response.error : "no results returned from server");
-                        } else {
-                            //val = +response.result.data[0]['date']['$date'];
-                            val = +response.result.data[0].date.$date;
-                            flickr.timeslider.slider("option", "min", val);
-
-                            // This time value makes a nice time window for a
-                            // demo.
-                            flickr.timeslider.slider("values", 0, july30);
-
-                            // Go ahead and zoom the slider to this range, if
-                            // requested.
-                            if(zoom){
-                                zoom(flickr.timeslider);
-                            }
-
-                            // Finally, retrieve the initial data to bootstrap
-                            // the application.
-                            retrieveData();
-
-                            // Add the 'retrieveData' behavior to the slider's
-                            // onchange callback (which starts out ONLY doing
-                            // the 'displayFunc' part).
-                            flickr.timeslider.slider("option", "change", function(evt, ui) {
-                                var low,
-                                    high;
-
-                                low = ui.values[0];
-                                high = ui.values[1];
-
-                                flickr.displayFunc(low, high);
-                                retrieveData();
-                            });
-                        }
-                    }
-                });
-            }
-        }
-    });
-}
-
-function retrieveDataSynthetic() {
-    "use strict";
-
-    var chicago,
-        paris,
-        slc,
-        albany,
-        dhaka,
-        rio,
-        wellington,
-        locs;
-
-    // Generate a few lat/long values in well-known places.
-    chicago = [42.0, -87.5];
-    paris = [48.9, 2.3];
-    slc = [40.8, -111.9];
-    albany = [42.7, -73.8];
-    dhaka = [23.7, 90.4];
-    rio = [-22.9, -43.2];
-    wellington = [-41.3, 174.8];
-
-    // Take the array of arrays, and map it to an array of google LatLng
-    // objects.
-    locs = [chicago, paris, slc, albany, dhaka, rio, wellington].map(function (d) { return new google.maps.LatLng(d[0], d[1]); });
-
-    // Store the retrieved values.
-    flickr.map.locations(locs);
-
-    // After data is reloaded to the map-overlay object, redraw the map.
-    flickr.map.draw();
 }
 
 function retrieveData() {
@@ -272,6 +155,123 @@ function retrieveData() {
             flickr.map.draw();
         }
     });
+}
+
+function getMinMaxDates(zoom) {
+    "use strict";
+
+    var mongo,
+        july30;
+
+    mongo = flickr.getMongoDBInfo();
+    july30 = Date.parse("Jul 30, 2012 01:31:06");
+
+    // Query the collection about the earliest and latest dates in the
+    // collection.
+    $.ajax({
+        type: 'POST',
+        url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
+        data: {
+            sort: JSON.stringify([['date', -1]]),
+            limit: 1,
+            fields: JSON.stringify(['date'])
+        },
+        dataType: 'json',
+        success: function (response) {
+            var val;
+
+            if (response.error !== null || response.result.data.length === 0) {
+                // Error condition.
+                console.log("error: could not get maximum time value from database - " + response.error ? response.error : "no results returned from server");
+            } else {
+                val = +response.result.data[0].date.$date;
+                flickr.timeslider.slider("option", "max", val);
+                flickr.timeslider.slider("values", 1, val);
+                $.ajax({
+                    type: 'POST',
+                    url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
+                    data: {
+                        sort: JSON.stringify([['date', 1]]),
+                        limit: 1,
+                        fields: JSON.stringify(['date'])
+                    },
+                    dataType: 'json',
+                    success: function (response) {
+                        var val;
+
+                        if (response.error !== null || response.result.data.length === 0) {
+                            // Error condition.
+                            console.log("error: could not get minimum time value from database - " + response.error ? response.error : "no results returned from server");
+                        } else {
+                            //val = +response.result.data[0]['date']['$date'];
+                            val = +response.result.data[0].date.$date;
+                            flickr.timeslider.slider("option", "min", val);
+
+                            // This time value makes a nice time window for a
+                            // demo.
+                            flickr.timeslider.slider("values", 0, july30);
+
+                            // Go ahead and zoom the slider to this range, if
+                            // requested.
+                            if (zoom) {
+                                zoom(flickr.timeslider);
+                            }
+
+                            // Finally, retrieve the initial data to bootstrap
+                            // the application.
+                            retrieveData();
+
+                            // Add the 'retrieveData' behavior to the slider's
+                            // onchange callback (which starts out ONLY doing
+                            // the 'displayFunc' part).
+                            flickr.timeslider.slider("option", "change", function (evt, ui) {
+                                var low,
+                                    high;
+
+                                low = ui.values[0];
+                                high = ui.values[1];
+
+                                flickr.displayFunc(low, high);
+                                retrieveData();
+                            });
+                        }
+                    }
+                });
+            }
+        }
+    });
+}
+
+function retrieveDataSynthetic() {
+    "use strict";
+
+    var chicago,
+        paris,
+        slc,
+        albany,
+        dhaka,
+        rio,
+        wellington,
+        locs;
+
+    // Generate a few lat/long values in well-known places.
+    chicago = [42.0, -87.5];
+    paris = [48.9, 2.3];
+    slc = [40.8, -111.9];
+    albany = [42.7, -73.8];
+    dhaka = [23.7, 90.4];
+    rio = [-22.9, -43.2];
+    wellington = [-41.3, 174.8];
+
+    // Take the array of arrays, and map it to an array of google LatLng
+    // objects.
+    locs = [chicago, paris, slc, albany, dhaka, rio, wellington].map(function (d) { return new google.maps.LatLng(d[0], d[1]); });
+
+    // Store the retrieved values.
+    flickr.map.locations(locs);
+
+    // After data is reloaded to the map-overlay object, redraw the map.
+    flickr.map.draw();
 }
 
 function GMap(elem, options) {
@@ -736,7 +736,7 @@ window.onload = function () {
     flickr.timeslider.slider({
         range: true,
 
-        change: function(evt, ui) {
+        change: function (evt, ui) {
             var low,
                 high;
 
@@ -746,7 +746,7 @@ window.onload = function () {
             flickr.displayFunc(low, high);
         },
 
-        slide: function(evt, ui) {
+        slide: function (evt, ui) {
             var low,
                 high;
 
@@ -901,7 +901,7 @@ window.onload = function () {
             // If there is a current ajax call in flight, abort it (it is
             // theoretically possible that the abort button is clicked between
             // the time it's activated, and the time an ajax call is sent).
-            if(flickr.currentAjax){
+            if (flickr.currentAjax) {
                 flickr.currentAjax.abort();
                 flickr.currentAjax = null;
 
