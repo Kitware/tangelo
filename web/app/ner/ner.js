@@ -55,7 +55,7 @@ NER.datasets = [
 
 NER.customdata = "Custom (use file selector)";
 
-function appendInfo(msg){
+function appendInfo(msg) {
     "use strict";
 
     var con;
@@ -65,6 +65,8 @@ function appendInfo(msg){
 }
 
 function clearAll() {
+    "use strict";
+
     NER.nodes = {};
     NER.links = {};
     NER.counter = 0;
@@ -284,7 +286,9 @@ function processFile(filename, id) {
     };
 }
 
-function generate_id(filename){
+function generate_id(filename) {
+    "use strict";
+
     // TODO(choudhury): technically, this can lead to identical ids (e.g.,
     // "letter_1.txt" and "letter 1.txt" will both wind up with
     // "letter_1-txt" as their id string).
@@ -379,7 +383,7 @@ function handleFileSelect() {
     }
 }
 
-function freshFileInput(){
+function freshFileInput() {
     "use strict";
 
     var holder;
@@ -396,7 +400,7 @@ function freshFileInput(){
         .on("change", handleFileSelect);
 }
 
-function loaddata(){
+function loaddata() {
     "use strict";
 
     var callback,
@@ -418,7 +422,9 @@ function loaddata(){
     freshFileInput();
 
     // Get the directory containing the files in the data set.
+    /*jslint nomen:true */
     dir = sel.options[sel.selectedIndex].__data__.dir;
+    /*jslint nomen:false */
 
     // Open the json file describing which files to load.
     d3.json(dir + "/control.json", function (data) {
@@ -444,7 +450,7 @@ function loaddata(){
         };
 
         // Fire off ajax calls to retrieve the text and pass it to processFile.
-        for(i = 0; i < data.files.length; i = i + 1) {
+        for (i = 0; i < data.files.length; i = i + 1) {
             d3.text(dir + "/" + data.files[i], callback(i));
         }
     });
@@ -709,7 +715,7 @@ window.onload = function () {
                     translate;
 
                 // If there are no nodes, return right away.
-                if (nodes.length === 0){
+                if (nodes.length === 0) {
                     return;
                 }
 
@@ -914,7 +920,7 @@ window.onload = function () {
                 base = config.useTextLabels ? 0.5 : 5;
                 factor = config.useTextLabels ? 0.5 : 1;
                 if (config.nodeScale) {
-                    ret = function (d) { return base + factor*Math.log(Math.sqrt(d.count)); };
+                    ret = function (d) { return base + factor * Math.log(Math.sqrt(d.count)); };
                 } else {
                     ret = function () { return base; };
                 }
