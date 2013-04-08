@@ -198,6 +198,66 @@
             });
     };
 
+    mod.getMongoRange = function (host, db, coll, field, callback) {
+        var min,
+            max,
+            mongourl;
+
+        // The base URL for both of the mongo service queries.
+        mongourl = "/service/mongo/" + host + "/" + db + "/" + coll;
+
+        // Fire an ajax call to retrieve the maxmimum value.
+        $.ajax({
+            url: mongourl,
+            data: {
+                sort: JSON.stringify([[field, -1]]),
+                limit: 1,
+                fields: JSON.stringify([field])
+            },
+            dataType: "json",
+            success: function (response) {
+                // If the value could not be retrieved, set it to null and print
+                // an error message on the console.
+                if (response.error !== null || response.result.data.length === 0) {
+                    max = null;
+
+                    if (response.error !== null) {
+                        console.log("[tangelo.util.getMongoRange()] error: could not retrieve max value from " + host + ":/" + db + "/" + coll + ":" + field);
+                    }
+                } else {
+                    max = response.result.data[0][field]
+                }
+
+                // Fire a second query to retrieve the minimum value.
+                $.ajax({
+                    url: mongourl,
+                    data: {
+                        sort: JSON.stringify([[field, 1]]),
+                        limit: 1,
+                        fields: JSON.stringify([field])
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        // As before, set the min value to null if it could not
+                        // be retrieved.
+                        if (response.error !== null || response.result.data.length === 0) {
+                            min = null;
+
+                            if (response.error !== null) {
+                                console.log("[tangelo.util.getMongoRange()] error: could not retrieve min value from " + host + ":/" + db + "/" + coll + ":" + field);
+                            }
+                        } else {
+                            min = response.result.data[0][field];
+                        }
+
+                        // Pass the range to the user callback.
+                        callback([min, max]);
+                    }
+                });
+            }
+        });
+    };
+
     mod.allDefined = function () {
         // Returns true if all arguments are defined; false otherwise.
 
