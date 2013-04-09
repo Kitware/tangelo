@@ -47,3 +47,7 @@ on the wiki for more information.
 Fork our repository and do great things. At [Kitware](http://www.kitware.com),
 we've been contributing to open-source software for 15 years and counting, and
 want to make Tangelo as useful to as many as possible.
+
+# Acknowledgement
+
+Tangelo development is sponsored by the Air Force Research Laboratory and DARPA.
