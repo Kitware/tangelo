@@ -1,17 +1,143 @@
-graph = null;
+/*jslint browser:true */
 
-enron = {};
+/*globals $, d3, tangelo */
+
+var color = null;
+var force = null;
+var graph = null;
+var svg = null;
+
+var enron = {};
 enron.date = null;
 enron.range = null;
+enron.center = null;
 enron.degree = null;
+
+function stringifyDate(d) {
+    "use strict";
+
+    return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+}
+
+function displayDate(d) {
+    "use strict";
+
+    return tangelo.date.monthNames()[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+}
+
+function updateGraph() {
+    "use strict";
+
+    var center,
+        data,
+        end_date,
+        degree,
+        hops,
+        start_date;
+
+    d3.select("#update")
+        .attr("disabled", true)
+        .text("Updating...");
+
+    // Construct a Javascript date object from the date slider.
+    start_date = new Date(enron.date.slider("value"));
+
+    // Create another date that is ahead of the start date by the number of days
+    // indicated by the slider (i.e., advanced from that date by the number of
+    // milliseconds in that many days).
+    end_date = new Date(start_date.getTime() + enron.range.slider("value") * 86400 * 1000);
+
+    center = enron.center.val();
+
+    hops = enron.degree.spinner("value");
+
+    data = {
+        start_time: stringifyDate(start_date),
+        end_time: stringifyDate(end_date),
+        center: center,
+        degree: hops
+    };
+
+    $.ajax({
+        url: "service/emailers/mongo/xdata/enron",
+        data: data,
+        dataType: "json",
+        success: function (resp) {
+            var link,
+                node;
+
+            d3.select("#update")
+                .attr("disabled", null)
+                .text("Update");
+
+            if (resp.error !== null) {
+                console.log("error: " + resp.error);
+                return;
+            }
+
+            graph = resp.result;
+
+            console.log("Got " + graph.nodes.length + " nodes");
+            console.log("Got " + graph.edges.length + " edges");
+
+            force.nodes(graph.nodes)
+                .links(graph.edges)
+                .start();
+
+            link = svg.select("g#links")
+                .selectAll(".link")
+                .data(graph.edges, function (d) {
+                    return d.id;
+                });
+
+            link.enter().append("line")
+                .classed("link", true);
+
+            link.exit()
+                .transition()
+                .duration(1000)
+                .style("opacity", 0.0)
+                .remove();
+
+            node = svg.select("g#nodes")
+                .selectAll(".node")
+                .data(graph.nodes);
+
+            node.enter().append("circle")
+                .classed("node", true)
+                .attr("r", 5)
+                .style("fill", function (d) {
+                    return color(d.distance);
+                })
+                .call(force.drag)
+                .append("title")
+                .text(function (d) {
+                    return d.email || "(no email address)";
+                });
+
+            node.exit()
+                .transition()
+                .duration(1000)
+                .style("opacity", 0.0)
+                .remove();
+
+            force.on("tick", function () {
+                link.attr("x1", function (d) { return d.source.x; })
+                    .attr("y1", function (d) { return d.source.y; })
+                    .attr("x2", function (d) { return d.target.x; })
+                    .attr("y2", function (d) { return d.target.y; });
+
+                node.attr("cx", function (d) { return d.x; })
+                    .attr("cy", function (d) { return d.y; });
+            });
+        }
+    });
+}
 
 window.onload = function () {
     "use strict";
 
-    var color,
-        force,
-        height,
-        svg,
+    var height,
         width;
 
     svg = d3.select("svg");
@@ -29,72 +155,46 @@ window.onload = function () {
     // Activate the jquery controls.
     enron.date = $("#date");
     enron.range = $("#range");
+    enron.center = $("#center");
     enron.degree = $("#degree");
 
-    tangelo.util.getMongoRange("mongo", "xdata", "enron", "date", function (r) {
-        console.log(r);
-        enron.date.slider({
-            min: r[0].$date,
-            max: r[1].$date,
-            slide: function (evt, ui) {
-                d3.select("#date-label")
-                    .text(ui.value);
-            }
-        });
-    });
-
-    d3.json("service/emailers/mongo/xdata/enron?start_time=2000-12-13&end_time=2000-12-14&center=phillip.allen@enron.com&degree=2", function (error, data) {
-        var //graph,
-            link,
-            node,
-            x;
-
-        if (error !== null) {
-            console.log("oops something bad happened :(");
-            return;
+    enron.date.slider({
+        min: new Date(1998, 1, 1).getTime(),
+        max: new Date(2002, 12, 31).getTime(),
+        step: 86400,
+        slide: function (evt, ui) {
+            d3.select("#date-label")
+                .text(displayDate(new Date(ui.value)));
+        },
+        change: function (evt, ui) {
+            d3.select("#date-label")
+                .text(displayDate(new Date(ui.value)));
         }
-
-        if (data.error !== null) {
-            console.log("error: " + data.error);
-            return;
-        }
-
-        graph = data.result;
-
-        force.nodes(graph.nodes)
-            .links(graph.edges)
-            .start();
-
-        link = svg.select("g#links")
-            .selectAll(".link")
-            .data(graph.edges);
-
-        link.enter().append("line")
-            .classed("link", true);
-            //.style("stroke-width", 3);
-
-        node = svg.select("g#nodes")
-            .selectAll(".node")
-            .data(graph.nodes);
-        node.enter().append("circle")
-            .classed("node", true)
-            .attr("r", 5)
-            .style("fill", function (d) {
-                return color(d.distance);
-            })
-            .call(force.drag);
-
-        node.append("title")
-            .text(function (d) { return d.email? d.email : "(no email address)"; });
-
-        force.on("tick", function () {
-            link.attr("x1", function (d) { return d.source.x; })
-                .attr("y1", function (d) { return d.source.y; })
-                .attr("x2", function (d) { return d.target.x; })
-                .attr("y2", function (d) { return d.target.y; });
-
-            node.attr("cx", function (d) { return d.x; })
-                .attr("cy", function (d) { return d.y; });
-        });
     });
+    enron.date.slider("value", enron.date.slider("value"));
+
+    enron.range.slider({
+        min: 1,
+        max: 6 * 7,
+        slide: function (evt, ui) {
+            d3.select("#range-label")
+                .text(ui.value + " day" + (ui.value === 1 ? "" : "s"));
+        },
+        change: function (evt, ui) {
+            d3.select("#range-label")
+                .text(ui.value + " day" + (ui.value === 1 ? "" : "s"));
+        }
+    });
+    enron.range.slider("value", enron.range.slider("value"));
+
+    enron.center.val("phillip.allen@enron.com");
+
+    enron.degree.spinner({
+        min: 1,
+        max: 10
+    });
+    enron.degree.spinner("value", 2);
+
+    d3.select("#update")
+        .on("click", updateGraph);
 };

@@ -28,14 +28,14 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
     try:
         start_time = datetime.datetime.strptime(start_time, "%Y-%m-%d")
     except ValueError:
-        response["error"] = "argument 'degree' must be an integer"
+        response["error"] = "argument 'start_time' must be in YYYY-MM-DD format"
         return response
 
     # The end time is another date - an integer.
     try:
         end_time = datetime.datetime.strptime(end_time, "%Y-%m-%d")
     except ValueError:
-        response["error"] = "argument 'degree' must be an integer"
+        response["error"] = "argument 'end_time' must be in YYYY-MM-DD format"
         return response
 
     # Get a handle to the database collection.
