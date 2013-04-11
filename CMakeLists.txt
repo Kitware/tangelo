@@ -248,7 +248,8 @@ endif()
 # Configure the server config file.
 configure_file(
     server.conf.in
-    ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/server.conf)
+    ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/server.conf
+)
 
 # Configure the Python testing driver.
 configure_file(
@@ -258,11 +259,13 @@ configure_file(
 
 configure_file(
     tangelo.in
-    ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/tangelo)
+    ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/tangelo
+)
 
 configure_file(
     tangelo.py.in
-    ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/tangelo.py)
+    ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/tangelo.py
+)
 
 # Copy the files to the deployment directory.
 set(ALL_TARGETS)
