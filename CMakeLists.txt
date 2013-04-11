@@ -13,7 +13,7 @@ set(SERVER_HOSTNAME localhost CACHE STRING "The hostname of the machine that wil
 set(SERVER_PORT 8080 CACHE STRING "The port the server will run on.")
 set(MINIFY OFF CACHE BOOL "Minify the JavaScript files prior to concatenating.")
 set(MANGLE OFF CACHE BOOL "When minifying, also mangle non-public symbol names.")
-set(DOCUMENT OFF CACHE BOOL "Generate documentation for JavaScript files.")
+set(BUILD_DOCUMENTATION OFF CACHE BOOL "Generate documentation for project.")
 
 if("${WIN32}")
     set(SERVER_USER "windows" CACHE STRING "The user Tangelo will run as, if started as root (unused on Windows)." FORCE)
@@ -35,9 +35,6 @@ find_package(PythonInterp 2.7)
 
 # Find CherryPy daemon.
 find_package(CherryPy)
-
-# Create a "stamps" directory for storing fake targets for custom commands.
-file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/stamps)
 
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
@@ -66,13 +63,6 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/web/lib/util.js
     ${CMAKE_SOURCE_DIR}/web/lib/vgd3.js
     ${CMAKE_SOURCE_DIR}/web/lib/vg.util.js
-)
-
-# These files should have documentation generated for them.
-set(JS_DOCUMENT_FILES
-    ${CMAKE_SOURCE_DIR}/web/lib/date.js
-    ${CMAKE_SOURCE_DIR}/web/lib/util.js
-    ${CMAKE_SOURCE_DIR}/web/lib/core.js
 )
 
 # These files should be copied to the deployment directory.
@@ -321,32 +311,23 @@ add_custom_command(
 )
 
 # Generate documentation.
-set(DOCUMENTATION_STAMP ${CMAKE_BINARY_DIR}/stamps/documentation.txt)
-set(DOCUMENTATION_DIR ${CMAKE_BINARY_DIR}/jsdoc)
-if(${DOCUMENT})
-    # Find JSDoc.
-    find_package(JSDoc REQUIRED)
+if(${BUILD_DOCUMENTATION})
+    # Find Sphinx
+    find_package(Sphinx REQUIRED)
+
+    # A signal file to indicate the last time the documentation was built.
+    set(DOCUMENTATION_STAMP ${CMAKE_BINARY_DIR}/documentation_stamp)
+
+    set(DOCUMENTATION_SOURCES
+        ${CMAKE_SOURCE_DIR}/docs/index.rst
+    )
 
     # A command to generate the documentation.
     add_custom_command(
         OUTPUT ${DOCUMENTATION_STAMP}
-        COMMAND ${CMAKE_COMMAND} -E remove_directory ${DOCUMENTATION_DIR}
-        COMMAND ${JSDoc_EXECUTABLE} ${JSDoc_ARGS} ${JS_DOCUMENT_FILES} -p -d=${DOCUMENTATION_DIR}
+        COMMAND ${Sphinx_EXECUTABLE} -b html ${CMAKE_SOURCE_DIR}/docs ${CMAKE_BINARY_DIR}/docs
         COMMAND ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_STAMP}
-        DEPENDS ${JS_DOCUMENT_FILES}
-    )
-
-    # Remove the stamp file, which may have been trivially generated in a
-    # previous configure step by the else portion of this if-block.
-    file(REMOVE ${DOCUMENTATION_STAMP})
-else()
-    # Use a dummy custom command rather than a call to file() in case someone
-    # deletes the stamp file for some reason.  In that case, the custom command
-    # will regenerate the file without complaints, whereas the call to file()
-    # wouldn't, instead resulting in an error.
-    add_custom_command(
-        OUTPUT ${DOCUMENTATION_STAMP}
-        COMMAND ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_STAMP}
+        DEPENDS ${DOCUMENTATION_SOURCES}
     )
 endif()
 
