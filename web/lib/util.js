@@ -225,7 +225,7 @@
                         console.log("[tangelo.util.getMongoRange()] error: could not retrieve max value from " + host + ":/" + db + "/" + coll + ":" + field);
                     }
                 } else {
-                    max = response.result.data[0][field]
+                    max = response.result.data[0][field];
                 }
 
                 // Fire a second query to retrieve the minimum value.
