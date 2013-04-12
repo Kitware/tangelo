@@ -323,7 +323,7 @@ $(function () {
 
 	valueFields = {
 		scale: {editor: stringEditor, value: "x"},
-		field: {editor: stringEditor, value: "data.x"},
+		field: {editor: stringEditor, value: "data"},
 		band: {editor: booleanEditor, value: 0},
 		offset: {editor: numberEditor, value: 0},
 		value: {editor: stringEditor, value: 0}
@@ -386,11 +386,11 @@ $(function () {
 						value: "ordinal"
 					},
 					nice: {editor: booleanEditor, value: false},
-					range: {editor: rangeEditor, value: "width"},
 					domain: {editor: objectEditor, fields: {
 						data: {editor: stringEditor, value: "table"},
-						field: {editor: stringEditor, value: "data.letter"}
-					}}
+						field: {editor: stringEditor, value: "data"}
+					}},
+					range: {editor: rangeEditor, value: "width"}
 				}
 			}},
 			axes: {editor: arrayEditor, element: {
