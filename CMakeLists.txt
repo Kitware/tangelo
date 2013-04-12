@@ -215,10 +215,15 @@ set(SOURCES
     web/img/glyphicons-halflings-white.png
     web/img/glyphicons-halflings.png
     web/img/tangelo.ico
-    web/lib/vgd3-template.js.txt
     web/lib/bootstrap.js
+    web/lib/d3.v3.min.js
+    web/lib/jquery-1.8.2.min.js
+    web/lib/jquery-ui-1.9.1.js
+    web/lib/md5.js
     web/lib/vega.js
+    web/lib/vgd3-template.js.txt
     web/css/bootstrap-readable.css
+    web/css/jquery-ui-1.9.1.css
     web/css/tangelo.css
     web/img/glyphicons-halflings.png
     web/img/glyphicons-halflings-white.png
