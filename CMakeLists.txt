@@ -51,7 +51,6 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/web/app/vegalab/vegalab.js
     ${CMAKE_SOURCE_DIR}/web/app/ssci/ssci.js
     ${CMAKE_SOURCE_DIR}/web/app/flickr/flickr.js
-    ${CMAKE_SOURCE_DIR}/web/app/mapping/mapping.js
     ${CMAKE_SOURCE_DIR}/web/app/noaa/climate.js
 )
 
@@ -91,14 +90,6 @@ set(SOURCES
     web/app/enron/service/emailers.py
     web/app/flickr/flickr.js
     web/app/flickr/index.html
-    web/app/mapping/cities.json
-    web/app/mapping/dots.json
-    web/app/mapping/index.html
-    web/app/mapping/map.json
-    web/app/mapping/mapping.css
-    web/app/mapping/mapping.js
-    web/app/mapping/vgd3.js
-    web/app/mapping/world-countries.json
     web/app/ner/index.html
     web/app/ner/letters.csv
     web/app/ner/ner.css
@@ -226,10 +217,15 @@ set(SOURCES
     web/img/glyphicons-halflings-white.png
     web/img/glyphicons-halflings.png
     web/img/tangelo.ico
-    web/lib/vgd3-template.js.txt
     web/lib/bootstrap.js
+    web/lib/d3.v3.min.js
+    web/lib/jquery-1.8.2.min.js
+    web/lib/jquery-ui-1.9.1.js
+    web/lib/md5.js
     web/lib/vega.js
+    web/lib/vgd3-template.js.txt
     web/css/bootstrap-readable.css
+    web/css/jquery-ui-1.9.1.css
     web/css/tangelo.css
     web/img/glyphicons-halflings.png
     web/img/glyphicons-halflings-white.png
