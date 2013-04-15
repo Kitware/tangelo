@@ -9,7 +9,7 @@
 
     mod = tangelo.namespace("util");
 
-    mod.defaults = function (inputSpec) {
+    mod.defaults = function (inputSpec, callback) {
         var //bad,
             k,
             notready,
@@ -74,6 +74,10 @@
 
                 // Convert the methods the user was given with the real methods.
                 //bad = good;
+
+                if (callback) {
+                    callback(good);
+                }
             });
 
             // Hand the user the dummy methods to prevent access until the data
