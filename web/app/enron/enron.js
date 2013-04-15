@@ -12,6 +12,7 @@ enron.date = null;
 enron.range = null;
 enron.center = null;
 enron.degree = null;
+enron.host = null;
 
 function stringifyDate(d) {
     "use strict";
@@ -59,7 +60,7 @@ function updateGraph() {
     };
 
     $.ajax({
-        url: "service/emailers/mongo/xdata/enron",
+        url: "service/emailers/" + enron.host + "/xdata/enron",
         data: data,
         dataType: "json",
         success: function (resp) {
@@ -137,64 +138,70 @@ function updateGraph() {
 window.onload = function () {
     "use strict";
 
-    var height,
-        width;
+    tangelo.util.defaults("defaults.json", function (defaults) {
+        var height,
+            width;
 
-    svg = d3.select("svg");
+        enron.host = defaults && defaults.get("host") || "mongo";
 
-    width = $(window).width();
-    height = $(window).height();
-    force = d3.layout.force()
-        .charge(-240)
-        .linkDistance(50)
-        .gravity(0.5)
-        .size([width, height]);
+        console.log("enron.host: " + enron.host);
 
-    color = d3.scale.category20();
+        svg = d3.select("svg");
 
-    // Activate the jquery controls.
-    enron.date = $("#date");
-    enron.range = $("#range");
-    enron.center = $("#center");
-    enron.degree = $("#degree");
+        width = $(window).width();
+        height = $(window).height();
+        force = d3.layout.force()
+            .charge(-240)
+            .linkDistance(50)
+            .gravity(0.5)
+            .size([width, height]);
 
-    enron.date.slider({
-        min: new Date(1998, 1, 1).getTime(),
-        max: new Date(2002, 12, 31).getTime(),
-        step: 86400,
-        slide: function (evt, ui) {
-            d3.select("#date-label")
-                .text(displayDate(new Date(ui.value)));
-        },
-        change: function (evt, ui) {
-            d3.select("#date-label")
-                .text(displayDate(new Date(ui.value)));
-        }
+        color = d3.scale.category20();
+
+        // Activate the jquery controls.
+        enron.date = $("#date");
+        enron.range = $("#range");
+        enron.center = $("#center");
+        enron.degree = $("#degree");
+
+        enron.date.slider({
+            min: new Date(1998, 1, 1).getTime(),
+            max: new Date(2002, 12, 31).getTime(),
+            step: 86400,
+            slide: function (evt, ui) {
+                d3.select("#date-label")
+                    .text(displayDate(new Date(ui.value)));
+            },
+            change: function (evt, ui) {
+                d3.select("#date-label")
+                    .text(displayDate(new Date(ui.value)));
+            }
+        });
+        enron.date.slider("value", enron.date.slider("value"));
+
+        enron.range.slider({
+            min: 1,
+            max: 6 * 7,
+            slide: function (evt, ui) {
+                d3.select("#range-label")
+                    .text(ui.value + " day" + (ui.value === 1 ? "" : "s"));
+            },
+            change: function (evt, ui) {
+                d3.select("#range-label")
+                    .text(ui.value + " day" + (ui.value === 1 ? "" : "s"));
+            }
+        });
+        enron.range.slider("value", enron.range.slider("value"));
+
+        enron.center.val("phillip.allen@enron.com");
+
+        enron.degree.spinner({
+            min: 1,
+            max: 10
+        });
+        enron.degree.spinner("value", 2);
+
+        d3.select("#update")
+            .on("click", updateGraph);
     });
-    enron.date.slider("value", enron.date.slider("value"));
-
-    enron.range.slider({
-        min: 1,
-        max: 6 * 7,
-        slide: function (evt, ui) {
-            d3.select("#range-label")
-                .text(ui.value + " day" + (ui.value === 1 ? "" : "s"));
-        },
-        change: function (evt, ui) {
-            d3.select("#range-label")
-                .text(ui.value + " day" + (ui.value === 1 ? "" : "s"));
-        }
-    });
-    enron.range.slider("value", enron.range.slider("value"));
-
-    enron.center.val("phillip.allen@enron.com");
-
-    enron.degree.spinner({
-        min: 1,
-        max: 10
-    });
-    enron.degree.spinner("value", 2);
-
-    d3.select("#update")
-        .on("click", updateGraph);
 };
