@@ -142,7 +142,7 @@ window.onload = function () {
         var height,
             width;
 
-        enron.host = defaults && defaults.get("host") || "mongo";
+        enron.host = (defaults && defaults.get("host")) || "mongo";
 
         console.log("enron.host: " + enron.host);
 
