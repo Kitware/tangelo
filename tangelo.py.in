@@ -62,6 +62,13 @@ if os.getuid() == 0:
 
         DropPrivileges(cherrypy.engine, uid=uid, gid=gid).subscribe()
 
+userpassdict = {"alice": "scatter"}
+get_ha1 = cherrypy.lib.auth_digest.get_ha1_dict_plain(userpassdict)
+digest_auth = {"tools.auth_digest.on": True,
+               "tools.auth_digest.realm": "wonderland",
+               "tools.auth_digest.get_ha1": get_ha1,
+               "tools.auth_digest.key": "deadbeef"}
+
 def invoke_service(module, *pargs, **kwargs):
     # TODO(choudhury): This method should attempt to load the named module, then invoke it
     # with the given arguments.  However, if the named module is "config" or
@@ -120,8 +127,14 @@ def invoke_service(module, *pargs, **kwargs):
         return json.dumps(response)
 
 class Server(object):
+    def __init__(self):
+        self.app = None
+
     @cherrypy.expose
     def default(self, *path, **args):
+        if self.app is None:
+            self.app = cherrypy.tree.apps.values()[0]
+
         # Convert the path argument into a list (from a tuple).
         path = list(path)
 
@@ -191,6 +204,17 @@ class Server(object):
         # wrong), then the filepath will not be an absolute path, and we bail.
         if not os.path.isabs(finalpath):
             raise cherrypy.HTTPError(404)
+
+        # Check to see whether the path is protected by an .htaccess file.
+        htaccess = os.path.dirname(finalpath) + "/.htaccess"
+        if os.path.exists(htaccess):
+            path_info = cherrypy.request.path_info
+            cherrypy.log("I want to register %s" % (path_info))
+            if path_info[-1] != "/":
+                path_info = "/".join(path_info.split("/")[:-1])
+            c = {path_info: digest_auth}
+            cherrypy.log(str(c))
+            self.app.merge(c)
 
         # Serve the file.
         return serve_file(finalpath)
