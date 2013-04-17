@@ -62,7 +62,7 @@ if os.getuid() == 0:
 
         DropPrivileges(cherrypy.engine, uid=uid, gid=gid).subscribe()
 
-userpassdict = {"alice": "scatter"}
+userpassdict = {"alice": "swatter"}
 get_ha1 = cherrypy.lib.auth_digest.get_ha1_dict_plain(userpassdict)
 digest_auth = {"tools.auth_digest.on": True,
                "tools.auth_digest.realm": "wonderland",
@@ -129,6 +129,41 @@ def invoke_service(module, *pargs, **kwargs):
 class Server(object):
     def __init__(self):
         self.app = None
+        self.security = {}
+
+    def htaccess(self, htfile, path_info):
+        # TODO(choudhury): look at
+        # /usr/lib/python2.7/site-packages/cherrypy/lib/auth_digest.py and
+        # /usr/lib/python2.7/site-packages/cherrypy/test/test_auth_digest.py for
+        # examples of how to do digest auth.  Will want to have users use a
+        # tangpass sort of script to generate .htaccess files, so the digest
+        # method can remain consistent.
+        #
+        # May also want to include a basic auth path as well, perhaps depending
+        # on a key/value in the .htaccess file itself.
+
+        if path_info[-1] != "/":
+            path_info = "/".join(path_info.split("/")[:-1])
+        cherrypy.log("Registering %s..." % (path_info))
+
+        if path_info in self.security:
+            # TODO(choudhury): In general, we need to check the mtime on the
+            # htfile, and if it's NEWER than whatever is in the table, do the
+            # update (as in the else path).  If htfile is None, need a way to
+            # REMOVE the config from the app (not sure exactly how to do that).
+            cherrypy.log("%s already registered!" % (path_info))
+        else:
+            # TODO(choudhury): This simply installs a basic testing auth.  Need
+            # to (1) parse the .htaccess file and (2) install the right config
+            # on the application.
+            c = {path_info: digest_auth}
+            self.app.merge(c)
+
+            # In general this table will contain mtimes, for comparing with the
+            # .htaccess file.
+            self.security[path_info] = True
+
+            cherrypy.log("Added %s to registry!" % (path_info))
 
     @cherrypy.expose
     def default(self, *path, **args):
@@ -206,15 +241,10 @@ class Server(object):
             raise cherrypy.HTTPError(404)
 
         # Check to see whether the path is protected by an .htaccess file.
-        htaccess = os.path.dirname(finalpath) + "/.htaccess"
-        if os.path.exists(htaccess):
-            path_info = cherrypy.request.path_info
-            cherrypy.log("I want to register %s" % (path_info))
-            if path_info[-1] != "/":
-                path_info = "/".join(path_info.split("/")[:-1])
-            c = {path_info: digest_auth}
-            cherrypy.log(str(c))
-            self.app.merge(c)
+        htfile = os.path.dirname(finalpath) + "/.htaccess"
+        if not os.path.exists(htfile):
+            htfile = None
+        self.htaccess(htfile, cherrypy.request.path_info)
 
         # Serve the file.
         return serve_file(finalpath)
