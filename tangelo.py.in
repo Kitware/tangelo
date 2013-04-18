@@ -126,6 +126,20 @@ def invoke_service(module, *pargs, **kwargs):
         # Serialize to JSON.
         return json.dumps(response)
 
+class HtAccess:
+    def __init__(self, filename):
+        try:
+            self.f = open(filename)
+        except IOError:
+            self.f = None
+        else:
+            # TODO(choudhury): Parse the file and store the contents in class
+            # members.
+            pass
+
+    def __nonzero__(self):
+        return self.f is not None
+
 class Server(object):
     def __init__(self):
         self.app = None
