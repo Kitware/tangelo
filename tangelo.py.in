@@ -142,28 +142,42 @@ class Server(object):
         # May also want to include a basic auth path as well, perhaps depending
         # on a key/value in the .htaccess file itself.
 
-        if path_info[-1] != "/":
-            path_info = "/".join(path_info.split("/")[:-1])
-        cherrypy.log("Registering %s..." % (path_info))
-
-        if path_info in self.security:
-            # TODO(choudhury): In general, we need to check the mtime on the
-            # htfile, and if it's NEWER than whatever is in the table, do the
-            # update (as in the else path).  If htfile is None, need a way to
-            # REMOVE the config from the app (not sure exactly how to do that).
-            cherrypy.log("%s already registered!" % (path_info))
+        # If there is no htfile, then ensure that the path is unregistered from
+        # the security dict, and unregister the config found there.  Otherwise,
+        # parse the htfile and add whatever is found there to the security
+        # registry and the application configuration.
+        if htfile is None:
+            if path_info in self.security:
+                cherrypy.log("Removing security path %s" % (path_info))
+                del self.security[path_info]
+                self.app.pop(path_info, None)
         else:
-            # TODO(choudhury): This simply installs a basic testing auth.  Need
-            # to (1) parse the .htaccess file and (2) install the right config
-            # on the application.
-            c = {path_info: digest_auth}
-            self.app.merge(c)
+            if path_info[-1] != "/":
+                path_info = "/".join(path_info.split("/")[:-1])
+            cherrypy.log("Registering %s..." % (path_info))
 
-            # In general this table will contain mtimes, for comparing with the
-            # .htaccess file.
-            self.security[path_info] = True
+            # Stat the file specifically to learn it's last-modified time.
+            htinfo = os.stat(htfile)
 
-            cherrypy.log("Added %s to registry!" % (path_info))
+            if path_info not in self.security or htinfo.st_mtime > self.security[path_info]:
+                # We have found an htaccess file - if there is NO ENTRY in the
+                # security table, OR there IS an entry but the htaccess file is
+                # NEWER than the one used to create that entry, then we need to
+                # parse the file and insert (or update) the record in the table.
+                htspec = HtAccess(htfile)
+
+                # TODO(choudhury): This simply installs a basic testing auth.
+                # Need to (1) parse the .htaccess file and (2) install the right
+                # config on the application.
+                c = {path_info: digest_auth}
+                self.app.merge(c)
+
+                # Store the htfile's last-modified time.
+                self.security[path_info] = htinfo.st_mtime
+
+                cherrypy.log("Added %s to registry!" % (path_info))
+            else:
+                cherrypy.log("%s already registered!" % (path_info))
 
     @cherrypy.expose
     def default(self, *path, **args):
