@@ -62,13 +62,6 @@ if os.getuid() == 0:
 
         DropPrivileges(cherrypy.engine, uid=uid, gid=gid).subscribe()
 
-userpassdict = {"alice": "swatter"}
-get_ha1 = cherrypy.lib.auth_digest.get_ha1_dict_plain(userpassdict)
-digest_auth = {"tools.auth_digest.on": True,
-               "tools.auth_digest.realm": "wonderland",
-               "tools.auth_digest.get_ha1": get_ha1,
-               "tools.auth_digest.key": "deadbeef"}
-
 def invoke_service(module, *pargs, **kwargs):
     # TODO(choudhury): This method should attempt to load the named module, then invoke it
     # with the given arguments.  However, if the named module is "config" or
@@ -126,19 +119,75 @@ def invoke_service(module, *pargs, **kwargs):
         # Serialize to JSON.
         return json.dumps(response)
 
+def dirlisting(path):
+    return "<!doctype html><h1>Directory Listing</h1>This is a dummy directory listing placeholder."
+
 class HtAccess:
     def __init__(self, filename):
+        # Initialize all info fields with None.
+        self.auth_type = None
+        self.user_file = None
+        self.realm = None
+        self.userpass = None
+        self.msg = None
+
+        # Create a list of acceptable authentication types.
+        allowed = ["digest"]
+
+        # Try to open and parse the file.
         try:
-            self.f = open(filename)
+            with open(filename) as f:
+                lines = map(lambda x: x.strip().split(), f.readlines())
+                keys = map(lambda x: x[0], lines)
+                values = map(lambda x: " ".join(x[1:]), lines)
+
+                cherrypy.log(filename)
+                cherrypy.log("%s" % (lines))
+                cherrypy.log("%s" % (keys))
+                cherrypy.log("%s" % (values))
+
+                for i, (k, v) in enumerate(zip(keys, values)):
+                    if k == "AuthType":
+                        if v not in allowed:
+                            self.msg = "Supported authentication types: %s" % (", ".join(allowed))
+                            return
+                        else:
+                            self.auth_type = v
+                    elif k == "AuthUserFile":
+                        self.user_file = v
+                    elif k == "AuthRealm":
+                        self.realm = v
+                    else:
+                        self.msg = "Unknown key '%s' on line %d of file '%s'" % (k, i+1, filename)
+                        return
         except IOError:
-            self.f = None
-        else:
-            # TODO(choudhury): Parse the file and store the contents in class
-            # members.
-            pass
+            self.msg = "Could not open file '%s'" % (filename)
+            return
+
+        # Open the user file and parse out the username/passwords of those users
+        # in the correct realm.
+        recs = None
+        cherrypy.log("%s" % (self.user_file))
+        if self.user_file is not None:
+            try:
+                cherrypy.log("trying")
+                with open(self.user_file) as f:
+                    recs = filter(lambda x: x[1] == self.realm, map(lambda x: x.strip().split(":"), f.readlines()))
+                    cherrypy.log("%s" % (recs))
+            except IOError:
+                self.msg = "Could not open user password file '%s'" % (self.user_file)
+                return
+            except IndexError:
+                self.msg = "Malformed content in user password file '%s' (some line has too few fields)" % (self.user_file)
+                return
+
+        try:
+            self.userpass = {x[0]: x[2] for x in recs}
+        except IndexError:
+            self.msg = "Malformed content in user password file '%s' (some line has too few fields)" % (self.user_file)
 
     def __nonzero__(self):
-        return self.f is not None
+        return self.msg is None
 
 class Server(object):
     def __init__(self):
@@ -171,27 +220,39 @@ class Server(object):
             cherrypy.log("Registering %s..." % (path_info))
 
             # Stat the file specifically to learn it's last-modified time.
-            htinfo = os.stat(htfile)
+            ht_mtime = os.stat(htfile).st_mtime
 
-            if path_info not in self.security or htinfo.st_mtime > self.security[path_info]:
+            if path_info not in self.security or ht_mtime > self.security[path_info]:
                 # We have found an htaccess file - if there is NO ENTRY in the
                 # security table, OR there IS an entry but the htaccess file is
                 # NEWER than the one used to create that entry, then we need to
                 # parse the file and insert (or update) the record in the table.
                 htspec = HtAccess(htfile)
+                if not htspec:
+                    cherrypy.log("Could not register %s: %s" % (path_info, htspec.msg))
+                    return htspec.msg
 
-                # TODO(choudhury): This simply installs a basic testing auth.
-                # Need to (1) parse the .htaccess file and (2) install the right
-                # config on the application.
-                c = {path_info: digest_auth}
-                self.app.merge(c)
+                # Declare an auth config object using the values in the HtAccess
+                # object.
+                toolname = "tools.auth_%s.%s" % (htspec.auth_type, "%s")
+                passdict = lambda realm, username: htspec.userpass.get(username)
+                cherrypy.log("%s" % (passdict("Arbor@xdata", "roni")))
+                auth_conf = {toolname % "on": True,
+                             toolname % "realm": htspec.realm,
+                             toolname % "get_ha1": passdict,
+                             toolname % "key": "deadbeef"}
+                cherrypy.log("%s" % (auth_conf))
+
+                self.app.merge({path_info: auth_conf})
 
                 # Store the htfile's last-modified time.
-                self.security[path_info] = htinfo.st_mtime
+                self.security[path_info] = ht_mtime
 
                 cherrypy.log("Added %s to registry!" % (path_info))
             else:
                 cherrypy.log("%s already registered!" % (path_info))
+
+        return None
 
     @cherrypy.expose
     def default(self, *path, **args):
@@ -253,26 +314,27 @@ class Server(object):
         # Form a path name from the path components.
         finalpath = "/".join(path)
 
-        # If the path represents a directory, first check if the URL is missing
-        # a trailing slash - if it is, redirect to a URL with the slash
-        # appended; otherwise, append "index.html" to the path spec and
-        # continue.
+        # If the path represents a directory, assume the request is for an
+        # index.html file (look for an index.htm as a backup, and as a last
+        # resort, assume the user wants to see a directory listing).
         if os.path.isdir(finalpath):
-            if cherrypy.request.path_info[-1] != "/":
-                raise cherrypy.HTTPRedirect(cherrypy.request.path_info + "/")
-            else:
+            if os.path.exists(finalpath + "/index.html"):
                 finalpath += "/index.html"
-
-        # If the home directory expansion above failed (or something else went
-        # wrong), then the filepath will not be an absolute path, and we bail.
-        if not os.path.isabs(finalpath):
-            raise cherrypy.HTTPError(404)
+            elif os.path.exists(finalpath + "index.htm"):
+                finalpath += "/index.htm"
+            else:
+                finalpath += "/"
 
         # Check to see whether the path is protected by an .htaccess file.
         htfile = os.path.dirname(finalpath) + "/.htaccess"
         if not os.path.exists(htfile):
             htfile = None
-        self.htaccess(htfile, cherrypy.request.path_info)
+        msg = self.htaccess(htfile, cherrypy.request.path_info)
+        if msg is not None:
+            raise cherrypy.HTTPError(401, "There was an error in the HTTP authentication process: %s" % (msg))
 
-        # Serve the file.
-        return serve_file(finalpath)
+        # Serve the resource.
+        if os.path.isdir(finalpath):
+            return dirlisting(finalpath)
+        else:
+            return serve_file(finalpath)
