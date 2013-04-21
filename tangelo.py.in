@@ -141,11 +141,6 @@ class HtAccess:
                 keys = map(lambda x: x[0], lines)
                 values = map(lambda x: " ".join(x[1:]), lines)
 
-                cherrypy.log(filename)
-                cherrypy.log("%s" % (lines))
-                cherrypy.log("%s" % (keys))
-                cherrypy.log("%s" % (values))
-
                 for i, (k, v) in enumerate(zip(keys, values)):
                     if k == "AuthType":
                         if v not in allowed:
@@ -167,13 +162,10 @@ class HtAccess:
         # Open the user file and parse out the username/passwords of those users
         # in the correct realm.
         recs = None
-        cherrypy.log("%s" % (self.user_file))
         if self.user_file is not None:
             try:
-                cherrypy.log("trying")
                 with open(self.user_file) as f:
                     recs = filter(lambda x: x[1] == self.realm, map(lambda x: x.strip().split(":"), f.readlines()))
-                    cherrypy.log("%s" % (recs))
             except IOError:
                 self.msg = "Could not open user password file '%s'" % (self.user_file)
                 return
@@ -211,13 +203,11 @@ class Server(object):
         # registry and the application configuration.
         if htfile is None:
             if path_info in self.security:
-                cherrypy.log("Removing security path %s" % (path_info))
+                cherrypy.log("Removing security path %s" % (path_info), "HTACCESS")
                 del self.security[path_info]
                 self.app.pop(path_info, None)
         else:
-            if path_info[-1] != "/":
-                path_info = "/".join(path_info.split("/")[:-1])
-            cherrypy.log("Registering %s..." % (path_info))
+            cherrypy.log("Registering %s..." % (path_info), "HTACCESS")
 
             # Stat the file specifically to learn it's last-modified time.
             ht_mtime = os.stat(htfile).st_mtime
@@ -229,28 +219,26 @@ class Server(object):
                 # parse the file and insert (or update) the record in the table.
                 htspec = HtAccess(htfile)
                 if not htspec:
-                    cherrypy.log("Could not register %s: %s" % (path_info, htspec.msg))
+                    cherrypy.log("Could not register %s: %s" % (path_info, htspec.msg), "HTACCESS")
                     return htspec.msg
 
                 # Declare an auth config object using the values in the HtAccess
                 # object.
                 toolname = "tools.auth_%s.%s" % (htspec.auth_type, "%s")
                 passdict = lambda realm, username: htspec.userpass.get(username)
-                cherrypy.log("%s" % (passdict("Arbor@xdata", "roni")))
                 auth_conf = {toolname % "on": True,
                              toolname % "realm": htspec.realm,
                              toolname % "get_ha1": passdict,
                              toolname % "key": "deadbeef"}
-                cherrypy.log("%s" % (auth_conf))
 
                 self.app.merge({path_info: auth_conf})
 
                 # Store the htfile's last-modified time.
                 self.security[path_info] = ht_mtime
 
-                cherrypy.log("Added %s to registry!" % (path_info))
+                cherrypy.log("Added %s to registry!" % (path_info), "HTACCESS")
             else:
-                cherrypy.log("%s already registered!" % (path_info))
+                cherrypy.log("%s already registered!" % (path_info), "HTACCESS")
 
         return None
 
@@ -258,6 +246,8 @@ class Server(object):
     def default(self, *path, **args):
         if self.app is None:
             self.app = cherrypy.tree.apps.values()[0]
+
+        cherrypy.log("path_info: %s" % (cherrypy.request.path_info), "HANDLER")
 
         # Convert the path argument into a list (from a tuple).
         path = list(path)
@@ -317,21 +307,75 @@ class Server(object):
         # If the path represents a directory, assume the request is for an
         # index.html file (look for an index.htm as a backup, and as a last
         # resort, assume the user wants to see a directory listing).
+        #
+        # As this transformation is taking place, use the information to
+        # possibly modify the request path info as well.
+        reqpath = cherrypy.request.path_info
+        if reqpath[-1] == "/":
+            reqpath = reqpath[:-1]
         if os.path.isdir(finalpath):
             if os.path.exists(finalpath + "/index.html"):
                 finalpath += "/index.html"
+                reqpath += "/index.html"
             elif os.path.exists(finalpath + "index.htm"):
                 finalpath += "/index.htm"
+                reqpath += "/index.htm"
             else:
                 finalpath += "/"
+                reqpath += "/"
 
-        # Check to see whether the path is protected by an .htaccess file.
-        htfile = os.path.dirname(finalpath) + "/.htaccess"
-        if not os.path.exists(htfile):
-            htfile = None
-        msg = self.htaccess(htfile, cherrypy.request.path_info)
-        if msg is not None:
-            raise cherrypy.HTTPError(401, "There was an error in the HTTP authentication process: %s" % (msg))
+        # Check to see whether the path is protected by an .htaccess file
+        # (anywhere in either the requested path's directory itself, or any
+        # ancestor directory).
+        filepath = os.path.dirname(finalpath).split("/")
+        reqpath = os.path.dirname(reqpath).split("/")
+        cherrypy.log("finalpath: %s" % (finalpath), "HANDLER")
+        cherrypy.log("reqpath: %s" % (reqpath), "HANDLER")
+
+        # Shorten the filepath to the length of reqpath, by fusing together the
+        # prefix of filepath that corresponds to the first element of reqpath.
+        # This will make both paths "line up" elementwise.  Example: the request
+        # path ~roni/app/index.html maps to the file path
+        # /home/roni/app/index.html.  The shortened file path list
+        # ["/home/roni", "app", "index.html"] has the same length as the request
+        # path list ["~roni", "app", "index.html"].
+        if len(filepath) > len(reqpath):
+            fuse = len(filepath) - len(reqpath) + 1
+            filepath = ["/".join(filepath[:fuse])] + filepath[fuse:]
+            cherrypy.log("filepath: %s" % (filepath), "HANDLER")
+
+        # Now begin checking each directory up to the root for an updated
+        # .htaccess file.
+        for i in range(len(reqpath), 0, -1):
+            done = False
+            cherrypy.log("i = %d" % (i), "HANDLER")
+
+            rqp = "/".join(reqpath[:i])
+            fp = "/".join(filepath[:i])
+
+            # Special case detection - if we wind up with rqp as "" or "/", then
+            # this means we have reached the web root and it is the last case we
+            # need to check.  Furthermore, if we arrived here by going one level
+            # up from someone's private web directory (e.g. from "/~roni") then
+            # we need to reset the filepath to point at the web root as well.
+            if rqp in ["", "/"]:
+                done = True
+                rqp = "/"
+                fp = current_dir + "/web"
+
+            cherrypy.log("fp is %s" % (fp), "HANDLER")
+
+            htfile = fp + "/.htaccess"
+            cherrypy.log("htfile is %s" % (htfile), "HANDLER")
+            cherrypy.log("rqp is %s" % (rqp), "HANDLER")
+            if not os.path.exists(htfile):
+                htfile = None
+            msg = self.htaccess(htfile, rqp)
+            if msg is not None:
+                raise cherrypy.HTTPError(401, "There was an error in the HTTP authentication process: %s" % (msg))
+
+            if done:
+                break
 
         # Serve the resource.
         if os.path.isdir(finalpath):
