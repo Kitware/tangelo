@@ -169,7 +169,7 @@ class HtAccess:
         # Try to open and parse the file.
         try:
             with open(filename) as f:
-                lines = map(lambda x: x.strip().split(), f.readlines())
+                lines = filter(lambda x: len(x) > 0, map(lambda x: x.strip().split(), f.readlines()))
                 keys = map(lambda x: x[0], lines)
                 values = map(lambda x: " ".join(x[1:]), lines)
 
