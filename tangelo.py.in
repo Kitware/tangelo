@@ -1,4 +1,5 @@
 import cherrypy
+import datetime
 import grp
 import imp
 import json
@@ -119,8 +120,39 @@ def invoke_service(module, *pargs, **kwargs):
         # Serialize to JSON.
         return json.dumps(response)
 
-def dirlisting(path):
-    return "<!doctype html><h1>Directory Listing</h1>This is a dummy directory listing placeholder."
+def dirlisting(dirpath, reqpath):
+    files = filter(lambda x: len(x) > 0 and x[0] != ".", os.listdir(dirpath))
+    #filespec = ["Type", "Name", "Last modified", "Size"]
+    filespec = []
+    for f in files:
+        p = dirpath + "/" + f
+        s = os.stat(p)
+        mtime = datetime.datetime.fromtimestamp(s.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+
+        if os.path.isdir(p):
+            t = "dir"
+            s = "-"
+        else:
+            t = "file"
+            s = s.st_size
+
+        filespec.append([t, "<a href=\"%s/%s\">%s</a>" % (reqpath, f, f), mtime, s])
+
+    filespec = "\n".join(map(lambda row: "<tr>" + "".join(map(lambda x: "<td>%s</td>" % x, row)) + "</tr>", filespec))
+
+    result = """<!doctype html>
+<title>Index of %s</title>
+<h1>Index of %s</h1>
+<table>
+<tr>
+    <th>Type</th><th>Name</th><th>Last Modified</th><th>Size</th>
+</tr>
+%s
+</table>
+""" % (reqpath, reqpath, filespec)
+
+    #return "<!doctype html><h1>Directory Listing</h1>This is a dummy directory listing placeholder."
+    return result
 
 class HtAccess:
     def __init__(self, filename):
@@ -379,6 +411,6 @@ class Server(object):
 
         # Serve the resource.
         if os.path.isdir(finalpath):
-            return dirlisting(finalpath)
+            return dirlisting(finalpath, "/".join(reqpath))
         else:
             return serve_file(finalpath)
