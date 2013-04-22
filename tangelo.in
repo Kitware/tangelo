@@ -1,5 +1,6 @@
 #!${PYTHON_EXECUTABLE}
 
+import argparse
 import os
 import platform
 import signal
@@ -88,24 +89,15 @@ def restart():
     else:
         return stopval
 
-def usage():
-    sys.stderr.write("usage: tangelo [-d|-D] <start|stop|restart>\n")
+p = argparse.ArgumentParser(description="Control execution of a Tangelo server.")
+p.add_argument("-d", "--no-daemon", action="store_true", help="run Tangelo in-console (not as a daemon).")
+#p.add_argument("-a", "--no-auth", action="store_true", help="disable HTTP authentication (i.e. processing of .htaccess files).")
+p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
+args = p.parse_args()
 
-# Read the action argument.
-if len(sys.argv) < 2:
-    usage()
-    sys.exit(1)
-
-if len(sys.argv) > 2:
-    daemonize_flag = sys.argv[1]
-    action = sys.argv[2]
-
-    if daemonize_flag not in ["-d", "-D"]:
-        usage()
-        sys.exit(1)
-else:
-    action = sys.argv[1]
-    daemonize_flag = None
+no_daemon = args.no_daemon
+#do_auth = not args.no_auth
+action = args.action
 
 # Configured variables.
 cherry = "@CherryPy_EXECUTABLE@"
@@ -115,7 +107,9 @@ os_name = platform.system()
 if os_name == "Darwin":
     version = map(int, platform.mac_ver()[0].split("."))
 
-daemonize = daemonize_flag != "-d" and not(os_name == "Windows" or (os_name == "Darwin" and version[1] == 6))
+# Decide whether to daemonize, based on whether the user wishes not to, and
+# whether the platform supports it.
+daemonize = not no_daemon and not(os_name == "Windows" or (os_name == "Darwin" and version[1] == 6))
 
 # Determine the path to this script.
 path = os.path.dirname(os.path.abspath(sys.argv[0]))
@@ -137,7 +131,7 @@ elif action == "restart":
         sys.exit(1)
     code = restart()
 else:
-    usage()
+    p.print_usage()
     code = 1
 
 sys.exit(code)
