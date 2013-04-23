@@ -441,8 +441,9 @@ def start():
 
     # Create a pid file so we can make sure it's owned by the proper user later
     # on.
-    with open(pidfile, "a"):
-        pass
+    if daemonize:
+        with open(pidfile, "a"):
+            pass
 
     # If we are the superuser, try to drop privileges (since we've bound to
     # whatever port superuser privileges were needed for already).
@@ -532,8 +533,7 @@ def stop():
         try:
             pid = int(f.read())
         except ValueError:
-            if report:
-                sys.stderr.write("failed (tangelo.pid does not contain a valid process id)\n")
+            sys.stderr.write("failed (tangelo.pid does not contain a valid process id)\n")
             return 1
 
         try:
