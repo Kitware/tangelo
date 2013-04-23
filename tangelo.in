@@ -412,9 +412,14 @@ def start():
     # Assume things are going to go well.
     retval = 0
 
+    # Create a pid file so we can make sure it's owned by the proper user later
+    # on.
+    with open(pidfile, "a"):
+        pass
+
     # If we are the superuser, try to drop privileges (since we've bound to
     # whatever port superuser privileges were needed for already).
-    if os.getuid() == 0:
+    if drop_priv and os.getuid() == 0:
         # Set the username and groupname to drop privileges down to.
         user = "@SERVER_USER@"
         group = "@SERVER_GROUP@"
@@ -436,6 +441,11 @@ def start():
                 sys.exit(1)
 
             cherrypy.process.plugins.DropPrivileges(cherrypy.engine, uid=uid, gid=gid).subscribe()
+
+            # Make sure the log file and pid file are owned by the same,
+            # non-superuser.
+            os.chown(logfile, uid, gid)
+            os.chown(pidfile, uid, gid)
 
     # If we are daemonizing, we have to set things up in a certain way:
     #
@@ -501,6 +511,7 @@ def stop():
 
         try:
             os.kill(pid, signal.SIGKILL)
+            os.remove(pidfile)
         except OSError:
             sys.stderr.write("failed (could not kill process %d)\n" % (pid))
             retval = 1
@@ -520,11 +531,13 @@ def restart():
 p = argparse.ArgumentParser(description="Control execution of a Tangelo server.")
 p.add_argument("-d", "--no-daemon", action="store_true", help="run Tangelo in-console (not as a daemon).")
 p.add_argument("-a", "--no-auth", action="store_true", help="disable HTTP authentication (i.e. processing of .htaccess files).")
+p.add_argument("-p", "--no-drop-privileges", action="store_true", help="disable privilege drop when started as superuser.")
 p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
 args = p.parse_args()
 
 no_daemon = args.no_daemon
 do_auth = not args.no_auth
+drop_priv = not args.no_drop_privileges
 action = args.action
 
 # Configured variables.
