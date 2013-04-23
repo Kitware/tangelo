@@ -66,6 +66,7 @@ set(JS_UGLIFY_FILES
 
 # These files should be copied to the deployment directory.
 set(SOURCES
+    tangelo.py
     web/apps.json
     web/index.html
     web/index.js
@@ -241,12 +242,6 @@ if(DEPLOY_TEST_SERVICES)
         web/service/testapp.py)
 endif()
 
-# Configure the server config file.
-configure_file(
-    server.conf.in
-    ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/server.conf
-)
-
 # Configure the Python testing driver.
 configure_file(
     testing/tangelo-pytest.py.in
@@ -256,11 +251,6 @@ configure_file(
 configure_file(
     tangelo.in
     ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/tangelo
-)
-
-configure_file(
-    tangelo.py.in
-    ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/tangelo.py
 )
 
 # Copy the files to the deployment directory.

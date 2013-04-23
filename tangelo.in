@@ -16,6 +16,7 @@ import signal
 import StringIO
 import subprocess
 import sys
+import tangelo
 import traceback
 import time
 import types
@@ -27,17 +28,17 @@ def invoke_service(module, *pargs, **kwargs):
     # app, which lists the available app modules, along with docstrings or
     # similar.  It should also allow the user to add/delete search paths for
     # other modules.
-    content_type("text/plain")
+    tangelo.content_type("text/plain")
 
     # Construct a response container for reporting possible errors, as the
     # service modules themselves do.
-    response = empty_response()
+    response = tangelo.empty_response()
 
     # Import the module.
     try:
         service = imp.load_source("service", module)
     except IOError as e:
-        log("error: " + module)
+        tangelo.log("error importing module %s: %s" % (module, e), "ERROR")
         response['error'] = "IOError: %s" % (e)
         return json.dumps(response)
 
@@ -64,7 +65,7 @@ def invoke_service(module, *pargs, **kwargs):
         # Error message.
         response['error'] = "tangelo: error: %s: %s" % (e.__class__.__name__, e.message)
 
-        log("Caught exception - %s: %s" % (e.__class__.__name__, e.message))
+        tangelo.log("Caught exception - %s: %s" % (e.__class__.__name__, e.message), "ERROR")
 
         # Full Python traceback stack.
         s = StringIO.StringIO()
@@ -200,11 +201,11 @@ class Server(object):
         # registry and the application configuration.
         if htfile is None:
             if path_info in self.security:
-                cherrypy.log("Removing security path %s" % (path_info), "HTACCESS")
+                tangelo.log("Removing security path %s" % (path_info), "HTACCESS")
                 del self.security[path_info]
                 self.app.pop(path_info, None)
         else:
-            cherrypy.log("Registering %s..." % (path_info), "HTACCESS")
+            tangelo.log("Registering %s..." % (path_info), "HTACCESS")
 
             # Stat the file specifically to learn it's last-modified time.
             ht_mtime = os.stat(htfile).st_mtime
@@ -216,7 +217,7 @@ class Server(object):
                 # parse the file and insert (or update) the record in the table.
                 htspec = HtAccess(htfile)
                 if not htspec:
-                    cherrypy.log("Could not register %s: %s" % (path_info, htspec.msg), "HTACCESS")
+                    tangelo.log("Could not register %s: %s" % (path_info, htspec.msg), "HTACCESS")
                     return htspec.msg
 
                 # Declare an auth config object using the values in the HtAccess
@@ -233,9 +234,9 @@ class Server(object):
                 # Store the htfile's last-modified time.
                 self.security[path_info] = ht_mtime
 
-                cherrypy.log("Added %s to registry!" % (path_info), "HTACCESS")
+                tangelo.log("Added %s to registry!" % (path_info), "HTACCESS")
             else:
-                cherrypy.log("%s already registered!" % (path_info), "HTACCESS")
+                tangelo.log("%s already registered!" % (path_info), "HTACCESS")
 
         return None
 
@@ -244,7 +245,7 @@ class Server(object):
         if self.app is None:
             self.app = cherrypy.tree.apps.values()[0]
 
-        cherrypy.log("path_info: %s" % (cherrypy.request.path_info), "HANDLER")
+        tangelo.log("path_info: %s" % (cherrypy.request.path_info), "HANDLER")
 
         # Convert the path argument into a list (from a tuple).
         path = list(path)
@@ -327,8 +328,8 @@ class Server(object):
         if self.auth:
             filepath = os.path.dirname(finalpath).split("/")
             reqpath = os.path.dirname(reqpath).split("/")
-            cherrypy.log("finalpath: %s" % (finalpath), "HANDLER")
-            cherrypy.log("reqpath: %s" % (reqpath), "HANDLER")
+            tangelo.log("finalpath: %s" % (finalpath), "HANDLER")
+            tangelo.log("reqpath: %s" % (reqpath), "HANDLER")
 
             # Shorten the filepath to the length of reqpath, by fusing together the
             # prefix of filepath that corresponds to the first element of reqpath.
@@ -340,13 +341,13 @@ class Server(object):
             if len(filepath) > len(reqpath):
                 fuse = len(filepath) - len(reqpath) + 1
                 filepath = ["/".join(filepath[:fuse])] + filepath[fuse:]
-                cherrypy.log("filepath: %s" % (filepath), "HANDLER")
+                tangelo.log("filepath: %s" % (filepath), "HANDLER")
 
             # Now begin checking each directory up to the root for an updated
             # .htaccess file.
             for i in range(len(reqpath), 0, -1):
                 done = False
-                cherrypy.log("i = %d" % (i), "HANDLER")
+                tangelo.log("i = %d" % (i), "HANDLER")
 
                 rqp = "/".join(reqpath[:i])
                 fp = "/".join(filepath[:i])
@@ -361,11 +362,11 @@ class Server(object):
                     rqp = "/"
                     fp = current_dir + "/web"
 
-                cherrypy.log("fp is %s" % (fp), "HANDLER")
+                tangelo.log("fp is %s" % (fp), "HANDLER")
 
                 htfile = fp + "/.htaccess"
-                cherrypy.log("htfile is %s" % (htfile), "HANDLER")
-                cherrypy.log("rqp is %s" % (rqp), "HANDLER")
+                tangelo.log("htfile is %s" % (htfile), "HANDLER")
+                tangelo.log("rqp is %s" % (rqp), "HANDLER")
                 if not os.path.exists(htfile):
                     htfile = None
                 msg = self.htaccess(htfile, rqp)
@@ -431,13 +432,13 @@ def start():
             try:
                 uid = pwd.getpwnam(user).pw_uid
             except KeyError:
-                cherrypy.log("no such user '%s' to drop privileges to" % (user), "ERROR")
+                tangelo.log("no such user '%s' to drop privileges to" % (user), "ERROR")
                 sys.exit(1)
 
             try:
                 gid = grp.getgrnam(group).gr_gid
             except KeyError:
-                cherrypy.log("no such group '%s' to drop privileges to" % (group), "ERROR")
+                tangelo.log("no such group '%s' to drop privileges to" % (group), "ERROR")
                 sys.exit(1)
 
             cherrypy.process.plugins.DropPrivileges(cherrypy.engine, uid=uid, gid=gid).subscribe()
