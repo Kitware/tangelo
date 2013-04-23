@@ -102,10 +102,6 @@ class Server(object):
         # other modules.
         tangelo.content_type("text/plain")
 
-        # Construct a response container for reporting possible errors, as the
-        # service modules themselves do.
-        response = tangelo.empty_response()
-
         # Import the module.
         try:
             service = imp.load_source("service", module)
@@ -114,51 +110,83 @@ class Server(object):
             response['error'] = "IOError: %s" % (e)
             return json.dumps(response)
 
-        # Report an error if the Handler object has no go() method.
-        if 'run' not in dir(service):
-            response['error'] = "tangelo: error: no function `run()` defined in module '%s'" % (module)
-            return json.dumps(response)
-
-        # Call the module's run() method, passing it the positional and keyword args
-        # that came into this method.
+        # Try to run the service - either it's in a function called "run()", or
+        # else it's in a REST API consisting of at least one of "get()",
+        # "put()", "post()", or "delete()".
+        #
+        # Collect the result in a variable - depending on its type, it will be
+        # transformed in some way below (by default, to JSON, but may also raise
+        # a cherrypy exception, log itself in a streaming table, etc.).
+        #
+        # By default, the result should be a bare response that we will place an
+        # error message in if something goes wrong; if nothing goes wrong this
+        # will be replaced with some other object.
+        result = tangelo.empty_response()
         try:
-            result = service.run(*pargs, **kwargs)
-
-            # Check the type of the result - if it's anything other than a string,
-            # assume it needs to be converted to JSON.
-            #
-            # This allows the services to return a Python object if they wish, or to
-            # perform custom serialization (such as for MongoDB results, etc.).
-            if isinstance(result, tangelo.HTTPStatusCode):
-                if result.msg:
-                    raise cherrypy.HTTPError(result.code, result.msg)
+            if 'run' in dir(service):
+                # Call the module's run() method, passing it the positional and
+                # keyword args that came into this method.
+                result = service.run(*pargs, **kwargs)
+            elif len(set(["get", "put", "post", "delete"]) & set(dir(service))) == 0:
+                # If there is no run() method, check for some form of a REST API,
+                # and if there is none, register an error.
+                result['error'] = "error: no function 'run()', nor any REST functions ('get()', 'put()', 'post()', 'delete()') defined in module '%s'" % (module)
+            else:
+                # Reaching here means it's a REST API.  Check for the requested
+                # method and either call it or give a 405 error.
+                method = cherrypy.request.method
+                if method in ["GET", "POST", "PUT", "DELETE"] and method.lower() in dir(service):
+                    result = service.__dict__[method.lower()](*pargs, **kwargs)
                 else:
-                    raise cherrypy.HTTPError(result.code)
-            elif not isinstance(result, types.StringTypes):
-                result = json.dumps(result)
-
-            return result
-        except cherrypy.HTTPError as e:
-            # Reraise this immediately so it can have its intended semantic
-            # meaning in the program (this block prevents the exception from
-            # being caught by the following except block).
-            raise
+                    result = tangelo.HTTPStatusCode(405, "Method not allowed")
         except Exception as e:
             # Error message.
-            response['error'] = "tangelo: error: %s: %s" % (e.__class__.__name__, e.message)
+            result['error'] = "error: %s: %s" % (e.__class__.__name__, e.message)
 
             tangelo.log("Caught exception - %s: %s" % (e.__class__.__name__, e.message), "ERROR")
 
             # Full Python traceback stack.
             s = StringIO.StringIO()
             traceback.print_exc(file=s)
-            if 'traceback' in response:
-                response['traceback'] += "\n" + s.getvalue()
+            if 'traceback' in result:
+                result['traceback'] += "\n" + s.getvalue()
             else:
-                response['traceback'] = "\n" + s.getvalue()
+                result['traceback'] = "\n" + s.getvalue()
 
-            # Serialize to JSON.
-            return json.dumps(response)
+        # Check the type of the result to decide what result to finally return:
+        #
+        # 1. If it is an HTTPStatusCode object, raise a cherrypy HTTPError
+        # exception, which will cause the browser to do the right thing.
+        #
+        # 2. TODO: If it's a Python generator object, log it with the Tangelo
+        # streaming API.
+        #
+        # 3. If it's a Python dictionary, convert it to JSON.
+        #
+        # 4. If it's a string, don't do anything to it.
+        #
+        # This allows the services to return a Python object if they wish, or to
+        # perform custom serialization (such as for MongoDB results, etc.).
+        if isinstance(result, tangelo.HTTPStatusCode):
+            if result.msg:
+                raise cherrypy.HTTPError(result.code, result.msg)
+            else:
+                raise cherrypy.HTTPError(result.code)
+        elif "next" in dir(result):
+            # TODO: implement streaming API stuff here
+            pass
+        elif not isinstance(result, types.StringTypes):
+            try:
+                result = json.dumps(result)
+            except TypeError as e:
+                # Reinitialize result as an empty response, since to reach here,
+                # result must have been some other type, namely some type that
+                # is not JSON-serializable.
+                result = tangelo.empty_response()
+                result["error"] = "TypeError: %s" % (e.message)
+                result = json.dumps(result)
+
+        return result
 
     @staticmethod
     def dirlisting(dirpath, reqpath):
