@@ -171,8 +171,16 @@ class HtAccess:
         return self.msg is None
 
 class Server(object):
-    def __init__(self):
+    def __init__(self, auth):
+        # A boolean indicating whether to perform HTTP authentication or not.
+        self.auth = auth
+
+        # A handle to the CherryPy app itself, for purposes of installing
+        # configs to execute authentication.
         self.app = None
+
+        # A dict containing information about currently installed authentication
+        # handlers.
         self.security = {}
 
     def htaccess(self, htfile, path_info):
@@ -316,55 +324,56 @@ class Server(object):
         # Check to see whether the path is protected by an .htaccess file
         # (anywhere in either the requested path's directory itself, or any
         # ancestor directory).
-        filepath = os.path.dirname(finalpath).split("/")
-        reqpath = os.path.dirname(reqpath).split("/")
-        cherrypy.log("finalpath: %s" % (finalpath), "HANDLER")
-        cherrypy.log("reqpath: %s" % (reqpath), "HANDLER")
+        if self.auth:
+            filepath = os.path.dirname(finalpath).split("/")
+            reqpath = os.path.dirname(reqpath).split("/")
+            cherrypy.log("finalpath: %s" % (finalpath), "HANDLER")
+            cherrypy.log("reqpath: %s" % (reqpath), "HANDLER")
 
-        # Shorten the filepath to the length of reqpath, by fusing together the
-        # prefix of filepath that corresponds to the first element of reqpath.
-        # This will make both paths "line up" elementwise.  Example: the request
-        # path ~roni/app/index.html maps to the file path
-        # /home/roni/app/index.html.  The shortened file path list
-        # ["/home/roni", "app", "index.html"] has the same length as the request
-        # path list ["~roni", "app", "index.html"].
-        if len(filepath) > len(reqpath):
-            fuse = len(filepath) - len(reqpath) + 1
-            filepath = ["/".join(filepath[:fuse])] + filepath[fuse:]
-            cherrypy.log("filepath: %s" % (filepath), "HANDLER")
+            # Shorten the filepath to the length of reqpath, by fusing together the
+            # prefix of filepath that corresponds to the first element of reqpath.
+            # This will make both paths "line up" elementwise.  Example: the request
+            # path ~roni/app/index.html maps to the file path
+            # /home/roni/app/index.html.  The shortened file path list
+            # ["/home/roni", "app", "index.html"] has the same length as the request
+            # path list ["~roni", "app", "index.html"].
+            if len(filepath) > len(reqpath):
+                fuse = len(filepath) - len(reqpath) + 1
+                filepath = ["/".join(filepath[:fuse])] + filepath[fuse:]
+                cherrypy.log("filepath: %s" % (filepath), "HANDLER")
 
-        # Now begin checking each directory up to the root for an updated
-        # .htaccess file.
-        for i in range(len(reqpath), 0, -1):
-            done = False
-            cherrypy.log("i = %d" % (i), "HANDLER")
+            # Now begin checking each directory up to the root for an updated
+            # .htaccess file.
+            for i in range(len(reqpath), 0, -1):
+                done = False
+                cherrypy.log("i = %d" % (i), "HANDLER")
 
-            rqp = "/".join(reqpath[:i])
-            fp = "/".join(filepath[:i])
+                rqp = "/".join(reqpath[:i])
+                fp = "/".join(filepath[:i])
 
-            # Special case detection - if we wind up with rqp as "" or "/", then
-            # this means we have reached the web root and it is the last case we
-            # need to check.  Furthermore, if we arrived here by going one level
-            # up from someone's private web directory (e.g. from "/~roni") then
-            # we need to reset the filepath to point at the web root as well.
-            if rqp in ["", "/"]:
-                done = True
-                rqp = "/"
-                fp = current_dir + "/web"
+                # Special case detection - if we wind up with rqp as "" or "/", then
+                # this means we have reached the web root and it is the last case we
+                # need to check.  Furthermore, if we arrived here by going one level
+                # up from someone's private web directory (e.g. from "/~roni") then
+                # we need to reset the filepath to point at the web root as well.
+                if rqp in ["", "/"]:
+                    done = True
+                    rqp = "/"
+                    fp = current_dir + "/web"
 
-            cherrypy.log("fp is %s" % (fp), "HANDLER")
+                cherrypy.log("fp is %s" % (fp), "HANDLER")
 
-            htfile = fp + "/.htaccess"
-            cherrypy.log("htfile is %s" % (htfile), "HANDLER")
-            cherrypy.log("rqp is %s" % (rqp), "HANDLER")
-            if not os.path.exists(htfile):
-                htfile = None
-            msg = self.htaccess(htfile, rqp)
-            if msg is not None:
-                raise cherrypy.HTTPError(401, "There was an error in the HTTP authentication process: %s" % (msg))
+                htfile = fp + "/.htaccess"
+                cherrypy.log("htfile is %s" % (htfile), "HANDLER")
+                cherrypy.log("rqp is %s" % (rqp), "HANDLER")
+                if not os.path.exists(htfile):
+                    htfile = None
+                msg = self.htaccess(htfile, rqp)
+                if msg is not None:
+                    raise cherrypy.HTTPError(401, "There was an error in the HTTP authentication process: %s" % (msg))
 
-            if done:
-                break
+                if done:
+                    break
 
         # Serve the resource.
         if os.path.isdir(finalpath):
@@ -398,7 +407,7 @@ def start():
                             "server.socket_port": @SERVER_PORT@})
 
     # Create an instance of the main handler object.
-    cherrypy.tree.mount(Server(), "/")
+    cherrypy.tree.mount(Server(do_auth), "/")
 
     # Assume things are going to go well.
     retval = 0
@@ -485,12 +494,12 @@ def restart():
 
 p = argparse.ArgumentParser(description="Control execution of a Tangelo server.")
 p.add_argument("-d", "--no-daemon", action="store_true", help="run Tangelo in-console (not as a daemon).")
-#p.add_argument("-a", "--no-auth", action="store_true", help="disable HTTP authentication (i.e. processing of .htaccess files).")
+p.add_argument("-a", "--no-auth", action="store_true", help="disable HTTP authentication (i.e. processing of .htaccess files).")
 p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
 args = p.parse_args()
 
 no_daemon = args.no_daemon
-#do_auth = not args.no_auth
+do_auth = not args.no_auth
 action = args.action
 
 # Configured variables.
