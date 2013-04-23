@@ -412,6 +412,31 @@ def start():
     # Assume things are going to go well.
     retval = 0
 
+    # If we are the superuser, try to drop privileges (since we've bound to
+    # whatever port superuser privileges were needed for already).
+    if os.getuid() == 0:
+        # Set the username and groupname to drop privileges down to.
+        user = "@SERVER_USER@"
+        group = "@SERVER_GROUP@"
+
+        # If we're on windows, don't supply any username/groupname.
+        if user == "windows" and group == "windows":
+            DropPrivileges(cherrypy.engine).subscribe()
+        else:
+            try:
+                uid = pwd.getpwnam(user).pw_uid
+            except KeyError:
+                cherrypy.log("no such user '%s' to drop privileges to" % (user), "ERROR")
+                sys.exit(1)
+
+            try:
+                gid = grp.getgrnam(group).gr_gid
+            except KeyError:
+                cherrypy.log("no such group '%s' to drop privileges to" % (group), "ERROR")
+                sys.exit(1)
+
+            cherrypy.process.plugins.DropPrivileges(cherrypy.engine, uid=uid, gid=gid).subscribe()
+
     # If we are daemonizing, we have to set things up in a certain way:
     #
     # 1. We fork ourselves immediately, so the child process, which will
