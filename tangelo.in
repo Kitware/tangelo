@@ -21,14 +21,26 @@ import traceback
 import time
 import types
 
-class HtAccess:
-    def __init__(self, filename):
-        # Initialize all info fields with None.
-        self.auth_type = None
-        self.user_file = None
-        self.realm = None
-        self.userpass = None
-        self.msg = None
+class Server(object):
+    def __init__(self, auth):
+        # A boolean indicating whether to perform HTTP authentication or not.
+        self.auth = auth
+
+        # A handle to the CherryPy app itself, for purposes of installing
+        # configs to execute authentication.
+        self.app = None
+
+        # A dict containing information about currently installed authentication
+        # handlers.
+        self.security = {}
+
+    @staticmethod
+    def parse_htaccess(filename):
+        result = {"msg": None,
+                  "auth_type": None,
+                  "user_file": None,
+                  "realm": None,
+                  "userpass": None}
 
         # Create a list of acceptable authentication types.
         allowed = ["digest"]
@@ -43,55 +55,42 @@ class HtAccess:
                 for i, (k, v) in enumerate(zip(keys, values)):
                     if k == "AuthType":
                         if v not in allowed:
-                            self.msg = "Supported authentication types: %s" % (", ".join(allowed))
-                            return
+                            result["msg"] = "%s is not a supported authentication type.  The supported types are: %s" % (v, ", ".join(allowed))
+                            return result
                         else:
-                            self.auth_type = v
+                            result["auth_type"] = v
                     elif k == "AuthUserFile":
-                        self.user_file = v
+                        result["user_file"] = v
                     elif k == "AuthRealm":
-                        self.realm = v
+                        result["realm"] = v
                     else:
-                        self.msg = "Unknown key '%s' on line %d of file '%s'" % (k, i+1, filename)
-                        return
+                        result["msg"] = "Unknown key '%s' on line %d of file '%s'" % (k, i+1, filename)
+                        return result
         except IOError:
-            self.msg = "Could not open file '%s'" % (filename)
-            return
+            result["msg"] = "Could not open file '%s'" % (filename)
+            return result
 
         # Open the user file and parse out the username/passwords of those users
         # in the correct realm.
         recs = None
-        if self.user_file is not None:
+        if result["user_file"] is not None:
             try:
-                with open(self.user_file) as f:
-                    recs = filter(lambda x: x[1] == self.realm, map(lambda x: x.strip().split(":"), f.readlines()))
+                with open(result["user_file"]) as f:
+                    recs = filter(lambda x: x[1] == result["realm"], map(lambda x: x.strip().split(":"), f.readlines()))
             except IOError:
-                self.msg = "Could not open user password file '%s'" % (self.user_file)
-                return
+                result["msg"] = "Could not open user password file '%s'" % (result["user_file"])
+                return result
             except IndexError:
-                self.msg = "Malformed content in user password file '%s' (some line has too few fields)" % (self.user_file)
-                return
+                result["msg"] = "Malformed content in user password file '%s' (some line has too few fields)" % (result["user_file"])
+                return result
 
         try:
-            self.userpass = {x[0]: x[2] for x in recs}
+            result["userpass"] = {x[0]: x[2] for x in recs}
         except IndexError:
-            self.msg = "Malformed content in user password file '%s' (some line has too few fields)" % (self.user_file)
+            result["msg"] = "Malformed content in user password file '%s' (some line has too few fields)" % (result["user_file"])
+            return result
 
-    def __nonzero__(self):
-        return self.msg is None
-
-class Server(object):
-    def __init__(self, auth):
-        # A boolean indicating whether to perform HTTP authentication or not.
-        self.auth = auth
-
-        # A handle to the CherryPy app itself, for purposes of installing
-        # configs to execute authentication.
-        self.app = None
-
-        # A dict containing information about currently installed authentication
-        # handlers.
-        self.security = {}
+        return result
 
     @staticmethod
     def invoke_service(module, *pargs, **kwargs):
@@ -217,17 +216,17 @@ class Server(object):
                 # security table, OR there IS an entry but the htaccess file is
                 # NEWER than the one used to create that entry, then we need to
                 # parse the file and insert (or update) the record in the table.
-                htspec = HtAccess(htfile)
-                if not htspec:
-                    tangelo.log("Could not register %s: %s" % (path_info, htspec.msg), "HTACCESS")
-                    return htspec.msg
+                htspec = Server.parse_htaccess(htfile)
+                if htspec["msg"]:
+                    tangelo.log("Could not register %s: %s" % (path_info, htspec["msg"]), "HTACCESS")
+                    return htspec["msg"]
 
                 # Declare an auth config object using the values in the HtAccess
                 # object.
-                toolname = "tools.auth_%s.%s" % (htspec.auth_type, "%s")
-                passdict = lambda realm, username: htspec.userpass.get(username)
+                toolname = "tools.auth_%s.%s" % (htspec["auth_type"], "%s")
+                passdict = lambda realm, username: htspec["userpass"].get(username)
                 auth_conf = {toolname % "on": True,
-                             toolname % "realm": htspec.realm,
+                             toolname % "realm": htspec["realm"],
                              toolname % "get_ha1": passdict,
                              toolname % "key": "deadbeef"}
 
@@ -381,8 +380,11 @@ class Server(object):
             # Fuse the reqpath components back into a string.
             reqpath = "/".join(reqpath)
 
-        # If the reqpath represents a directory, remove the trailing slash.
-        if reqpath[-1] == "/":
+        # If the reqpath represents a directory (besides the web root), remove
+        # the trailing slash.
+        if reqpath == "":
+            reqpath = "/"
+        elif reqpath[-1] == "/":
             reqpath = reqpath[:-1]
 
         # Serve the resource.
