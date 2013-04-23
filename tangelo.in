@@ -378,9 +378,16 @@ class Server(object):
                 if done:
                     break
 
+            # Fuse the reqpath components back into a string.
+            reqpath = "/".join(reqpath)
+
+        # If the reqpath represents a directory, remove the trailing slash.
+        if reqpath[-1] == "/":
+            reqpath = reqpath[:-1]
+
         # Serve the resource.
         if os.path.isdir(finalpath):
-            return Server.dirlisting(finalpath, "/".join(reqpath))
+            return Server.dirlisting(finalpath, reqpath)
         else:
             return cherrypy.lib.static.serve_file(finalpath)
 
