@@ -323,6 +323,11 @@ class Server(object):
         if reqpath[-1] == "/":
             reqpath = reqpath[:-1]
         if os.path.isdir(finalpath):
+            # If the URL is a directory, but without a trailing slash, redirect
+            # to the equivalent URL *with* a trailing slash.
+            if cherrypy.request.path_info == "" or cherrypy.request.path_info[-1] != "/":
+                raise cherrypy.HTTPRedirect(cherrypy.request.path_info + "/")
+
             if os.path.exists(finalpath + "/index.html"):
                 finalpath += "/index.html"
                 reqpath += "/index.html"
