@@ -20,3 +20,8 @@ def content_type(t=None):
 
 def log(*pargs, **kwargs):
     cherrypy.log(*pargs, **kwargs)
+
+class HTTPStatusCode:
+    def __init__(self, code, msg=None):
+        self.code = code
+        self.msg = msg

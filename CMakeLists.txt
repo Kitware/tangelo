@@ -237,6 +237,7 @@ set(SOURCES
 
 if(DEPLOY_TEST_SERVICES)
     list(APPEND SOURCES
+        web/service/404.py
         web/service/broken.py
         web/service/exceptional.py
         web/service/testapp.py)

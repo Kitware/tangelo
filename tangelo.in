@@ -129,10 +129,20 @@ class Server(object):
             #
             # This allows the services to return a Python object if they wish, or to
             # perform custom serialization (such as for MongoDB results, etc.).
-            if not isinstance(result, types.StringTypes):
+            if isinstance(result, tangelo.HTTPStatusCode):
+                if result.msg:
+                    raise cherrypy.HTTPError(result.code, result.msg)
+                else:
+                    raise cherrypy.HTTPError(result.code)
+            elif not isinstance(result, types.StringTypes):
                 result = json.dumps(result)
 
             return result
+        except cherrypy.HTTPError as e:
+            # Reraise this immediately so it can have its intended semantic
+            # meaning in the program (this block prevents the exception from
+            # being caught by the following except block).
+            raise
         except Exception as e:
             # Error message.
             response['error'] = "tangelo: error: %s: %s" % (e.__class__.__name__, e.message)
