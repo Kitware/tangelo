@@ -1,9 +1,0 @@
-[global]
-environment: 'production'
-log.error_file: 'tangelo.log'
-log.screen: True
-
-tree.tangelo: cherrypy.Application(tangelo.Server())
-
-server.socket_host = "@SERVER_HOSTNAME@"
-server.socket_port = @SERVER_PORT@

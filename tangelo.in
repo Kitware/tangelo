@@ -1,58 +1,524 @@
 #!${PYTHON_EXECUTABLE}
 
 import argparse
+import cherrypy
+import cherrypy.lib.static
+import cherrypy.process.plugins
+import datetime
+import grp
+import imp
+import json
 import os
+import os.path
 import platform
+import pwd
 import signal
+import StringIO
 import subprocess
 import sys
+import tangelo
+import traceback
 import time
+import types
+
+class Server(object):
+    def __init__(self, auth):
+        # A boolean indicating whether to perform HTTP authentication or not.
+        self.auth = auth
+
+        # A handle to the CherryPy app itself, for purposes of installing
+        # configs to execute authentication.
+        self.app = None
+
+        # A dict containing information about currently installed authentication
+        # handlers.
+        self.security = {}
+
+    @staticmethod
+    def parse_htaccess(filename):
+        result = {"msg": None,
+                  "auth_type": None,
+                  "user_file": None,
+                  "realm": None,
+                  "userpass": None}
+
+        # Create a list of acceptable authentication types.
+        allowed = ["digest"]
+
+        # Try to open and parse the file.
+        try:
+            with open(filename) as f:
+                lines = filter(lambda x: len(x) > 0, map(lambda x: x.strip().split(), f.readlines()))
+                keys = map(lambda x: x[0], lines)
+                values = map(lambda x: " ".join(x[1:]), lines)
+
+                for i, (k, v) in enumerate(zip(keys, values)):
+                    if k == "AuthType":
+                        if v not in allowed:
+                            result["msg"] = "%s is not a supported authentication type.  The supported types are: %s" % (v, ", ".join(allowed))
+                            return result
+                        else:
+                            result["auth_type"] = v
+                    elif k == "AuthUserFile":
+                        result["user_file"] = v
+                    elif k == "AuthRealm":
+                        result["realm"] = v
+                    else:
+                        result["msg"] = "Unknown key '%s' on line %d of file '%s'" % (k, i+1, filename)
+                        return result
+        except IOError:
+            result["msg"] = "Could not open file '%s'" % (filename)
+            return result
+
+        # Open the user file and parse out the username/passwords of those users
+        # in the correct realm.
+        recs = None
+        if result["user_file"] is not None:
+            try:
+                with open(result["user_file"]) as f:
+                    recs = filter(lambda x: x[1] == result["realm"], map(lambda x: x.strip().split(":"), f.readlines()))
+            except IOError:
+                result["msg"] = "Could not open user password file '%s'" % (result["user_file"])
+                return result
+            except IndexError:
+                result["msg"] = "Malformed content in user password file '%s' (some line has too few fields)" % (result["user_file"])
+                return result
+
+        try:
+            result["userpass"] = {x[0]: x[2] for x in recs}
+        except IndexError:
+            result["msg"] = "Malformed content in user password file '%s' (some line has too few fields)" % (result["user_file"])
+            return result
+
+        return result
+
+    @staticmethod
+    def invoke_service(module, *pargs, **kwargs):
+        # TODO(choudhury): This method should attempt to load the named module, then invoke it
+        # with the given arguments.  However, if the named module is "config" or
+        # something similar, the method should instead launch a special "config"
+        # app, which lists the available app modules, along with docstrings or
+        # similar.  It should also allow the user to add/delete search paths for
+        # other modules.
+        tangelo.content_type("text/plain")
+
+        # Construct a response container for reporting possible errors, as the
+        # service modules themselves do.
+        response = tangelo.empty_response()
+
+        # Import the module.
+        try:
+            service = imp.load_source("service", module)
+        except IOError as e:
+            tangelo.log("error importing module %s: %s" % (module, e), "ERROR")
+            response['error'] = "IOError: %s" % (e)
+            return json.dumps(response)
+
+        # Report an error if the Handler object has no go() method.
+        if 'run' not in dir(service):
+            response['error'] = "tangelo: error: no function `run()` defined in module '%s'" % (module)
+            return json.dumps(response)
+
+        # Call the module's run() method, passing it the positional and keyword args
+        # that came into this method.
+        try:
+            result = service.run(*pargs, **kwargs)
+
+            # Check the type of the result - if it's anything other than a string,
+            # assume it needs to be converted to JSON.
+            #
+            # This allows the services to return a Python object if they wish, or to
+            # perform custom serialization (such as for MongoDB results, etc.).
+            if isinstance(result, tangelo.HTTPStatusCode):
+                if result.msg:
+                    raise cherrypy.HTTPError(result.code, result.msg)
+                else:
+                    raise cherrypy.HTTPError(result.code)
+            elif not isinstance(result, types.StringTypes):
+                result = json.dumps(result)
+
+            return result
+        except cherrypy.HTTPError as e:
+            # Reraise this immediately so it can have its intended semantic
+            # meaning in the program (this block prevents the exception from
+            # being caught by the following except block).
+            raise
+        except Exception as e:
+            # Error message.
+            response['error'] = "tangelo: error: %s: %s" % (e.__class__.__name__, e.message)
+
+            tangelo.log("Caught exception - %s: %s" % (e.__class__.__name__, e.message), "ERROR")
+
+            # Full Python traceback stack.
+            s = StringIO.StringIO()
+            traceback.print_exc(file=s)
+            if 'traceback' in response:
+                response['traceback'] += "\n" + s.getvalue()
+            else:
+                response['traceback'] = "\n" + s.getvalue()
+
+            # Serialize to JSON.
+            return json.dumps(response)
+
+    @staticmethod
+    def dirlisting(dirpath, reqpath):
+        files = filter(lambda x: len(x) > 0 and x[0] != ".", os.listdir(dirpath))
+        #filespec = ["Type", "Name", "Last modified", "Size"]
+        filespec = []
+        for f in files:
+            p = dirpath + "/" + f
+            s = os.stat(p)
+            mtime = datetime.datetime.fromtimestamp(s.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+
+            if os.path.isdir(p):
+                t = "dir"
+                s = "-"
+            else:
+                t = "file"
+                s = s.st_size
+
+            filespec.append([t, "<a href=\"%s/%s\">%s</a>" % (reqpath, f, f), mtime, s])
+
+        filespec = "\n".join(map(lambda row: "<tr>" + "".join(map(lambda x: "<td>%s</td>" % x, row)) + "</tr>", filespec))
+
+        result = """<!doctype html>
+<title>Index of %s</title>
+<h1>Index of %s</h1>
+<table>
+<tr>
+    <th>Type</th><th>Name</th><th>Last Modified</th><th>Size</th>
+</tr>
+%s
+</table>
+""" % (reqpath, reqpath, filespec)
+
+        #return "<!doctype html><h1>Directory Listing</h1>This is a dummy directory listing placeholder."
+        return result
+
+    def htaccess(self, htfile, path_info):
+        # TODO(choudhury): look at
+        # /usr/lib/python2.7/site-packages/cherrypy/lib/auth_digest.py and
+        # /usr/lib/python2.7/site-packages/cherrypy/test/test_auth_digest.py for
+        # examples of how to do digest auth.  Will want to have users use a
+        # tangpass sort of script to generate .htaccess files, so the digest
+        # method can remain consistent.
+        #
+        # May also want to include a basic auth path as well, perhaps depending
+        # on a key/value in the .htaccess file itself.
+
+        # If there is no htfile, then ensure that the path is unregistered from
+        # the security dict, and unregister the config found there.  Otherwise,
+        # parse the htfile and add whatever is found there to the security
+        # registry and the application configuration.
+        if htfile is None:
+            if path_info in self.security:
+                tangelo.log("Removing security path %s" % (path_info), "HTACCESS")
+                del self.security[path_info]
+                self.app.pop(path_info, None)
+        else:
+            tangelo.log("Registering %s..." % (path_info), "HTACCESS")
+
+            # Stat the file specifically to learn it's last-modified time.
+            ht_mtime = os.stat(htfile).st_mtime
+
+            if path_info not in self.security or ht_mtime > self.security[path_info]:
+                # We have found an htaccess file - if there is NO ENTRY in the
+                # security table, OR there IS an entry but the htaccess file is
+                # NEWER than the one used to create that entry, then we need to
+                # parse the file and insert (or update) the record in the table.
+                htspec = Server.parse_htaccess(htfile)
+                if htspec["msg"]:
+                    tangelo.log("Could not register %s: %s" % (path_info, htspec["msg"]), "HTACCESS")
+                    return htspec["msg"]
+
+                # Declare an auth config object using the values in the HtAccess
+                # object.
+                toolname = "tools.auth_%s.%s" % (htspec["auth_type"], "%s")
+                passdict = lambda realm, username: htspec["userpass"].get(username)
+                auth_conf = {toolname % "on": True,
+                             toolname % "realm": htspec["realm"],
+                             toolname % "get_ha1": passdict,
+                             toolname % "key": "deadbeef"}
+
+                self.app.merge({path_info: auth_conf})
+
+                # Store the htfile's last-modified time.
+                self.security[path_info] = ht_mtime
+
+                tangelo.log("Added %s to registry!" % (path_info), "HTACCESS")
+            else:
+                tangelo.log("%s already registered!" % (path_info), "HTACCESS")
+
+        return None
+
+    @cherrypy.expose
+    def default(self, *path, **args):
+        if self.app is None:
+            self.app = cherrypy.tree.apps.values()[0]
+
+        tangelo.log("path_info: %s" % (cherrypy.request.path_info), "HANDLER")
+
+        # Convert the path argument into a list (from a tuple).
+        path = list(path)
+
+        # If there are no positional arguments, behave as though the root
+        # index.html was requested.
+        if len(path) == 0:
+            path = ["index.html"]
+
+        # Check the first character of the first path component.  If it's a
+        # tilde, then assume the path points into a user's home directory.
+        if path[0][0] == "~":
+            # Only treat this component as a home directory if there is actually
+            # text following the tilde (rather than making the server serve
+            # files from the home directory of whatever user account it is using
+            # to run).
+            if len(path[0]) > 1:
+                # Expand the home directory, append the tangelo_html
+                # subdirectory, and then the tail of the original path.
+                path = os.path.expanduser(path[0]).split("/") + ["tangelo_html"] + path[1:]
+        else:
+            # TODO(choudhury): check a table of configured custom mappings to
+            # see if the first path component should be mapped to some other
+            # filesystem path.
+
+            # Reaching this point means the path is relative to the server's web
+            # root.
+            path = current_dir.split("/") + ["web"] + path
+
+        # Check for the word "service" in the path - this indicates the
+        # invocation of a web service placed somewhere besides the global
+        # services list.
+        try:
+            service = path.index("service")
+
+            # Make sure there is an actual service name after the "service" path
+            # component.
+            if len(path) == service + 1:
+                raise cherrypy.HTTPError(404, "Did you forget the service name?")
+
+            # Grab the portion of the path that names the service (appending the
+            # standard python file extension as well).
+            service_path = "/".join(path[:(service+2)]) + ".py"
+
+            # Grab the rest of the path list, as the positional arguments for
+            # the service invocation.
+            pargs = path[(service+2):]
+
+            # Invoke the service and return the result.
+            return Server.invoke_service(service_path, *pargs, **args)
+        except ValueError:
+            pass
+
+        # Form a path name from the path components.
+        finalpath = "/".join(path)
+
+        # If the path represents a directory, assume the request is for an
+        # index.html file (look for an index.htm as a backup, and as a last
+        # resort, assume the user wants to see a directory listing).
+        #
+        # As this transformation is taking place, use the information to
+        # possibly modify the request path info as well.
+        reqpath = cherrypy.request.path_info
+        if reqpath[-1] == "/":
+            reqpath = reqpath[:-1]
+        if os.path.isdir(finalpath):
+            # If the URL is a directory, but without a trailing slash, redirect
+            # to the equivalent URL *with* a trailing slash.
+            if cherrypy.request.path_info == "" or cherrypy.request.path_info[-1] != "/":
+                raise cherrypy.HTTPRedirect(cherrypy.request.path_info + "/")
+
+            if os.path.exists(finalpath + "/index.html"):
+                finalpath += "/index.html"
+                reqpath += "/index.html"
+            elif os.path.exists(finalpath + "index.htm"):
+                finalpath += "/index.htm"
+                reqpath += "/index.htm"
+            else:
+                finalpath += "/"
+                reqpath += "/"
+
+        # Check to see whether the path is protected by an .htaccess file
+        # (anywhere in either the requested path's directory itself, or any
+        # ancestor directory).
+        if self.auth:
+            filepath = os.path.dirname(finalpath).split("/")
+            reqpath = os.path.dirname(reqpath).split("/")
+            tangelo.log("finalpath: %s" % (finalpath), "HANDLER")
+            tangelo.log("reqpath: %s" % (reqpath), "HANDLER")
+
+            # Shorten the filepath to the length of reqpath, by fusing together the
+            # prefix of filepath that corresponds to the first element of reqpath.
+            # This will make both paths "line up" elementwise.  Example: the request
+            # path ~roni/app/index.html maps to the file path
+            # /home/roni/app/index.html.  The shortened file path list
+            # ["/home/roni", "app", "index.html"] has the same length as the request
+            # path list ["~roni", "app", "index.html"].
+            if len(filepath) > len(reqpath):
+                fuse = len(filepath) - len(reqpath) + 1
+                filepath = ["/".join(filepath[:fuse])] + filepath[fuse:]
+                tangelo.log("filepath: %s" % (filepath), "HANDLER")
+
+            # Now begin checking each directory up to the root for an updated
+            # .htaccess file.
+            for i in range(len(reqpath), 0, -1):
+                done = False
+                tangelo.log("i = %d" % (i), "HANDLER")
+
+                rqp = "/".join(reqpath[:i])
+                fp = "/".join(filepath[:i])
+
+                # Special case detection - if we wind up with rqp as "" or "/", then
+                # this means we have reached the web root and it is the last case we
+                # need to check.  Furthermore, if we arrived here by going one level
+                # up from someone's private web directory (e.g. from "/~roni") then
+                # we need to reset the filepath to point at the web root as well.
+                if rqp in ["", "/"]:
+                    done = True
+                    rqp = "/"
+                    fp = current_dir + "/web"
+
+                tangelo.log("fp is %s" % (fp), "HANDLER")
+
+                htfile = fp + "/.htaccess"
+                tangelo.log("htfile is %s" % (htfile), "HANDLER")
+                tangelo.log("rqp is %s" % (rqp), "HANDLER")
+                if not os.path.exists(htfile):
+                    htfile = None
+                msg = self.htaccess(htfile, rqp)
+                if msg is not None:
+                    raise cherrypy.HTTPError(401, "There was an error in the HTTP authentication process: %s" % (msg))
+
+                if done:
+                    break
+
+            # Fuse the reqpath components back into a string.
+            reqpath = "/".join(reqpath)
+
+        # If the reqpath represents a directory (besides the web root), remove
+        # the trailing slash.
+        if reqpath == "":
+            reqpath = "/"
+        elif reqpath[-1] == "/":
+            reqpath = reqpath[:-1]
+
+        # Serve the resource.
+        if os.path.isdir(finalpath):
+            return Server.dirlisting(finalpath, reqpath)
+        else:
+            return cherrypy.lib.static.serve_file(finalpath)
 
 def start():
     sys.stderr.write("starting tangelo...")
+
+    # The presence of a pid file means this instance of Tangelo is already
+    # running.
     if os.path.exists(pidfile):
         sys.stderr.write("failed (already seems to be running)\n")
         return 1
 
-    if daemonize:
-        screen = open(os.devnull)
-    else:
-        screen = None
-
+    # Make sure the working directory is the place where the control script
+    # lives.
     os.chdir(path)
-    args = [sys.executable, cherry,
-        "-i", "tangelo",
-        "-c", "server.conf",
-        "-P", path]
+
+    # Set up the global configuration.  This includes the hostname and port
+    # number as specified in the CMake phase.
+    #
+    # Whether to log directly to the screen has to do with whether we are
+    # daemonizing - if we are, we want to suppress the output, and if we are
+    # not, we want to see everything.
+    cherrypy.config.update({"environment": "production",
+                            "log.error_file": logfile,
+                            "log.screen": not daemonize,
+                            "server.socket_host": "@SERVER_HOSTNAME@",
+                            "server.socket_port": @SERVER_PORT@})
+
+    # Create an instance of the main handler object.
+    cherrypy.tree.mount(Server(do_auth), "/")
+
+    # Assume things are going to go well.
+    retval = 0
+
+    # Create a pid file so we can make sure it's owned by the proper user later
+    # on.
+    with open(pidfile, "a"):
+        pass
+
+    # If we are the superuser, try to drop privileges (since we've bound to
+    # whatever port superuser privileges were needed for already).
+    if drop_priv and os.getuid() == 0:
+        # Set the username and groupname to drop privileges down to.
+        user = "@SERVER_USER@"
+        group = "@SERVER_GROUP@"
+
+        # If we're on windows, don't supply any username/groupname.
+        if user == "windows" and group == "windows":
+            DropPrivileges(cherrypy.engine).subscribe()
+        else:
+            try:
+                uid = pwd.getpwnam(user).pw_uid
+            except KeyError:
+                tangelo.log("no such user '%s' to drop privileges to" % (user), "ERROR")
+                sys.exit(1)
+
+            try:
+                gid = grp.getgrnam(group).gr_gid
+            except KeyError:
+                tangelo.log("no such group '%s' to drop privileges to" % (group), "ERROR")
+                sys.exit(1)
+
+            cherrypy.process.plugins.DropPrivileges(cherrypy.engine, uid=uid, gid=gid).subscribe()
+
+            # Make sure the log file and pid file are owned by the same,
+            # non-superuser.
+            os.chown(logfile, uid, gid)
+            os.chown(pidfile, uid, gid)
+
+    # If we are daemonizing, we have to set things up in a certain way:
+    #
+    # 1. We fork ourselves immediately, so the child process, which will
+    # actually start CherryPy, doesn't scribble on the screen.
+    #
+    # 2. We get the parent process to poll the logfile for specific messages
+    # indicating success or failure, and use these to print an informative
+    # message on screen.
     if daemonize:
-        args += ["-d", "-p", pidfile]
+        fork = os.fork()
 
-    if not daemonize:
-        sys.stderr.write("\n")
-
-    retval = subprocess.call(args, stdout=screen, stderr=screen)
-
-    if daemonize:
-        f = open(logfile)
-        f.seek(0, 2)
-        done = False
-        while not done:
-            time.sleep(1)
-            cur_pos = f.tell()
-            line = f.readline()
-            if not line:
-                f.seek(cur_pos)
-            else:
-                if "Bus STARTED" in line:
-                    retval = 0
-                    sys.stderr.write("success (serving on %s)\n" % location)
-                    done = True
-                elif "Error" in line:
-                    retval = 1
-                    sys.stderr.write("failed (check tangelo.log for reason)\n")
-                    done = True
-                elif "Serving on" in line:
-                    location = line.split("Serving on")[1].strip()
+        # Fork the process to allow the parent to poll the logfile to check for
+        # success.
+        if fork == 0:
+            # Return value of 0 means this branch is the child - start the
+            # process.
+            cherrypy.process.plugins.Daemonizer(cherrypy.engine).subscribe()
+            cherrypy.process.plugins.PIDFile(cherrypy.engine, pidfile).subscribe()
+            cherrypy.engine.start()
+            cherrypy.engine.block()
+        else:
+            # This branch is the parent - poll the log file and print a message
+            # on stdout.
+            f = open(logfile)
+            f.seek(0, 2)
+            done = False
+            while not done:
+                cur_pos = f.tell()
+                line = f.readline()
+                if not line:
+                    f.seek(cur_pos)
+                else:
+                    if "Bus STARTED" in line:
+                        retval = 0
+                        sys.stderr.write("success (serving on %s)\n" % location)
+                        done = True
+                    elif "Error" in line:
+                        retval = 1
+                        sys.stderr.write("failed (check tangelo.log for reason)\n")
+                        done = True
+                    elif "Serving on" in line:
+                        location = line.split("Serving on")[1].strip()
+    else:
+        cherrypy.engine.start()
+        cherrypy.engine.block()
 
     return retval
 
@@ -91,12 +557,14 @@ def restart():
 
 p = argparse.ArgumentParser(description="Control execution of a Tangelo server.")
 p.add_argument("-d", "--no-daemon", action="store_true", help="run Tangelo in-console (not as a daemon).")
-#p.add_argument("-a", "--no-auth", action="store_true", help="disable HTTP authentication (i.e. processing of .htaccess files).")
+p.add_argument("-a", "--no-auth", action="store_true", help="disable HTTP authentication (i.e. processing of .htaccess files).")
+p.add_argument("-p", "--no-drop-privileges", action="store_true", help="disable privilege drop when started as superuser.")
 p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
 args = p.parse_args()
 
 no_daemon = args.no_daemon
-#do_auth = not args.no_auth
+do_auth = not args.no_auth
+drop_priv = not args.no_drop_privileges
 action = args.action
 
 # Configured variables.
@@ -106,6 +574,9 @@ cherry = "@CherryPy_EXECUTABLE@"
 os_name = platform.system()
 if os_name == "Darwin":
     version = map(int, platform.mac_ver()[0].split("."))
+
+# Determine the current directory based on the invocation of this script.
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Decide whether to daemonize, based on whether the user wishes not to, and
 # whether the platform supports it.
