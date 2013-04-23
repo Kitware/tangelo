@@ -21,97 +21,6 @@ import traceback
 import time
 import types
 
-def invoke_service(module, *pargs, **kwargs):
-    # TODO(choudhury): This method should attempt to load the named module, then invoke it
-    # with the given arguments.  However, if the named module is "config" or
-    # something similar, the method should instead launch a special "config"
-    # app, which lists the available app modules, along with docstrings or
-    # similar.  It should also allow the user to add/delete search paths for
-    # other modules.
-    tangelo.content_type("text/plain")
-
-    # Construct a response container for reporting possible errors, as the
-    # service modules themselves do.
-    response = tangelo.empty_response()
-
-    # Import the module.
-    try:
-        service = imp.load_source("service", module)
-    except IOError as e:
-        tangelo.log("error importing module %s: %s" % (module, e), "ERROR")
-        response['error'] = "IOError: %s" % (e)
-        return json.dumps(response)
-
-    # Report an error if the Handler object has no go() method.
-    if 'run' not in dir(service):
-        response['error'] = "tangelo: error: no function `run()` defined in module '%s'" % (module)
-        return json.dumps(response)
-
-    # Call the module's run() method, passing it the positional and keyword args
-    # that came into this method.
-    try:
-        result = service.run(*pargs, **kwargs)
-
-        # Check the type of the result - if it's anything other than a string,
-        # assume it needs to be converted to JSON.
-        #
-        # This allows the services to return a Python object if they wish, or to
-        # perform custom serialization (such as for MongoDB results, etc.).
-        if not isinstance(result, types.StringTypes):
-            result = json.dumps(result)
-
-        return result
-    except Exception as e:
-        # Error message.
-        response['error'] = "tangelo: error: %s: %s" % (e.__class__.__name__, e.message)
-
-        tangelo.log("Caught exception - %s: %s" % (e.__class__.__name__, e.message), "ERROR")
-
-        # Full Python traceback stack.
-        s = StringIO.StringIO()
-        traceback.print_exc(file=s)
-        if 'traceback' in response:
-            response['traceback'] += "\n" + s.getvalue()
-        else:
-            response['traceback'] = "\n" + s.getvalue()
-
-        # Serialize to JSON.
-        return json.dumps(response)
-
-def dirlisting(dirpath, reqpath):
-    files = filter(lambda x: len(x) > 0 and x[0] != ".", os.listdir(dirpath))
-    #filespec = ["Type", "Name", "Last modified", "Size"]
-    filespec = []
-    for f in files:
-        p = dirpath + "/" + f
-        s = os.stat(p)
-        mtime = datetime.datetime.fromtimestamp(s.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
-
-        if os.path.isdir(p):
-            t = "dir"
-            s = "-"
-        else:
-            t = "file"
-            s = s.st_size
-
-        filespec.append([t, "<a href=\"%s/%s\">%s</a>" % (reqpath, f, f), mtime, s])
-
-    filespec = "\n".join(map(lambda row: "<tr>" + "".join(map(lambda x: "<td>%s</td>" % x, row)) + "</tr>", filespec))
-
-    result = """<!doctype html>
-<title>Index of %s</title>
-<h1>Index of %s</h1>
-<table>
-<tr>
-    <th>Type</th><th>Name</th><th>Last Modified</th><th>Size</th>
-</tr>
-%s
-</table>
-""" % (reqpath, reqpath, filespec)
-
-    #return "<!doctype html><h1>Directory Listing</h1>This is a dummy directory listing placeholder."
-    return result
-
 class HtAccess:
     def __init__(self, filename):
         # Initialize all info fields with None.
@@ -183,6 +92,99 @@ class Server(object):
         # A dict containing information about currently installed authentication
         # handlers.
         self.security = {}
+
+    @staticmethod
+    def invoke_service(module, *pargs, **kwargs):
+        # TODO(choudhury): This method should attempt to load the named module, then invoke it
+        # with the given arguments.  However, if the named module is "config" or
+        # something similar, the method should instead launch a special "config"
+        # app, which lists the available app modules, along with docstrings or
+        # similar.  It should also allow the user to add/delete search paths for
+        # other modules.
+        tangelo.content_type("text/plain")
+
+        # Construct a response container for reporting possible errors, as the
+        # service modules themselves do.
+        response = tangelo.empty_response()
+
+        # Import the module.
+        try:
+            service = imp.load_source("service", module)
+        except IOError as e:
+            tangelo.log("error importing module %s: %s" % (module, e), "ERROR")
+            response['error'] = "IOError: %s" % (e)
+            return json.dumps(response)
+
+        # Report an error if the Handler object has no go() method.
+        if 'run' not in dir(service):
+            response['error'] = "tangelo: error: no function `run()` defined in module '%s'" % (module)
+            return json.dumps(response)
+
+        # Call the module's run() method, passing it the positional and keyword args
+        # that came into this method.
+        try:
+            result = service.run(*pargs, **kwargs)
+
+            # Check the type of the result - if it's anything other than a string,
+            # assume it needs to be converted to JSON.
+            #
+            # This allows the services to return a Python object if they wish, or to
+            # perform custom serialization (such as for MongoDB results, etc.).
+            if not isinstance(result, types.StringTypes):
+                result = json.dumps(result)
+
+            return result
+        except Exception as e:
+            # Error message.
+            response['error'] = "tangelo: error: %s: %s" % (e.__class__.__name__, e.message)
+
+            tangelo.log("Caught exception - %s: %s" % (e.__class__.__name__, e.message), "ERROR")
+
+            # Full Python traceback stack.
+            s = StringIO.StringIO()
+            traceback.print_exc(file=s)
+            if 'traceback' in response:
+                response['traceback'] += "\n" + s.getvalue()
+            else:
+                response['traceback'] = "\n" + s.getvalue()
+
+            # Serialize to JSON.
+            return json.dumps(response)
+
+    @staticmethod
+    def dirlisting(dirpath, reqpath):
+        files = filter(lambda x: len(x) > 0 and x[0] != ".", os.listdir(dirpath))
+        #filespec = ["Type", "Name", "Last modified", "Size"]
+        filespec = []
+        for f in files:
+            p = dirpath + "/" + f
+            s = os.stat(p)
+            mtime = datetime.datetime.fromtimestamp(s.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+
+            if os.path.isdir(p):
+                t = "dir"
+                s = "-"
+            else:
+                t = "file"
+                s = s.st_size
+
+            filespec.append([t, "<a href=\"%s/%s\">%s</a>" % (reqpath, f, f), mtime, s])
+
+        filespec = "\n".join(map(lambda row: "<tr>" + "".join(map(lambda x: "<td>%s</td>" % x, row)) + "</tr>", filespec))
+
+        result = """<!doctype html>
+<title>Index of %s</title>
+<h1>Index of %s</h1>
+<table>
+<tr>
+    <th>Type</th><th>Name</th><th>Last Modified</th><th>Size</th>
+</tr>
+%s
+</table>
+""" % (reqpath, reqpath, filespec)
+
+        #return "<!doctype html><h1>Directory Listing</h1>This is a dummy directory listing placeholder."
+        return result
 
     def htaccess(self, htfile, path_info):
         # TODO(choudhury): look at
@@ -295,7 +297,7 @@ class Server(object):
             pargs = path[(service+2):]
 
             # Invoke the service and return the result.
-            return invoke_service(service_path, *pargs, **args)
+            return Server.invoke_service(service_path, *pargs, **args)
         except ValueError:
             pass
 
@@ -378,7 +380,7 @@ class Server(object):
 
         # Serve the resource.
         if os.path.isdir(finalpath):
-            return dirlisting(finalpath, "/".join(reqpath))
+            return Server.dirlisting(finalpath, "/".join(reqpath))
         else:
             return cherrypy.lib.static.serve_file(finalpath)
 
