@@ -240,6 +240,7 @@ if(DEPLOY_TEST_SERVICES)
         web/service/404.py
         web/service/broken.py
         web/service/exceptional.py
+        web/service/restful.py
         web/service/testapp.py)
 endif()
 
