@@ -25,3 +25,8 @@ class HTTPStatusCode:
     def __init__(self, code, msg=None):
         self.code = code
         self.msg = msg
+
+# A decorator that exposes functions as being part of a service's RESTful API.
+def restful(f):
+    f.restful = True
+    return f

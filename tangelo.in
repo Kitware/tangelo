@@ -132,11 +132,13 @@ class Server(object):
                     # and if there is none, register an error.
                     result['error'] = "error: no function 'run()', nor any REST functions ('get()', 'put()', 'post()', 'delete()') defined in module '%s'" % (module)
                 else:
-                    # Reaching here means it's a REST API.  Check for the requested
-                    # method and either call it or give a 405 error.
+                    # Reaching here means it's a REST API.  Check for the
+                    # requested method, ensure that it was marked as being part
+                    # of the API, and call it; or give a 405 error.
                     method = cherrypy.request.method
-                    if method in ["GET", "POST", "PUT", "DELETE"] and method.lower() in dir(service):
-                        result = service.__dict__[method.lower()](*pargs, **kwargs)
+                    restfunc = service.__dict__[method.lower()]
+                    if restfunc is not None and hasattr(restfunc, "restful") and restfunc.restful:
+                        result = restfunc(*pargs, **kwargs)
                     else:
                         result = tangelo.HTTPStatusCode(405, "Method not allowed")
             except Exception as e:
