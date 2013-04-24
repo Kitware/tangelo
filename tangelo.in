@@ -102,56 +102,56 @@ class Server(object):
         # other modules.
         tangelo.content_type("text/plain")
 
+        # By default, the result should be a bare response that we will place an
+        # error message in if something goes wrong; if nothing goes wrong this
+        # will be replaced with some other object.
+        result = tangelo.empty_response()
+
         # Import the module.
         try:
             service = imp.load_source("service", module)
         except IOError as e:
             tangelo.log("error importing module %s: %s" % (module, e), "ERROR")
-            response['error'] = "IOError: %s" % (e)
-            return json.dumps(response)
-
-        # Try to run the service - either it's in a function called "run()", or
-        # else it's in a REST API consisting of at least one of "get()",
-        # "put()", "post()", or "delete()".
-        #
-        # Collect the result in a variable - depending on its type, it will be
-        # transformed in some way below (by default, to JSON, but may also raise
-        # a cherrypy exception, log itself in a streaming table, etc.).
-        #
-        # By default, the result should be a bare response that we will place an
-        # error message in if something goes wrong; if nothing goes wrong this
-        # will be replaced with some other object.
-        result = tangelo.empty_response()
-        try:
-            if 'run' in dir(service):
-                # Call the module's run() method, passing it the positional and
-                # keyword args that came into this method.
-                result = service.run(*pargs, **kwargs)
-            elif len(set(["get", "put", "post", "delete"]) & set(dir(service))) == 0:
-                # If there is no run() method, check for some form of a REST API,
-                # and if there is none, register an error.
-                result['error'] = "error: no function 'run()', nor any REST functions ('get()', 'put()', 'post()', 'delete()') defined in module '%s'" % (module)
-            else:
-                # Reaching here means it's a REST API.  Check for the requested
-                # method and either call it or give a 405 error.
-                method = cherrypy.request.method
-                if method in ["GET", "POST", "PUT", "DELETE"] and method.lower() in dir(service):
-                    result = service.__dict__[method.lower()](*pargs, **kwargs)
+            result['error'] = "IOError: %s" % (e)
+        else:
+            # Try to run the service - either it's in a function called "run()",
+            # or else it's in a REST API consisting of at least one of "get()",
+            # "put()", "post()", or "delete()".
+            #
+            # Collect the result in a variable - depending on its type, it will be
+            # transformed in some way below (by default, to JSON, but may also raise
+            # a cherrypy exception, log itself in a streaming table, etc.).
+            #
+            try:
+                if 'run' in dir(service):
+                    # Call the module's run() method, passing it the positional and
+                    # keyword args that came into this method.
+                    result = service.run(*pargs, **kwargs)
+                elif len(set(["get", "put", "post", "delete"]) & set(dir(service))) == 0:
+                    # If there is no run() method, check for some form of a REST API,
+                    # and if there is none, register an error.
+                    result['error'] = "error: no function 'run()', nor any REST functions ('get()', 'put()', 'post()', 'delete()') defined in module '%s'" % (module)
                 else:
-                    result = tangelo.HTTPStatusCode(405, "Method not allowed")
-        except Exception as e:
-            # Error message.
-            result['error'] = "error: %s: %s" % (e.__class__.__name__, e.message)
+                    # Reaching here means it's a REST API.  Check for the requested
+                    # method and either call it or give a 405 error.
+                    method = cherrypy.request.method
+                    if method in ["GET", "POST", "PUT", "DELETE"] and method.lower() in dir(service):
+                        result = service.__dict__[method.lower()](*pargs, **kwargs)
+                    else:
+                        result = tangelo.HTTPStatusCode(405, "Method not allowed")
+            except Exception as e:
+                # Error message.
+                result['error'] = "error: %s: %s" % (e.__class__.__name__, e.message)
 
-            tangelo.log("Caught exception - %s: %s" % (e.__class__.__name__, e.message), "ERROR")
+                tangelo.log("Caught exception - %s: %s" % (e.__class__.__name__, e.message), "ERROR")
 
-            # Full Python traceback stack.
-            s = StringIO.StringIO()
-            traceback.print_exc(file=s)
-            if 'traceback' in result:
-                result['traceback'] += "\n" + s.getvalue()
-            else:
-                result['traceback'] = "\n" + s.getvalue()
+                # Full Python traceback stack.
+                s = StringIO.StringIO()
+                traceback.print_exc(file=s)
+                if 'traceback' in result:
+                    result['traceback'] += "\n" + s.getvalue()
+                else:
+                    result['traceback'] = "\n" + s.getvalue()
 
         # Check the type of the result to decide what result to finally return:
         #
