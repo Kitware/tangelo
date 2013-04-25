@@ -259,12 +259,9 @@ class Server(object):
         # registry and the application configuration.
         if htfile is None:
             if path_info in self.security:
-                tangelo.log("Removing security path %s" % (path_info), "HTACCESS")
                 del self.security[path_info]
                 self.app.pop(path_info, None)
         else:
-            tangelo.log("Registering %s..." % (path_info), "HTACCESS")
-
             # Stat the file specifically to learn it's last-modified time.
             ht_mtime = os.stat(htfile).st_mtime
 
@@ -292,18 +289,12 @@ class Server(object):
                 # Store the htfile's last-modified time.
                 self.security[path_info] = ht_mtime
 
-                tangelo.log("Added %s to registry!" % (path_info), "HTACCESS")
-            else:
-                tangelo.log("%s already registered!" % (path_info), "HTACCESS")
-
         return None
 
     @cherrypy.expose
     def default(self, *path, **args):
         if self.app is None:
             self.app = cherrypy.tree.apps.values()[0]
-
-        tangelo.log("path_info: %s" % (cherrypy.request.path_info), "HANDLER")
 
         # Convert the path argument into a list (from a tuple).
         path = list(path)
@@ -391,26 +382,22 @@ class Server(object):
         if self.auth:
             filepath = os.path.dirname(finalpath).split("/")
             reqpath = os.path.dirname(reqpath).split("/")
-            tangelo.log("finalpath: %s" % (finalpath), "HANDLER")
-            tangelo.log("reqpath: %s" % (reqpath), "HANDLER")
 
-            # Shorten the filepath to the length of reqpath, by fusing together the
-            # prefix of filepath that corresponds to the first element of reqpath.
-            # This will make both paths "line up" elementwise.  Example: the request
-            # path ~roni/app/index.html maps to the file path
-            # /home/roni/app/index.html.  The shortened file path list
-            # ["/home/roni", "app", "index.html"] has the same length as the request
-            # path list ["~roni", "app", "index.html"].
+            # Shorten the filepath to the length of reqpath, by fusing together
+            # the prefix of filepath that corresponds to the first element of
+            # reqpath.  This will make both paths "line up" elementwise.
+            # Example: the request path ~roni/app/index.html maps to the file
+            # path /home/roni/app/index.html.  The shortened file path list
+            # ["/home/roni", "app", "index.html"] has the same length as the
+            # request path list ["~roni", "app", "index.html"].
             if len(filepath) > len(reqpath):
                 fuse = len(filepath) - len(reqpath) + 1
                 filepath = ["/".join(filepath[:fuse])] + filepath[fuse:]
-                tangelo.log("filepath: %s" % (filepath), "HANDLER")
 
             # Now begin checking each directory up to the root for an updated
             # .htaccess file.
             for i in range(len(reqpath), 0, -1):
                 done = False
-                tangelo.log("i = %d" % (i), "HANDLER")
 
                 rqp = "/".join(reqpath[:i])
                 fp = "/".join(filepath[:i])
@@ -425,11 +412,7 @@ class Server(object):
                     rqp = "/"
                     fp = current_dir + "/web"
 
-                tangelo.log("fp is %s" % (fp), "HANDLER")
-
                 htfile = fp + "/.htaccess"
-                tangelo.log("htfile is %s" % (htfile), "HANDLER")
-                tangelo.log("rqp is %s" % (rqp), "HANDLER")
                 if not os.path.exists(htfile):
                     htfile = None
                 msg = self.htaccess(htfile, rqp)

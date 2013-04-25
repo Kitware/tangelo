@@ -35,10 +35,8 @@ _modulepath = None
 def modulepath(mp):
     global _modulepath
     _modulepath = mp
-    log("modulepath: %s" % (_modulepath))
 
 def paths(runtimepaths):
-    log("paths: %s" % (_modulepath))
     sys.path = map(lambda x: os.path.abspath(_modulepath + "/" + x), runtimepaths) + sys.path
 
 class HTTPStatusCode:
