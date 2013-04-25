@@ -140,10 +140,6 @@ class Server(object):
                     # Call the module's run() method, passing it the positional and
                     # keyword args that came into this method.
                     result = service.run(*pargs, **kwargs)
-                elif len(set(["get", "put", "post", "delete"]) & set(dir(service))) == 0:
-                    # If there is no run() method, check for some form of a REST API,
-                    # and if there is none, register an error.
-                    result['error'] = "error: no function 'run()', nor any REST functions ('get()', 'put()', 'post()', 'delete()') defined in module '%s'" % (module)
                 else:
                     # Reaching here means it's a REST API.  Check for the
                     # requested method, ensure that it was marked as being part
