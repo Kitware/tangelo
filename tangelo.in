@@ -318,7 +318,7 @@ class Server(object):
 
             # Reaching this point means the path is relative to the server's web
             # root.
-            path = current_dir.split("/") + ["web"] + path
+            path = tangelo.webroot().split(os.path.sep) + path
 
         # Check for the word "service" in the path - this indicates the
         # invocation of a web service placed somewhere besides the global
