@@ -603,6 +603,7 @@ if os_name == "Darwin":
 
 # Determine the current directory based on the invocation of this script.
 current_dir = os.path.dirname(os.path.abspath(__file__))
+tangelo.set_webroot(current_dir + "/web")
 
 # Decide whether to daemonize, based on whether the user wishes not to, and
 # whether the platform supports it.

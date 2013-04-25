@@ -36,8 +36,45 @@ def modulepath(mp):
     global _modulepath
     _modulepath = mp
 
+_webroot = None
+def set_webroot(r):
+    global _webroot
+    _webroot = r
+
+def webroot():
+    return _webroot
+
 def paths(runtimepaths):
-    sys.path = map(lambda x: os.path.abspath(_modulepath + "/" + x), runtimepaths) + sys.path
+    home = os.path.expanduser("~").split(os.path.sep)[:-1]
+    root = webroot()
+
+    # This function returns an absolute path if the path is allowed (i.e., in
+    # someone's tangelo_html directory, or under the web root directory), or
+    # logs a complaint and returns None otherwise.
+    def good(path):
+        orig = path
+        if os.path.isabs(path):
+            log("Illegal path (absolute): %s" % (orig), "SERVICE")
+            return None
+
+        path = os.path.abspath(_modulepath + os.path.sep + path)
+        if len(path) >= len(root) and path[:len(root)] == root:
+            return path
+
+        comp = path.split(os.path.sep)
+        if len(comp) >= len(home) + 2 and comp[:len(home)] == home and comp[len(home)+1] == "tangelo_html":
+            return path
+
+        log("Illegal path (outside of web space): %s" % (orig), "SERVICE")
+        return None
+
+    # Construct the list of new runtime paths by first mapping the checker over
+    # the list, then throwing away any Nones that showed up (the paths that led
+    # to Nones will have been logged).
+    newpaths = filter(lambda x: x is not None, map(good, runtimepaths))
+
+    # Finally, augment the path list.
+    sys.path = newpaths + sys.path
 
 class HTTPStatusCode:
     def __init__(self, code, msg=None):
