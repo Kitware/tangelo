@@ -13,7 +13,6 @@ import os.path
 import platform
 import pwd
 import signal
-import StringIO
 import subprocess
 import sys
 import tangelo
@@ -145,15 +144,16 @@ class Server(object):
                 # Error message.
                 result['error'] = "error: %s: %s" % (e.__class__.__name__, e.message)
 
-                tangelo.log("Caught exception - %s: %s" % (e.__class__.__name__, e.message), "ERROR")
+                tangelo.log("Caught exception while executing service %s" % (tangelo.request_path()), "SERVICE")
+
+                bt = traceback.format_exc()
+                tangelo.log(bt, "SERVICE")
 
                 # Full Python traceback stack.
-                s = StringIO.StringIO()
-                traceback.print_exc(file=s)
                 if 'traceback' in result:
-                    result['traceback'] += "\n" + s.getvalue()
+                    result['traceback'] += "\n" + bt
                 else:
-                    result['traceback'] = "\n" + s.getvalue()
+                    result['traceback'] = "\n" + bt
 
         # Check the type of the result to decide what result to finally return:
         #
