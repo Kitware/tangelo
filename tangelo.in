@@ -136,10 +136,10 @@ class Server(object):
         except:
             bt = traceback.format_exc()
 
-            tangelo.log("Error importing module %s" % (module), "SERVICE")
+            tangelo.log("Error importing module %s" % (tangelo.request_path()), "SERVICE")
             tangelo.log(bt, "SERVICE")
 
-            result = tangelo.HTTPStatusCode("501 Error in Python Service", "There was an error while trying to import module %s:\n%s" % (module, bt))
+            result = tangelo.HTTPStatusCode("501 Error in Python Service", "There was an error while trying to import module %s:\n%s" % (tangelo.request_path(), bt))
         else:
             # Try to run the service - either it's in a function called "run()",
             # or else it's in a REST API consisting of at least one of "get()",
@@ -170,7 +170,7 @@ class Server(object):
                 tangelo.log("Caught exception while executing service %s" % (tangelo.request_path()), "SERVICE")
                 tangelo.log(bt, "SERVICE")
 
-                result = tangelo.HTTPStatusCode("501 Error in Python Service", "There was an error executing service %s:\n%s" % (module, bt))
+                result = tangelo.HTTPStatusCode("501 Error in Python Service", "There was an error executing service %s:\n%s" % (tangelo.request_path(), bt))
 
         # Restore the path to what it was originally.
         sys.path = origpath
@@ -202,7 +202,7 @@ class Server(object):
                 result = json.dumps(result)
             except TypeError as e:
                 t = e.message.split("<service.")[1].split()[0]
-                msg = "Service %s returned an object of type %s that could not be serialized to JSON" % (module, t)
+                msg = "Service %s returned an object of type %s that could not be serialized to JSON" % (tangelo.request_path(), t)
 
                 tangelo.log("Error: %s" % (msg), "SERVICE")
 
