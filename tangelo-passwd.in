@@ -43,7 +43,7 @@ else:
     userrec = list(userrec[0])
 
 # Get a password and confirmation from the user.
-password = getpass.getpass("Enter password for user '%s', realm '%s': " % (user, realm))
+password = getpass.getpass("Enter password for %s@%s: " % (user, realm))
 confirm = getpass.getpass("Re-enter password: ")
 
 if password != confirm:
