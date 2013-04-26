@@ -216,7 +216,7 @@ class Server(object):
         #filespec = ["Type", "Name", "Last modified", "Size"]
         filespec = []
         for f in files:
-            p = dirpath + "/" + f
+            p = dirpath + os.path.sep + f
             s = os.stat(p)
             mtime = datetime.datetime.fromtimestamp(s.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
 
@@ -317,7 +317,7 @@ class Server(object):
             if len(path[0]) > 1:
                 # Expand the home directory, append the tangelo_html
                 # subdirectory, and then the tail of the original path.
-                path = os.path.expanduser(path[0]).split("/") + ["tangelo_html"] + path[1:]
+                path = os.path.expanduser(path[0]).split(os.path.sep) + ["tangelo_html"] + path[1:]
         else:
             # TODO(choudhury): check a table of configured custom mappings to
             # see if the first path component should be mapped to some other
@@ -340,7 +340,7 @@ class Server(object):
 
             # Grab the portion of the path that names the service (appending the
             # standard python file extension as well).
-            service_path = "/".join(path[:(service+2)]) + ".py"
+            service_path = os.path.sep.join(path[:(service+2)]) + ".py"
 
             # Grab the rest of the path list, as the positional arguments for
             # the service invocation.
@@ -352,7 +352,7 @@ class Server(object):
             pass
 
         # Form a path name from the path components.
-        finalpath = "/".join(path)
+        finalpath = os.path.sep.join(path)
 
         # If the path represents a directory, assume the request is for an
         # index.html file (look for an index.htm as a backup, and as a last
@@ -369,22 +369,27 @@ class Server(object):
             if cherrypy.request.path_info == "" or cherrypy.request.path_info[-1] != "/":
                 raise cherrypy.HTTPRedirect(cherrypy.request.path_info + "/")
 
-            if os.path.exists(finalpath + "/index.html"):
-                finalpath += "/index.html"
+            if os.path.exists(finalpath + os.path.sep + "index.html"):
+                finalpath += os.path.sep + "index.html"
                 reqpath += "/index.html"
-            elif os.path.exists(finalpath + "index.htm"):
-                finalpath += "/index.htm"
+            elif os.path.exists(finalpath + os.path.sep + "index.htm"):
+                finalpath += os.path.sep + "index.htm"
                 reqpath += "/index.htm"
             else:
-                finalpath += "/"
+                finalpath += os.path.sep
                 reqpath += "/"
 
         # Check to see whether the path is protected by an .htaccess file
         # (anywhere in either the requested path's directory itself, or any
         # ancestor directory).
         if self.auth:
-            filepath = os.path.dirname(finalpath).split("/")
-            reqpath = os.path.dirname(reqpath).split("/")
+            filepath = os.path.dirname(finalpath).split(os.path.sep)
+
+            # NOTE: the following line use to read 'reqpath =
+            # os.path.dirname(reqpath).split("/")', but os.path.dirname() won't
+            # work unless os.path.sep is "/", so the following line is meant to
+            # replicate that behavior.
+            reqpath = reqpath.split("/")[:-1]
 
             # Shorten the filepath to the length of reqpath, by fusing together
             # the prefix of filepath that corresponds to the first element of
@@ -395,7 +400,7 @@ class Server(object):
             # request path list ["~roni", "app", "index.html"].
             if len(filepath) > len(reqpath):
                 fuse = len(filepath) - len(reqpath) + 1
-                filepath = ["/".join(filepath[:fuse])] + filepath[fuse:]
+                filepath = [os.path.sep.join(filepath[:fuse])] + filepath[fuse:]
 
             # Now begin checking each directory up to the root for an updated
             # .htaccess file.
@@ -403,7 +408,7 @@ class Server(object):
                 done = False
 
                 rqp = "/".join(reqpath[:i])
-                fp = "/".join(filepath[:i])
+                fp = os.path.sep.join(filepath[:i])
 
                 # Special case detection - if we wind up with rqp as "" or "/", then
                 # this means we have reached the web root and it is the last case we
@@ -413,7 +418,7 @@ class Server(object):
                 if rqp in ["", "/"]:
                     done = True
                     rqp = "/"
-                    fp = current_dir + "/web"
+                    fp = current_dir + os.path.sep + "web"
 
                 htfile = fp + "/.htaccess"
                 if not os.path.exists(htfile):
