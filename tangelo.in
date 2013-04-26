@@ -34,6 +34,16 @@ class Server(object):
         self.security = {}
 
     @staticmethod
+    def error_page(status, message, traceback, version):
+        if status == "501 Error in Python Service":
+            message = "<pre>%s</pre>" % (message)
+        return """<!doctype html>
+<h2>%s</h2>
+<p>%s
+<hr>
+<p><em>Powered by Tangelo</em> <img src=/img/tangelo.ico>""" % (status, message)
+
+    @staticmethod
     def parse_htaccess(filename):
         result = {"msg": None,
                   "auth_type": None,
@@ -123,9 +133,13 @@ class Server(object):
         # Import the module.
         try:
             service = imp.load_source("service", module)
-        except IOError as e:
-            tangelo.log("error importing module %s: %s" % (module, e), "ERROR")
-            result['error'] = "IOError: %s" % (e)
+        except:
+            bt = traceback.format_exc()
+
+            tangelo.log("Error importing module %s" % (module), "SERVICE")
+            tangelo.log(bt, "SERVICE")
+
+            result = tangelo.HTTPStatusCode("501 Error in Python Service", "There was an error while trying to import module %s:\n%s" % (module, bt))
         else:
             # Try to run the service - either it's in a function called "run()",
             # or else it's in a REST API consisting of at least one of "get()",
@@ -151,19 +165,15 @@ class Server(object):
                     else:
                         result = tangelo.HTTPStatusCode(405, "Method not allowed")
             except Exception as e:
-                # Error message.
-                result['error'] = "error: %s: %s" % (e.__class__.__name__, e.message)
+                bt = traceback.format_exc()
 
                 tangelo.log("Caught exception while executing service %s" % (tangelo.request_path()), "SERVICE")
-
-                bt = traceback.format_exc()
                 tangelo.log(bt, "SERVICE")
 
-                # Full Python traceback stack.
-                if 'traceback' in result:
-                    result['traceback'] += "\n" + bt
-                else:
-                    result['traceback'] = "\n" + bt
+                result = tangelo.HTTPStatusCode("501 Error in Python Service", "There was an error executing service %s:\n%s" % (module, bt))
+
+        # Restore the path to what it was originally.
+        sys.path = origpath
 
         # Check the type of the result to decide what result to finally return:
         #
@@ -191,15 +201,12 @@ class Server(object):
             try:
                 result = json.dumps(result)
             except TypeError as e:
-                # Reinitialize result as an empty response, since to reach here,
-                # result must have been some other type, namely some type that
-                # is not JSON-serializable.
-                result = tangelo.empty_response()
-                result["error"] = "TypeError: %s" % (e.message)
-                result = json.dumps(result)
+                t = e.message.split("<service.")[1].split()[0]
+                msg = "Service %s returned an object of type %s that could not be serialized to JSON" % (module, t)
 
-        # Restore the path to what it was originally.
-        sys.path = origpath
+                tangelo.log("Error: %s" % (msg), "SERVICE")
+
+                raise cherrypy.HTTPError("501 Error in Python Service", msg)
 
         return result
 
@@ -457,7 +464,9 @@ def start():
                             "log.error_file": logfile,
                             "log.screen": not daemonize,
                             "server.socket_host": "@SERVER_HOSTNAME@",
-                            "server.socket_port": @SERVER_PORT@})
+                            "server.socket_port": @SERVER_PORT@
+                            , "error_page.default": Server.error_page
+                            })
 
     # Create an instance of the main handler object.
     cherrypy.tree.mount(Server(do_auth), "/")
