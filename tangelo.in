@@ -469,8 +469,8 @@ def start():
                             "log.error_file": logfile,
                             "log.screen": not daemonize,
                             "server.socket_host": "@SERVER_HOSTNAME@",
-                            "server.socket_port": @SERVER_PORT@
-                            , "error_page.default": Server.error_page
+                            "server.socket_port": @SERVER_PORT@,
+                            "error_page.default": Server.error_page
                             })
 
     # Create an instance of the main handler object.
