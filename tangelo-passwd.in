@@ -12,13 +12,13 @@ p.add_argument("passwordfile", metavar="passwordfile", type=str, nargs=1, help="
 p.add_argument("realm", metavar="realm", type=str, nargs=1, help="Authentication realm")
 p.add_argument("user", metavar="user", type=str, nargs=1, help="Username")
 
-args = vars(p.parse_args())
+args = p.parse_args()
 
 # Capture argument values.
-create = args["create"]
-passwordfile = args["passwordfile"][0]
-realm = args["realm"][0]
-user = args["user"][0]
+create = args.create
+passwordfile = args.passwordfile[0]
+realm = args.realm[0]
+user = args.user[0]
 
 # Open the password file and read in the contents.
 try:
@@ -43,7 +43,7 @@ else:
     userrec = list(userrec[0])
 
 # Get a password and confirmation from the user.
-password = getpass.getpass("Enter password for user '%s', realm '%s': " % (user, realm))
+password = getpass.getpass("Enter password for %s@%s: " % (user, realm))
 confirm = getpass.getpass("Re-enter password: ")
 
 if password != confirm:
