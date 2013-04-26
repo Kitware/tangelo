@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!${PYTHON_EXECUTABLE}
 
 import argparse
 import getpass

@@ -250,9 +250,16 @@ configure_file(
     ${CMAKE_BINARY_DIR}/tangelo-pytest.py
 )
 
+# Configure the Tangelo control script.
 configure_file(
     tangelo.in
     ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/tangelo
+)
+
+# Configure the Tangelo password file generator.
+configure_file(
+    tangelo-passwd.in
+    ${CMAKE_BINARY_DIR}/tangelo-passwd
 )
 
 # Copy the files to the deployment directory.
