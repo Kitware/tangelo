@@ -5,13 +5,11 @@ import cherrypy
 import cherrypy.lib.static
 import cherrypy.process.plugins
 import datetime
-import grp
 import imp
 import json
 import os
 import os.path
 import platform
-import pwd
 import signal
 import subprocess
 import sys
@@ -470,8 +468,7 @@ def start():
                             "log.screen": not daemonize,
                             "server.socket_host": "@SERVER_HOSTNAME@",
                             "server.socket_port": @SERVER_PORT@,
-                            "error_page.default": Server.error_page
-                            })
+                            "error_page.default": Server.error_page})
 
     # Create an instance of the main handler object.
     cherrypy.tree.mount(Server(do_auth), "/")
@@ -493,9 +490,13 @@ def start():
         group = "@SERVER_GROUP@"
 
         # If we're on windows, don't supply any username/groupname.
-        if user == "windows" and group == "windows":
+        #if user == "windows" and group == "windows":
+        if os_name == "Windows":
             DropPrivileges(cherrypy.engine).subscribe()
         else:
+            import grp
+            import pwd
+
             try:
                 uid = pwd.getpwnam(user).pw_uid
             except KeyError:
