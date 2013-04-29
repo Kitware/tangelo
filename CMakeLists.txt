@@ -14,6 +14,7 @@ set(SERVER_PORT 8080 CACHE STRING "The port the server will run on.")
 set(MINIFY_JAVASCRIPT OFF CACHE BOOL "Minify the JavaScript files prior to concatenating.")
 set(MANGLE_JAVASCRIPT OFF CACHE BOOL "When minifying, also mangle non-public symbol names.")
 set(BUILD_DOCUMENTATION OFF CACHE BOOL "Generate documentation for project.")
+set(JSLINT OFF CACHE BOOL "Generate tests for JS source files using JSLint program.")
 
 if("${WIN32}")
     set(SERVER_USER "windows" CACHE STRING "The user Tangelo will run as, if started as root (unused on Windows)." FORCE)
@@ -26,9 +27,6 @@ endif()
 
 # Non-cache variables.
 set(DEPLOY_DIR deploy)
-
-# Find JSLint.
-find_package(JSLint)
 
 # Find a Python2 interpreter.
 find_package(PythonInterp 2.7)
@@ -341,7 +339,11 @@ include(CTest)
 enable_testing()
 
 # JSLint tests.
-if(${JSLINT_FOUND})
+if(${JSLINT})
+    # Find JSLint.
+    find_package(JSLint REQUIRED)
+
+    # Generate the tests.
     foreach(f ${JS_LINT_FILES})
         add_test(jslint-${f} ${JSLint_EXECUTABLE} ${f})
     endforeach()
