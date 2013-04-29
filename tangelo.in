@@ -6,6 +6,7 @@ import cherrypy.lib.static
 import cherrypy.process.plugins
 import datetime
 import grp
+import HTMLParser
 import imp
 import json
 import os
@@ -21,6 +22,9 @@ import time
 import types
 
 class Server(object):
+    # An HTML parser for use in the error_page handler.
+    html = HTMLParser.HTMLParser()
+
     def __init__(self, auth):
         # A boolean indicating whether to perform HTTP authentication or not.
         self.auth = auth
@@ -35,8 +39,7 @@ class Server(object):
 
     @staticmethod
     def error_page(status, message, traceback, version):
-        if status == "501 Error in Python Service":
-            message = "<pre>%s</pre>" % (message)
+        message = Server.html.unescape(message)
         return """<!doctype html>
 <h2>%s</h2>
 <p>%s
@@ -139,7 +142,7 @@ class Server(object):
             tangelo.log("Error importing module %s" % (tangelo.request_path()), "SERVICE")
             tangelo.log(bt, "SERVICE")
 
-            result = tangelo.HTTPStatusCode("501 Error in Python Service", "There was an error while trying to import module %s:\n%s" % (tangelo.request_path(), bt))
+            result = tangelo.HTTPStatusCode("501 Error in Python Service", "There was an error while trying to import module %s:<br><pre>%s</pre>" % (tangelo.request_path(), bt))
         else:
             # Try to run the service - either it's in a function called "run()",
             # or else it's in a REST API consisting of at least one of "get()",
@@ -170,7 +173,7 @@ class Server(object):
                 tangelo.log("Caught exception while executing service %s" % (tangelo.request_path()), "SERVICE")
                 tangelo.log(bt, "SERVICE")
 
-                result = tangelo.HTTPStatusCode("501 Error in Python Service", "There was an error executing service %s:\n%s" % (tangelo.request_path(), bt))
+                result = tangelo.HTTPStatusCode("501 Error in Python Service", "There was an error executing service %s:<br><pre>%s</pre>" % (tangelo.request_path(), bt))
 
         # Restore the path to what it was originally.
         sys.path = origpath
