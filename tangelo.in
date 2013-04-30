@@ -6,8 +6,10 @@ import cherrypy.lib.static
 import cherrypy.process.plugins
 import datetime
 import grp
+import HTMLParser
 import imp
 import json
+import md5
 import os
 import os.path
 import platform
@@ -21,6 +23,9 @@ import time
 import types
 
 class Server(object):
+    # An HTML parser for use in the error_page handler.
+    html = HTMLParser.HTMLParser()
+
     def __init__(self, auth):
         # A boolean indicating whether to perform HTTP authentication or not.
         self.auth = auth
@@ -33,10 +38,12 @@ class Server(object):
         # handlers.
         self.security = {}
 
+        # A dict containing currently running streaming data sources.
+        self.streams = {}
+
     @staticmethod
     def error_page(status, message, traceback, version):
-        if status == "501 Error in Python Service":
-            message = "<pre>%s</pre>" % (message)
+        message = Server.html.unescape(message)
         return """<!doctype html>
 <h2>%s</h2>
 <p>%s
@@ -101,8 +108,7 @@ class Server(object):
 
         return result
 
-    @staticmethod
-    def invoke_service(module, *pargs, **kwargs):
+    def invoke_service(self, module, *pargs, **kwargs):
         # TODO(choudhury): This method should attempt to load the named module, then invoke it
         # with the given arguments.  However, if the named module is "config" or
         # something similar, the method should instead launch a special "config"
@@ -139,7 +145,7 @@ class Server(object):
             tangelo.log("Error importing module %s" % (tangelo.request_path()), "SERVICE")
             tangelo.log(bt, "SERVICE")
 
-            result = tangelo.HTTPStatusCode("501 Error in Python Service", "There was an error while trying to import module %s:\n%s" % (tangelo.request_path(), bt))
+            result = tangelo.HTTPStatusCode("501 Error in Python Service", "There was an error while trying to import module %s:<br><pre>%s</pre>" % (tangelo.request_path(), bt))
         else:
             # Try to run the service - either it's in a function called "run()",
             # or else it's in a REST API consisting of at least one of "get()",
@@ -170,7 +176,7 @@ class Server(object):
                 tangelo.log("Caught exception while executing service %s" % (tangelo.request_path()), "SERVICE")
                 tangelo.log(bt, "SERVICE")
 
-                result = tangelo.HTTPStatusCode("501 Error in Python Service", "There was an error executing service %s:\n%s" % (tangelo.request_path(), bt))
+                result = tangelo.HTTPStatusCode("501 Error in Python Service", "There was an error executing service %s:<br><pre>%s</pre>" % (tangelo.request_path(), bt))
 
         # Restore the path to what it was originally.
         sys.path = origpath
@@ -195,8 +201,23 @@ class Server(object):
             else:
                 raise cherrypy.HTTPError(result.code)
         elif "next" in dir(result):
-            # TODO: implement streaming API stuff here
-            pass
+            # Generate a key corresponding to this object, using 100 random
+            # bytes from the system - ensure the random key is not already in
+            # the table (even though it would be crazy to wind up with a
+            # collision).
+            key = md5.md5(os.urandom(100)).hexdigest()
+            while key in self.streams:
+                key = md5.md5(os.urandom(100)).hexdigest()
+
+            # Log the object in the streaming table.
+            self.streams[key] = result
+
+            # Create an object describing the logging of the generator object.
+            result = tangelo.empty_response()
+            result["stream_key"] = key
+
+            # Serialize it to JSON.
+            result = json.dumps(result)
         elif not isinstance(result, types.StringTypes):
             try:
                 result = json.dumps(result)
@@ -347,7 +368,7 @@ class Server(object):
             pargs = path[(service+2):]
 
             # Invoke the service and return the result.
-            return Server.invoke_service(service_path, *pargs, **args)
+            return self.invoke_service(service_path, *pargs, **args)
         except ValueError:
             pass
 
@@ -445,6 +466,55 @@ class Server(object):
             return Server.dirlisting(finalpath, reqpath)
         else:
             return cherrypy.lib.static.serve_file(finalpath)
+
+    @cherrypy.expose
+    def stream(self, key=None, action="next"):
+        if action != "show":
+            # Check for key parameter.
+            if key is None:
+                raise cherrypy.HTTPError("400 Required Query Parameter Missing", "The streaming API requires a 'key' query parameter")
+
+            # Check that the key actually exists.
+            if key not in self.streams:
+                raise cherrypy.HTTPError("404 Key Not Found", "The key '%s' does not reference any existing stream" % (key))
+
+        # Construct a container object.
+        result = tangelo.empty_response()
+
+        # Perform the requested action.
+        actions = ["next", "delete", "show"]
+        if action == "next":
+            # Grab the stream in preparation for running it.
+            stream = self.streams[key]
+
+            # Attempt to run the stream via its next() method - if this yields a
+            # result, then continue; if the next() method raises StopIteration,
+            # then there are no more results to retrieve; if any other exception
+            # is raised, this is treated as an error.
+            try:
+                result["stream_finished"] = False
+                result["result"] = stream.next()
+            except StopIteration:
+                result["stream_finished"] = True
+                del self.streams[key]
+            except:
+                del self.streams[key]
+                raise cherrypy.HTTPError("501 Error in Python Service", "Caught exception while executing stream service keyed by %s:<br><pre>%s</pre>" % (key, traceback.format_exc()))
+
+        elif action == "delete":
+            del self.streams[key]
+            result["result"] = "OK"
+        elif action == "show":
+            raise cherrypy.HTTPError("501 Unimplemented", "The 'show' action in the Tangelo streaming API has not yet been implemented")
+        else:
+            raise cherrypy.HTTPError("400 Bad Query Parameter", "The 'action' parameter must be one of: %s" % (", ".join(actions)))
+
+        try:
+            result = json.dumps(result)
+        except TypeError:
+            raise cherrypy.HTTPError("501 Bad Response from Python Service", "The stream keyed by %s returned a non JSON-seriazable result: %s" % (key, result["result"]))
+
+        return result
 
 def start():
     sys.stderr.write("starting tangelo...")
