@@ -28,11 +28,13 @@ endif()
 # Non-cache variables.
 set(DEPLOY_DIR deploy)
 
-# Find a Python2 interpreter.
-find_package(PythonInterp 2.7)
+# Find a Python2.7 interpreter.  2.7 is required because of the use of
+# dictionary comprehensions.
+find_package(PythonInterp 2.7 REQUIRED)
 
-# Find CherryPy daemon.
-find_package(CherryPy)
+# Find the cherrypy module.
+include(cmake/FindPythonModule.cmake)
+find_python_module(cherrypy 3.2 REQUIRED)
 
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
