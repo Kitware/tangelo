@@ -346,31 +346,7 @@ class Server(object):
 
             # Reaching this point means the path is relative to the server's web
             # root.
-            path = tangelo.webroot().split(os.path.sep) + path
-
-        # Check for the word "service" in the path - this indicates the
-        # invocation of a web service placed somewhere besides the global
-        # services list.
-        try:
-            service = path.index("service")
-
-            # Make sure there is an actual service name after the "service" path
-            # component.
-            if len(path) == service + 1:
-                raise cherrypy.HTTPError(404, "Did you forget the service name?")
-
-            # Grab the portion of the path that names the service (appending the
-            # standard python file extension as well).
-            service_path = os.path.sep.join(path[:(service+2)]) + ".py"
-
-            # Grab the rest of the path list, as the positional arguments for
-            # the service invocation.
-            pargs = path[(service+2):]
-
-            # Invoke the service and return the result.
-            return self.invoke_service(service_path, *pargs, **args)
-        except ValueError:
-            pass
+            path = [tangelo.webroot()] + path
 
         # Form a path name from the path components.
         finalpath = os.path.sep.join(path)
@@ -391,9 +367,11 @@ class Server(object):
                 raise cherrypy.HTTPRedirect(cherrypy.request.path_info + "/")
 
             if os.path.exists(finalpath + os.path.sep + "index.html"):
+                path += ["index.html"]
                 finalpath += os.path.sep + "index.html"
                 reqpath += "/index.html"
             elif os.path.exists(finalpath + os.path.sep + "index.htm"):
+                path += ["index.htm"]
                 finalpath += os.path.sep + "index.htm"
                 reqpath += "/index.htm"
             else:
@@ -404,32 +382,13 @@ class Server(object):
         # (anywhere in either the requested path's directory itself, or any
         # ancestor directory).
         if self.auth:
-            filepath = os.path.dirname(finalpath).split(os.path.sep)
-
-            # NOTE: the following line use to read 'reqpath =
-            # os.path.dirname(reqpath).split("/")', but os.path.dirname() won't
-            # work unless os.path.sep is "/", so the following line is meant to
-            # replicate that behavior.
-            reqpath = reqpath.split("/")[:-1]
-
-            # Shorten the filepath to the length of reqpath, by fusing together
-            # the prefix of filepath that corresponds to the first element of
-            # reqpath.  This will make both paths "line up" elementwise.
-            # Example: the request path ~roni/app/index.html maps to the file
-            # path /home/roni/app/index.html.  The shortened file path list
-            # ["/home/roni", "app", "index.html"] has the same length as the
-            # request path list ["~roni", "app", "index.html"].
-            if len(filepath) > len(reqpath):
-                fuse = len(filepath) - len(reqpath) + 1
-                filepath = [os.path.sep.join(filepath[:fuse])] + filepath[fuse:]
-
             # Now begin checking each directory up to the root for an updated
             # .htaccess file.
             for i in range(len(reqpath), 0, -1):
                 done = False
 
                 rqp = "/".join(reqpath[:i])
-                fp = os.path.sep.join(filepath[:i])
+                fp = os.path.sep.join(path[:i])
 
                 # Special case detection - if we wind up with rqp as "" or "/", then
                 # this means we have reached the web root and it is the last case we
@@ -451,8 +410,8 @@ class Server(object):
                 if done:
                     break
 
-            # Fuse the reqpath components back into a string.
-            reqpath = "/".join(reqpath)
+        # Fuse the reqpath components back into a string.
+        reqpath = "/".join(reqpath)
 
         # If the reqpath represents a directory (besides the web root), remove
         # the trailing slash.
@@ -461,8 +420,21 @@ class Server(object):
         elif reqpath[-1] == "/":
             reqpath = reqpath[:-1]
 
-        # Serve the resource.
-        if os.path.isdir(finalpath):
+        # Check the path components for a .py file.  If we find one, we'll take
+        # it to mean that (1) the user is trying to invoke that file as a web
+        # service and (2) anything appearing after that point in the URL is a
+        # positional argument to the service.
+        service_path = None
+        pargs = None
+        for i, p in enumerate(map(lambda x: os.sep.join(x), [path[:i] for i in range(len(path)+1)])):
+            if not os.path.isdir(p) and not os.path.exists(p) and os.path.exists(p + ".py"):
+                service_path = p + ".py"
+                pargs = path[i:]
+
+        # Serve the requested resource.
+        if service_path is not None:
+            return self.invoke_service(service_path, *pargs, **args)
+        elif os.path.isdir(finalpath):
             return Server.dirlisting(finalpath, reqpath)
         else:
             return cherrypy.lib.static.serve_file(finalpath)
