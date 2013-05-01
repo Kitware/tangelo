@@ -165,8 +165,9 @@ window.onload = function () {
         enron.degree = $("#degree");
 
         enron.date.slider({
-            min: new Date(1998, 1, 1).getTime(),
-            max: new Date(2002, 12, 31).getTime(),
+            min: new Date("January 1, 1998").getTime(),
+            max: new Date("December 31, 2002").getTime(),
+            value: new Date("December 13, 2000").getTime(),
             step: 86400,
             slide: function (evt, ui) {
                 d3.select("#date-label")
@@ -182,6 +183,7 @@ window.onload = function () {
         enron.range.slider({
             min: 1,
             max: 6 * 7,
+            value: 3,
             slide: function (evt, ui) {
                 d3.select("#range-label")
                     .text(ui.value + " day" + (ui.value === 1 ? "" : "s"));
