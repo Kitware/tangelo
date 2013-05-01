@@ -103,6 +103,7 @@ function updateGraph() {
             node = svg.select("g#nodes")
                 .selectAll(".node")
                 .data(graph.nodes);
+                //.data(graph.nodes, function (d) { return d.email; });
 
             node.enter().append("circle")
                 .classed("node", true)
