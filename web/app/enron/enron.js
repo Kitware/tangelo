@@ -6,6 +6,8 @@ var color = null;
 var force = null;
 var graph = null;
 var svg = null;
+var width = 0;
+var height = 0;
 
 var enron = {};
 enron.date = null;
@@ -64,7 +66,9 @@ function updateGraph() {
         data: data,
         dataType: "json",
         success: function (resp) {
-            var link,
+            var enter,
+                link,
+                map,
                 node;
 
             d3.select("#update")
@@ -76,7 +80,20 @@ function updateGraph() {
                 return;
             }
 
+            // Save the last iteration of node data, so we can transfer the
+            // positions to the new iteration.
+            map = {};
+            $.each(force.nodes(), function (i, v) {
+                map[v.email] = v;
+            });
+
             graph = resp.result;
+            $.each(graph.nodes, function (i, v) {
+                if (map.hasOwnProperty(v.email)) {
+                    graph.nodes[i].x = map[v.email].x;
+                    graph.nodes[i].y = map[v.email].y;
+                }
+            });
 
             console.log("Got " + graph.nodes.length + " nodes");
             console.log("Got " + graph.edges.length + " edges");
@@ -97,21 +114,30 @@ function updateGraph() {
             link.exit()
                 .transition()
                 .duration(1000)
+                .attr("x1", width)
+                .attr("x2", width)
+                .attr("y1", height/2)
+                .attr("y2", height/2)
                 .style("opacity", 0.0)
                 .remove();
 
             node = svg.select("g#nodes")
                 .selectAll(".node")
-                .data(graph.nodes);
-                //.data(graph.nodes, function (d) { return d.email; });
+                .data(graph.nodes, function (d) { return d.email; });
 
-            node.enter().append("circle")
+            enter = node.enter().append("circle")
                 .classed("node", true)
-                .attr("r", 5)
+                .attr("r", 0)
+                .style("opacity", 0.0)
                 .style("fill", function (d) {
                     return color(d.distance);
-                })
-                .call(force.drag)
+                });
+            enter.transition()
+                .duration(500)
+                .attr("r", 5)
+                .style("opacity", 1.0);
+
+            enter.call(force.drag)
                 .append("title")
                 .text(function (d) {
                     return d.email || "(no email address)";
@@ -121,6 +147,9 @@ function updateGraph() {
                 .transition()
                 .duration(1000)
                 .style("opacity", 0.0)
+                .attr("cx", width)
+                .attr("cy", height/2)
+                .attr("r", 0.0)
                 .remove();
 
             force.on("tick", function () {
@@ -140,9 +169,6 @@ window.onload = function () {
     "use strict";
 
     tangelo.util.defaults("defaults.json", function (defaults) {
-        var height,
-            width;
-
         enron.host = (defaults && defaults.get("host")) || "mongo";
 
         console.log("enron.host: " + enron.host);
