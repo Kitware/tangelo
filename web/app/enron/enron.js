@@ -291,5 +291,7 @@ window.onload = function () {
 
         d3.select("#animate")
             .on("click", toggleAnimation);
+
+        updateGraph();
     });
 };
