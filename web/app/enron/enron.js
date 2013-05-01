@@ -165,6 +165,19 @@ function updateGraph() {
     });
 }
 
+function toggleAnimation() {
+    anim = d3.select("#animate");
+    if (anim.text() === "Animate") {
+        anim.text("Stop animation")
+            .classed("btn-success", false)
+            .classed("btn-warning", true);
+    } else {
+        anim.text("Animate")
+            .classed("btn-success", true)
+            .classed("brn-warning", false);
+    }
+}
+
 window.onload = function () {
     "use strict";
 
@@ -232,5 +245,8 @@ window.onload = function () {
 
         d3.select("#update")
             .on("click", updateGraph);
+
+        d3.select("#animate")
+            .on("click", toggleAnimation);
     });
 };
