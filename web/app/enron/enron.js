@@ -36,11 +36,17 @@ function updateGraph() {
         end_date,
         degree,
         hops,
-        start_date;
+        change_button,
+        start_date,
+        update;
 
-    d3.select("#update")
-        .attr("disabled", true)
-        .text("Updating...");
+    update = d3.select("#update");
+    change_button = !update.attr("disabled");
+
+    if (change_button) {
+        update.attr("disabled", true)
+            .text("Updating...");
+    }
 
     // Construct a Javascript date object from the date slider.
     start_date = new Date(enron.date.slider("value"));
@@ -66,14 +72,19 @@ function updateGraph() {
         data: data,
         dataType: "json",
         success: function (resp) {
-            var enter,
+            var angle,
+                enter,
                 link,
                 map,
-                node;
+                newidx,
+                node,
+                tau;
 
-            d3.select("#update")
-                .attr("disabled", null)
-                .text("Update");
+            if (change_button) {
+                d3.select("#update")
+                    .attr("disabled", null)
+                    .text("Update");
+            }
 
             if (resp.error !== null) {
                 console.log("error: " + resp.error);
@@ -88,11 +99,22 @@ function updateGraph() {
             });
 
             graph = resp.result;
+            newidx = [];
             $.each(graph.nodes, function (i, v) {
                 if (map.hasOwnProperty(v.email)) {
                     graph.nodes[i].x = map[v.email].x;
                     graph.nodes[i].y = map[v.email].y;
+                } else {
+                    newidx.push(i);
                 }
+            });
+
+            tau = 2 * Math.PI;
+            angle = tau / newidx.length;
+            $.each(newidx, function (i, v) {
+                graph.nodes[i].x = (width/4) * Math.cos(i * angle) + (width/2);
+                graph.nodes[i].y = (height/4) * Math.sin(i * angle) + (height/2);
+                console.log("(x, y) = (" + graph.nodes[i].x + ", " + graph.nodes[i].y + ")");
             });
 
             console.log("Got " + graph.nodes.length + " nodes");
@@ -109,7 +131,11 @@ function updateGraph() {
                 });
 
             link.enter().append("line")
-                .classed("link", true);
+                .classed("link", true)
+                .style("opacity", 0.0)
+                .transition()
+                .duration(500)
+                .style("opacity", 1.0);
 
             link.exit()
                 .transition()
@@ -165,16 +191,39 @@ function updateGraph() {
     });
 }
 
+function advanceTimer() {
+    "use strict";
+
+    var value;
+
+    console.log("yay");
+
+    value = enron.date.slider("value") + 86400e3;
+    enron.date.slider("value", value);
+    //enron.date.slider("option", "change")(null, {handle: enron.date.slider, value: value});
+    //
+    updateGraph();
+}
+
+var timeout = null;
 function toggleAnimation() {
     anim = d3.select("#animate");
+    update = d3.select("#update");
+
     if (anim.text() === "Animate") {
         anim.text("Stop animation")
             .classed("btn-success", false)
             .classed("btn-warning", true);
+        update.attr("disabled", true);
+
+        timeout = setInterval(advanceTimer, 1000);
     } else {
         anim.text("Animate")
             .classed("btn-success", true)
             .classed("brn-warning", false);
+        update.attr("disabled", null);
+
+        clearInterval(timeout);
     }
 }
 
