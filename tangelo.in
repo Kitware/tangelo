@@ -242,6 +242,7 @@ class Server(object):
             mtime = datetime.datetime.fromtimestamp(s.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
 
             if os.path.isdir(p):
+                f += "/"
                 t = "dir"
                 s = "-"
             else:
