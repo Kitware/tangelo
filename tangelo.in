@@ -382,12 +382,14 @@ class Server(object):
         # (anywhere in either the requested path's directory itself, or any
         # ancestor directory).
         if self.auth:
+            reqpathcomp = reqpath.split("/")
+
             # Now begin checking each directory up to the root for an updated
             # .htaccess file.
-            for i in range(len(reqpath), 0, -1):
+            for i in range(len(reqpathcomp), 0, -1):
                 done = False
 
-                rqp = "/".join(reqpath[:i])
+                rqp = "/".join(reqpathcomp[:i])
                 fp = os.path.sep.join(path[:i])
 
                 # Special case detection - if we wind up with rqp as "" or "/", then
@@ -409,9 +411,6 @@ class Server(object):
 
                 if done:
                     break
-
-        # Fuse the reqpath components back into a string.
-        reqpath = "/".join(reqpath)
 
         # If the reqpath represents a directory (besides the web root), remove
         # the trailing slash.
