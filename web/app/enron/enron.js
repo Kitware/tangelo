@@ -114,7 +114,6 @@ function updateGraph() {
             $.each(newidx, function (i, v) {
                 graph.nodes[i].x = (width/4) * Math.cos(i * angle) + (width/2);
                 graph.nodes[i].y = (height/4) * Math.sin(i * angle) + (height/2);
-                console.log("(x, y) = (" + graph.nodes[i].x + ", " + graph.nodes[i].y + ")");
             });
 
             console.log("Got " + graph.nodes.length + " nodes");
@@ -196,12 +195,9 @@ function advanceTimer() {
 
     var value;
 
-    console.log("yay");
-
     value = enron.date.slider("value") + 86400e3;
     enron.date.slider("value", value);
-    //enron.date.slider("option", "change")(null, {handle: enron.date.slider, value: value});
-    //
+
     updateGraph();
 }
 
@@ -232,8 +228,6 @@ window.onload = function () {
 
     tangelo.util.defaults("defaults.json", function (defaults) {
         enron.host = (defaults && defaults.get("host")) || "mongo";
-
-        console.log("enron.host: " + enron.host);
 
         svg = d3.select("svg");
 
