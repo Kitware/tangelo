@@ -100,4 +100,8 @@
     Date.prototype.getDayName = function () {
         return day_names[this.getDay()];
     };
+
+    mod.displayDate = function (d) {
+        return mod.monthNames()[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+    };
 }());
