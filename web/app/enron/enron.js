@@ -8,6 +8,7 @@ var graph = null;
 var svg = null;
 var width = 0;
 var height = 0;
+var transition_time;
 
 var enron = {};
 enron.date = null;
@@ -116,12 +117,7 @@ function updateGraph() {
                 graph.nodes[i].y = (height/4) * Math.sin(i * angle) + (height/2);
             });
 
-            console.log("Got " + graph.nodes.length + " nodes");
-            console.log("Got " + graph.edges.length + " edges");
-
-            force.nodes(graph.nodes)
-                .links(graph.edges)
-                .start();
+            transition_time = 1000;
 
             link = svg.select("g#links")
                 .selectAll(".link")
@@ -132,18 +128,17 @@ function updateGraph() {
             link.enter().append("line")
                 .classed("link", true)
                 .style("opacity", 0.0)
+                .style("stroke-width", 0.0)
                 .transition()
-                .duration(500)
-                .style("opacity", 1.0);
+                .duration(transition_time)
+                .style("opacity", 1.0)
+                .style("stroke-width", 1.0);
 
             link.exit()
                 .transition()
-                .duration(1000)
-                .attr("x1", width)
-                .attr("x2", width)
-                .attr("y1", height/2)
-                .attr("y2", height/2)
+                .duration(transition_time)
                 .style("opacity", 0.0)
+                .style("stroke-width", 0.0)
                 .remove();
 
             node = svg.select("g#nodes")
@@ -152,15 +147,16 @@ function updateGraph() {
 
             enter = node.enter().append("circle")
                 .classed("node", true)
-                .attr("r", 0)
+                .attr("r", 10)
                 .style("opacity", 0.0)
+                .style("fill", "red")
+            enter.transition()
+                .duration(transition_time)
+                .attr("r", 5)
+                .style("opacity", 1.0)
                 .style("fill", function (d) {
                     return color(d.distance);
                 });
-            enter.transition()
-                .duration(500)
-                .attr("r", 5)
-                .style("opacity", 1.0);
 
             enter.call(force.drag)
                 .append("title")
@@ -170,12 +166,15 @@ function updateGraph() {
 
             node.exit()
                 .transition()
-                .duration(1000)
+                .duration(transition_time)
                 .style("opacity", 0.0)
-                .attr("cx", width)
-                .attr("cy", height/2)
                 .attr("r", 0.0)
+                .style("fill", "black")
                 .remove();
+
+            force.nodes(graph.nodes)
+                .links(graph.edges)
+                .start();
 
             force.on("tick", function () {
                 link.attr("x1", function (d) { return d.source.x; })
@@ -212,7 +211,7 @@ function toggleAnimation() {
             .classed("btn-warning", true);
         update.attr("disabled", true);
 
-        timeout = setInterval(advanceTimer, 1000);
+        timeout = setInterval(advanceTimer, transition_time * 1.5);
     } else {
         anim.text("Animate")
             .classed("btn-success", true)
@@ -234,9 +233,10 @@ window.onload = function () {
         width = $(window).width();
         height = $(window).height();
         force = d3.layout.force()
-            .charge(-240)
-            .linkDistance(50)
-            .gravity(0.5)
+            .charge(-500)
+            .linkDistance(100)
+            .gravity(0.2)
+            .friction(0.6)
             .size([width, height]);
 
         color = d3.scale.category20();
