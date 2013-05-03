@@ -485,13 +485,13 @@ def start():
     # Try to drop privileges if requested, since we've bound to whatever port
     # superuser privileges were needed for already.
     if drop_priv:
-	# If we're on windows, don't supply any username/groupname, and just
-	# assume we should drop priveleges.
-	if os_name == "Windows":
+        # If we're on windows, don't supply any username/groupname, and just
+        # assume we should drop priveleges.
+        if os_name == "Windows":
             cherrypy.process.plugins.DropPrivileges(cherrypy.engine).subscribe()
-	elif os.getuid() == 0:
-	    # Reaching here means we're on unix, and we are the root user, so
-	    # go ahead and drop privileges to the requested user/group.
+        elif os.getuid() == 0:
+            # Reaching here means we're on unix, and we are the root user, so go
+            # ahead and drop privileges to the requested user/group.
             import grp
             import pwd
 
