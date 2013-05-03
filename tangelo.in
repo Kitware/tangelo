@@ -482,20 +482,22 @@ def start():
         with open(pidfile, "a"):
             pass
 
-    # If we are the superuser, try to drop privileges (since we've bound to
-    # whatever port superuser privileges were needed for already).
-    if drop_priv and os.getuid() == 0:
-        # Set the username and groupname to drop privileges down to.
-        user = "@SERVER_USER@"
-        group = "@SERVER_GROUP@"
-
-        # If we're on windows, don't supply any username/groupname.
-        #if user == "windows" and group == "windows":
-        if os_name == "Windows":
-            DropPrivileges(cherrypy.engine).subscribe()
-        else:
+    # Try to drop privileges if requested, since we've bound to whatever port
+    # superuser privileges were needed for already.
+    if drop_priv:
+	# If we're on windows, don't supply any username/groupname, and just
+	# assume we should drop priveleges.
+	if os_name == "Windows":
+            cherrypy.process.plugins.DropPrivileges(cherrypy.engine).subscribe()
+	elif os.getuid() == 0:
+	    # Reaching here means we're on unix, and we are the root user, so
+	    # go ahead and drop privileges to the requested user/group.
             import grp
             import pwd
+
+            # Set the username and groupname to drop privileges down to.
+            user = "@SERVER_USER@"
+            group = "@SERVER_GROUP@"
 
             try:
                 uid = pwd.getpwnam(user).pw_uid
