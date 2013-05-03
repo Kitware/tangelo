@@ -251,7 +251,7 @@
                         }
 
                         // Pass the range to the user callback.
-                        callback([min, max]);
+                        callback(min, max);
                     }
                 });
             }

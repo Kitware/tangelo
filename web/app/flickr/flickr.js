@@ -160,85 +160,48 @@ function retrieveData() {
 function getMinMaxDates(zoom) {
     "use strict";
 
-    var mongo,
-        july30;
+    var mongo;
 
     mongo = flickr.getMongoDBInfo();
-    july30 = Date.parse("Jul 30, 2012 01:31:06");
 
-    // Query the collection about the earliest and latest dates in the
-    // collection.
-    $.ajax({
-        type: 'POST',
-        url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
-        data: {
-            sort: JSON.stringify([['date', -1]]),
-            limit: 1,
-            fields: JSON.stringify(['date'])
-        },
-        dataType: 'json',
-        success: function (response) {
-            var val;
+    // Get the earliest and latest times in the collection, and set the slider
+    // range/handles appropriately.
+    tangelo.util.getMongoRange(mongo.server, mongo.db, mongo.coll, "date", function (min, max) {
+        // Retrieve the timestamps from the records.
+        min = min.$date;
+        max = max.$date;
 
-            if (response.error !== null || response.result.data.length === 0) {
-                // Error condition.
-                console.log("error: could not get maximum time value from database - " + response.error ? response.error : "no results returned from server");
-            } else {
-                val = +response.result.data[0].date.$date;
-                flickr.timeslider.slider("option", "max", val);
-                flickr.timeslider.slider("values", 1, val);
-                $.ajax({
-                    type: 'POST',
-                    url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
-                    data: {
-                        sort: JSON.stringify([['date', 1]]),
-                        limit: 1,
-                        fields: JSON.stringify(['date'])
-                    },
-                    dataType: 'json',
-                    success: function (response) {
-                        var val;
+        // Set the min and max of the time slider.
+        flickr.timeslider.slider("option", "min", min);
+        flickr.timeslider.slider("option", "max", max);
 
-                        if (response.error !== null || response.result.data.length === 0) {
-                            // Error condition.
-                            console.log("error: could not get minimum time value from database - " + response.error ? response.error : "no results returned from server");
-                        } else {
-                            //val = +response.result.data[0]['date']['$date'];
-                            val = +response.result.data[0].date.$date;
-                            flickr.timeslider.slider("option", "min", val);
+        // Set the low slider handle to July 30 (for a good initial setting to
+        // investigate the data), and the high handle to the max.
+        flickr.timeslider.slider("values", 0, Date.parse("Jul 30, 2012 01:31:06"));
+        flickr.timeslider.slider("values", 1, max);
 
-                            // This time value makes a nice time window for a
-                            // demo.
-                            flickr.timeslider.slider("values", 0, july30);
-
-                            // Go ahead and zoom the slider to this range, if
-                            // requested.
-                            if (zoom) {
-                                zoom(flickr.timeslider);
-                            }
-
-                            // Finally, retrieve the initial data to bootstrap
-                            // the application.
-                            retrieveData();
-
-                            // Add the 'retrieveData' behavior to the slider's
-                            // onchange callback (which starts out ONLY doing
-                            // the 'displayFunc' part).
-                            flickr.timeslider.slider("option", "change", function (evt, ui) {
-                                var low,
-                                    high;
-
-                                low = ui.values[0];
-                                high = ui.values[1];
-
-                                flickr.displayFunc(low, high);
-                                retrieveData();
-                            });
-                        }
-                    }
-                });
-            }
+        // Zoom the slider to this range, if requested.
+        if (zoom) {
+            zoom(flickr.timeslider);
         }
+
+        // Finally, retrieve the initial data to bootstrap the
+        // application.
+        retrieveData();
+
+        // Add the 'retrieveData' behavior to the slider's onchange
+        // callback (which starts out ONLY doing the 'displayFunc'
+        // part).
+        flickr.timeslider.slider("option", "change", function (evt, ui) {
+            var low,
+                high;
+
+            low = ui.values[0];
+            high = ui.values[1];
+
+            flickr.displayFunc(low, high);
+            retrieveData();
+        });
     });
 }
 
