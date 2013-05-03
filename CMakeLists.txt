@@ -233,6 +233,7 @@ set(SOURCES
     web/service/census.py
     web/service/echo.py
     web/service/mongo.py
+    web/service/impala-json.py
 )
 
 if(DEPLOY_TEST_SERVICES)
