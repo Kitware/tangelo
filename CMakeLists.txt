@@ -319,6 +319,7 @@ if(${BUILD_DOCUMENTATION})
 
     set(DOCUMENTATION_SOURCES
         ${CMAKE_SOURCE_DIR}/docs/index.rst
+        ${CMAKE_SOURCE_DIR}/docs/introduction.rst
     )
 
     set(DOCUMENTATION_CONTROL_FILE
