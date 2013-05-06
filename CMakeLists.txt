@@ -321,12 +321,16 @@ if(${BUILD_DOCUMENTATION})
         ${CMAKE_SOURCE_DIR}/docs/index.rst
     )
 
+    set(DOCUMENTATION_CONTROL_FILE
+        ${CMAKE_SOURCE_DIR}/docs/conf.py
+    )
+
     # A command to generate the documentation.
     add_custom_command(
         OUTPUT ${DOCUMENTATION_STAMP}
         COMMAND ${Sphinx_EXECUTABLE} -b html ${CMAKE_SOURCE_DIR}/docs ${CMAKE_BINARY_DIR}/docs
         COMMAND ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_STAMP}
-        DEPENDS ${DOCUMENTATION_SOURCES}
+        DEPENDS ${DOCUMENTATION_SOURCES} ${DOCUMENTATION_CONTROL_FILE}
     )
 endif()
 
