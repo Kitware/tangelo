@@ -3,13 +3,27 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. todolist::
+
 Welcome to the Tangelo Web Framework!
 =====================================
 
 Tangelo is a general-purpose web server framework, built on top of CherryPy_.
-Once it's set up, it stays out of your way, clearing the path for you to create
-rich web applications using a mixture of HTML5, CSS, JavaScript, Python, and
-other web technologies as you see fit.
+Once it's set up, it stays out of your way, clearing the path for you to use
+HTML5, CSS, JavaScript, and other web technologies such as
+
+* JQuery
+* D3
+* Bootstrap
+* WebGL
+* Canvas
+
+to create rich web applications - from traditional, static pages, to
+cutting-edge, visual, dynamic displays.  Tangelo also lets you include Python
+scripts as part of your application, alongside your HTML or Javascript files.
+Tangelo runs these Python scripts on your behalf, to do anything from retrieving
+a few database results for display, to engaging with powerful computational
+engines such as Hadoop_ to compute complex results.
 
 To help in creating these applications, Tangelo exports the Tangelo API, which
 exists as a collection of Python functions, JavaScript functions, and a set of
