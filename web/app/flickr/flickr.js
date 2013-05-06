@@ -609,21 +609,33 @@ window.onload = function () {
         markers.enter()
             .append("circle")
             .style("opacity", 0.0)
+            .style("cursor", "crosshair")
             .attr("r", 0)
-            .append("title")
-            .text(function (d) {
-                var date,
-                    msg;
+            .each(function (d) {
+                var cfg,
+                    msg,
+                    date;
 
                 date = new Date(d.date.$date);
 
                 msg = "";
-                msg += "Date: " + date.getDayName() + " " + date + "\n";
-                msg += "Location: (" + d.location[1] + ", " + d.location[0] + ")\n";
-                msg += "Author: " + d.author + "\n";
-                msg += "Description: " + d.title + "\n";
+                msg += "<b>Date:</b> " + date.getDayName() + " " + date + "<br>\n";
+                msg += "<b>Location:</b> (" + d.location[1] + ", " + d.location[0] + ")<br>\n";
+                msg += "<b>Author:</b> " + d.author + "<br>\n";
+                msg += "<b>Description:</b> " + d.title + "<br>\n";
 
-                return msg;
+                cfg = {
+                    html: true,
+                    container: "body",
+                    placement: "top",
+                    trigger: "hover",
+                    content: msg,
+                    delay: {
+                        show: 0,
+                        hide: 0
+                    }
+                };
+                $(this).popover(cfg);
             });
 
         // This is to prevent division by zero if there is only one data
