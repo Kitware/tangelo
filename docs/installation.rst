@@ -1,6 +1,6 @@
-====================
-    Installation
-====================
+====================================
+    Installation and Quick Start
+====================================
 
 Tangelo currently runs on Linux, OS X, and Windows.  It may run on other
 UNIXlike operating systems as well, but these are the three supported platforms.
