@@ -37,7 +37,8 @@ information.  Happy hacking!
 .. _Tangelo homepage: http://tangelo.kitware.com
 .. _GitHub repository: https://github.com/Kitware/tangelo
 
-Contents:
+Contents
+========
 
 .. toctree::
     :maxdepth: 2
