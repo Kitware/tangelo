@@ -37,17 +37,42 @@ information.  Happy hacking!
 .. _Tangelo homepage: http://tangelo.kitware.com
 .. _GitHub repository: https://github.com/Kitware/tangelo
 
-Contents
-========
+Using Tangelo
+=============
 
 .. toctree::
     :maxdepth: 2
 
     installation
-    setup
     basic-usage
     python-services
-    advanced-usage
+    advanced-features
+
+Command Line Utilities
+======================
+
+.. toctree::
+    :maxdepth: 2
+
+    tangelo-manpage
+    tangelo-passwd-manpage
+
+The Tangelo API
+===============
+
+.. toctree::
+    :maxdepth: 2
+
+    tangelo-py
+    tangelo-js
+
+Tutorials
+=========
+
+.. toctree::
+    :maxdepth: 2
+
+    building-an-app
 
 Indices and tables
 ==================
