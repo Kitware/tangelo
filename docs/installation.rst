@@ -87,3 +87,97 @@ shutdown of the Tangelo server.  Run
 
 to launch the server (on `localhost:8080 <http://localhost:8080>`_ by default).  Point your browser there
 and check out the demos!
+
+Windows
+=======
+
+This installation assumes a "from-scratch" environment. Some of the steps may
+not apply to you.
+
+**1. Install Git**
+
+GitHub has great `instructions <https://help.github.com/articles/set-up-git>`_
+for setting up Git.
+
+**2. Download and install the latest version of `CMake <http://www.cmake.org/cmake/resources/software.html>`**
+
+Use the link marked *Win32 Installer*.
+
+**3. Download and unzip `Ninja <https://github.com/martine/ninja/downloads>`_**
+
+Use the link marked *ninja-120715-win.zip*. This extracts to the single file *ninja.exe*. We'll want the Ninja executable handy, so move it into your home directory. You can do this from the Git shell:
+
+``cp ~/Downloads/ninja.exe ~``
+
+**4. Download and install `Python 2.7.3 <http://www.python.org/download/>`_**
+
+Use the link marked *Windows Installer*.
+
+**5. Install the `pymongo <https://pypi.python.org/pypi/pymongo/>`_ package**
+
+Use the the *pymongo-2.4.2.win32-py2.7.exe* link.
+
+**6. Download and install the Python packages `distribute <http://www.lfd.uci.edu/~gohlke/pythonlibs/#distribute>`_ and `pip <http://www.lfd.uci.edu/~gohlke/pythonlibs/#pip>`_**
+
+For each, use the link marked *win32-py2.7.exe*.
+
+**7. Install CherryPy with ``pip``**
+
+Open the Git GUI bash shell and issue this command:
+
+``/c/Python27/Scripts/pip install cherrypy``
+
+**8. Clone the Tangelo git repository**
+
+Also from the Git shell, move to your development directory (here we will just use your home directory, ``~``) and clone the Tangelo repository:
+
+``cd ~
+git clone git://github.com/Kitware/tangelo.git``
+
+**9. Configure the build**
+
+Run CMake (the *cmake-gui* shortcut in the Start menu) and set the source
+directory as ``C:\Users\<username>\tangelo`` and the build directory as
+``C:\Users\<username>\tangelo-build``. Click configure, and select the Ninja
+generator. There will be an error initially, and you will need to specify the
+``CMAKE_MAKE_PROGRAM`` as ``C:\Users\<username>\ninja.exe``. Hit generate, then
+close CMake.
+
+.. todo
+    Verify that the above works as written, since ``cherryd`` is no longer
+    needed, and the old instructions reference it as a final configure/generate
+    step.
+
+**10. Build Tangelo**
+
+Back in the Git GUI prompt, issue these commands:
+
+``cd ~/tangelo-build
+../ninja``
+
+**11. Start Tangelo**
+
+Finally, move into the deployment directory and start the Tangelo server:
+
+``cd deploy
+tangelo start``
+
+Voila!  You should be able to visit your Tangelo instance at
+http://localhost:8080.
+
+**12 (Optional) Install NLTK**
+
+For the document entities example, install `NLTK
+<https://pypi.python.org/pypi/nltk>`_ with the *nltk-2.0.4.win32.exe* download
+and `PyYAML <http://pyyaml.org/wiki/PyYAML>`_ with the
+*PyYAML-3.10.win32-py2.7.exe* download. To get the NLTK datasets needed, run
+Python from the shell (``/c/Python27/python``) and execute the following
+
+``import nltk
+nltk.download()``
+
+From the window that appears, go to the *Models* tab and download the
+*maxent_ne_chunker*, *maxent_treebank_pos_tagger*, and *punkt* models by
+clicking on each and pressing the download button. Similarly download the
+*words* dataset from the *Corpora* tab.  After closing the download window,
+``quit()`` will exit the Python shell.
