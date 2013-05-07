@@ -31,23 +31,23 @@ The following dependencies are optional; the example application pack relies on 
 
 **2. Check out the Tangelo source code**
 
-Issue this git command to clone the Tangelo repository:
+Issue this git command to clone the Tangelo repository: ::
 
-``git clone git://github.com/Kitware/tangelo.git``
+    git clone git://github.com/Kitware/tangelo.git
 
 This will create a directory called ``tangelo`` containing the source code.
 
 **3. Configure the build**
 
-Create a build directory and move into it:
+Create a build directory and move into it: ::
 
-``mkdir tangelo-build
-cd tangelo-build``
+    mkdir tangelo-build
+    cd tangelo-build
 
 Run ``cmake`` or ``ccmake`` to configure, supplying the source code directory as
-its argument.  
+its argument. ::
 
-``ccmake ../tangelo``
+    ccmake ../tangelo
 
 ``ccmake`` will present you with a curses-based configuration interface that
 will allow you to edit the configuration options (some operating systems
@@ -70,9 +70,9 @@ values should be fine as well:
 
 **4. Build the server**
 
-Run the ``make`` command:
+Run the ``make`` command: ::
 
-``make``
+    make
 
 This will create a directory ``deploy`` in the ``tangelo-build`` directory,
 containing the deployed Tangelo server.
@@ -80,10 +80,10 @@ containing the deployed Tangelo server.
 **5. Start the server!**
 
 The ``tangelo`` program (in the ``deploy`` directory) controls startup and
-shutdown of the Tangelo server.  Run
+shutdown of the Tangelo server.  Run ::
 
-``cd deploy
-./tangelo start``
+    cd deploy
+    ./tangelo start
 
 to launch the server (on `localhost:8080 <http://localhost:8080>`_ by default).  Point your browser there
 and check out the demos!
@@ -105,9 +105,11 @@ Use the link marked *Win32 Installer*.
 
 **3. Download and unzip `Ninja <https://github.com/martine/ninja/downloads>`_**
 
-Use the link marked *ninja-120715-win.zip*. This extracts to the single file *ninja.exe*. We'll want the Ninja executable handy, so move it into your home directory. You can do this from the Git shell:
+Use the link marked *ninja-120715-win.zip*. This extracts to the single file
+*ninja.exe*. We'll want the Ninja executable handy, so move it into your home
+directory. You can do this from the Git shell: ::
 
-``cp ~/Downloads/ninja.exe ~``
+    cp ~/Downloads/ninja.exe ~
 
 **4. Download and install `Python 2.7.3 <http://www.python.org/download/>`_**
 
@@ -123,16 +125,17 @@ For each, use the link marked *win32-py2.7.exe*.
 
 **7. Install CherryPy with ``pip``**
 
-Open the Git GUI bash shell and issue this command:
+Open the Git GUI bash shell and issue this command: ::
 
-``/c/Python27/Scripts/pip install cherrypy``
+    /c/Python27/Scripts/pip install cherrypy
 
 **8. Clone the Tangelo git repository**
 
-Also from the Git shell, move to your development directory (here we will just use your home directory, ``~``) and clone the Tangelo repository:
+Also from the Git shell, move to your development directory (here we will just
+use your home directory, ``~``) and clone the Tangelo repository: ::
 
-``cd ~
-git clone git://github.com/Kitware/tangelo.git``
+    cd ~
+    git clone git://github.com/Kitware/tangelo.git
 
 **9. Configure the build**
 
