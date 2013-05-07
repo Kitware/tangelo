@@ -143,10 +143,10 @@ generator. There will be an error initially, and you will need to specify the
 ``CMAKE_MAKE_PROGRAM`` as ``C:\Users\<username>\ninja.exe``. Hit generate, then
 close CMake.
 
-.. todo
-    Verify that the above works as written, since ``cherryd`` is no longer
+.. todo::
+    **Verify that the above works as written, since ``cherryd`` is no longer
     needed, and the old instructions reference it as a final configure/generate
-    step.
+    step.**
 
 **10. Build Tangelo**
 
