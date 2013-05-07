@@ -99,43 +99,53 @@ not apply to you.
 GitHub has great `instructions <https://help.github.com/articles/set-up-git>`_
 for setting up Git.
 
-**2. Download and install the latest version of `CMake <http://www.cmake.org/cmake/resources/software.html>`**
+**2. Install CMake**
 
-Use the link marked *Win32 Installer*.
+Download and install the latest version of `CMake
+<http://www.cmake.org/cmake/resources/software.html>`_. Use the link marked
+*Win32 Installer*.
 
-**3. Download and unzip `Ninja <https://github.com/martine/ninja/downloads>`_**
+**3. Install Ninja**
 
-Use the link marked *ninja-120715-win.zip*. This extracts to the single file
+Download and unzip `Ninja <https://github.com/martine/ninja/downloads>`_. Use
+the link marked *ninja-120715-win.zip*. This extracts to the single file
 *ninja.exe*. We'll want the Ninja executable handy, so move it into your home
 directory. You can do this from the Git shell: ::
 
     cp ~/Downloads/ninja.exe ~
 
-**4. Download and install `Python 2.7.3 <http://www.python.org/download/>`_**
+**4. Install Python**
 
-Use the link marked *Windows Installer*.
+Download and install `Python 2.7.3 <http://www.python.org/download/>`_. Use the
+link marked *Windows Installer*.
 
-**5. Install the `pymongo <https://pypi.python.org/pypi/pymongo/>`_ package**
+**5. Install PyMongo**
 
-Use the the *pymongo-2.4.2.win32-py2.7.exe* link.
+Install the `pymongo <https://pypi.python.org/pypi/pymongo/>`_ package. Use the
+the *pymongo-2.4.2.win32-py2.7.exe* link.
 
-**6. Download and install the Python packages `distribute <http://www.lfd.uci.edu/~gohlke/pythonlibs/#distribute>`_ and `pip <http://www.lfd.uci.edu/~gohlke/pythonlibs/#pip>`_**
+**6. Install Python package management**
 
-For each, use the link marked *win32-py2.7.exe*.
+Download and install the Python packages `distribute
+<http://www.lfd.uci.edu/~gohlke/pythonlibs/#distribute>`_ and `pip
+<http://www.lfd.uci.edu/~gohlke/pythonlibs/#pip>`_. For each, use the link
+marked *win32-py2.7.exe*.
 
-**7. Install CherryPy with ``pip``**
+**7. Install CherryPy**
 
 Open the Git GUI bash shell and issue this command: ::
 
     /c/Python27/Scripts/pip install cherrypy
 
-**8. Clone the Tangelo git repository**
+**8. Get the Tangelo source code**
 
 Also from the Git shell, move to your development directory (here we will just
 use your home directory, ``~``) and clone the Tangelo repository: ::
 
     cd ~
     git clone git://github.com/Kitware/tangelo.git
+
+This will create a directory named ``tangelo``.
 
 **9. Configure the build**
 
@@ -153,17 +163,17 @@ close CMake.
 
 **10. Build Tangelo**
 
-Back in the Git GUI prompt, issue these commands:
+Back in the Git GUI prompt, issue these commands: ::
 
-``cd ~/tangelo-build
-../ninja``
+    cd ~/tangelo-build
+    ../ninja
 
 **11. Start Tangelo**
 
-Finally, move into the deployment directory and start the Tangelo server:
+Finally, move into the deployment directory and start the Tangelo server: ::
 
-``cd deploy
-tangelo start``
+    cd deploy
+    tangelo start
 
 Voila!  You should be able to visit your Tangelo instance at
 http://localhost:8080.
@@ -174,10 +184,10 @@ For the document entities example, install `NLTK
 <https://pypi.python.org/pypi/nltk>`_ with the *nltk-2.0.4.win32.exe* download
 and `PyYAML <http://pyyaml.org/wiki/PyYAML>`_ with the
 *PyYAML-3.10.win32-py2.7.exe* download. To get the NLTK datasets needed, run
-Python from the shell (``/c/Python27/python``) and execute the following
+Python from the shell (``/c/Python27/python``) and execute the following: ::
 
-``import nltk
-nltk.download()``
+    import nltk
+    nltk.download()
 
 From the window that appears, go to the *Models* tab and download the
 *maxent_ne_chunker*, *maxent_treebank_pos_tagger*, and *punkt* models by
