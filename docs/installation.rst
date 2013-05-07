@@ -14,7 +14,7 @@ Install the following software, which is required to download, build, deploy,
 and run Tangelo:
 
 .. todo::
-    **Hyperlink the software packages to their homepages.**
+    Hyperlink the software packages to their homepages.
 
 * GNU Make
 * CMake
