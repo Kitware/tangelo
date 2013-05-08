@@ -48,6 +48,7 @@ Using Tangelo
     basic-usage
     python-services
     advanced-features
+    integration
 
 Command Line Utilities
 ======================
