@@ -5,8 +5,9 @@
 
 .. todolist::
 
-Welcome to the Tangelo Web Framework!
-=====================================
+=============================================
+    Welcome to the Tangelo Web Framework!
+=============================================
 
 Tangelo is a general-purpose web server framework, built on top of CherryPy_.
 Once it's set up, it stays out of your way, clearing the path for you to use

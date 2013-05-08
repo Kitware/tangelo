@@ -318,8 +318,17 @@ if(${BUILD_DOCUMENTATION})
     set(DOCUMENTATION_STAMP ${CMAKE_BINARY_DIR}/documentation_stamp)
 
     set(DOCUMENTATION_SOURCES
+        ${CMAKE_SOURCE_DIR}/docs/advanced-features.rst
+        ${CMAKE_SOURCE_DIR}/docs/basic-usage.rst
+        ${CMAKE_SOURCE_DIR}/docs/building-an-app.rst
         ${CMAKE_SOURCE_DIR}/docs/index.rst
         ${CMAKE_SOURCE_DIR}/docs/installation.rst
+        ${CMAKE_SOURCE_DIR}/docs/integration.rst
+        ${CMAKE_SOURCE_DIR}/docs/python-services.rst
+        ${CMAKE_SOURCE_DIR}/docs/tangelo-js.rst
+        ${CMAKE_SOURCE_DIR}/docs/tangelo-manpage.rst
+        ${CMAKE_SOURCE_DIR}/docs/tangelo-passwd-manpage.rst
+        ${CMAKE_SOURCE_DIR}/docs/tangelo-py.rst
         ${CMAKE_SOURCE_DIR}/docs/static/tangelo-sphinx.css
         ${CMAKE_SOURCE_DIR}/docs/templates/layout.html
     )
