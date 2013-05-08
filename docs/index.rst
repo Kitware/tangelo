@@ -19,11 +19,11 @@ HTML5, CSS, JavaScript, and other web technologies such as
 * Canvas
 
 to create rich web applications - from traditional, static pages, to
-cutting-edge, visual, dynamic displays.  Tangelo also lets you include Python
-scripts as part of your application, alongside your HTML or Javascript files.
-Tangelo runs these Python scripts on your behalf, to do anything from retrieving
-a few database results for display, to engaging with powerful computational
-engines such as Hadoop_ to compute complex results.
+cutting-edge, visual, dynamic displays.  **Tangelo also lets you include Python
+scripts as part of your application, alongside your HTML and Javascript files**,
+running them on your behalf to do anything from retrieving a few database
+results for display, to engaging with powerful computational engines such as
+Hadoop_ to compute complex results.
 
 To help in creating these applications, Tangelo exports the Tangelo API, which
 exists as a collection of Python functions, JavaScript functions, and a set of
