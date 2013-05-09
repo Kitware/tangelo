@@ -48,7 +48,6 @@ Using Tangelo
     installation
     basic-usage
     python-services
-    advanced-features
     integration
 
 Command Line Utilities
