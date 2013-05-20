@@ -1,9 +1,0 @@
-{
-    "apps": [
-        {
-            "name": "Phylogenetic Trees",
-            "path": "/app/phylotree",
-            "description": "Visualize and explore phylogenetic trees"
-        }
-    ]
-}
