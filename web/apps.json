@@ -22,6 +22,18 @@
             "name": "Biofabric Graph Visualization",
             "path": "biofabric",
             "description": "An implementation of the Biofabric algorithm for visualizing large graphs."
+        },
+
+        {
+            "name": "Enron",
+            "path": "enron",
+            "description": "Enron email data"
+        },
+
+        {
+            "name": "Enron (Titan)",
+            "path": "enron-titan",
+            "description": "Enron email data"
         }
     ],
 
