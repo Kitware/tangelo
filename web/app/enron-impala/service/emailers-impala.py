@@ -58,6 +58,7 @@ def run(database, table, start_time, end_time, center, degree, host="localhost",
           
           current_talkers = list(itertools.chain(*map(lambda x: [x["emailto"], x["emailfrom"]], results)))
           current_talkers = list(set(current_talkers))
+	  
           talkers = talkers.union(current_talkers)
 
           for t in current_talkers:
@@ -94,7 +95,7 @@ def run(database, table, start_time, end_time, center, degree, host="localhost",
 
 def build_query(database, table, start_time, end_time, talkers_list):
   
-  talkers_string = "'"+"', '".join(talkers_list)+"'"
+  talkers_string = '"'+'", "'.join(talkers_list)+'"'
 
-  query = "select emailto, emailfrom from %s.%s where emaildate < '%s' and emaildate >= '%s' and emailfrom <> '' and emailto <> '' and (emailfrom in (%s) or emailto in (%s))" % (database, table, end_time, start_time, talkers_string, talkers_string)
+  query = 'select emailto, emailfrom from %s.%s where emaildate < "%s" and emaildate >= "%s" and emailfrom <> "" and emailto <> "" and (emailfrom in (%s) or emailto in (%s))' % (database, table, end_time, start_time, talkers_string, talkers_string)
   return query

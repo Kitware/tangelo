@@ -19,7 +19,9 @@ enron.host = null;
 
 function stringifyDate(d) {
     "use strict";
-    return (d.getMonth() + 1) + "/" + d.getDate() + "/" + d.getFullYear();
+    
+    return ('0' + (d.getMonth()+1)).slice(-2) + "/" + ('0' + d.getDate()).slice(-2) + "/" + d.getFullYear();
+    //return (d.getMonth() + 1) + "/" + d.getDate() + "/" + d.getFullYear();
     //return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
 }
 
