@@ -1,37 +1,38 @@
 import impala
 import json
 import tangelo
+import itertools
 
 def convert(value, type):
-	if type == "tinyint":
-		return int(value)
-	elif type == "int":
-		return int(value)
-	elif type == "double":
-		return float(value)
-	elif type == "string":
-		return value
-	elif type == "boolean":
-		return True if value == "true" else False
-	return None
+  if type == "tinyint":
+    return int(value)
+  elif type == "int":
+    return int(value)
+  elif type == "double":
+    return float(value)
+  elif type == "string":
+    return value
+  elif type == "boolean":
+    return True if value == "true" else False
+  return None
 
 def convert_results(results, fields=False):
-	schema = results.schema.fieldSchemas
-	converted = []
-	for d in results.data:
-		parts = d.split("\t")
-		if fields:
-			row = {}
-			for i in range(len(parts)):
-				row[schema[i].name] = convert(parts[i], schema[i].type)
-		else:
-			row = []
-			for i in range(len(parts)):
-				row.append(convert(parts[i], schema[i].type))
-		converted.append(row)
-	return converted
+  schema = results.schema.fieldSchemas
+  converted = []
+  for d in results.data:
+    parts = d.split("\t")
+    if fields:
+      row = {}
+      for i in range(len(parts)):
+        row[schema[i].name] = convert(parts[i], schema[i].type)
+    else:
+      row = []
+      for i in range(len(parts)):
+        row.append(convert(parts[i], schema[i].type))
+    converted.append(row)
+  return converted
 
-def run(database, table, start_time, end_time, center, degree, host="localhost", port="21000", fields="true"):
+def run(database, table, start_time, end_time, center, degree, host="mongo", port="21000", fields="true"):
         response = tangelo.empty_response()
 
         try:
@@ -41,7 +42,7 @@ def run(database, table, start_time, end_time, center, degree, host="localhost",
           return response
   
         client = impala.ImpalaBeeswaxClient(host + ':' + port)
-	client.connect()
+        client.connect()
 
         talkers = set([center])
 
@@ -58,7 +59,7 @@ def run(database, table, start_time, end_time, center, degree, host="localhost",
           
           current_talkers = list(itertools.chain(*map(lambda x: [x["emailto"], x["emailfrom"]], results)))
           current_talkers = list(set(current_talkers))
-	  
+
           talkers = talkers.union(current_talkers)
 
           for t in current_talkers:
@@ -67,8 +68,7 @@ def run(database, table, start_time, end_time, center, degree, host="localhost",
 
           all_results.append(results)
 
-        
-	talkers = list(talkers)
+        talkers = list(talkers)
         talker_index = {name: index for (index, name) in enumerate(talkers)}
 
         all_results = itertools.chain(*all_results)
