@@ -1,6 +1,7 @@
 import impala
 import json
 import tangelo
+import itertools
 
 def convert(value, type):
 	if type == "tinyint":
