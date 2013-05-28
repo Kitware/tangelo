@@ -21,8 +21,6 @@ if("${WIN32}")
     set(SERVER_GROUP "windows" CACHE STRING "The group Tangelo will run as, if started as root (unused on Windows)." FORCE)
     mark_as_advanced(FORCE SERVER_USER SERVER_GROUP)
 else()
-    set(TEST_PORT 9999 CACHE STRING "The port the testing script will launch the server on.")
-
     set(SERVER_USER $ENV{USER} CACHE STRING "The user Tangelo will run as, if started as root.")
     set(SERVER_GROUP "users" CACHE STRING "The group Tangelo will run as, if started as root.")
 endif()
@@ -251,6 +249,13 @@ configure_file(
     ${CMAKE_BINARY_DIR}/tangelo-pytest.py
 )
 
+# Configure the shellscript testing driver.
+configure_file(
+    testing/tangelo-server-test.sh
+    ${CMAKE_BINARY_DIR}/tangelo-server-test.sh
+    @ONLY
+)
+
 # Configure the Tangelo control script.
 configure_file(
     tangelo.in
@@ -363,9 +368,13 @@ if(DEPLOY_TEST_SERVICES)
 endif()
 
 if(NOT "${WIN32}")
-    # Server up test.
-    add_test(server-up ${CMAKE_BINARY_DIR}/deploy/tangelo start --port ${TEST_PORT})
+    add_test(rest-get ${CMAKE_BINARY_DIR}/tangelo-server-test.sh
+        "curl -X GET ${SERVER_HOSTNAME}:${SERVER_PORT}/service/restful/one/two/three?foo=bar"
+        "GET: one two three{'foo': u'bar'}"
+    )
 
-    # Server down test.
-    add_test(server-down ${CMAKE_BINARY_DIR}/deploy/tangelo stop)
+    add_test(rest-post ${CMAKE_BINARY_DIR}/tangelo-server-test.sh
+        "curl -X POST -d foo=bar ${SERVER_HOSTNAME}:${SERVER_PORT}/service/restful/one/two/three"
+        "POST: one two three{'foo': u'bar'}"
+    )
 endif()
