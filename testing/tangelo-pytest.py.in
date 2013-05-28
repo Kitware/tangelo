@@ -1,21 +1,25 @@
-#!/usr/bin/python2
+#!${PYTHON_EXECUTABLE}
 
 import sys
 
-# Modify the module path.
+# Modify the module path and import the tangelo script as a module
 sys.path.append("@CMAKE_BINARY_DIR@/@DEPLOY_DIR@")
-import tangelo
+import imp
+tangelo_script = imp.load_source("tangelo_script", "@CMAKE_BINARY_DIR@/@DEPLOY_DIR@/tangelo")
 
 if len(sys.argv) < 3:
     print >>sys.stderr, "usage: tangelo-pytest.py [path-to-service-dir] [web-service-module]"
     sys.exit(1)
 
-# Grab the module to test.
-d = sys.argv[1]
-module = sys.argv[2]
+# Instantiate a server object.
+s = tangelo_script.Server(auth=False)
+
+# Grab the module to test, formulated as a web path for a hypothetical running
+# Tangelo server.
+module = sys.argv[1]
 
 # Grab the positional (i.e., URL path encoded) arguments to pass to the module.
-all_args = sys.argv[3:-1]
+all_args = sys.argv[2:-1]
 pos_args = filter(lambda x: '=' not in x, all_args)
 
 # Grab the keyword (i.e., query encoded) arguments to pass to the module, and
@@ -29,7 +33,7 @@ kw_args = {k: v for (k,v) in map(lambda x: x.split("="), filter(lambda x: '=' in
 expected = sys.argv[-1]
 
 # Run the service and grab the output.
-output = tangelo.invoke_service("@CMAKE_BINARY_DIR@/@DEPLOY_DIR@/web/" + d + "service/" + module + ".py", *pos_args, **kw_args)
+output = s.invoke_service("@CMAKE_BINARY_DIR@/@DEPLOY_DIR@/web/" + module + ".py", *pos_args, **kw_args)
 
 print "Exepcted output:"
 print expected

@@ -353,9 +353,9 @@ endif()
 # Python web service tests.
 set(PYTEST ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/tangelo-pytest.py)
 
-add_test(service-ner ${PYTEST} "app/ner/" ner "Toto, I've got a feeling we're not in Kansas anymore." "{\"result\": [[\"GPE\", \"Toto\"], [\"GPE\", \"Kansas\"]], \"error\": null}")
+add_test(service-ner ${PYTEST} app/ner/service/ner "Toto, I've got a feeling we're not in Kansas anymore." "{\"result\": [[\"GPE\", \"Toto\"], [\"GPE\", \"Kansas\"]], \"error\": null}")
 
 if(DEPLOY_TEST_SERVICES)
-    add_test(service-echo-blank ${PYTEST} "" echo "(No arguments passed)")
-    add_test(service-echo ${PYTEST} "" echo jan feb mar color=red answer=42 "[jan, feb, mar]\ncolor -> red\nanswer -> 42\n")
+    add_test(service-echo-blank ${PYTEST} service/echo "(No arguments passed)")
+    add_test(service-echo ${PYTEST} service/echo jan feb mar color=red answer=42 "[jan, feb, mar]\ncolor -> red\nanswer -> 42\n")
 endif()
