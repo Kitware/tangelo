@@ -640,55 +640,56 @@ def restart():
     else:
         return stopval
 
-p = argparse.ArgumentParser(description="Control execution of a Tangelo server.")
-p.add_argument("-d", "--no-daemon", action="store_true", help="run Tangelo in-console (not as a daemon).")
-p.add_argument("-a", "--no-auth", action="store_true", help="disable HTTP authentication (i.e. processing of .htaccess files).")
-p.add_argument("-p", "--no-drop-privileges", action="store_true", help="disable privilege drop when started as superuser.")
-p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
-args = p.parse_args()
+if __name__ == "__main__":
+    p = argparse.ArgumentParser(description="Control execution of a Tangelo server.")
+    p.add_argument("-d", "--no-daemon", action="store_true", help="run Tangelo in-console (not as a daemon).")
+    p.add_argument("-a", "--no-auth", action="store_true", help="disable HTTP authentication (i.e. processing of .htaccess files).")
+    p.add_argument("-p", "--no-drop-privileges", action="store_true", help="disable privilege drop when started as superuser.")
+    p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
+    args = p.parse_args()
 
-no_daemon = args.no_daemon
-do_auth = not args.no_auth
-drop_priv = not args.no_drop_privileges
-action = args.action
+    no_daemon = args.no_daemon
+    do_auth = not args.no_auth
+    drop_priv = not args.no_drop_privileges
+    action = args.action
 
-# Configured variables.
-cherry = "@CherryPy_EXECUTABLE@"
+    # Configured variables.
+    cherry = "@CherryPy_EXECUTABLE@"
 
-# Detect operating system (and OSX version, if applicable).
-os_name = platform.system()
-if os_name == "Darwin":
-    version = map(int, platform.mac_ver()[0].split("."))
+    # Detect operating system (and OSX version, if applicable).
+    os_name = platform.system()
+    if os_name == "Darwin":
+        version = map(int, platform.mac_ver()[0].split("."))
 
-# Determine the current directory based on the invocation of this script.
-current_dir = os.path.dirname(os.path.abspath(__file__))
-tangelo.set_webroot(current_dir + "/web")
+    # Determine the current directory based on the invocation of this script.
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    tangelo.set_webroot(current_dir + "/web")
 
-# Decide whether to daemonize, based on whether the user wishes not to, and
-# whether the platform supports it.
-daemonize = not no_daemon and not(os_name == "Windows" or (os_name == "Darwin" and version[1] == 6))
+    # Decide whether to daemonize, based on whether the user wishes not to, and
+    # whether the platform supports it.
+    daemonize = not no_daemon and not(os_name == "Windows" or (os_name == "Darwin" and version[1] == 6))
 
-# Determine the path to this script.
-path = os.path.dirname(os.path.abspath(sys.argv[0]))
-pidfile = path + "/tangelo.pid"
-logfile = path + "/tangelo.log"
+    # Determine the path to this script.
+    path = os.path.dirname(os.path.abspath(sys.argv[0]))
+    pidfile = path + "/tangelo.pid"
+    logfile = path + "/tangelo.log"
 
-# Dispatch on action argument.
-code = 1
-if action == "start":
-    code = start()
-elif action == "stop":
-    if not daemonize:
-        sys.stderr.write("error: stop action not supported on this platform\n")
-        sys.exit(1)
-    code = stop()
-elif action == "restart":
-    if not daemonize:
-        sys.stderr.write("error: restart action not supported on this platform\n")
-        sys.exit(1)
-    code = restart()
-else:
-    p.print_usage()
+    # Dispatch on action argument.
     code = 1
+    if action == "start":
+        code = start()
+    elif action == "stop":
+        if not daemonize:
+            sys.stderr.write("error: stop action not supported on this platform\n")
+            sys.exit(1)
+        code = stop()
+    elif action == "restart":
+        if not daemonize:
+            sys.stderr.write("error: restart action not supported on this platform\n")
+            sys.exit(1)
+        code = restart()
+    else:
+        p.print_usage()
+        code = 1
 
-sys.exit(code)
+    sys.exit(code)
