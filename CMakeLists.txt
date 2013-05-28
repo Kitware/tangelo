@@ -21,6 +21,8 @@ if("${WIN32}")
     set(SERVER_GROUP "windows" CACHE STRING "The group Tangelo will run as, if started as root (unused on Windows)." FORCE)
     mark_as_advanced(FORCE SERVER_USER SERVER_GROUP)
 else()
+    set(TEST_PORT 9999 CACHE STRING "The port the testing script will launch the server on.")
+
     set(SERVER_USER $ENV{USER} CACHE STRING "The user Tangelo will run as, if started as root.")
     set(SERVER_GROUP "users" CACHE STRING "The group Tangelo will run as, if started as root.")
 endif()
@@ -358,4 +360,12 @@ add_test(service-ner ${PYTEST} app/ner/service/ner "Toto, I've got a feeling we'
 if(DEPLOY_TEST_SERVICES)
     add_test(service-echo-blank ${PYTEST} service/echo "(No arguments passed)")
     add_test(service-echo ${PYTEST} service/echo jan feb mar color=red answer=42 "[jan, feb, mar]\ncolor -> red\nanswer -> 42\n")
+endif()
+
+if(NOT "${WIN32}")
+    # Server up test.
+    add_test(server-up ${CMAKE_BINARY_DIR}/deploy/tangelo start --port ${TEST_PORT})
+
+    # Server down test.
+    add_test(server-down ${CMAKE_BINARY_DIR}/deploy/tangelo stop)
 endif()
