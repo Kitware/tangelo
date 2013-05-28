@@ -508,8 +508,8 @@ def start():
     cherrypy.config.update({"environment": "production",
                             "log.error_file": logfile,
                             "log.screen": not daemonize,
-                            "server.socket_host": "@SERVER_HOSTNAME@",
-                            "server.socket_port": @SERVER_PORT@,
+                            "server.socket_host": hostname,
+                            "server.socket_port": port,
                             "error_page.default": Server.error_page})
 
     # Create an instance of the main handler object.
@@ -645,6 +645,8 @@ if __name__ == "__main__":
     p.add_argument("-d", "--no-daemon", action="store_true", help="run Tangelo in-console (not as a daemon).")
     p.add_argument("-a", "--no-auth", action="store_true", help="disable HTTP authentication (i.e. processing of .htaccess files).")
     p.add_argument("-p", "--no-drop-privileges", action="store_true", help="disable privilege drop when started as superuser.")
+    p.add_argument("--hostname", type=str, default=None, metavar="HOSTNAME", help="overrides configured hostname on which to run Tangelo")
+    p.add_argument("--port", type=int, default=None, metavar="PORT", help="overrides configured port number on which to run Tangelo")
     p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
     args = p.parse_args()
 
@@ -652,6 +654,8 @@ if __name__ == "__main__":
     do_auth = not args.no_auth
     drop_priv = not args.no_drop_privileges
     action = args.action
+    hostname = args.hostname or "@SERVER_HOSTNAME@"
+    port = args.port or @SERVER_PORT@
 
     # Configured variables.
     cherry = "@CherryPy_EXECUTABLE@"
