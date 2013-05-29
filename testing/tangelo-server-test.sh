@@ -7,15 +7,20 @@ if [ "$?" != 0 ]; then
     exit 1
 fi
 
+# The command to run, and the expected output should appear in single (i.e.,
+# quoted) arguments.
 cmd=$1
 expected=$2
 
-result=`${cmd}`
+# Run the command and capture the output.
+result=`eval ${cmd}`
 
+# Print a report of what's going on.
 echo "Command string: ${cmd}"
 echo "Expected result: ${expected}"
 echo "Actual result: ${result}"
 
+# Decide whether the strings match, and report this as the return value.
 if [ "${result}" == "${expected}" ]; then
     echo "Strings match!"
     retval=0

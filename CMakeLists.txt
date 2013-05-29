@@ -243,12 +243,6 @@ if(DEPLOY_TEST_SERVICES)
         web/service/testapp.py)
 endif()
 
-# Configure the Python testing driver.
-configure_file(
-    testing/tangelo-pytest.py.in
-    ${CMAKE_BINARY_DIR}/tangelo-pytest.py
-)
-
 # Configure the shellscript testing driver.
 configure_file(
     testing/tangelo-server-test.sh
@@ -360,21 +354,46 @@ endif()
 # Python web service tests.
 set(PYTEST ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/tangelo-pytest.py)
 
-add_test(service-ner ${PYTEST} app/ner/service/ner "Toto, I've got a feeling we're not in Kansas anymore." "{\"result\": [[\"GPE\", \"Toto\"], [\"GPE\", \"Kansas\"]], \"error\": null}")
-
-if(DEPLOY_TEST_SERVICES)
-    add_test(service-echo-blank ${PYTEST} service/echo "(No arguments passed)")
-    add_test(service-echo ${PYTEST} service/echo jan feb mar color=red answer=42 "[jan, feb, mar]\ncolor -> red\nanswer -> 42\n")
-endif()
-
 if(NOT "${WIN32}")
-    add_test(rest-get ${CMAKE_BINARY_DIR}/tangelo-server-test.sh
-        "curl -X GET ${SERVER_HOSTNAME}:${SERVER_PORT}/service/restful/one/two/three?foo=bar"
-        "GET: one two three{'foo': u'bar'}"
+    set(tester "${CMAKE_BINARY_DIR}/tangelo-server-test.sh")
+    set(site "${SERVER_HOSTNAME}:${SERVER_PORT}")
+
+    # curl uses \r at the ends of lines for some reason when reporting response
+    # headers, so we include one at the end of our "expected string" lines.
+    add_test(static-content ${tester}
+        "curl --silent -I ${site} | head -n 1"
+        "HTTP/1.1 200 OK\r"
     )
 
-    add_test(rest-post ${CMAKE_BINARY_DIR}/tangelo-server-test.sh
-        "curl -X POST -d foo=bar ${SERVER_HOSTNAME}:${SERVER_PORT}/service/restful/one/two/three"
-        "POST: one two three{'foo': u'bar'}"
-    )
+    if(DEPLOY_TEST_SERVICES)
+        add_test(rest-get ${tester}
+            "curl --silent -X GET ${site}/service/restful/one/two/three?foo=bar"
+            "GET: one two three{'foo': u'bar'}"
+        )
+
+        add_test(rest-post ${tester}
+            "curl --silent -X POST -d foo=bar ${site}/service/restful/one/two/three"
+            "POST: one two three{'foo': u'bar'}"
+        )
+
+        add_test(404-not-found ${tester}
+            "curl --silent -I ${site}/service/404 | head -n 1"
+            "HTTP/1.1 404 Not Found\r"
+        )
+
+        add_test(service-ner ${tester}
+            "curl --silent \"${site}/app/ner/service/ner?text=Toto,+I've+got+a+feeling+we're+not+in+Kansas+anymore.\""
+            "{\"result\": [[\"GPE\", \"Toto\"], [\"GPE\", \"Kansas\"]], \"error\": null}"
+        )
+
+        add_test(service-echo-blank ${tester}
+            "curl --silent ${site}/service/echo"
+            "(No arguments passed)"
+        )
+
+        add_test(service-echo ${tester}
+            "curl --silent \"${site}/service/echo/jan/feb/mar?color=red&answer=42\""
+            "[jan, feb, mar]\ncolor -> red\nanswer -> 42"
+        )
+    endif()
 endif()
