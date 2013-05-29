@@ -152,11 +152,12 @@ returned value from a Python service:
     Tangelo calls ``json.dumps()`` on it to convert it into a string, and then
     delivers that string as the content.
 
-    Python's numeric types are JSON-serializable by default.  Lists and tuples
-    of serializable items are converted into JSON lists, while dictionaries with
-    serializable keys and values are converted into JSON objects.  Finally, any
-    Python object *can be made* JSON-serializable by making them extend
-    ``json.JSONEncoder`` (see the `Python documentation
+    Python's numeric types are JSON-serializable by default, as is the value
+    ``None``.  Lists and tuples of serializable items are converted into JSON
+    lists, while dictionaries with serializable keys and values are converted
+    into JSON objects.  Finally, any Python object *can be made*
+    JSON-serializable by making them extend ``json.JSONEncoder`` (see the
+    `Python documentation
     <http://docs.python.org/2/library/json.html#json.JSONEncoder>`_ for more
     information).
 
@@ -172,6 +173,26 @@ returned value from a Python service:
 
 RESTful Services
 ================
+
+Tangelo also supports the creation of REST services.  Instead of placing
+functionality in a ``run()`` function, such a service has one function per
+desired REST verb.  For example, a rudimentary service to manage a collection of
+databases might look like the following:
+
+.. code-block:: python
+
+    import tangelo
+    import lcarsdb
+
+    @tangelo.restful
+    def get(dbname, query):
+        db = lcarsdb.connect("enterprise.starfleet.mil", dbname)
+        if not db:
+            return None
+        else:
+            return db.find(query)
+
+
 
 .. _streaming:
 
