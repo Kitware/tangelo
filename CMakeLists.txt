@@ -14,7 +14,7 @@ set(SERVER_HOSTNAME localhost CACHE STRING "The hostname of the machine that wil
 set(SERVER_PORT 8080 CACHE STRING "The port the server will run on.")
 set(MINIFY_JAVASCRIPT OFF CACHE BOOL "Minify the JavaScript files prior to concatenating.")
 set(MANGLE_JAVASCRIPT OFF CACHE BOOL "When minifying, also mangle non-public symbol names.")
-set(BUILD_DOCUMENTATION OFF CACHE BOOL "Generate documentation for project.")
+set(DEPLOY_DOCUMENTATION OFF CACHE BOOL "Generate documentation for project.")
 set(JSLINT OFF CACHE BOOL "Generate tests for JS source files using JSLint program.")
 
 if("${WIN32}")
@@ -193,7 +193,7 @@ if(${DEPLOY_EXAMPLES})
 endif()
 
 # Generate documentation.
-if(${BUILD_DOCUMENTATION})
+if(${DEPLOY_DOCUMENTATION})
     # Find Sphinx
     find_package(Sphinx REQUIRED)
 
@@ -222,7 +222,7 @@ if(${BUILD_DOCUMENTATION})
     # A command to generate the documentation.
     add_custom_command(
         OUTPUT ${DOCUMENTATION_STAMP}
-        COMMAND ${Sphinx_EXECUTABLE} -b html ${CMAKE_SOURCE_DIR}/docs ${CMAKE_BINARY_DIR}/docs
+        COMMAND ${Sphinx_EXECUTABLE} -b html ${CMAKE_SOURCE_DIR}/docs ${CMAKE_BINARY_DIR}/deploy/web/docs
         COMMAND ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_STAMP}
         DEPENDS ${DOCUMENTATION_SOURCES} ${DOCUMENTATION_CONTROL_FILE}
     )
