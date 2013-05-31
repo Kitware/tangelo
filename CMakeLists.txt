@@ -9,6 +9,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 # Cache variables.
 set(DEPLOY_TEST_SERVICES OFF CACHE BOOL "Deploy the \"testing\" web service modules.")
+set(DEPLOY_EXAMPLES OFF CACHE BOOL "Deploy web applications in the examples directory under the /app URL (creates symlink).")
 set(SERVER_HOSTNAME localhost CACHE STRING "The hostname of the machine that will run the server.")
 set(SERVER_PORT 8080 CACHE STRING "The port the server will run on.")
 set(MINIFY_JAVASCRIPT OFF CACHE BOOL "Minify the JavaScript files prior to concatenating.")
@@ -38,21 +39,20 @@ find_python_module(cherrypy 3.2 REQUIRED)
 
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
-    ${CMAKE_SOURCE_DIR}/web/index.js
     ${CMAKE_SOURCE_DIR}/web/lib/core.js
     ${CMAKE_SOURCE_DIR}/web/lib/defaults.js
     ${CMAKE_SOURCE_DIR}/web/lib/date.js
     ${CMAKE_SOURCE_DIR}/web/lib/util.js
-    ${CMAKE_SOURCE_DIR}/web/app/biofabric/biofabric.js
-    ${CMAKE_SOURCE_DIR}/web/app/enron/enron.js
-    ${CMAKE_SOURCE_DIR}/web/app/enron-impala/enron-imp.js
-    ${CMAKE_SOURCE_DIR}/web/app/ner/ner.js
-    ${CMAKE_SOURCE_DIR}/web/app/stats/stats.js
-    ${CMAKE_SOURCE_DIR}/web/app/datatwiddle/datatwiddle.js
-    ${CMAKE_SOURCE_DIR}/web/app/vegalab/vegalab.js
-    ${CMAKE_SOURCE_DIR}/web/app/ssci/ssci.js
-    ${CMAKE_SOURCE_DIR}/web/app/flickr/flickr.js
-    ${CMAKE_SOURCE_DIR}/web/app/noaa/climate.js
+    ${CMAKE_SOURCE_DIR}/examples/index.js
+    ${CMAKE_SOURCE_DIR}/examples/biofabric/biofabric.js
+    ${CMAKE_SOURCE_DIR}/examples/enron/enron.js
+    ${CMAKE_SOURCE_DIR}/examples/enron-impala/enron-imp.js
+    ${CMAKE_SOURCE_DIR}/examples/ner/ner.js
+    ${CMAKE_SOURCE_DIR}/examples/stats/stats.js
+    ${CMAKE_SOURCE_DIR}/examples/datatwiddle/datatwiddle.js
+    ${CMAKE_SOURCE_DIR}/examples/vegalab/vegalab.js
+    ${CMAKE_SOURCE_DIR}/examples/ssci/ssci.js
+    ${CMAKE_SOURCE_DIR}/examples/flickr/flickr.js
 )
 
 # These files should be uglified and concatenated.
@@ -68,151 +68,6 @@ set(JS_UGLIFY_FILES
 # These files should be copied to the deployment directory.
 set(SOURCES
     tangelo.py
-    web/apps.json
-    web/index.html
-    web/index.js
-    web/app/biofabric/biofabric.js
-    web/app/biofabric/index.html
-    web/app/biofabric/miserables.json
-    web/app/charitynet/service/charitynet.py
-    web/app/charitynet/charitynet.js
-    web/app/charitynet/index.html
-    web/app/charitynet/us-counties.json
-    web/app/charitynet/us-states.json
-    web/app/charitynet/choropleth.json
-    web/app/noaa/index.html
-    web/app/noaa/climate.js
-    web/app/noaa/circularHeatChart.js
-    web/app/noaa/sealevel.csv
-    web/app/datatwiddle/datatwiddle.js
-    web/app/datatwiddle/index.html
-    web/app/datatwiddle/service/datatwiddle.py
-    web/app/enron/enron.js
-    web/app/enron/index.html
-    web/app/enron/service/emailers.py
-    web/app/enron-impala/enron-imp.js
-    web/app/enron-impala/index.html
-    web/app/enron-impala/service/emailers-impala.py
-    web/app/flickr/flickr.js
-    web/app/flickr/index.html
-    web/app/ner/index.html
-    web/app/ner/letters.csv
-    web/app/ner/ner.css
-    web/app/ner/ner.js
-    web/app/ner/data/letters-from-abbottabad/control.json
-    web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000003.txt
-    web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000004.txt
-    web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000005.txt
-    web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000006.txt
-    web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000007.txt
-    web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000008.txt
-    web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000009.txt
-    web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000010.txt
-    web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000011.txt
-    web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000012.txt
-    web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000013.txt
-    web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000014.txt
-    web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000015.txt
-    web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000016.txt
-    web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000017.txt
-    web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000018.txt
-    web/app/ner/data/letters-from-abbottabad/SOCOM-2012-0000019.txt
-    web/app/ner/service/ner.py
-    web/app/ner/service/nermongo.py
-    web/app/ssci/index.html
-    web/app/ssci/ssci.js
-    web/app/ssci/ssci.json
-    web/app/ssci/data/animals_data.json
-    web/app/ssci/data/Cc_73524567995_00.json
-    web/app/ssci/data/Cc_73524568270_01.json
-    web/app/ssci/data/Cc_73524568278_02.json
-    web/app/ssci/data/Cc_73524568287_03.json
-    web/app/ssci/data/Cc_73524568298_04.json
-    web/app/ssci/data/Cc_73524568305_05.json
-    web/app/ssci/data/Cc_73524568313_06.json
-    web/app/ssci/data/Cc_73524568322_07.json
-    web/app/ssci/data/Cc_73524568328_08.json
-    web/app/ssci/data/Cc_73524568338_09.json
-    web/app/ssci/data/Cc_73524568345_10.json
-    web/app/ssci/data/Cc_73524568352_11.json
-    web/app/ssci/data/Cr_73524567995_00.json
-    web/app/ssci/data/Cr_73524568270_01.json
-    web/app/ssci/data/Cr_73524568278_02.json
-    web/app/ssci/data/Cr_73524568287_03.json
-    web/app/ssci/data/Cr_73524568298_04.json
-    web/app/ssci/data/Cr_73524568305_05.json
-    web/app/ssci/data/Cr_73524568313_06.json
-    web/app/ssci/data/Cr_73524568322_07.json
-    web/app/ssci/data/Cr_73524568328_08.json
-    web/app/ssci/data/Cr_73524568338_09.json
-    web/app/ssci/data/Cr_73524568345_10.json
-    web/app/ssci/data/Cr_73524568352_11.json
-    web/app/ssci/data/XD_73524567995_00.json
-    web/app/ssci/data/XD_73524568270_01.json
-    web/app/ssci/data/XD_73524568278_02.json
-    web/app/ssci/data/XD_73524568287_03.json
-    web/app/ssci/data/XD_73524568298_04.json
-    web/app/ssci/data/XD_73524568305_05.json
-    web/app/ssci/data/XD_73524568313_06.json
-    web/app/ssci/data/XD_73524568322_07.json
-    web/app/ssci/data/XD_73524568328_08.json
-    web/app/ssci/data/XD_73524568338_09.json
-    web/app/ssci/data/XD_73524568345_10.json
-    web/app/ssci/data/XD_73524568352_11.json
-    web/app/ssci/data/XL_73524567995_00.json
-    web/app/ssci/data/XL_73524568270_01.json
-    web/app/ssci/data/XL_73524568278_02.json
-    web/app/ssci/data/XL_73524568287_03.json
-    web/app/ssci/data/XL_73524568298_04.json
-    web/app/ssci/data/XL_73524568305_05.json
-    web/app/ssci/data/XL_73524568313_06.json
-    web/app/ssci/data/XL_73524568322_07.json
-    web/app/ssci/data/XL_73524568328_08.json
-    web/app/ssci/data/XL_73524568338_09.json
-    web/app/ssci/data/XL_73524568345_10.json
-    web/app/ssci/data/XL_73524568352_11.json
-    web/app/stats/index.html
-    web/app/stats/stats.js
-    web/app/vegabuilder/index.html
-    web/app/vegabuilder/vegabuilder.js
-    web/app/vegabuilder/arc.json
-    web/app/vegabuilder/bar.json
-    web/app/vegabuilder/table.json
-    web/app/vegalab/data/7zip.png
-    web/app/vegalab/data/cities.json
-    web/app/vegalab/data/ffox.png
-    web/app/vegalab/data/gimp.png
-    web/app/vegalab/data/letters.json
-    web/app/vegalab/data/world-countries.json
-    web/app/vegalab/examples/histogram/histogram-data.js
-    web/app/vegalab/examples/histogram/histogram.js
-    web/app/vegalab/examples/histogram/histogram.json
-    web/app/vegalab/examples/histogram-json/histogram-json-data.js
-    web/app/vegalab/examples/histogram-json/histogram-json.js
-    web/app/vegalab/examples/histogram-json/histogram-json.json
-    web/app/vegalab/examples/ordinal-bars/ordinal-bars.json
-    web/app/vegalab/examples/vega-arc/vega-arc-data.js
-    web/app/vegalab/examples/vega-arc/vega-arc.js
-    web/app/vegalab/examples/vega-arc/vega-arc.json
-    web/app/vegalab/examples/vega-bars/vega-bars-data.json
-    web/app/vegalab/examples/vega-bars/vega-bars.json
-    web/app/vegalab/examples/vega-data.js
-    web/app/vegalab/examples/vega-image/vega-image.json
-    web/app/vegalab/examples/vega-line/vega-line-data.js
-    web/app/vegalab/examples/vega-line/vega-line.json
-    web/app/vegalab/examples/vega-map/vega-map.json
-    web/app/vegalab/examples/vega-stack_area/vega-stack_area-data.js
-    web/app/vegalab/examples/vega-stack_area/vega-stack_area.json
-    web/app/vegalab/examples/vega-stack_bars/vega-stack_bars-data.js
-    web/app/vegalab/examples/vega-stack_bars/vega-stack_bars.json
-    web/app/vegalab/examples/vega-symbol/vega-symbol-data.js
-    web/app/vegalab/examples/vega-symbol/vega-symbol.json
-    web/app/vegalab/examples/vega-treemap/vega-treemap-data.js
-    web/app/vegalab/examples/vega-treemap/vega-treemap.json
-    web/app/vegalab/index.html
-    web/app/vegalab/lib/projection.js
-    web/app/vegalab/vegalab.css
-    web/app/vegalab/vegalab.js
     web/img/glyphicons-halflings-white.png
     web/img/glyphicons-halflings.png
     web/img/tangelo.ico
@@ -262,6 +117,17 @@ configure_file(
     ${CMAKE_BINARY_DIR}/tangelo-passwd
 )
 
+# Configure main index.html.
+if (${DEPLOY_EXAMPLES})
+    set(index_file web/index-examples.html)
+else()
+    set(index_file web/index.html)
+endif()
+configure_file(
+    ${index_file}
+    ${DEPLOY_DIR}/web/index.html
+)
+
 # Copy the files to the deployment directory.
 set(ALL_TARGETS)
 foreach(m ${SOURCES})
@@ -307,6 +173,15 @@ add_custom_command(
     COMMAND ${concatenator} ${JS_UGLIFY_FILES} ${MINIFY_FLAG} ${MANGLE_FLAG} ${output_operator} ${MIN_JS_FILE}
     DEPENDS ${JS_UGLIFY_FILES}
 )
+
+if(${DEPLOY_EXAMPLES})
+    add_custom_command(
+        OUTPUT ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/app
+        COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/examples ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/app
+        DEPENDS ${CMAKE_SOURCE_DIR}/examples
+    )    
+    list(APPEND ALL_TARGETS ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/app)
+endif()
 
 # Generate documentation.
 if(${BUILD_DOCUMENTATION})
