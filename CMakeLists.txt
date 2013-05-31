@@ -175,12 +175,21 @@ add_custom_command(
 )
 
 if(${DEPLOY_EXAMPLES})
+    set(symlink_source ${CMAKE_SOURCE_DIR}/examples)
+    set(symlink_target ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/app)
+    if(${WIN32})
+        string(REPLACE "/" "\\" symlink_source ${symlink_source})
+        string(REPLACE "/" "\\" symlink_target ${symlink_target})
+        set(symlink_command mklink /J ${symlink_target} ${symlink_source})
+    else()
+        set(symlink_command ${CMAKE_COMMAND} -E create_symlink ${symlink_source} ${symlink_target})
+    endif()
     add_custom_command(
-        OUTPUT ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/app
-        COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/examples ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/app
-        DEPENDS ${CMAKE_SOURCE_DIR}/examples
+        OUTPUT ${symlink_target}
+        COMMAND ${symlink_command}
+        DEPENDS ${symlink_source}
     )    
-    list(APPEND ALL_TARGETS ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/app)
+    list(APPEND ALL_TARGETS ${symlink_target})
 endif()
 
 # Generate documentation.
