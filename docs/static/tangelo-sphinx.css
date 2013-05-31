@@ -1,0 +1,8 @@
+p.admonition-title {
+    display: inline;
+}
+
+.admonition-todo {
+    color: red;
+    font-weight: bold;
+}

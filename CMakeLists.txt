@@ -201,7 +201,22 @@ if(${BUILD_DOCUMENTATION})
     set(DOCUMENTATION_STAMP ${CMAKE_BINARY_DIR}/documentation_stamp)
 
     set(DOCUMENTATION_SOURCES
+        ${CMAKE_SOURCE_DIR}/docs/basic-usage.rst
+        ${CMAKE_SOURCE_DIR}/docs/building-an-app.rst
         ${CMAKE_SOURCE_DIR}/docs/index.rst
+        ${CMAKE_SOURCE_DIR}/docs/installation.rst
+        ${CMAKE_SOURCE_DIR}/docs/integration.rst
+        ${CMAKE_SOURCE_DIR}/docs/python-services.rst
+        ${CMAKE_SOURCE_DIR}/docs/tangelo-js.rst
+        ${CMAKE_SOURCE_DIR}/docs/tangelo-manpage.rst
+        ${CMAKE_SOURCE_DIR}/docs/tangelo-passwd-manpage.rst
+        ${CMAKE_SOURCE_DIR}/docs/tangelo-py.rst
+        ${CMAKE_SOURCE_DIR}/docs/static/tangelo-sphinx.css
+        ${CMAKE_SOURCE_DIR}/docs/templates/layout.html
+    )
+
+    set(DOCUMENTATION_CONTROL_FILE
+        ${CMAKE_SOURCE_DIR}/docs/conf.py
     )
 
     # A command to generate the documentation.
@@ -209,7 +224,7 @@ if(${BUILD_DOCUMENTATION})
         OUTPUT ${DOCUMENTATION_STAMP}
         COMMAND ${Sphinx_EXECUTABLE} -b html ${CMAKE_SOURCE_DIR}/docs ${CMAKE_BINARY_DIR}/docs
         COMMAND ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_STAMP}
-        DEPENDS ${DOCUMENTATION_SOURCES}
+        DEPENDS ${DOCUMENTATION_SOURCES} ${DOCUMENTATION_CONTROL_FILE}
     )
 endif()
 

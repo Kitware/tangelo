@@ -73,7 +73,7 @@ class Server(object):
                             return result
                         else:
                             result["auth_type"] = v
-                    elif k == "AuthUserFile":
+                    elif k in ["AuthPasswordFile", "AuthUserFile"]:
                         result["user_file"] = v
                     elif k == "AuthRealm":
                         result["realm"] = v
