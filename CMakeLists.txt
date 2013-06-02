@@ -39,10 +39,10 @@ find_python_module(cherrypy 3.2 REQUIRED)
 
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
-    ${CMAKE_SOURCE_DIR}/web/lib/core.js
-    ${CMAKE_SOURCE_DIR}/web/lib/defaults.js
-    ${CMAKE_SOURCE_DIR}/web/lib/date.js
-    ${CMAKE_SOURCE_DIR}/web/lib/util.js
+    ${CMAKE_SOURCE_DIR}/web/js/core.js
+    ${CMAKE_SOURCE_DIR}/web/js/defaults.js
+    ${CMAKE_SOURCE_DIR}/web/js/date.js
+    ${CMAKE_SOURCE_DIR}/web/js/util.js
     ${CMAKE_SOURCE_DIR}/examples/index.js
     ${CMAKE_SOURCE_DIR}/examples/biofabric/biofabric.js
     ${CMAKE_SOURCE_DIR}/examples/enron/enron.js
@@ -56,10 +56,10 @@ set(JS_LINT_FILES
 
 # These files should be uglified and concatenated.
 set(JS_UGLIFY_FILES
-    ${CMAKE_SOURCE_DIR}/web/lib/core.js
-    ${CMAKE_SOURCE_DIR}/web/lib/defaults.js
-    ${CMAKE_SOURCE_DIR}/web/lib/date.js
-    ${CMAKE_SOURCE_DIR}/web/lib/util.js
+    ${CMAKE_SOURCE_DIR}/web/js/core.js
+    ${CMAKE_SOURCE_DIR}/web/js/defaults.js
+    ${CMAKE_SOURCE_DIR}/web/js/date.js
+    ${CMAKE_SOURCE_DIR}/web/js/util.js
 )
 
 # These files should be copied to the deployment directory.
@@ -68,12 +68,12 @@ set(SOURCES
     web/img/glyphicons-halflings-white.png
     web/img/glyphicons-halflings.png
     web/img/tangelo.ico
-    web/lib/lib/bootstrap.js
-    web/lib/lib/d3.v3.min.js
-    web/lib/lib/jquery-1.8.2.min.js
-    web/lib/lib/jquery-ui-1.9.1.js
-    web/lib/lib/md5.js
-    web/lib/lib/vega.js
+    web/js/lib/bootstrap.js
+    web/js/lib/d3.v3.min.js
+    web/js/lib/jquery-1.8.2.min.js
+    web/js/lib/jquery-ui-1.9.1.js
+    web/js/lib/md5.js
+    web/js/lib/vega.js
     web/css/bootstrap-readable.css
     web/css/jquery-ui-1.9.1.css
     web/css/tangelo.css
@@ -162,7 +162,7 @@ else()
     unset(MANGLE_FLAG)
 endif()
 
-set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/lib/tangelo.min.js)
+set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/js/tangelo.min.js)
 
 add_custom_command(
     OUTPUT ${MIN_JS_FILE}
