@@ -73,7 +73,7 @@ set(SOURCES
     web/js/lib/jquery-1.8.2.min.js
     web/js/lib/jquery-ui-1.9.1.js
     web/js/lib/md5.js
-    web/js/lib/vega.js
+    web/js/lib/vega-1.0.0.js
     web/css/bootstrap-readable.css
     web/css/jquery-ui-1.9.1.css
     web/css/tangelo.css
