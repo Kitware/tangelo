@@ -68,6 +68,7 @@ set(SOURCES
     web/img/glyphicons-halflings-white.png
     web/img/glyphicons-halflings.png
     web/img/tangelo.ico
+    web/img/Tangelo_Mark_256.png
     web/js/lib/bootstrap.js
     web/js/lib/d3.v3.min.js
     web/js/lib/jquery-1.8.2.min.js
