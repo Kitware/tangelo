@@ -49,7 +49,6 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/examples/enron-impala/enron-imp.js
     ${CMAKE_SOURCE_DIR}/examples/ner/ner.js
     ${CMAKE_SOURCE_DIR}/examples/stats/stats.js
-    ${CMAKE_SOURCE_DIR}/examples/datatwiddle/datatwiddle.js
     ${CMAKE_SOURCE_DIR}/examples/vegalab/vegalab.js
     ${CMAKE_SOURCE_DIR}/examples/ssci/ssci.js
     ${CMAKE_SOURCE_DIR}/examples/flickr/flickr.js
@@ -61,8 +60,6 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/web/lib/defaults.js
     ${CMAKE_SOURCE_DIR}/web/lib/date.js
     ${CMAKE_SOURCE_DIR}/web/lib/util.js
-    ${CMAKE_SOURCE_DIR}/web/lib/vgd3.js
-    ${CMAKE_SOURCE_DIR}/web/lib/vg.util.js
 )
 
 # These files should be copied to the deployment directory.
@@ -71,13 +68,12 @@ set(SOURCES
     web/img/glyphicons-halflings-white.png
     web/img/glyphicons-halflings.png
     web/img/tangelo.ico
-    web/lib/bootstrap.js
-    web/lib/d3.v3.min.js
-    web/lib/jquery-1.8.2.min.js
-    web/lib/jquery-ui-1.9.1.js
-    web/lib/md5.js
-    web/lib/vega.js
-    web/lib/vgd3-template.js.txt
+    web/lib/lib/bootstrap.js
+    web/lib/lib/d3.v3.min.js
+    web/lib/lib/jquery-1.8.2.min.js
+    web/lib/lib/jquery-ui-1.9.1.js
+    web/lib/lib/md5.js
+    web/lib/lib/vega.js
     web/css/bootstrap-readable.css
     web/css/jquery-ui-1.9.1.css
     web/css/tangelo.css
