@@ -256,35 +256,7 @@ var tangelo = {};
 
         initialize_navbar(d3.select("[data-tangelo-type=navbar]"));
 
-        // Create CSS styled control panel at bottom of screen.
-        initialize_control_panel = function (s) {
-            var toggle;
-
-            // Bail out if the selection is empty.
-            if (s.empty()) {
-                console.log("initialize_control_panel: input selection was empty!");
-                return;
-            }
-
-            // Style the control panel div appropriately, then add a div as the
-            // first child to act as the drawer handle (and place an appropriate
-            // icon in the middle of it).
-            s.attr("id", "tangelo-control-panel")
-                .classed("control-panel", true)
-                .insert("div", ":first-child")
-                    .attr("id", "tangelo-drawer-handle")
-                    .classed("centered", true)
-                    .classed("pointer", true)
-                    .classed("drawer", true)
-                    .append("i")
-                        .attr("id", "tangelo-drawer-icon")
-                        .classed("icon-chevron-down", true);
-
-            toggle = tangelo.util.drawer_toggle("#tangelo-control-panel", "#tangelo-drawer-icon");
-            d3.select("#tangelo-drawer-handle")
-                .on("click", toggle);
-        };
-
-        initialize_control_panel(d3.select("[data-tangelo-type=control-panel]"));
+        // Instantiate a control panel if there is an element marked as such.
+        $("[data-tangelo-type=control-panel]").controlPanel();
     });
 }());

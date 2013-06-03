@@ -40,6 +40,7 @@ find_python_module(cherrypy 3.2 REQUIRED)
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/web/js/core.js
+    ${CMAKE_SOURCE_DIR}/web/js/controlPanel.js
     ${CMAKE_SOURCE_DIR}/web/js/defaults.js
     ${CMAKE_SOURCE_DIR}/web/js/date.js
     ${CMAKE_SOURCE_DIR}/web/js/svgColorLegend.js
@@ -59,6 +60,7 @@ set(JS_LINT_FILES
 # These files should be uglified and concatenated.
 set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/web/js/core.js
+    ${CMAKE_SOURCE_DIR}/web/js/controlPanel.js
     ${CMAKE_SOURCE_DIR}/web/js/defaults.js
     ${CMAKE_SOURCE_DIR}/web/js/date.js
     ${CMAKE_SOURCE_DIR}/web/js/util.js
