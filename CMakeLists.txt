@@ -43,6 +43,7 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/web/js/defaults.js
     ${CMAKE_SOURCE_DIR}/web/js/date.js
     ${CMAKE_SOURCE_DIR}/web/js/svgColorLegend.js
+    ${CMAKE_SOURCE_DIR}/web/js/landingPage.js
     ${CMAKE_SOURCE_DIR}/web/js/util.js
     ${CMAKE_SOURCE_DIR}/examples/index.js
     ${CMAKE_SOURCE_DIR}/examples/biofabric/biofabric.js
@@ -62,6 +63,7 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/web/js/date.js
     ${CMAKE_SOURCE_DIR}/web/js/util.js
     ${CMAKE_SOURCE_DIR}/web/js/svgColorLegend.js
+    ${CMAKE_SOURCE_DIR}/web/js/landingPage.js
 )
 
 # These files should be copied to the deployment directory.
