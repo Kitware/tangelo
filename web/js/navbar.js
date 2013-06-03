@@ -1,5 +1,5 @@
 (function ($) {
-    $.fn.navbar = function () {
+    $.fn.navbar = function (cfg) {
         var footer,
             navbar_inner,
             modal,
@@ -8,7 +8,16 @@
             type,
             ul,
             x,
-            s;
+            s,
+            brand,
+            app,
+            onConfigSave,
+            onConfigLoad,
+            onConfigDefault;
+
+        // If no configuration was passed in, emulate an empty configuration
+        // object.
+        cfg = cfg || {};
 
         // Create a d3 selection out of the target element.
         s = d3.select(this[0]);
@@ -26,7 +35,7 @@
                 .classed("navbar-inner", true);
 
         // Create a "brand" item if requested.
-        brand = s.attr("data-tangelo-brand");
+        brand = s.attr("data-tangelo-brand") || cfg.brand;
         if (brand !== null) {
             navbar_inner.append("a")
                 .classed("brand", true)
@@ -39,11 +48,12 @@
                 .classed("nav", true);
 
         // Create an app name item if requested.
-        if (s.attr("data-tangelo-app") !== null) {
+        app = s.attr("data-tangelo-app") || cfg.app;
+        if (app !== null) {
             ul.append("li")
                 .classed("active", true)
                 .append("a")
-                    .text(s.attr("data-tangelo-app"));
+                    .text(app);
         }
 
         // Each top-level div inside the navbar div represents list-item
@@ -156,6 +166,34 @@
             } else {
                 throw "unknown navbar item type '" + type + "'";
             }
+        }
+
+        // Emplace callbacks if specified.
+        onConfigSave = s.attr("data-config-save") || cfg.onConfigSave;
+        if (typeof onConfigSave === "string") {
+            onConfigSave = window[onConfigSave];
+        }
+        if (onConfigSave) {
+            d3.select("#tangelo-config-submit")
+                .on("click.tangelo", onConfigSave);
+        }
+
+        onConfigLoad = s.attr("data-config-load") || cfg.onConfigLoad;
+        if (typeof onConfigLoad === "string") {
+            onConfigLoad = window[onConfigLoad];
+        }
+        if (onConfigLoad) {
+           $("#tangelo-config-panel")
+                .on("show.tangelo", onConfigLoad);
+        }
+
+        onConfigDefault = s.attr("data-config-default") || cfg.onConfigDefault;
+        if (typeof onConfigDefault === "string") {
+            onConfigDefault = window[onConfigDefault];
+        }
+        if (onConfigDefault) {
+            d3.select("#tangelo-config-defaults")
+                .on("click.tangelo", onConfigDefault);
         }
     };
 }(jQuery));

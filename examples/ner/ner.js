@@ -498,15 +498,20 @@ window.onload = function () {
         "the name of the entity displayed with text.";
     $("#graph-help").popover(popover_cfg);
 
-    $("#mongodb-server").val(NER.getMongoDBServer());
-    tangelo.onConfigSave(function () {
-        NER.setMongoDBServer($("#mongodb-server").val());
+    // Initialize the navbar.
+    $("#navbar").navbar({
+        onConfigSave: function () {
+            NER.setMongoDBServer($("#mongodb-server").val());
+        },
+
+        onConfigDefault: function () {
+            localStorage.removeItem("NER:mongodb-server");
+            $("#mongodb-server").val(NER.getMongoDBServer());
+        }
     });
 
-    tangelo.onConfigDefault(function () {
-        localStorage.removeItem("NER:mongodb-server");
-        $("#mongodb-server").val(NER.getMongoDBServer());
-    });
+    // Place the current Mongo DB server in the navbar contents.
+    $("#mongodb-server").val(NER.getMongoDBServer());
 
     // Activate the dataset select tag, and fill it with entries.
     d3.select("#dataset")

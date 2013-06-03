@@ -20,6 +20,15 @@ flickr.getMongoDBInfo = function () {
     };
 };
 
+function showConfig() {
+        var cfg;
+
+        cfg = flickr.getMongoDBInfo();
+        d3.select("#mongodb-server").property("value", cfg.server);
+        d3.select("#mongodb-db").property("value", cfg.db);
+        d3.select("#mongodb-coll").property("value", cfg.coll);
+}
+
 function updateConfig() {
     "use strict";
 
@@ -281,22 +290,6 @@ window.onload = function () {
         drawer_toggle;
 
     flickr.timeslider = $("#time-slider");
-
-    // Display the configuration dialog when clicked.
-    tangelo.onConfigLoad(function () {
-        var cfg;
-
-        cfg = flickr.getMongoDBInfo();
-        d3.select("#mongodb-server").property("value", cfg.server);
-        d3.select("#mongodb-db").property("value", cfg.db);
-        d3.select("#mongodb-coll").property("value", cfg.coll);
-    });
-
-    // Update the internal datastore when the user saves the configuration.
-    tangelo.onConfigSave(updateConfig);
-
-    // Use default configuration values when the defaults button is pressed.
-    tangelo.onConfigDefault(setConfigDefaults);
 
     // Enable the popover help items.
     //
