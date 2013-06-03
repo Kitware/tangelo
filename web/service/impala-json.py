@@ -12,6 +12,8 @@ def convert(value, type):
 		return value
 	elif type == "boolean":
 		return True if value == "true" else False
+	elif type == "timestamp":
+		return value
 	return None
 
 def convert_results(results, fields=False):

@@ -55,6 +55,12 @@ function setConfigDefaults() {
     d3.select("#mongodb-coll").property("value", cfg.coll);
 }
 
+function stringifyDate(d) {
+    "use strict";
+
+    return d.getFullYear() + "-" + ('0' + (d.getMonth()+1)).slice(-2) + "-" + ('0' + d.getDate()).slice(-2);
+}
+
 function retrieveData() {
     "use strict";
 
@@ -64,18 +70,25 @@ function retrieveData() {
         hashtags,
         hashtagquery,
         query,
-        mongo;
+        mongo,
+        start_date,
+        end_date,
+        comma,
+        limit;
 
     // Interrogate the UI elements to build up a query object for the database.
     //
     // Get the time slider range.
     times = flickr.timeslider.slider("values");
+    
+    limit = d3.select("#record-limit").node().value;
 
     // Construct a query that selects times between the two ends of the slider.
+    /*
     timequery = {
         $and : [{'date' : {$gte : {"$date" : times[0]}}},
                 {'date' : {$lte : {"$date" : times[1]}}}]
-    };
+    };*/
 
     // Get the hashtag text and split it into several tags.
     hashtagText = d3.select("#hashtags").node().value;
@@ -83,15 +96,31 @@ function retrieveData() {
     if (hashtagText !== "") {
         hashtags = hashtagText.split(/\s+/);
     }
+    
+    start_date = new Date(times[0]);
+    end_date = new Date(times[1]);
+    
+    query = "select distinct xdata.flickr.id, title, author, longitude, latitude, _date from xdata.flickr left join xdata.flickr_tags on xdata.flickr.id = xdata.flickr_tags.id where _date >= '"+stringifyDate(start_date)+"' and _date <= '"+stringifyDate(end_date)+"'";
 
     // Construct a query to find any entry containing any of these tags.
-    hashtagquery = {};
+    //hashtagquery = {};
     if (hashtags.length > 0) {
-        hashtagquery = { 'hashtags' : {$in : hashtags}};
+        //hashtagquery = { 'hashtags' : {$in : hashtags}};
+        hashtagquery = "";
+        comma = "";
+        for(var i = 0; i < hashtags.length; i++) {
+            hashtagquery += comma+"'"+hashtags[i]+"'";
+            if (comma == "") {
+                comma = ", ";
+            }
+        }
+        query += " and hashtag in ("+hashtagquery+")";
     }
+    
+    query += "limit "+limit;
 
     // Stitch all the queries together into a "superquery".
-    query = {$and : [timequery, hashtagquery]};
+    //query = {$and : [timequery, hashtagquery]};
 
     // Enable the abort button and issue the query to the mongo module.
     mongo = flickr.getMongoDBInfo();
@@ -103,11 +132,15 @@ function retrieveData() {
 
     flickr.currentAjax = $.ajax({
         type: 'POST',
-        url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
+        //url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
+        url: '/service/impala-json/',
         data: {
-            query: JSON.stringify(query),
-            limit: d3.select("#record-limit").node().value,
-            sort: JSON.stringify([['date', 1]])
+            //q: JSON.stringify(query),
+            q: query,
+            host: mongo.server,
+            port: 21000
+            //limit: d3.select("#record-limit").node().value,
+            //sort: JSON.stringify([['date', 1]])
         },
         dataType: 'json',
         success: function (response) {
@@ -117,6 +150,7 @@ function retrieveData() {
             // Remove the stored XHR object.
             flickr.currentAjax = null;
 
+            /*
             // Error check.
             if (response.error !== null) {
                 console.log("fatal error: " + response.error);
@@ -126,11 +160,12 @@ function retrieveData() {
                     .classed("disabled", true)
                     .html("error: " + response.error);
                 return;
-            }
+            }*/
 
             // Indicate success, display the number of records, and disable the
             // button.
-            N = response.result.data.length;
+            //N = response.result.data.length;
+            N = response.length;
             d3.select("#abort")
                 .classed("btn-danger", false)
                 .classed("btn-success", true)
@@ -140,8 +175,8 @@ function retrieveData() {
             // Process the data to add some interesting features
             //
             // Extract some information from the date.
-            data = response.result.data.map(function (d) {
-                var date = new Date(d.date.$date);
+            data = response.map(function (d) {
+                var date = new Date(d._date);
 
                 d.month = date.getMonthName();
                 d.day = date.getDayName();
@@ -160,16 +195,20 @@ function retrieveData() {
 function getMinMaxDates(zoom) {
     "use strict";
 
-    var mongo;
+    var mongo,
+        minDate,
+        maxDate;
 
     mongo = flickr.getMongoDBInfo();
 
     // Get the earliest and latest times in the collection, and set the slider
     // range/handles appropriately.
-    tangelo.util.getMongoRange(mongo.server, mongo.db, mongo.coll, "date", function (min, max) {
+    tangelo.util.getImpalaRange(mongo.server, 21000, "xdata", "flickr", "_date", function (min, max) {
         // Retrieve the timestamps from the records.
-        min = min.$date;
-        max = max.$date;
+        minDate = new Date(min);
+        maxDate = new Date(max);
+        min = minDate.getTime();
+        max = maxDate.getTime();
 
         // Set the min and max of the time slider.
         flickr.timeslider.slider("option", "min", min);
@@ -178,6 +217,7 @@ function getMinMaxDates(zoom) {
         // Set the low slider handle to July 30 (for a good initial setting to
         // investigate the data), and the high handle to the max.
         flickr.timeslider.slider("values", 0, Date.parse("Jul 30, 2012 01:31:06"));
+        //flickr.timeslider.slider("values", 0, min);
         flickr.timeslider.slider("values", 1, max);
 
         // Zoom the slider to this range, if requested.
@@ -454,7 +494,7 @@ window.onload = function () {
 
         // Process the data by adjoining pixel locations to each entry.
         data = this.locationData.map(function (d) {
-            d.pixelLocation = proj.fromLatLngToDivPixel(new google.maps.LatLng(d.location[1], d.location[0]));
+            d.pixelLocation = proj.fromLatLngToDivPixel(new google.maps.LatLng(d.latitude, d.longitude));
             d.pixelLocation.x -= divPixels.x;
             d.pixelLocation.y -= divPixels.y;
             return d;
@@ -595,7 +635,7 @@ window.onload = function () {
             .select("#markers")
             .selectAll("circle")
             .data(data, function (d) {
-                return d._id.$oid;
+                return d.id;
             });
         /*jslint nomen: false */
 
@@ -616,11 +656,11 @@ window.onload = function () {
                     msg,
                     date;
 
-                date = new Date(d.date.$date);
+                date = new Date(d._date);
 
                 msg = "";
                 msg += "<b>Date:</b> " + date.getDayName() + " " + date + "<br>\n";
-                msg += "<b>Location:</b> (" + d.location[1] + ", " + d.location[0] + ")<br>\n";
+                msg += "<b>Location:</b> (" + d.latitude + ", " + d.longitude + ")<br>\n";
                 msg += "<b>Author:</b> " + d.author + "<br>\n";
                 msg += "<b>Description:</b> " + d.title + "<br>\n";
 
@@ -874,7 +914,7 @@ window.onload = function () {
     d3.select("#abort")
         .on("click", function () {
             // If there is a current ajax call in flight, abort it (it is
-            // theoretically possible that the abort button is clicked between
+            // theoretically possible that the abort button is clicked betweenl
             // the time it's activated, and the time an ajax call is sent).
             if (flickr.currentAjax) {
                 flickr.currentAjax.abort();
