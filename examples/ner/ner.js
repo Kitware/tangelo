@@ -9,7 +9,7 @@ var graph = null;
 // Top-level container object for this js file.
 var NER = {};
 
-NER.cfgDefaults = tangelo.util.defaults("defaults.json");
+NER.cfgDefaults = null;
 
 // Get the mongo server to use from the configuration.
 NER.getMongoDBServer = function () {
@@ -459,525 +459,529 @@ function loaddata() {
 window.onload = function () {
     "use strict";
 
-    var drawer_toggle,
-        popover_cfg;
-
-    // Capture the console element.
-    NER.con = d3.select("#console");
-
-    // Enable the popover help items.
-    //
-    // First create a config object with the common options present.
-    popover_cfg = {
-        html: true,
-        container: "body",
-        placement: "top",
-        trigger: "hover",
-        title: null,
-        content: null,
-        delay: {
-            show: 100,
-            hide: 100
-        }
-    };
-
-    // Dataset pulldown help.
-    popover_cfg.content = "A description of the included datasets:<br><br>" +
-        "<b>Letters from Abbottabad</b>. " +
-        "Correspondence written by Al Qaeda leadership, including Osama bin Laden, " +
-        "discovered by the SEALs during the raid in which he was killed.<br><br>";
-    $("#dataset-help").popover(popover_cfg);
-
-    // Graph menu help.
-    popover_cfg.content = "<b>Scale nodes by frequency</b>. Display the nodes, representing entities, " +
-        "with size proportional to the <i>total number of mentions in all the documents</i>.<br><br>" +
-        "<b>Thicken links by frequency</b>. Display the links, representing the mention of an entity " +
-        "in a document, with thickness proportional to the <i>number of times that entity is mentioned " +
-        "in that document</i>.<br><br>" +
-        "<b>Render text labels</b>.  Instead of circles to represent entities, use a text placard with " +
-        "the name of the entity displayed with text.";
-    $("#graph-help").popover(popover_cfg);
-
-    // Initialize the navbar.
-    $("#navbar").navbar({
-        onConfigSave: function () {
-            NER.setMongoDBServer($("#mongodb-server").val());
-        },
-
-        onConfigDefault: function () {
-            localStorage.removeItem("NER:mongodb-server");
-            $("#mongodb-server").val(NER.getMongoDBServer());
-        }
-    });
-
-    // Place the current Mongo DB server in the navbar contents.
-    $("#mongodb-server").val(NER.getMongoDBServer());
-
-    // Activate the dataset select tag, and fill it with entries.
-    d3.select("#dataset")
-        .on("change", loaddata)
-        .data(NER.datasets)
-        .append("option")
-        .text(function (d) { return d.option; });
-
-    d3.select("#dataset")
-        .append("option")
-        .text(NER.customdata);
-
-    // Activate the clear button.
-    d3.select("#clear")
-        .on("click", function () {
-            clearAll();
-            graph.clear();
-
-            // Clear the file selector, and set the dataset selector to
-            // "custom".
-            freshFileInput();
-            d3.select("#dataset").node().value = NER.customdata;
-        });
-
-    graph = (function () {
-        var fade_time,
-            orignodes,
-            origlinks,
-            nodes,
-            links,
-            counter,
-            config,
-            color,
-            legend,
-            svg,
-            width,
-            height,
-            nodeCharge,
-            textCharge,
-            force;
-
-        // Duration of fade-in/fade-out transitions.
-        fade_time = 500;
-
-        // Original data as passed to this module by a call to assemble().
-        orignodes = {};
-        origlinks = {};
-
-        // Data making up the graph.
-        nodes = [];
-        links = [];
-
-        // A counter to help uniquely identify incoming data from different sources.
-        counter = 0;
-
-        // Configuration parameters for graph rendering.
-        config = {
-            // Whether to make the radius of each node proportional to the number of
-            // times it occurs in the corpus.
-            nodeScale: false,
-
-            // Whether to thicken a link proportionally to the number of times it
-            // occurs in the corpus.
-            linkScale: false,
-
-            // Whether to use circles to represent nodes, or text objects.
-            useTextLabels: false
-        };
-
-        color = d3.scale.category20();
-        legend = d3.select("#color-legend");
-
-        svg = d3.select("#graph");
-
-        width = $(window).width();
-        height = $(window).height();
-        nodeCharge = -120;
-        textCharge = -600;
-        force = d3.layout.force()
-            .linkDistance(30)
-            .size([width, height]);
-
-        $(window).resize(function () {
-            width = $(window).width();
-            height = $(window).height();
-            force.size([width, height]);
-            force.start();
-        });
-
-        return {
-            assemble: function (nodedata, linkdata, typedata, nodecount_threshold) {
-                var elemtext,
-                    li;
-
-                // Store copies of the incoming data.
-                orignodes = {};
-                $.each(nodedata, function (k, v) {
-                    orignodes[k] = v;
-                });
-
-                origlinks = {};
-                $.each(linkdata, function (k, v) {
-                    origlinks[k] = v;
-                });
-
-                // Construct a color legend.
-                $("#legend").svgColorLegend({
-                    cmap_func: color,
-                    xoffset: 10,
-                    yoffset: 10,
-                    categories: Object.keys(typedata),
-                    height_padding: 5,
-                    width_padding: 7,
-                    text_spacing: 19,
-                    legend_margins: {top: 5, left: 5, bottom: 5, right: 5},
-                    clear: true
-                });
-
-                // Read the current state of the option inputs (these might not
-                // be the default values if the user did a "soft" reload of the
-                // page after changing them).
-                this.updateConfig();
-            },
-
-            recompute: function (nodecount_threshold) {
-                var fixup;
-
-                if (nodecount_threshold === undefined) {
-                    throw "recompute must be called with a threshold!";
-                }
-
-                // Copy the thresholded nodes over to the local array, and
-                // record their index as we go.  Also make a local copy of the
-                // original, unfiltered data.
-                nodes.length = 0;
-                fixup = {};
-                $.each(orignodes, function (k, v) {
-                    if (v.count >= nodecount_threshold || v.type === "DOCUMENT") {
-                        fixup[v.id] = nodes.length;
-                        nodes.push(v);
-                    }
-                });
-
-                // Copy the link data to the local links array, first checking
-                // to see that both ends of the link are actually present in the
-                // fixup index translation array (i.e., that the node data is
-                // actually present for this threshold value).  Also make a
-                // local copy of the origlinks, unfiltered link data.
-                links.length = 0;
-                $.each(origlinks, function (k, vv) {
-                    var v,
-                        p;
-
-                    v = {};
-                    for (p in vv) {
-                        if (vv.hasOwnProperty(p)) {
-                            v[p] = vv[p];
-                        }
-                    }
-
-                    if (fixup.hasOwnProperty(v.source) && fixup.hasOwnProperty(v.target)) {
-                        // Use the fixup array to edit the index location of the
-                        // source and target.
-                        v.source = fixup[v.source];
-                        v.target = fixup[v.target];
-                        links.push(v);
-                    }
-                });
-            },
-
-            reset: function () {
-                // Empty the node and link containers, so they can be recomputed
-                // from scratch.
-                svg.select("g#nodes").selectAll("*").remove();
-                svg.select("g#links").selectAll("*").remove();
-
-                // Recompute the graph connectivity.
-                this.recompute(NER.nodeSlider.slider("value"));
-
-                // Re-render.
-                this.render();
-            },
-
-            clear: function () {
-                // Clear the svg elements.
-                svg.select("g#nodes").selectAll("*").remove();
-                svg.select("g#links").selectAll("*").remove();
-
-                // Make the graph forget its connectivity data.
-                origlinks = {};
-                orignodes = {};
-                links = [];
-                nodes = [];
-            },
-
-            recenter: function () {
-                // Compute the average position of the nodes, and transform the
-                // entire svg element so that this position is the center of the
-                // element.
-
-                var avg_x,
-                    avg_y,
-                    center_x,
-                    center_y,
-                    translate;
-
-                // If there are no nodes, return right away.
-                if (nodes.length === 0) {
-                    return;
-                }
-
-                // Compute the average position.
-                avg_x = 0;
-                avg_y = 0;
-
-                $.each(nodes, function (i, d) {
-                    avg_x += d.x;
-                    avg_y += d.y;
-                });
-
-                avg_x /= nodes.length;
-                avg_y /= nodes.length;
-
-                // Compute the svg canvas's center point.
-                center_x = d3.select("#graph")
-                            .style("width");
-                center_y = d3.select("#graph")
-                            .style("height");
-
-                // Extract the numeric portion of the size (the last two
-                // characters should read "px").
-                center_x = +center_x.slice(0, -2) / 2.0;
-                center_y = +center_y.slice(0, -2) / 2.0;
-
-                // Translate the average position to the center of the canvas.
-                translate = "translate(" + (center_x - avg_x) + ", " + (center_y - avg_y) + ")";
-                d3.select("g#nodes")
-                    .attr("transform", translate);
-                d3.select("g#links")
-                    .attr("transform", translate);
-            },
-
-            render: function () {
-                var link,
-                    node,
-                    charge,
-                    scaler,
-                    that,
-                    cards;
-
-                link = svg.select("g#links").selectAll("line.link")
-                    .data(links, function (d) { return d.id; });
-
-                link.enter().append("line")
-                    .classed("link", true)
-                    .style("opacity", 0.0)
-                    .style("stroke-width", 0.0)
-                    .transition()
-                    .duration(fade_time)
-                    .style("opacity", 0.5)
-                    .style("stroke-width", this.linkScalingFunction());
-
-                link.exit()
-                    .transition()
-                    .duration(fade_time)
-                    .style("opacity", 0.0)
-                    .style("stroke-width", 0.0)
-                    .remove();
-
-                // The base selector is "*" to allow for selecting either
-                // "circle" elements or "text" elements (depending on which
-                // rendering mode we are in).
-                node = d3.select("g#nodes").selectAll("*.node")
-                    .data(nodes, function (d) { return d.id; });
-
-
-                // Compute the nodal charge based on the type of elements, and
-                // their size.
-                charge = config.useTextLabels ? textCharge : nodeCharge;
-                if (config.nodeScale) {
-                    force.charge(function (n) { return 2 * Math.sqrt(n.count) * charge; });
-                } else {
-                    force.charge(charge);
-                }
-
-                // Create appropriate SVG elements to represent the nodes, based
-                // on the current rendering mode.
-                if (config.useTextLabels) {
-                    scaler = this.nodeScalingFunction();
-                    cards = node.enter().append("g")
-                        .attr("id", function (d) { return d.id; })
-                        .attr("scale", function (d) { return "scale(" + Math.sqrt(scaler(d)) + ")"; })
-                        .attr("translate", "translate(0,0)")
-                        .classed("node", true)
-                        .call(force.drag);
-
-                    cards.append("text")
-                        .text(function (d) { return d.name; })
-                        .style("fill", "black")
-                        .datum(function (d) {
-                            // Augment the selection's data with the bounding
-                            // box of the text elements.
-                            d.bbox = this.getBBox();
-                        });
-
-                    cards.insert("rect", ":first-child")
-                        .attr("width", function (d) { return d.bbox.width; })
-                        .attr("height", function (d) { return d.bbox.height; })
-                        .attr("y", function (d) { return -0.75 * d.bbox.height; })
-                        .style("stroke", function (d) { return color(d.type); })
-                        .style("stroke-width", "2px")
-                        .style("fill", function (d) { return d.type === "DOCUMENT" ? color("DOCUMENT") : "#e5e5e5"; })
-                        .style("fill-opacity", "0.8");
-                } else {
-                    node.enter().append("circle")
-                        .classed("node", true)
-                        .attr("r", this.nodeScalingFunction())
-                        .attr("cx", width / 2)
-                        .attr("cy", height / 2)
-                        .style("fill", function (d) { return color(d.type); })
-                        .style("opacity", 0.0)
-                        .call(force.drag)
-                        .transition()
-                        .duration(fade_time)
-                        .style("opacity", 1.0);
-
-                    node.append("title")
-                        .text(function (d) { return d.name; });
-                }
-
-                node.exit()
-                    .transition()
-                    .duration(fade_time)
-                    .style("opacity", 0.0)
-                    .remove();
-
-                force.stop()
-                    .nodes(nodes)
-                    .links(links)
-                    .start();
-
-                that = this;
-                force.on("tick", function () {
-                    link.attr("x1", function (d) { return d.source.x; })
-                        .attr("y1", function (d) { return d.source.y; })
-                        .attr("x2", function (d) { return d.target.x; })
-                        .attr("y2", function (d) { return d.target.y; });
-
-                    if (config.useTextLabels) {
-                        //node.attr("x", function(d) { return d.x; })
-                        //.attr("y", function(d) { return d.y; });
-                        node.attr("translate", function (d) { return "translate(" + d.x + "," + d.y + ")"; })
-                            .attr("transform", function () { return this.getAttribute("translate") + " " + this.getAttribute("scale"); });
-                    } else {
-                        node.attr("cx", function (d) { return d.x; })
-                            .attr("cy", function (d) { return d.y; });
-                    }
-
-                    that.recenter();
-                });
-            },
-
-            updateConfig: function () {
-                var check;
-
-                // Sweep through the configuration elements and set the boolean
-                // flags appropriately.
-                check = $("#nodefreq")[0];
-                config.nodeScale = check.checked;
-
-                check = $("#linkfreq")[0];
-                config.linkScale = check.checked;
-
-                check = $("#usetext")[0];
-                config.useTextLabels = check.checked;
-            },
-
-            applyConfig: function () {
-                var scaler;
-
-                // Reset the attributes on the nodes and links according to
-                // the current config settings.
-                svg.selectAll("g#links line.link")
-                    .transition()
-                    .duration(2000)
-                    .style("stroke-width", this.linkScalingFunction());
-
-                if (config.useTextLabels) {
-                    scaler = this.nodeScalingFunction(); // Capture here because 'this' content is gone when we need to retrieve this function.
-                    svg.selectAll("g#nodes *.node")
-                        .transition()
-                        .duration(1000)
-                        .attr("scale", function (d) { return "scale(" + Math.sqrt(scaler(d)) + ")"; })
-                        .attr("transform", function () { return this.getAttribute("translate") + " " + this.getAttribute("scale"); });
-                    //.attr("transform", function() { return this.getAttribute("translate"); });
-                    //.attr("transform", function() { return this.getAttribute("scale"); });
-                } else {
-                    svg.selectAll("g#nodes circle.node")
-                        .transition()
-                        .duration(1000)
-                        .attr("r", this.nodeScalingFunction());
-                }
-            },
-
-            nodeScalingFunction: function () {
-                var base,
-                    factor,
-                    ret;
-
-                base = config.useTextLabels ? 0.5 : 5;
-                factor = config.useTextLabels ? 0.5 : 1;
-                if (config.nodeScale) {
-                    ret = function (d) { return base + factor * Math.log(Math.sqrt(d.count)); };
-                } else {
-                    ret = function () { return base; };
-                }
-
-                return ret;
-            },
-
-            linkScalingFunction: function () {
-                var ret;
-
-                if (config.linkScale) {
-                    ret = function (d) { return Math.sqrt(d.count); };
-                } else {
-                    ret = 1;
-                }
-
-                return ret;
+    tangelo.util.defaults("defaults.json", function (defaults) {
+        var drawer_toggle,
+            popover_cfg;
+
+        NER.cfgDefaults = defaults;
+
+        // Capture the console element.
+        NER.con = d3.select("#console");
+
+        // Enable the popover help items.
+        //
+        // First create a config object with the common options present.
+        popover_cfg = {
+            html: true,
+            container: "body",
+            placement: "top",
+            trigger: "hover",
+            title: null,
+            content: null,
+            delay: {
+                show: 100,
+                hide: 100
             }
         };
-    }());
 
-    // Initialize the slider for use in filtering.
-    //
-    // Set the slider to "5" (to give a reasonable amount of data as the
-    // default).
-    NER.nodeSlider = $("#slider");
-    NER.nodeSlider.slider({
-        max: 10,
-        value: 5,
-        change: function (evt, ui) {
-            graph.recompute(ui.value);
-            graph.render();
-        },
-        slide: (function () {
-            var display = d3.select("#value");
+        // Dataset pulldown help.
+        popover_cfg.content = "A description of the included datasets:<br><br>" +
+            "<b>Letters from Abbottabad</b>. " +
+            "Correspondence written by Al Qaeda leadership, including Osama bin Laden, " +
+            "discovered by the SEALs during the raid in which he was killed.<br><br>";
+        $("#dataset-help").popover(popover_cfg);
 
-            return function (evt, ui) {
-                display.html(ui.value);
+        // Graph menu help.
+        popover_cfg.content = "<b>Scale nodes by frequency</b>. Display the nodes, representing entities, " +
+            "with size proportional to the <i>total number of mentions in all the documents</i>.<br><br>" +
+            "<b>Thicken links by frequency</b>. Display the links, representing the mention of an entity " +
+            "in a document, with thickness proportional to the <i>number of times that entity is mentioned " +
+            "in that document</i>.<br><br>" +
+            "<b>Render text labels</b>.  Instead of circles to represent entities, use a text placard with " +
+            "the name of the entity displayed with text.";
+        $("#graph-help").popover(popover_cfg);
+
+        // Initialize the navbar.
+        $("#navbar").navbar({
+            onConfigSave: function () {
+                NER.setMongoDBServer($("#mongodb-server").val());
+            },
+
+            onConfigDefault: function () {
+                localStorage.removeItem("NER:mongodb-server");
+                $("#mongodb-server").val(NER.getMongoDBServer());
+            }
+        });
+
+        // Place the current Mongo DB server in the navbar contents.
+        $("#mongodb-server").val(NER.getMongoDBServer());
+
+        // Activate the dataset select tag, and fill it with entries.
+        d3.select("#dataset")
+            .on("change", loaddata)
+            .data(NER.datasets)
+            .append("option")
+            .text(function (d) { return d.option; });
+
+        d3.select("#dataset")
+            .append("option")
+            .text(NER.customdata);
+
+        // Activate the clear button.
+        d3.select("#clear")
+            .on("click", function () {
+                clearAll();
+                graph.clear();
+
+                // Clear the file selector, and set the dataset selector to
+                // "custom".
+                freshFileInput();
+                d3.select("#dataset").node().value = NER.customdata;
+            });
+
+        graph = (function () {
+            var fade_time,
+                orignodes,
+                origlinks,
+                nodes,
+                links,
+                counter,
+                config,
+                color,
+                legend,
+                svg,
+                width,
+                height,
+                nodeCharge,
+                textCharge,
+                force;
+
+            // Duration of fade-in/fade-out transitions.
+            fade_time = 500;
+
+            // Original data as passed to this module by a call to assemble().
+            orignodes = {};
+            origlinks = {};
+
+            // Data making up the graph.
+            nodes = [];
+            links = [];
+
+            // A counter to help uniquely identify incoming data from different sources.
+            counter = 0;
+
+            // Configuration parameters for graph rendering.
+            config = {
+                // Whether to make the radius of each node proportional to the number of
+                // times it occurs in the corpus.
+                nodeScale: false,
+
+                // Whether to thicken a link proportionally to the number of times it
+                // occurs in the corpus.
+                linkScale: false,
+
+                // Whether to use circles to represent nodes, or text objects.
+                useTextLabels: false
             };
-        }())
+
+            color = d3.scale.category20();
+            legend = d3.select("#color-legend");
+
+            svg = d3.select("#graph");
+
+            width = $(window).width();
+            height = $(window).height();
+            nodeCharge = -120;
+            textCharge = -600;
+            force = d3.layout.force()
+                .linkDistance(30)
+                .size([width, height]);
+
+            $(window).resize(function () {
+                width = $(window).width();
+                height = $(window).height();
+                force.size([width, height]);
+                force.start();
+            });
+
+            return {
+                assemble: function (nodedata, linkdata, typedata, nodecount_threshold) {
+                    var elemtext,
+                        li;
+
+                    // Store copies of the incoming data.
+                    orignodes = {};
+                    $.each(nodedata, function (k, v) {
+                        orignodes[k] = v;
+                    });
+
+                    origlinks = {};
+                    $.each(linkdata, function (k, v) {
+                        origlinks[k] = v;
+                    });
+
+                    // Construct a color legend.
+                    $("#legend").svgColorLegend({
+                        cmap_func: color,
+                        xoffset: 10,
+                        yoffset: 10,
+                        categories: Object.keys(typedata),
+                        height_padding: 5,
+                        width_padding: 7,
+                        text_spacing: 19,
+                        legend_margins: {top: 5, left: 5, bottom: 5, right: 5},
+                        clear: true
+                    });
+
+                    // Read the current state of the option inputs (these might not
+                    // be the default values if the user did a "soft" reload of the
+                    // page after changing them).
+                    this.updateConfig();
+                },
+
+                recompute: function (nodecount_threshold) {
+                    var fixup;
+
+                    if (nodecount_threshold === undefined) {
+                        throw "recompute must be called with a threshold!";
+                    }
+
+                    // Copy the thresholded nodes over to the local array, and
+                    // record their index as we go.  Also make a local copy of the
+                    // original, unfiltered data.
+                    nodes.length = 0;
+                    fixup = {};
+                    $.each(orignodes, function (k, v) {
+                        if (v.count >= nodecount_threshold || v.type === "DOCUMENT") {
+                            fixup[v.id] = nodes.length;
+                            nodes.push(v);
+                        }
+                    });
+
+                    // Copy the link data to the local links array, first checking
+                    // to see that both ends of the link are actually present in the
+                    // fixup index translation array (i.e., that the node data is
+                    // actually present for this threshold value).  Also make a
+                    // local copy of the origlinks, unfiltered link data.
+                    links.length = 0;
+                    $.each(origlinks, function (k, vv) {
+                        var v,
+                            p;
+
+                        v = {};
+                        for (p in vv) {
+                            if (vv.hasOwnProperty(p)) {
+                                v[p] = vv[p];
+                            }
+                        }
+
+                        if (fixup.hasOwnProperty(v.source) && fixup.hasOwnProperty(v.target)) {
+                            // Use the fixup array to edit the index location of the
+                            // source and target.
+                            v.source = fixup[v.source];
+                            v.target = fixup[v.target];
+                            links.push(v);
+                        }
+                    });
+                },
+
+                reset: function () {
+                    // Empty the node and link containers, so they can be recomputed
+                    // from scratch.
+                    svg.select("g#nodes").selectAll("*").remove();
+                    svg.select("g#links").selectAll("*").remove();
+
+                    // Recompute the graph connectivity.
+                    this.recompute(NER.nodeSlider.slider("value"));
+
+                    // Re-render.
+                    this.render();
+                },
+
+                clear: function () {
+                    // Clear the svg elements.
+                    svg.select("g#nodes").selectAll("*").remove();
+                    svg.select("g#links").selectAll("*").remove();
+
+                    // Make the graph forget its connectivity data.
+                    origlinks = {};
+                    orignodes = {};
+                    links = [];
+                    nodes = [];
+                },
+
+                recenter: function () {
+                    // Compute the average position of the nodes, and transform the
+                    // entire svg element so that this position is the center of the
+                    // element.
+
+                    var avg_x,
+                        avg_y,
+                        center_x,
+                        center_y,
+                        translate;
+
+                    // If there are no nodes, return right away.
+                    if (nodes.length === 0) {
+                        return;
+                    }
+
+                    // Compute the average position.
+                    avg_x = 0;
+                    avg_y = 0;
+
+                    $.each(nodes, function (i, d) {
+                        avg_x += d.x;
+                        avg_y += d.y;
+                    });
+
+                    avg_x /= nodes.length;
+                    avg_y /= nodes.length;
+
+                    // Compute the svg canvas's center point.
+                    center_x = d3.select("#graph")
+                                .style("width");
+                    center_y = d3.select("#graph")
+                                .style("height");
+
+                    // Extract the numeric portion of the size (the last two
+                    // characters should read "px").
+                    center_x = +center_x.slice(0, -2) / 2.0;
+                    center_y = +center_y.slice(0, -2) / 2.0;
+
+                    // Translate the average position to the center of the canvas.
+                    translate = "translate(" + (center_x - avg_x) + ", " + (center_y - avg_y) + ")";
+                    d3.select("g#nodes")
+                        .attr("transform", translate);
+                    d3.select("g#links")
+                        .attr("transform", translate);
+                },
+
+                render: function () {
+                    var link,
+                        node,
+                        charge,
+                        scaler,
+                        that,
+                        cards;
+
+                    link = svg.select("g#links").selectAll("line.link")
+                        .data(links, function (d) { return d.id; });
+
+                    link.enter().append("line")
+                        .classed("link", true)
+                        .style("opacity", 0.0)
+                        .style("stroke-width", 0.0)
+                        .transition()
+                        .duration(fade_time)
+                        .style("opacity", 0.5)
+                        .style("stroke-width", this.linkScalingFunction());
+
+                    link.exit()
+                        .transition()
+                        .duration(fade_time)
+                        .style("opacity", 0.0)
+                        .style("stroke-width", 0.0)
+                        .remove();
+
+                    // The base selector is "*" to allow for selecting either
+                    // "circle" elements or "text" elements (depending on which
+                    // rendering mode we are in).
+                    node = d3.select("g#nodes").selectAll("*.node")
+                        .data(nodes, function (d) { return d.id; });
+
+
+                    // Compute the nodal charge based on the type of elements, and
+                    // their size.
+                    charge = config.useTextLabels ? textCharge : nodeCharge;
+                    if (config.nodeScale) {
+                        force.charge(function (n) { return 2 * Math.sqrt(n.count) * charge; });
+                    } else {
+                        force.charge(charge);
+                    }
+
+                    // Create appropriate SVG elements to represent the nodes, based
+                    // on the current rendering mode.
+                    if (config.useTextLabels) {
+                        scaler = this.nodeScalingFunction();
+                        cards = node.enter().append("g")
+                            .attr("id", function (d) { return d.id; })
+                            .attr("scale", function (d) { return "scale(" + Math.sqrt(scaler(d)) + ")"; })
+                            .attr("translate", "translate(0,0)")
+                            .classed("node", true)
+                            .call(force.drag);
+
+                        cards.append("text")
+                            .text(function (d) { return d.name; })
+                            .style("fill", "black")
+                            .datum(function (d) {
+                                // Augment the selection's data with the bounding
+                                // box of the text elements.
+                                d.bbox = this.getBBox();
+                            });
+
+                        cards.insert("rect", ":first-child")
+                            .attr("width", function (d) { return d.bbox.width; })
+                            .attr("height", function (d) { return d.bbox.height; })
+                            .attr("y", function (d) { return -0.75 * d.bbox.height; })
+                            .style("stroke", function (d) { return color(d.type); })
+                            .style("stroke-width", "2px")
+                            .style("fill", function (d) { return d.type === "DOCUMENT" ? color("DOCUMENT") : "#e5e5e5"; })
+                            .style("fill-opacity", "0.8");
+                    } else {
+                        node.enter().append("circle")
+                            .classed("node", true)
+                            .attr("r", this.nodeScalingFunction())
+                            .attr("cx", width / 2)
+                            .attr("cy", height / 2)
+                            .style("fill", function (d) { return color(d.type); })
+                            .style("opacity", 0.0)
+                            .call(force.drag)
+                            .transition()
+                            .duration(fade_time)
+                            .style("opacity", 1.0);
+
+                        node.append("title")
+                            .text(function (d) { return d.name; });
+                    }
+
+                    node.exit()
+                        .transition()
+                        .duration(fade_time)
+                        .style("opacity", 0.0)
+                        .remove();
+
+                    force.stop()
+                        .nodes(nodes)
+                        .links(links)
+                        .start();
+
+                    that = this;
+                    force.on("tick", function () {
+                        link.attr("x1", function (d) { return d.source.x; })
+                            .attr("y1", function (d) { return d.source.y; })
+                            .attr("x2", function (d) { return d.target.x; })
+                            .attr("y2", function (d) { return d.target.y; });
+
+                        if (config.useTextLabels) {
+                            //node.attr("x", function(d) { return d.x; })
+                            //.attr("y", function(d) { return d.y; });
+                            node.attr("translate", function (d) { return "translate(" + d.x + "," + d.y + ")"; })
+                                .attr("transform", function () { return this.getAttribute("translate") + " " + this.getAttribute("scale"); });
+                        } else {
+                            node.attr("cx", function (d) { return d.x; })
+                                .attr("cy", function (d) { return d.y; });
+                        }
+
+                        that.recenter();
+                    });
+                },
+
+                updateConfig: function () {
+                    var check;
+
+                    // Sweep through the configuration elements and set the boolean
+                    // flags appropriately.
+                    check = $("#nodefreq")[0];
+                    config.nodeScale = check.checked;
+
+                    check = $("#linkfreq")[0];
+                    config.linkScale = check.checked;
+
+                    check = $("#usetext")[0];
+                    config.useTextLabels = check.checked;
+                },
+
+                applyConfig: function () {
+                    var scaler;
+
+                    // Reset the attributes on the nodes and links according to
+                    // the current config settings.
+                    svg.selectAll("g#links line.link")
+                        .transition()
+                        .duration(2000)
+                        .style("stroke-width", this.linkScalingFunction());
+
+                    if (config.useTextLabels) {
+                        scaler = this.nodeScalingFunction(); // Capture here because 'this' content is gone when we need to retrieve this function.
+                        svg.selectAll("g#nodes *.node")
+                            .transition()
+                            .duration(1000)
+                            .attr("scale", function (d) { return "scale(" + Math.sqrt(scaler(d)) + ")"; })
+                            .attr("transform", function () { return this.getAttribute("translate") + " " + this.getAttribute("scale"); });
+                        //.attr("transform", function() { return this.getAttribute("translate"); });
+                        //.attr("transform", function() { return this.getAttribute("scale"); });
+                    } else {
+                        svg.selectAll("g#nodes circle.node")
+                            .transition()
+                            .duration(1000)
+                            .attr("r", this.nodeScalingFunction());
+                    }
+                },
+
+                nodeScalingFunction: function () {
+                    var base,
+                        factor,
+                        ret;
+
+                    base = config.useTextLabels ? 0.5 : 5;
+                    factor = config.useTextLabels ? 0.5 : 1;
+                    if (config.nodeScale) {
+                        ret = function (d) { return base + factor * Math.log(Math.sqrt(d.count)); };
+                    } else {
+                        ret = function () { return base; };
+                    }
+
+                    return ret;
+                },
+
+                linkScalingFunction: function () {
+                    var ret;
+
+                    if (config.linkScale) {
+                        ret = function (d) { return Math.sqrt(d.count); };
+                    } else {
+                        ret = 1;
+                    }
+
+                    return ret;
+                }
+            };
+        }());
+
+        // Initialize the slider for use in filtering.
+        //
+        // Set the slider to "5" (to give a reasonable amount of data as the
+        // default).
+        NER.nodeSlider = $("#slider");
+        NER.nodeSlider.slider({
+            max: 10,
+            value: 5,
+            change: function (evt, ui) {
+                graph.recompute(ui.value);
+                graph.render();
+            },
+            slide: (function () {
+                var display = d3.select("#value");
+
+                return function (evt, ui) {
+                    display.html(ui.value);
+                };
+            }())
+        });
+
+        // Bootstrap showing the slider value here (none of the callbacks in the
+        // slider API help).
+        d3.select("#value").html(NER.nodeSlider.slider("value"));
+
+        // Install a new file input.
+        //
+        // NOTE: this is done via a function so we have a way to "clear" the
+        // filename appearing inside it, when the user uses the dropdown menu to
+        // select a prepared dataset, etc.
+        freshFileInput();
+
+        // Trigger the loading of the default selected dataset from the dropdown.
+        loaddata();
     });
-
-    // Bootstrap showing the slider value here (none of the callbacks in the
-    // slider API help).
-    d3.select("#value").html(NER.nodeSlider.slider("value"));
-
-    // Install a new file input.
-    //
-    // NOTE: this is done via a function so we have a way to "clear" the
-    // filename appearing inside it, when the user uses the dropdown menu to
-    // select a prepared dataset, etc.
-    freshFileInput();
-
-    // Trigger the loading of the default selected dataset from the dropdown.
-    loaddata();
 };
