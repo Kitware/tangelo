@@ -613,8 +613,7 @@ window.onload = function () {
                 });
 
                 // Construct a color legend.
-                tangelo.util.svgColorLegend({
-                    legend: "#legend",
+                $("#legend").svgColorLegend({
                     cmap_func: color,
                     xoffset: 10,
                     yoffset: 10,

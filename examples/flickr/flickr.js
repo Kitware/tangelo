@@ -388,7 +388,7 @@ window.onload = function () {
 
         // Add an SVG group whose contents will change or disappear based on the
         // active colormap.
-        this.legend = svg.append("g");
+        this.legend = svg.append("g").node();
     };
 
     // draw() sizes and places the overlaid SVG element.
@@ -504,8 +504,7 @@ window.onload = function () {
                     return that.monthColor(d.month);
                 };
 
-                tangelo.util.svgColorLegend({
-                    legend: legend.node(),
+                $(legend).svgColorLegend({
                     cmap_func: that.monthColor,
                     xoffset: 10,
                     yoffset: 10,
@@ -513,7 +512,11 @@ window.onload = function () {
                     height_padding: 5,
                     width_padding: 7,
                     text_spacing: 19,
-                    legend_margins: {top: 5, left: 5, bottom: 5, right: 5},
+                    legend_margins: {
+                        top: 5,
+                        left: 5,
+                        bottom: 5,
+                        right: 5},
                     clear: true
                 });
 
@@ -523,8 +526,7 @@ window.onload = function () {
                     return that.dayColor(d.day);
                 };
 
-                tangelo.util.svgColorLegend({
-                    legend: legend.node(),
+                $(legend).svgColorLegend({
                     cmap_func: that.dayColor,
                     xoffset: 10,
                     yoffset: 10,
@@ -550,7 +552,7 @@ window.onload = function () {
                     return scale(i);
                 };
             } else {
-                legend.selectAll("*").remove();
+                d3.select(legend).selectAll("*").remove();
                 retval = "pink";
             }
 
