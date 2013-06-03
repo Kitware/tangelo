@@ -69,33 +69,6 @@ var tangelo = {};
     // Initialization function that will handle tangelo-specific elements
     // automatically.
     $(function () {
-        var brand,
-            i,
-            initialize_control_panel,
-            initialize_navbar,
-            item,
-            items;
-
-        // Callback specifier for clicking the "save config" button in the
-        // standard tangelo config panel.
-        tangelo.onConfigSave = function (callback) {
-            d3.select("#tangelo-config-submit")
-                .on("click.tangelo", callback);
-        };
-
-        // Callback specifier for bringing up the tangelo config panel (e.g. by
-        // clicking on the navbar item).
-        tangelo.onConfigLoad = function (callback) {
-            $("#tangelo-config-panel").on("show.tangelo", callback);
-        };
-
-        // Callback specifier for clicking the "defaults" button in the standard
-        // tangelo config panel.
-        tangelo.onConfigDefault = function (callback) {
-            d3.select("#tangelo-config-defaults")
-                .on("click.tangelo", callback);
-        };
-
         // Instantiate a navbar if there is an element marked as such.
         $("[data-tangelo-type=navbar]").navbar();
 
