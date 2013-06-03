@@ -14,9 +14,9 @@ flickr.getMongoDBInfo = function () {
     // Read in the config options regarding which MongoDB
     // server/database/collection to use.
     return {
-        server: localStorage.getItem('flickr:mongodb-server') || flickr.cfgDefaults.get("mongodb-server") || 'localhost',
-        db: localStorage.getItem('flickr:mongodb-db') || flickr.cfgDefaults.get("mongodb-db") || 'xdata',
-        coll: localStorage.getItem('flickr:mongodb-coll') || flickr.cfgDefaults.get("mongodb-coll") || 'flickr_paris'
+        server: localStorage.getItem('flickr:mongodb-server') || flickr.cfgDefaults["mongodb-server"] || 'localhost',
+        db: localStorage.getItem('flickr:mongodb-db') || flickr.cfgDefaults["mongodb-db"] || 'xdata',
+        coll: localStorage.getItem('flickr:mongodb-coll') || flickr.cfgDefaults["mongodb-coll"] || 'flickr_paris'
     };
 };
 

@@ -152,74 +152,13 @@
         return true;
     };
 
-    mod.defaults = function (inputSpec, callback) {
-        var k,
-            notready,
-            that,
-            retval,
-            store,
-            populate,
-            fns;
-
-        // The hashtable to store the options.
-        store = {};
-
-        // A helper function that treats the input argument as an object and
-        // copies its properties to the store.
-        populate = function (data) {
-            var k;
-
-            for (k in data) {
-                if (data.hasOwnProperty(k)) {
-                    store[k] = data[k];
-                }
-            }
-        };
-
-        // The object methods.
-        that = {
-            set: function (key, value) {
-                store[key] = value;
-            },
-
-            get: function (key) {
-                return store[key];
-            },
-        };
-
-        // Dispatch on the type of the input argument.
-        if (typeof inputSpec === "string") {
-            // A string argument - treat it as a JSON file.
-            //
-            // Initiate an ajax call to retrieve the file contents.
-            d3.json(inputSpec, function (err, json) {
-                // Fill in the store with the file data (or leave it blank if
-                // there was a problem with loading the file).
-                if (!err) {
-                    populate(json);
-                }
-
-                // If a callback was supplied, invoke it on the defaults object.
-                if (callback) {
-                    callback(that);
-                }
-            });
-
-            retval = undefined;
-        } else if (typeof inputSpec === "object") {
-            // An object argument - treat it as a hashtable of key/value pairs
-            // representing default config values.
-            //
-            // Fill in the store.
-            populate(inputSpec);
-
-            // Give the user a method handle.
-            retval = that;
-        } else {
-            retval = undefined;
-            throw mod.message("defaults", "unexpected type in first argument: " + typeof inputSpec);
-        }
-
-        return retval;
+    mod.defaults = function (inputfile, callback) {
+        // If there is a problem with the file, it may be that it is not
+        // expected to be there at all, so silently supply an empty defaults
+        // table.  The err argument is passed in case the client WAS expecting
+        // the defaults file to be read in, and wants to examine the error.
+        d3.json(inputfile, function (err, json) {
+            callback(json || {}, err);
+        });
     };
 }());

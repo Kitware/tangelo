@@ -15,7 +15,7 @@ NER.cfgDefaults = null;
 NER.getMongoDBServer = function () {
     "use strict";
 
-    return localStorage.getItem('NER:mongodb-server') || NER.cfgDefaults.get("mongodb-server") || 'localhost';
+    return localStorage.getItem('NER:mongodb-server') || NER.cfgDefaults["mongodb-server"] || 'localhost';
 };
 
 // Save the mongo server to use to the configuration.

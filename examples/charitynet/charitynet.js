@@ -189,7 +189,7 @@ $(function () {
     tangelo.util.defaults("defaults.json", function (defaults) {
         var host;
 
-        host = defaults ? defaults.get("host") : "mongo";
+        host = defaults ? defaults["host"] : "mongo";
 
         d3.json("us-counties.json", function (error, counties) {
             d3.json("us-states.json", function (error, states) {

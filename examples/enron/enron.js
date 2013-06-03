@@ -226,7 +226,7 @@ window.onload = function () {
     "use strict";
 
     tangelo.util.defaults("defaults.json", function (defaults) {
-        enron.host = (defaults && defaults.get("host")) || "mongo";
+        enron.host = defaults["host"] || "mongo";
 
         svg = d3.select("svg");
 
