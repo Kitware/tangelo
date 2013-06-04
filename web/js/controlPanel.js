@@ -3,11 +3,7 @@
 /*globals jQuery, d3 */
 
 (function ($) {
-    function drawer_size() {
-        return 23;
-    };
-
-   function drawer_toggle(divsel, buttonsel) {
+    function drawerToggle(divsel, buttonsel) {
         var div,
             button,
             state,
@@ -22,7 +18,7 @@
         state = 'uncollapsed';
 
         // The glyphicon halfings are around 22.875 pixels tall.
-        iconheight = drawer_size() + "px";
+        iconheight = "23px";
 
         // Save the original height of the panel.
         // This requires a DOM update to do this correctly, so we wait a second.
@@ -85,7 +81,7 @@
                     .attr("id", "tangelo-drawer-icon")
                     .classed("icon-chevron-down", true);
 
-        toggle = drawer_toggle("#tangelo-control-panel", "#tangelo-drawer-icon");
+        toggle = drawerToggle("#tangelo-control-panel", "#tangelo-drawer-icon");
         d3.select("#tangelo-drawer-handle")
             .on("click", toggle);
     };
