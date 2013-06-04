@@ -86,7 +86,6 @@ set(SOURCES
     web/css/tangelo.css
     web/img/glyphicons-halflings.png
     web/img/glyphicons-halflings-white.png
-    web/service/census.py
     web/service/echo.py
     web/service/mongo.py
     web/service/impala-json.py
