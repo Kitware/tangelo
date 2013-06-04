@@ -9,6 +9,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 # Cache variables.
 set(DEPLOY_TEST_SERVICES OFF CACHE BOOL "Deploy the \"testing\" web service modules.")
+set(DEPLOY_SERVICE_MONGO ON CACHE BOOL "Deploy the mongo.py service (depends on pymongo).")
+set(DEPLOY_SERVICE_IMPALA ON CACHE BOOL "Deploy the impala-json.py service (depends on impala).")
 set(DEPLOY_EXAMPLES OFF CACHE BOOL "Deploy web applications in the examples directory under the /app URL (creates symlink).")
 set(SERVER_HOSTNAME localhost CACHE STRING "The hostname of the machine that will run the server.")
 set(SERVER_PORT 8080 CACHE STRING "The port the server will run on.")
@@ -86,9 +88,17 @@ set(SOURCES
     web/css/tangelo.css
     web/img/glyphicons-halflings.png
     web/img/glyphicons-halflings-white.png
-    web/service/mongo.py
-    web/service/impala-json.py
 )
+
+if(DEPLOY_SERVICE_MONGO)
+    list(APPEND SOURCES
+        web/service/mongo.py)
+endif()
+
+if(DEPLOY_SERVICE_IMPALA)
+    list(APPEND SOURCES
+        web/service/impala-json.py)
+endif()
 
 if(DEPLOY_TEST_SERVICES)
     list(APPEND SOURCES
