@@ -29,7 +29,7 @@
                     max = null;
 
                     if (response.error !== null) {
-                        console.log("[tangelo.getMongoRange()] error: could not retrieve max value from " + host + ":/" + db + "/" + coll + ":" + field);
+                        throw "[tangelo.getMongoRange()] error: could not retrieve max value from " + host + ":/" + db + "/" + coll + ":" + field;
                     }
                 } else {
                     max = response.result.data[0][field];
@@ -51,7 +51,7 @@
                             min = null;
 
                             if (response.error !== null) {
-                                console.log("[tangelo.getMongoRange()] error: could not retrieve min value from " + host + ":/" + db + "/" + coll + ":" + field);
+                                throw "[tangelo.getMongoRange()] error: could not retrieve min value from " + host + ":/" + db + "/" + coll + ":" + field;
                             }
                         } else {
                             min = response.result.data[0][field];
