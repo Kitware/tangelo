@@ -152,8 +152,8 @@ function retrieveData() {
             data = response.result.data.map(function (d) {
                 var date = new Date(d.date.$date);
 
-                d.month = date.getMonthName();
-                d.day = date.getDayName();
+                d.month = tangelo.date.getMonthName(date);
+                d.day = tangelo.date.getDayName(date);
                 return d;
             });
 
@@ -693,8 +693,8 @@ window.onload = function () {
             highdiv = d3.select("#high");
 
             return function (low, high) {
-                lowdiv.html(new Date(low));
-                highdiv.html(new Date(high));
+                lowdiv.html(tangelo.date.toShortString(new Date(low)));
+                highdiv.html(tangelo.date.toShortString(new Date(high)));
             };
         }());
 

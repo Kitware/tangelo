@@ -4,8 +4,7 @@
     "use strict";
 
     var month_names,
-        day_names,
-        toShortString;
+        day_names;
 
     month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     day_names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -48,16 +47,14 @@
         return month_names[month] + " " + day + ", " + year + " (" + hour + ":" + minute + ":" + second + ")";
     };
 
-    Date.prototype.toString = function () {
-        return tangelo.date.toShortString(this);
+    // Returns the shortened month name for a given Date object.
+    tangelo.date.getMonthName = function (d) {
+        return month_names[d.getMonth()];
     };
 
-    Date.prototype.getMonthName = function () {
-        return month_names[this.getMonth()];
-    };
-
-    Date.prototype.getDayName = function () {
-        return day_names[this.getDay()];
+    // Returns the shortened day name for a given Date object.
+    tangelo.date.getDayName = function (d) {
+        return month_names[d.getDay()];
     };
 
     // Formats a date in the form "Oct 30, 1981"
