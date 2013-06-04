@@ -43,7 +43,7 @@
             external = spec.external;
 
             if (apps !== undefined) {
-                if (!tangelo.util.allDefined(appLeftSelector, appRightSelector)) {
+                if (!tangelo.allDefined(appLeftSelector, appRightSelector)) {
                     throw "Required config argument property appLeftSelector or appRightSelector missing!";
                 }
 
@@ -68,7 +68,7 @@
             }
 
             if (external !== undefined) {
-                if (!tangelo.util.allDefined(extLeftSelector, extRightSelector)) {
+                if (!tangelo.allDefined(extLeftSelector, extRightSelector)) {
                     throw "Required config argument property extLeftSelector or extRightSelector missing!";
                 }
 

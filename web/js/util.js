@@ -1,28 +1,11 @@
 /*jslint */
 
-/*global tangelo, d3, console, window, $ */
-
-/** 
- *
- * @fileOverview Provides generic utilities.
- */
+/*global tangelo, d3, console, $ */
 
 (function () {
     "use strict";
 
-    var mod;
-
-    /**
-     *
-     * @name util
-     *
-     * @memberOf tangelo
-     *
-     * @namespace General utilities cutting across several application needs.
-     */
-    mod = tangelo.namespace("util");
-
-    mod.getMongoRange = function (host, db, coll, field, callback) {
+    tangelo.getMongoRange = function (host, db, coll, field, callback) {
         var min,
             max,
             mongourl;
@@ -46,7 +29,7 @@
                     max = null;
 
                     if (response.error !== null) {
-                        console.log("[tangelo.util.getMongoRange()] error: could not retrieve max value from " + host + ":/" + db + "/" + coll + ":" + field);
+                        console.log("[tangelo.getMongoRange()] error: could not retrieve max value from " + host + ":/" + db + "/" + coll + ":" + field);
                     }
                 } else {
                     max = response.result.data[0][field];
@@ -68,7 +51,7 @@
                             min = null;
 
                             if (response.error !== null) {
-                                console.log("[tangelo.util.getMongoRange()] error: could not retrieve min value from " + host + ":/" + db + "/" + coll + ":" + field);
+                                console.log("[tangelo.getMongoRange()] error: could not retrieve min value from " + host + ":/" + db + "/" + coll + ":" + field);
                             }
                         } else {
                             min = response.result.data[0][field];
@@ -82,9 +65,8 @@
         });
     };
 
-    mod.allDefined = function () {
-        // Returns true if all arguments are defined; false otherwise.
-
+    // Returns true if all arguments are defined; false otherwise.
+    tangelo.allDefined = function () {
         var i;
 
         for (i = 0; i < arguments.length; i += 1) {
@@ -96,7 +78,9 @@
         return true;
     };
 
-    mod.defaults = function (inputfile, callback) {
+    // Returns a key-value store containing the configuration options encoded in
+    // the inputfile.
+    tangelo.defaults = function (inputfile, callback) {
         // If there is a problem with the file, it may be that it is not
         // expected to be there at all, so silently supply an empty defaults
         // table.  The err argument is passed in case the client WAS expecting

@@ -459,7 +459,7 @@ function loaddata() {
 window.onload = function () {
     "use strict";
 
-    tangelo.util.defaults("defaults.json", function (defaults) {
+    tangelo.defaults("defaults.json", function (defaults) {
         var popover_cfg;
 
         NER.cfgDefaults = defaults;

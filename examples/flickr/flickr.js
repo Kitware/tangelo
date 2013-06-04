@@ -175,7 +175,7 @@ function getMinMaxDates(zoom) {
 
     // Get the earliest and latest times in the collection, and set the slider
     // range/handles appropriately.
-    tangelo.util.getMongoRange(mongo.server, mongo.db, mongo.coll, "date", function (min, max) {
+    tangelo.getMongoRange(mongo.server, mongo.db, mongo.coll, "date", function (min, max) {
         // Retrieve the timestamps from the records.
         min = min.$date;
         max = max.$date;
@@ -277,7 +277,7 @@ function GMap(elem, options) {
 window.onload = function () {
     "use strict";
 
-    tangelo.util.defaults("defaults.json", function (defaults) {
+    tangelo.defaults("defaults.json", function (defaults) {
         var options,
             div,
             buttons,
@@ -456,7 +456,7 @@ window.onload = function () {
             });
 
             // Filter the results by day (if any of the boxes is checked).
-            days = tangelo.date.dayNames().filter(function (d) {
+            days = tangelo.dayNames().filter(function (d) {
                 return document.getElementById(d).checked;
             });
             if (days.length > 0) {
@@ -503,7 +503,7 @@ window.onload = function () {
                         cmap_func: that.monthColor,
                         xoffset: 10,
                         yoffset: 10,
-                        categories: tangelo.date.monthNames(),
+                        categories: tangelo.monthNames(),
                         height_padding: 5,
                         width_padding: 7,
                         text_spacing: 19,
@@ -525,7 +525,7 @@ window.onload = function () {
                         cmap_func: that.dayColor,
                         xoffset: 10,
                         yoffset: 10,
-                        categories: tangelo.date.dayNames(),
+                        categories: tangelo.dayNames(),
                         height_padding: 5,
                         width_padding: 7,
                         text_spacing: 19,
@@ -755,7 +755,7 @@ window.onload = function () {
         };
 
         // Direct the day filter checkboxes to redraw the map when clicked.
-        dayboxes = tangelo.date.dayNames().map(function (d) {
+        dayboxes = tangelo.dayNames().map(function (d) {
             return document.getElementById(d);
         });
 

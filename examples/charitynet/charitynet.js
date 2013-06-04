@@ -186,7 +186,7 @@ $(function () {
 
     // Load in the default configuration values, county, state, and initial
     // contribution data
-    tangelo.util.defaults("defaults.json", function (defaults) {
+    tangelo.defaults("defaults.json", function (defaults) {
         var host;
 
         host = defaults ? defaults["host"] : "mongo";

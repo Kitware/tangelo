@@ -26,7 +26,7 @@ function stringifyDate(d) {
 function displayDate(d) {
     "use strict";
 
-    return tangelo.date.monthNames()[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+    return tangelo.monthNames()[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
 }
 
 function updateGraph() {
@@ -225,7 +225,7 @@ function toggleAnimation() {
 window.onload = function () {
     "use strict";
 
-    tangelo.util.defaults("defaults.json", function (defaults) {
+    tangelo.defaults("defaults.json", function (defaults) {
         enron.host = defaults["host"] || "mongo";
 
         svg = d3.select("svg");
