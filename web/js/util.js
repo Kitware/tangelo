@@ -22,62 +22,6 @@
      */
     mod = tangelo.namespace("util");
 
-    mod.drawer_size = function () {
-        return 23;
-    };
-
-    mod.drawer_toggle = function (divsel, buttonsel) {
-        var div,
-            button,
-            state,
-            divheight,
-            iconheight;
-
-        // Use the selectors to grab the DOM elements.
-        div = d3.select(divsel);
-        button = d3.select(buttonsel);
-
-        // Initially, the panel is open.
-        state = 'uncollapsed';
-
-        // The glyphicon halfings are around 22.875 pixels tall.
-        iconheight = mod.drawer_size() + "px";
-
-        // Save the original height of the panel.
-        // This requires a DOM update to do this correctly, so we wait a second.
-        // I have found that waiting less than 200ms can cause undefined behavior,
-        // since there may be other callback that need to populate the panel.
-        function updateHeight() {
-            divheight = $(div.node()).height() + "px";
-        }
-        window.setTimeout(updateHeight, 1000);
-
-        // This function, when called, will toggle the state of the panel.
-        return function () {
-            if (state === 'uncollapsed') {
-                div.transition()
-                    .duration(500)
-                    .style("height", iconheight);
-
-                button.classed("icon-chevron-down", false)
-                    .classed("icon-chevron-up", true);
-
-                state = 'collapsed';
-            } else if (state === 'collapsed') {
-                div.transition()
-                    .duration(500)
-                    .style("height", divheight);
-
-                button.classed("icon-chevron-down", true)
-                    .classed("icon-chevron-up", false);
-
-                state = 'uncollapsed';
-            } else {
-                throw "Illegal state: " + state;
-            }
-        };
-    };
-
     mod.getMongoRange = function (host, db, coll, field, callback) {
         var min,
             max,

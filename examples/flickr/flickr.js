@@ -287,8 +287,7 @@ window.onload = function () {
             dayboxes,
             popover_cfg,
             zoomfunc,
-            redraw,
-            drawer_toggle;
+            redraw;
 
         flickr.cfgDefaults = defaults;
 

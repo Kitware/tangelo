@@ -460,8 +460,7 @@ window.onload = function () {
     "use strict";
 
     tangelo.util.defaults("defaults.json", function (defaults) {
-        var drawer_toggle,
-            popover_cfg;
+        var popover_cfg;
 
         NER.cfgDefaults = defaults;
 
