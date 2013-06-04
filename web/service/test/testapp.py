@@ -1,4 +1,4 @@
-# A test application module for the XDATA CherryPy webserver system.
+# A test Tangelo application.
 
 def run(year, month, day, **kwargs):
     # Create a response dictionary.

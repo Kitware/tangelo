@@ -86,18 +86,18 @@ set(SOURCES
     web/css/tangelo.css
     web/img/glyphicons-halflings.png
     web/img/glyphicons-halflings-white.png
-    web/service/echo.py
     web/service/mongo.py
     web/service/impala-json.py
 )
 
 if(DEPLOY_TEST_SERVICES)
     list(APPEND SOURCES
-        web/service/404.py
-        web/service/broken.py
-        web/service/exceptional.py
-        web/service/restful.py
-        web/service/testapp.py)
+        web/service/test/404.py
+        web/service/test/broken.py
+        web/service/test/echo.py
+        web/service/test/exceptional.py
+        web/service/test/restful.py
+        web/service/test/testapp.py)
 endif()
 
 # Configure the shellscript testing driver.
@@ -268,17 +268,17 @@ if(NOT "${WIN32}")
 
     if(DEPLOY_TEST_SERVICES)
         add_test(rest-get ${tester}
-            "curl --silent -X GET ${site}/service/restful/one/two/three?foo=bar"
+            "curl --silent -X GET ${site}/service/test/restful/one/two/three?foo=bar"
             "GET: one two three{'foo': u'bar'}"
         )
 
         add_test(rest-post ${tester}
-            "curl --silent -X POST -d foo=bar ${site}/service/restful/one/two/three"
+            "curl --silent -X POST -d foo=bar ${site}/service/test/restful/one/two/three"
             "POST: one two three{'foo': u'bar'}"
         )
 
         add_test(404-not-found ${tester}
-            "curl --silent -I ${site}/service/404 | head -n 1"
+            "curl --silent -I ${site}/service/test/404 | head -n 1"
             "HTTP/1.1 404 Not Found\r"
         )
 
@@ -288,12 +288,12 @@ if(NOT "${WIN32}")
         )
 
         add_test(service-echo-blank ${tester}
-            "curl --silent ${site}/service/echo"
+            "curl --silent ${site}/service/test/echo"
             "(No arguments passed)"
         )
 
         add_test(service-echo ${tester}
-            "curl --silent \"${site}/service/echo/jan/feb/mar?color=red&answer=42\""
+            "curl --silent \"${site}/service/test/echo/jan/feb/mar?color=red&answer=42\""
             "[jan, feb, mar]\ncolor -> red\nanswer -> 42"
         )
     endif()
