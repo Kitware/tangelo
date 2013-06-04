@@ -6,33 +6,47 @@
 <h1 class=centered>It Works!</h1>
 
 <div class=centered>
-<svg style="width:960px; height:500px">
-<rect id=sky width=960 height=500 style="fill:darkblue" />
-<image id=sun xlink:href="/img/Tangelo_Mark_256.png" x=50 y=350 height=256 width=256 />
-<rect id=field y=350 width=960 height=150 style="fill:darkgreen" />
-</svg>
+    <svg style="width:960px; height:500px">
+        <rect id=sky width=960 height=500 style="fill:navy" />
+        <g id=stars></g>
+        <image id=sun xlink:href="/img/Tangelo_Mark_256.png" x=100 y=350 height=200 width=200 />
+        <rect id=field y=350 width=960 height=150 style="fill:darkgreen" />
+        <text x=400 y=310 style="font-family:Lora; font-size:125px; fill:navy">Tangelo</text>
+    </svg>
 </div>
 
 <script>
-var delay = 3000;
-var duration = 30000;
+var duration = 12000;
+
+var stars = [];
+stars.length = 30;
+
+d3.select("#stars")
+    .selectAll("circle")
+    .data(stars)
+    .enter()
+    .append("circle")
+    .attr("cx", function () {
+        return 960*Math.random();
+    })
+    .attr("cy", function () {
+        return 350*Math.random();
+    })
+    .attr("r", 2)
+    .style("fill", "lightcyan");
 
 d3.select("#sun")
     .transition()
-    .delay(delay)
     .duration(duration)
-    .attr("y", -50)
-    .style("fill", "orange");
+    .attr("y", 0);
 
 d3.select("#field")
     .transition()
-    .delay(delay)
     .duration(duration)
     .style("fill", "green");
 
 d3.select("#sky")
     .transition()
-    .delay(delay)
     .duration(duration)
-    .style("fill", "aquamarine");
+    .style("fill", "lightcyan");
 </script>
