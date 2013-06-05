@@ -14,20 +14,7 @@ var insertAfter = function (referenceNode, newNode) {
 // A function to retrieve the script text *synchronously* using XHR.
 var newScript = function (src) {
     "use strict";
-    var xhr = new XMLHttpRequest(),
-        s;
-
-    xhr.open('GET', src, false);
-    xhr.send(null);
-
-    if (xhr.status === 200) {
-        s = document.createElement("script");
-        s.textContent = xhr.responseText;
-        insertAfter(point, s);
-        point = s;
-    } else {
-        throw "FATAL: Could not load script '" + src + "' - " + xhr.status + " " + xhr.statusText;
-    }
+    document.write('<script src="' + src + '"></script>');
 };
 
 // Load the dependencies of Tangelo, followed by Tangelo itself.
