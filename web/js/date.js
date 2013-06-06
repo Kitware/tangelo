@@ -54,7 +54,7 @@
 
     // Returns the shortened day name for a given Date object.
     tangelo.date.getDayName = function (d) {
-        return month_names[d.getDay()];
+        return day_names[d.getDay()];
     };
 
     // Formats a date in the form "Oct 30, 1981"

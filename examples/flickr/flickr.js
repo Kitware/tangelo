@@ -616,7 +616,7 @@ window.onload = function () {
                     date = new Date(d.date.$date);
 
                     msg = "";
-                    msg += "<b>Date:</b> " + date.getDayName() + " " + date + "<br>\n";
+                    msg += "<b>Date:</b> " + tangelo.date.getDayName(date) + " " + tangelo.date.toShortString(date) + "<br>\n";
                     msg += "<b>Location:</b> (" + d.location[1] + ", " + d.location[0] + ")<br>\n";
                     msg += "<b>Author:</b> " + d.author + "<br>\n";
                     msg += "<b>Description:</b> " + d.title + "<br>\n";
