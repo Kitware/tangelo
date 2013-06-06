@@ -459,6 +459,8 @@ function loaddata() {
 window.onload = function () {
     "use strict";
 
+    tangelo.requireCompatibleVersion("0.2");
+
     tangelo.defaults("defaults.json", function (defaults) {
         var popover_cfg;
 

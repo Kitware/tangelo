@@ -5,6 +5,8 @@
 $(function () {
     "use strict";
 
+    tangelo.requireCompatibleVersion("0.2");
+
     // Make the body element the correct size for no scrolling
     d3.select("body").style("height", $(window).height() - 60);
 

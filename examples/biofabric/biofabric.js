@@ -5,6 +5,8 @@
 $(function () {
     "use strict";
 
+    tangelo.requireCompatibleVersion("0.2");
+
     d3.json("miserables.json", function (error, data) {
         var width,
             height,

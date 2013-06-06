@@ -406,6 +406,8 @@ function visCrossCat(spec) {
 window.onload = function () {
     "use strict";
 
+    tangelo.requireCompatibleVersion("0.2");
+
     d3.json("data/animals_data.json", function (data) {
         var i,
             ids,

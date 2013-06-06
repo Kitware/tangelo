@@ -1,4 +1,6 @@
 $(function () {
+    tangelo.requireCompatibleVersion("0.2");
+
     d3.select("#myapp-content")
         .html("Hello from <strong>myapp.js!</strong>");
 

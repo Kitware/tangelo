@@ -225,6 +225,8 @@ function toggleAnimation() {
 window.onload = function () {
     "use strict";
 
+    tangelo.requireCompatibleVersion("0.2");
+
     tangelo.defaults("defaults.json", function (defaults) {
         enron.host = defaults["host"] || "mongo";
 

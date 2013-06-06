@@ -28,7 +28,8 @@ var tangelo = {};
     tangelo.requireCompatibleVersion = function (reqvstr) {
         var i,
             tanv,
-            reqv;
+            reqv,
+            compatible;
 
         // Split the argument out into major, minor, and patch version numbers.
         reqv = reqvstr.split(".").map(function (x) { return +x; });
@@ -48,11 +49,21 @@ var tangelo = {};
         // as well.
         tanv = tangelo.version().split(".").map(function (x) { return +x; });
 
-        // In order to be compatible: (1) the major versions MUST MATCH; (2) the
-        // required minor version MUST BE AT MOST the Tangelo minor version
-        // number; and (3) the required patch level MUST BE AT MOST the Tangelo
-        // patch level.
-        return reqv[0] === tanv[0] && reqv[1] <= tanv[1] && reqv[2] <= tanv[2];
+        // In order to be compatible above major version 0: (1) the major
+        // versions MUST MATCH; (2) the required minor version MUST BE AT MOST
+        // the Tangelo minor version number; and (3) the required patch level
+        // MUST BE AT MOST the Tangelo patch level.
+        //
+        // For major version 0, in order to be compatible: (1) the major
+        // versions MUST BOTH BE 0; (2) the minor versions MUST MATCH; (3) the
+        // required patch level MUST BE AT MOST the Tangelo patch level.
+        if (reqv[0] === 0) {
+            compatible = tanv[0] === 0 && reqv[1] === tanv[1] && reqv[2] <= tanv[2];
+        } else {
+            compatible = reqv[0] === tanv[0] && reqv[1] <= tanv[1] && reqv[2] <= tanv[2];
+        }
+
+        return compatible;
     };
 
     // Initialization function that will handle tangelo-specific elements
