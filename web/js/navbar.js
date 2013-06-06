@@ -1,6 +1,15 @@
+/*jslint browser: true */
+
+/*globals d3, jQuery */
+
 (function ($) {
+    "use strict";
+
     $.fn.navbar = function (cfg) {
         var footer,
+            items,
+            item,
+            i,
             navbar_inner,
             modal,
             oktext,
@@ -183,7 +192,7 @@
             onConfigLoad = window[onConfigLoad];
         }
         if (onConfigLoad) {
-           $("#tangelo-config-panel")
+            $("#tangelo-config-panel")
                 .on("show.tangelo", onConfigLoad);
         }
 
