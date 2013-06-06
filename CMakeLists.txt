@@ -9,6 +9,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 # Cache variables.
 set(DEPLOY_TEST_SERVICES OFF CACHE BOOL "Deploy the \"testing\" web service modules.")
+set(DEPLOY_SERVICE_MONGO ON CACHE BOOL "Deploy the mongo.py service (depends on pymongo).")
+set(DEPLOY_SERVICE_IMPALA ON CACHE BOOL "Deploy the impala-json.py service (depends on impala).")
 set(DEPLOY_EXAMPLES OFF CACHE BOOL "Deploy web applications in the examples directory under the /app URL (creates symlink).")
 set(SERVER_HOSTNAME localhost CACHE STRING "The hostname of the machine that will run the server.")
 set(SERVER_PORT 8080 CACHE STRING "The port the server will run on.")
@@ -39,17 +41,19 @@ find_python_module(cherrypy 3.2 REQUIRED)
 
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
-    ${CMAKE_SOURCE_DIR}/web/lib/core.js
-    ${CMAKE_SOURCE_DIR}/web/lib/defaults.js
-    ${CMAKE_SOURCE_DIR}/web/lib/date.js
-    ${CMAKE_SOURCE_DIR}/web/lib/util.js
+    ${CMAKE_SOURCE_DIR}/web/js/core.js
+    ${CMAKE_SOURCE_DIR}/web/js/controlPanel.js
+    ${CMAKE_SOURCE_DIR}/web/js/date.js
+    ${CMAKE_SOURCE_DIR}/web/js/navbar.js
+    ${CMAKE_SOURCE_DIR}/web/js/svgColorLegend.js
+    ${CMAKE_SOURCE_DIR}/web/js/landingPage.js
+    ${CMAKE_SOURCE_DIR}/web/js/util.js
     ${CMAKE_SOURCE_DIR}/examples/index.js
     ${CMAKE_SOURCE_DIR}/examples/biofabric/biofabric.js
     ${CMAKE_SOURCE_DIR}/examples/enron/enron.js
     ${CMAKE_SOURCE_DIR}/examples/enron-impala/enron-imp.js
     ${CMAKE_SOURCE_DIR}/examples/ner/ner.js
     ${CMAKE_SOURCE_DIR}/examples/stats/stats.js
-    ${CMAKE_SOURCE_DIR}/examples/datatwiddle/datatwiddle.js
     ${CMAKE_SOURCE_DIR}/examples/vegalab/vegalab.js
     ${CMAKE_SOURCE_DIR}/examples/ssci/ssci.js
     ${CMAKE_SOURCE_DIR}/examples/flickr/flickr.js
@@ -57,12 +61,13 @@ set(JS_LINT_FILES
 
 # These files should be uglified and concatenated.
 set(JS_UGLIFY_FILES
-    ${CMAKE_SOURCE_DIR}/web/lib/core.js
-    ${CMAKE_SOURCE_DIR}/web/lib/defaults.js
-    ${CMAKE_SOURCE_DIR}/web/lib/date.js
-    ${CMAKE_SOURCE_DIR}/web/lib/util.js
-    ${CMAKE_SOURCE_DIR}/web/lib/vgd3.js
-    ${CMAKE_SOURCE_DIR}/web/lib/vg.util.js
+    ${CMAKE_SOURCE_DIR}/web/js/core.js
+    ${CMAKE_SOURCE_DIR}/web/js/controlPanel.js
+    ${CMAKE_SOURCE_DIR}/web/js/date.js
+    ${CMAKE_SOURCE_DIR}/web/js/navbar.js
+    ${CMAKE_SOURCE_DIR}/web/js/util.js
+    ${CMAKE_SOURCE_DIR}/web/js/svgColorLegend.js
+    ${CMAKE_SOURCE_DIR}/web/js/landingPage.js
 )
 
 # These files should be copied to the deployment directory.
@@ -71,31 +76,39 @@ set(SOURCES
     web/img/glyphicons-halflings-white.png
     web/img/glyphicons-halflings.png
     web/img/tangelo.ico
-    web/lib/bootstrap.js
-    web/lib/d3.v3.min.js
-    web/lib/jquery-1.8.2.min.js
-    web/lib/jquery-ui-1.9.1.js
-    web/lib/md5.js
-    web/lib/vega.js
-    web/lib/vgd3-template.js.txt
+    web/img/Tangelo_Mark_256.png
+    web/js/load-tangelo.js
+    web/js/lib/bootstrap.js
+    web/js/lib/d3.v3.min.js
+    web/js/lib/jquery-1.8.2.min.js
+    web/js/lib/jquery-ui-1.9.1.js
+    web/js/lib/md5.js
+    web/js/lib/vega-1.0.0.js
     web/css/bootstrap-readable.css
     web/css/jquery-ui-1.9.1.css
     web/css/tangelo.css
     web/img/glyphicons-halflings.png
     web/img/glyphicons-halflings-white.png
-    web/service/census.py
-    web/service/echo.py
-    web/service/mongo.py
-    web/service/impala-json.py
 )
+
+if(DEPLOY_SERVICE_MONGO)
+    list(APPEND SOURCES
+        web/service/mongo.py)
+endif()
+
+if(DEPLOY_SERVICE_IMPALA)
+    list(APPEND SOURCES
+        web/service/impala-json.py)
+endif()
 
 if(DEPLOY_TEST_SERVICES)
     list(APPEND SOURCES
-        web/service/404.py
-        web/service/broken.py
-        web/service/exceptional.py
-        web/service/restful.py
-        web/service/testapp.py)
+        web/service/test/404.py
+        web/service/test/broken.py
+        web/service/test/echo.py
+        web/service/test/exceptional.py
+        web/service/test/restful.py
+        web/service/test/testapp.py)
 endif()
 
 # Configure the shellscript testing driver.
@@ -166,7 +179,7 @@ else()
     unset(MANGLE_FLAG)
 endif()
 
-set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/lib/tangelo.min.js)
+set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/js/tangelo.min.js)
 
 add_custom_command(
     OUTPUT ${MIN_JS_FILE}
@@ -266,17 +279,17 @@ if(NOT "${WIN32}")
 
     if(DEPLOY_TEST_SERVICES)
         add_test(rest-get ${tester}
-            "curl --silent -X GET ${site}/service/restful/one/two/three?foo=bar"
+            "curl --silent -X GET ${site}/service/test/restful/one/two/three?foo=bar"
             "GET: one two three{'foo': u'bar'}"
         )
 
         add_test(rest-post ${tester}
-            "curl --silent -X POST -d foo=bar ${site}/service/restful/one/two/three"
+            "curl --silent -X POST -d foo=bar ${site}/service/test/restful/one/two/three"
             "POST: one two three{'foo': u'bar'}"
         )
 
         add_test(404-not-found ${tester}
-            "curl --silent -I ${site}/service/404 | head -n 1"
+            "curl --silent -I ${site}/service/test/404 | head -n 1"
             "HTTP/1.1 404 Not Found\r"
         )
 
@@ -286,12 +299,12 @@ if(NOT "${WIN32}")
         )
 
         add_test(service-echo-blank ${tester}
-            "curl --silent ${site}/service/echo"
+            "curl --silent ${site}/service/test/echo"
             "(No arguments passed)"
         )
 
         add_test(service-echo ${tester}
-            "curl --silent \"${site}/service/echo/jan/feb/mar?color=red&answer=42\""
+            "curl --silent \"${site}/service/test/echo/jan/feb/mar?color=red&answer=42\""
             "[jan, feb, mar]\ncolor -> red\nanswer -> 42"
         )
     endif()
