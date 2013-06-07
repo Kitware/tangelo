@@ -1,6 +1,5 @@
-/*jslint browser: true, unparam: true*/
-
-/*globals $, d3 */
+/*jslint browser:true, unparam:true */
+/*globals $, d3, tangelo */
 
 function visCrossCat(spec) {
     "use strict";

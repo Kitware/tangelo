@@ -3,6 +3,8 @@
 /*globals jQuery, d3 */
 
 (function ($) {
+    "use strict";
+
     function drawerToggle(divsel, buttonsel) {
         var div,
             button,
@@ -53,7 +55,7 @@
                 throw "Illegal state: " + state;
             }
         };
-    };
+    }
 
     $.fn.controlPanel = function () {
         var toggle,

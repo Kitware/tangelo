@@ -1,4 +1,4 @@
-/*jslint browser:true */
+/*jslint browser:true, unparam:true */
 
 /*globals $, d3, tangelo, console */
 
@@ -36,7 +36,6 @@ function updateGraph() {
     var center,
         data,
         end_date,
-        degree,
         hops,
         change_button,
         start_date,
@@ -113,7 +112,7 @@ function updateGraph() {
 
             tau = 2 * Math.PI;
             angle = tau / newidx.length;
-            $.each(newidx, function (i, v) {
+            $.each(newidx, function (i) {
                 graph.nodes[i].x = (width / 4) * Math.cos(i * angle) + (width / 2);
                 graph.nodes[i].y = (height / 4) * Math.sin(i * angle) + (height / 2);
             });
@@ -233,7 +232,7 @@ window.onload = function () {
     tangelo.requireCompatibleVersion("0.2");
 
     tangelo.defaults("defaults.json", function (defaults) {
-        enron.host = defaults["host"] || "mongo";
+        enron.host = defaults.host || "mongo";
 
         svg = d3.select("svg");
 
