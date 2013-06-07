@@ -1,4 +1,4 @@
-/*jslint browser: true */
+/*jslint browser:true, todo:true, unparam:true */
 
 /*globals tangelo, flickr, $, google, d3, date, console */
 
@@ -21,12 +21,14 @@ flickr.getMongoDBInfo = function () {
 };
 
 function showConfig() {
-        var cfg;
+    "use strict";
 
-        cfg = flickr.getMongoDBInfo();
-        d3.select("#mongodb-server").property("value", cfg.server);
-        d3.select("#mongodb-db").property("value", cfg.db);
-        d3.select("#mongodb-coll").property("value", cfg.coll);
+    var cfg;
+
+    cfg = flickr.getMongoDBInfo();
+    d3.select("#mongodb-server").property("value", cfg.server);
+    d3.select("#mongodb-db").property("value", cfg.db);
+    d3.select("#mongodb-coll").property("value", cfg.coll);
 }
 
 function updateConfig() {
@@ -284,7 +286,6 @@ window.onload = function () {
             div,
             buttons,
             i,
-            displayFunc,
             checkbox,
             dayboxes,
             popover_cfg,
@@ -474,19 +475,12 @@ window.onload = function () {
             that = this;
             color = (function () {
                 var which,
-                    bbox,
                     colormap,
-                    elemtext,
-                    heightfunc,
                     legend,
-                    li,
-                    maxheight,
-                    maxwidth,
                     retval,
                     invert,
                     range,
-                    scale,
-                    text;
+                    scale;
 
                 // Capture the color legend SVG group element.
                 legend = that.legend;
@@ -513,7 +507,8 @@ window.onload = function () {
                             top: 5,
                             left: 5,
                             bottom: 5,
-                            right: 5},
+                            right: 5
+                        },
                         clear: true
                     });
 
@@ -792,11 +787,9 @@ window.onload = function () {
 
         // Attach actions to the zoom and unzoom buttons.
         zoomfunc = (function () {
-            var zoom,
-                unzoom,
+            var unzoom,
                 stack;
 
-            zoom = d3.select("#zoom");
             unzoom = d3.select("#unzoom");
 
             stack = [];
