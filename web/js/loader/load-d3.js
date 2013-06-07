@@ -1,6 +1,6 @@
-var me = whoami();
+tangelo.me = tangelo.whoami();
 
-newScript("http://d3js.org/d3.v3.js", {charset: "utf-8"});
-newScript("/js/loader/conditional-load-d3.js");
+tangelo.newScript("http://d3js.org/d3.v3.js", {charset: "utf-8"});
+tangelo.newScript("/js/loader/conditional-load-d3.js");
 
-kill(me);
+tangelo.kill(tangelo.me);
