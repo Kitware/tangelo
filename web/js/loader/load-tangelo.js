@@ -29,9 +29,19 @@ var newScript = function (src, attrs) {
     document.write('<script src="' + src + '"' + attrstring + '></script>');
 };
 
+var kill = function (x) {
+    x.parentNode.removeChild(x);
+};
+
+var whoami = function () {
+    return document.getElementsByTagName("script")[document.getElementsByTagName("script").length - 1];
+};
+
+var me = whoami();
+
 // Load the dependencies of Tangelo, followed by Tangelo itself.
 newScript("/js/lib/jquery-1.8.2.js");
-newScript("/js/lib/d3.v3.js", {charset: "utf-8"});
+newScript("/js/loader/load-d3.js");
 newScript("/js/lib/bootstrap.js");
 newScript("/js/tangelo.js");
 
@@ -40,5 +50,5 @@ newScript("/js/tangelo.js");
 // "Strike hard, and fade away without a trace." --Master Splinter
 delete window.scripts;
 delete window.point;
-delete window.insertAfter;
-delete window.newScript;
+
+kill(me);

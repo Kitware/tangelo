@@ -73,8 +73,10 @@ set(SOURCES
     web/img/glyphicons-halflings.png
     web/img/tangelo.ico
     web/img/Tangelo_Mark_256.png
-    web/js/load-tangelo.js
-    web/js/load-tangelo.min.js
+    web/js/loader/conditional-load-d3.js
+    web/js/loader/load-d3.js
+    web/js/loader/load-tangelo.js
+    web/js/loader/load-tangelo.min.js
     web/js/lib/bootstrap.js
     web/js/lib/bootstrap.min.js
     web/js/lib/d3.v3.js
