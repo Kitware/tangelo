@@ -1,4 +1,4 @@
-/*jslint browser:true, todo:true, unparam:true */
+/*jslint browser:true, unparam:true */
 
 /*globals tangelo, flickr, $, google, d3, date, console */
 
