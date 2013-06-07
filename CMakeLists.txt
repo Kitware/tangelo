@@ -75,8 +75,6 @@ set(SOURCES
     web/img/Tangelo_Mark_256.png
     web/js/loader/conditional-load-d3.js
     web/js/loader/load-d3.js
-    web/js/loader/load-tangelo.js
-    web/js/loader/load-tangelo.min.js
     web/js/lib/bootstrap.js
     web/js/lib/bootstrap.min.js
     web/js/lib/d3.v3.js
@@ -142,6 +140,13 @@ configure_file(
     ${index_file}
     ${DEPLOY_DIR}/web/index.html
 )
+
+# Configure load-tangelo.js and load-tangelo.min.js.
+#
+# Start by reading the contents of loader-preamble.js into a variable.
+file(READ web/js/loader/loader-preamble.js LOADER_PREAMBLE)
+configure_file(web/js/loader/load-tangelo.js ${DEPLOY_DIR}/web/js/loader)
+configure_file(web/js/loader/load-tangelo.min.js ${DEPLOY_DIR}/web/js/loader)
 
 # Copy the files to the deployment directory.
 set(ALL_TARGETS)
