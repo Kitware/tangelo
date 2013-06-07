@@ -1,6 +1,8 @@
-/*globals jQuery */
+/*globals console, d3, jQuery, tangelo */
 
 (function ($) {
+    "use strict";
+
     $.fn.landingPage = function (cfg) {
         var specFile,
             appLeftSelector,
@@ -90,5 +92,5 @@
                 }
             }
         });
-    }
+    };
 }(jQuery));

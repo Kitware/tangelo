@@ -1,6 +1,6 @@
 /*jslint unparam: true*/
 
-/*globals window, d3, $*/
+/*globals window, d3, $, tangelo */
 
 $(function () {
     "use strict";

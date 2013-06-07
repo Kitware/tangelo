@@ -1,6 +1,6 @@
 /*jslint browser: true */
 
-/*global d3, console, tangelo */
+/*global tangelo, $ */
 
 window.onload = function () {
     "use strict";

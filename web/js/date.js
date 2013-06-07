@@ -59,6 +59,6 @@
 
     // Formats a date in the form "Oct 30, 1981"
     tangelo.date.displayDate = function (d) {
-        return mod.monthNames()[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+        return tangelo.monthNames()[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
     };
 }());

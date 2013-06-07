@@ -53,8 +53,6 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/examples/enron/enron.js
     ${CMAKE_SOURCE_DIR}/examples/enron-impala/enron-imp.js
     ${CMAKE_SOURCE_DIR}/examples/ner/ner.js
-    ${CMAKE_SOURCE_DIR}/examples/stats/stats.js
-    ${CMAKE_SOURCE_DIR}/examples/vegalab/vegalab.js
     ${CMAKE_SOURCE_DIR}/examples/ssci/ssci.js
     ${CMAKE_SOURCE_DIR}/examples/flickr/flickr.js
 )
