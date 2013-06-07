@@ -74,7 +74,9 @@ set(SOURCES
     web/img/tangelo.ico
     web/img/Tangelo_Mark_256.png
     web/js/loader/cdn-fallback-d3.js
+    web/js/loader/cdn-fallback-d3.min.js
     web/js/loader/load-d3.js
+    web/js/loader/load-d3.min.js
     web/js/lib/bootstrap.js
     web/js/lib/bootstrap.min.js
     web/js/lib/d3.v3.js
