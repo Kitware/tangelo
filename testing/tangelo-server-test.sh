@@ -29,4 +29,6 @@ else
     echo "Strings do not match"
 fi
 
+@CMAKE_BINARY_DIR@/@DEPLOY_DIR@/tangelo stop
+
 exit ${retval}
