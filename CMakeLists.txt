@@ -14,8 +14,6 @@ set(DEPLOY_SERVICE_IMPALA ON CACHE BOOL "Deploy the impala-json.py service (depe
 set(DEPLOY_EXAMPLES OFF CACHE BOOL "Deploy web applications in the examples directory under the /app URL (creates symlink).")
 set(SERVER_HOSTNAME localhost CACHE STRING "The hostname of the machine that will run the server.")
 set(SERVER_PORT 8080 CACHE STRING "The port the server will run on.")
-set(MINIFY_JAVASCRIPT OFF CACHE BOOL "Minify the JavaScript files prior to concatenating.")
-set(MANGLE_JAVASCRIPT OFF CACHE BOOL "When minifying, also mangle non-public symbol names.")
 set(DEPLOY_DOCUMENTATION OFF CACHE BOOL "Generate documentation for project.")
 set(JSLINT OFF CACHE BOOL "Generate tests for JS source files using JSLint program.")
 
@@ -76,8 +74,12 @@ set(SOURCES
     web/img/tangelo.ico
     web/img/Tangelo_Mark_256.png
     web/js/load-tangelo.js
+    web/js/load-tangelo.min.js
     web/js/lib/bootstrap.js
+    web/js/lib/bootstrap.min.js
+    web/js/lib/d3.v3.js
     web/js/lib/d3.v3.min.js
+    web/js/lib/jquery-1.8.2.js
     web/js/lib/jquery-1.8.2.min.js
     web/js/lib/jquery-ui-1.9.1.js
     web/js/lib/md5.js
@@ -152,36 +154,40 @@ foreach(m ${SOURCES})
 endforeach()
 
 # Uglify and concatenate the library js files.
-if(${MINIFY_JAVASCRIPT} OR ${MANGLE_JAVASCRIPT})
-    find_package(UglifyJS REQUIRED)
-    set(concatenator ${UglifyJS_EXECUTABLE})
-    set(output_operator "-o")
+#
+# Set up options to create an unminified file.
+#
+# TODO(choudhury): if platform is windows, use "type" instead of "cat"
+set(concatenator cat)
+set(output_operator ">")
 
-    if(NOT ${MINIFY_JAVASCRIPT})
-        set(MINIFY_FLAG "-b")
-    else()
-        unset(MINIFY_FLAG)
-    endif()
-
-    if(${MANGLE_JAVASCRIPT})
-        set(MANGLE_FLAG "-m")
-    else()
-        unset(MANGLE_FLAG)
-    endif()
+# Use UglifyJS to create a minified file, falling back on an unminified file if
+# it cannot be found.
+find_package(UglifyJS)
+if(UglifyJS_EXECUTABLE)
+    set(min_concatenator ${UglifyJS_EXECUTABLE})
+    set(min_output_operator "-o")
+    set(min_mangle_flag "-m")
 else()
-    # TODO(choudhury): if platform is windows, use "type" instead of "cat"
-    set(concatenator cat)
-    set(output_operator ">")
+    message(WARNING "Could not find UglifyJS - generating UNMINIFIED javascript file for tangelo.min.js")
 
-    unset(MINIFY_FLAG)
-    unset(MANGLE_FLAG)
+    set(min_concatenator ${concatenator})
+    set(min_output_operator ${output_operator})
+    unset(min_mangle_flag)
 endif()
 
 set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/js/tangelo.min.js)
+set(JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/js/tangelo.js)
 
 add_custom_command(
     OUTPUT ${MIN_JS_FILE}
-    COMMAND ${concatenator} ${JS_UGLIFY_FILES} ${MINIFY_FLAG} ${MANGLE_FLAG} ${output_operator} ${MIN_JS_FILE}
+    COMMAND ${min_concatenator} ${JS_UGLIFY_FILES} ${min_mangle_flag} ${min_output_operator} ${MIN_JS_FILE}
+    DEPENDS ${JS_UGLIFY_FILES}
+)
+
+add_custom_command(
+    OUTPUT ${JS_FILE}
+    COMMAND ${concatenator} ${JS_UGLIFY_FILES} ${mangle_flag} ${output_operator} ${JS_FILE}
     DEPENDS ${JS_UGLIFY_FILES}
 )
 
@@ -243,7 +249,7 @@ endif()
 add_custom_target(
     deploy
     ALL
-    DEPENDS ${ALL_TARGETS} ${MIN_JS_FILE} ${DOCUMENTATION_STAMP}
+    DEPENDS ${ALL_TARGETS} ${MIN_JS_FILE} ${JS_FILE} ${DOCUMENTATION_STAMP}
 )
 
 # Testing
