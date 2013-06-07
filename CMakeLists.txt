@@ -74,8 +74,12 @@ set(SOURCES
     web/img/tangelo.ico
     web/img/Tangelo_Mark_256.png
     web/js/load-tangelo.js
+    web/js/load-tangelo.min.js
     web/js/lib/bootstrap.js
+    web/js/lib/bootstrap.min.js
+    web/js/lib/d3.v3.js
     web/js/lib/d3.v3.min.js
+    web/js/lib/jquery-1.8.2.js
     web/js/lib/jquery-1.8.2.min.js
     web/js/lib/jquery-ui-1.9.1.js
     web/js/lib/md5.js
