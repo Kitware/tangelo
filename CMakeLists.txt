@@ -73,16 +73,20 @@ set(SOURCES
     web/img/glyphicons-halflings.png
     web/img/tangelo.ico
     web/img/Tangelo_Mark_256.png
+    web/js/loader/cdn-fallback-bootstrap.js
+    web/js/loader/cdn-fallback-bootstrap.min.js
     web/js/loader/cdn-fallback-d3.js
     web/js/loader/cdn-fallback-d3.min.js
     web/js/loader/cdn-fallback-jquery.js
     web/js/loader/cdn-fallback-jquery.min.js
+    web/js/loader/load-bootstrap.js
+    web/js/loader/load-bootstrap.min.js
     web/js/loader/load-d3.js
     web/js/loader/load-d3.min.js
     web/js/loader/load-jquery.js
     web/js/loader/load-jquery.min.js
-    web/js/lib/bootstrap.js
-    web/js/lib/bootstrap.min.js
+    web/js/lib/bootstrap-2.3.0.js
+    web/js/lib/bootstrap-2.3.0.min.js
     web/js/lib/d3.v3.js
     web/js/lib/d3.v3.min.js
     web/js/lib/jquery-1.8.2.js
@@ -151,8 +155,8 @@ configure_file(
 #
 # Start by reading the contents of loader-preamble.js into a variable.
 file(READ web/js/loader/loader-preamble.js LOADER_PREAMBLE)
-configure_file(web/js/loader/load-tangelo.js ${DEPLOY_DIR}/web/js/loader)
-configure_file(web/js/loader/load-tangelo.min.js ${DEPLOY_DIR}/web/js/loader)
+configure_file(web/js/loader/load-tangelo.js.in ${DEPLOY_DIR}/web/js/loader/load-tangelo.js)
+configure_file(web/js/loader/load-tangelo.min.js.in ${DEPLOY_DIR}/web/js/loader/load-tangelo.min.js)
 
 # Copy the files to the deployment directory.
 set(ALL_TARGETS)
