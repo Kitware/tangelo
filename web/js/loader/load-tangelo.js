@@ -8,7 +8,7 @@ tangelo.point = tangelo.scripts[tangelo.scripts.length - 1];
 tangelo.me = tangelo.whoami();
 
 // Load the dependencies of Tangelo, followed by Tangelo itself.
-tangelo.newScript("/js/lib/jquery-1.8.2.js");
+tangelo.newScript("/js/loader/load-jquery.js");
 tangelo.newScript("/js/loader/load-d3.js");
 tangelo.newScript("/js/lib/bootstrap.js");
 tangelo.newScript("/js/tangelo.js");
