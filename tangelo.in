@@ -647,6 +647,8 @@ if __name__ == "__main__":
     p.add_argument("-p", "--no-drop-privileges", action="store_true", help="disable privilege drop when started as superuser.")
     p.add_argument("--hostname", type=str, default=None, metavar="HOSTNAME", help="overrides configured hostname on which to run Tangelo")
     p.add_argument("--port", type=int, default=None, metavar="PORT", help="overrides configured port number on which to run Tangelo")
+    p.add_argument("--logdir", type=str, default=None, metavar="DIR", help="where to place the log file (rather than in the directory where this program is")
+    p.add_argument("--piddir", type=str, default=None, metavar="DIR", help="where to place the PID file (rather than in the directory where this program is")
     p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
     args = p.parse_args()
 
@@ -656,6 +658,8 @@ if __name__ == "__main__":
     action = args.action
     hostname = args.hostname or "@SERVER_HOSTNAME@"
     port = args.port or @SERVER_PORT@
+    logdir = args.logdir
+    piddir = args.piddir
 
     # Configured variables.
     cherry = "@CherryPy_EXECUTABLE@"
@@ -673,10 +677,22 @@ if __name__ == "__main__":
     # whether the platform supports it.
     daemonize = not no_daemon and not(os_name == "Windows" or (os_name == "Darwin" and version[1] == 6))
 
-    # Determine the path to this script.
+    # Get the path of the tangelo script.
     path = os.path.dirname(os.path.abspath(sys.argv[0]))
-    pidfile = path + "/tangelo.pid"
-    logfile = path + "/tangelo.log"
+
+    # Determine the paths to place the PID file and log file in.  This defaults
+    # to the same directory that contains the tangelo control script.
+    if piddir is None:
+        pidpath = path
+    else:
+        pidpath = os.path.abspath(piddir)
+    pidfile = pidpath + "/tangelo.pid"
+
+    if logdir is None:
+        logpath = path
+    else:
+        logpath = os.path.abspath(logdir)
+    logfile = logpath + "/tangelo.log"
 
     # Dispatch on action argument.
     code = 1
