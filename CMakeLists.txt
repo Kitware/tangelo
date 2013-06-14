@@ -46,6 +46,7 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/web/app/biofabric/biofabric.js
     ${CMAKE_SOURCE_DIR}/web/app/enron/enron.js
     ${CMAKE_SOURCE_DIR}/web/app/enron-impala/enron-imp.js
+    ${CMAKE_SOURCE_DIR}/web/app/enron-titan/enron-titan.js
     ${CMAKE_SOURCE_DIR}/web/app/ner/ner.js
     ${CMAKE_SOURCE_DIR}/web/app/stats/stats.js
     ${CMAKE_SOURCE_DIR}/web/app/datatwiddle/datatwiddle.js
@@ -93,6 +94,9 @@ set(SOURCES
     web/app/enron-impala/enron-imp.js
     web/app/enron-impala/index.html
     web/app/enron-impala/service/emailers-impala.py
+    web/app/enron-titan/enron-titan.js
+    web/app/enron-titan/index.html
+    web/app/enron-titan/service/emailers-titan.py
     web/app/flickr/flickr.js
     web/app/flickr/index.html
     web/app/ner/index.html
