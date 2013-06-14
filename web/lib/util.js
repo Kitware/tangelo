@@ -197,6 +197,72 @@
                 return text_spacing + heightfunc(d, i);
             });
     };
+    
+    mod.getImpalaRange = function (host, port, db, table, field, callback) {
+        var min,
+            max,
+            impalaurl,
+            query;
+
+        // The base URL for both of the mongo service queries.
+        //mongourl = "/service/mongo/" + host + "/" + db + "/" + coll;
+        impalaurl = '/service/impala-json/';
+        
+        query = "select max("+field+") as "+field+" from "+db+"."+table;
+
+        // Fire an ajax call to retrieve the maxmimum value.
+        $.ajax({
+            url: impalaurl,
+            data: {
+                q: query,
+                host: host,
+                port: port
+            },
+            dataType: "json",
+            success: function (response) {
+                // If the value could not be retrieved, set it to null and print
+                // an error message on the console.
+                if (response === null || response.length === 0) {
+                    max = null;
+
+                    if (response === null) {
+                        console.log("[tangelo.util.getImpalaRange()] error: could not retrieve max value from " + host + ":"+port+"/" + db + "/" + table + ":" + field);
+                    }
+                } else {
+                    max = response[0][field];
+                }
+                
+                query = "select min("+field+") as "+field+" from "+db+"."+table;
+
+                // Fire a second query to retrieve the minimum value.
+                $.ajax({
+                    url: impalaurl,
+                    data: {
+                        q: query,
+                        host: host,
+                        port: port
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        // As before, set the min value to null if it could not
+                        // be retrieved.
+                        if (response === null || response.length === 0) {
+                            min = null;
+
+                            if (response === null) {
+                                console.log("[tangelo.util.getImpalaRange()] error: could not retrieve min value from " + host + ":"+port+"/" + db + "/" + table + ":" + field);
+                            }
+                        } else {
+                            min = response[0][field];
+                        }
+
+                        // Pass the range to the user callback.
+                        callback(min, max);
+                    }
+                });
+            }
+        });
+    };
 
     mod.getMongoRange = function (host, db, coll, field, callback) {
         var min,

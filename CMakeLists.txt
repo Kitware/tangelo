@@ -53,6 +53,7 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/web/app/vegalab/vegalab.js
     ${CMAKE_SOURCE_DIR}/web/app/ssci/ssci.js
     ${CMAKE_SOURCE_DIR}/web/app/flickr/flickr.js
+    ${CMAKE_SOURCE_DIR}/web/app/flickr-impala/flickr-impala.js
     ${CMAKE_SOURCE_DIR}/web/app/noaa/climate.js
 )
 
@@ -99,6 +100,8 @@ set(SOURCES
     web/app/enron-titan/service/emailers-titan.py
     web/app/flickr/flickr.js
     web/app/flickr/index.html
+    web/app/flickr-impala/flickr-impala.js
+    web/app/flickr-impala/index.html
     web/app/ner/index.html
     web/app/ner/letters.csv
     web/app/ner/ner.css
