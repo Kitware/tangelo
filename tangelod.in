@@ -6,6 +6,7 @@
 # camp Vis VM.  It works by deferring to the 'tangelo' script, but placing the
 # log and PID files in /var.
 
+tangelo=@CMAKE_BINARY_DIR@/@DEPLOY_DIR@/tangelo
 here=`dirname $0`
 logdir=/var/log
 piddir=/var/run
@@ -14,17 +15,17 @@ retval=0
 
 case "$1" in
     start)
-        ${here}/tangelo --logdir ${logdir} --piddir ${piddir} start
+        ${tangelo} --logdir ${logdir} --piddir ${piddir} start
         retval=$?
         ;;
 
     stop)
-        ${here}/tangelo --logdir ${logdir} --piddir ${piddir} stop
+        ${tangelo} --logdir ${logdir} --piddir ${piddir} stop
         retval=$?
         ;;
 
     restart)
-        ${here}/tangelo --logdir ${logdir} --piddir ${piddir} restart
+        ${tangelo} --logdir ${logdir} --piddir ${piddir} restart
         retval=$?
         ;;
 

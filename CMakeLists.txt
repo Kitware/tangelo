@@ -68,7 +68,6 @@ set(JS_UGLIFY_FILES
 
 # These files should be copied to the deployment directory.
 set(SOURCES
-    tangelod
     tangelo.py
     web/img/glyphicons-halflings-white.png
     web/img/glyphicons-halflings.png
@@ -135,6 +134,13 @@ configure_file(
     ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/tangelo
 )
 
+# Configure the dd
+configure_file(
+    tangelod.in
+    ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/tangelod
+    @ONLY
+)
+
 # Configure the Tangelo password file generator.
 configure_file(
     tangelo-passwd.in
@@ -151,6 +157,7 @@ configure_file(
     ${index_file}
     ${DEPLOY_DIR}/web/index.html
 )
+
 
 # Configure load-tangelo.js and load-tangelo.min.js.
 #
