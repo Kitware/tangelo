@@ -22,12 +22,6 @@
             "name": "Biofabric Graph Visualization",
             "path": "biofabric",
             "description": "An implementation of the Biofabric algorithm for visualizing large graphs."
-        },
-
-        {
-            "name": "Flickr Metadata Maps (Impala)",
-            "path": "flickr-impala",
-            "description":  "Explore the locations where millions of Flickr photos were taken"
         }
     ],
 
