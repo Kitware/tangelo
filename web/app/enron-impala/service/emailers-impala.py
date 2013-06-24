@@ -75,7 +75,7 @@ def run(database, table, start_time, end_time, center, degree, host="localhost",
         all_results = itertools.chain(*all_results)
         
         edges = []
-        ident = 0;
+        ident = 0
         for result in all_results:
             source = result["emailfrom"]
             target = result["emailto"]
