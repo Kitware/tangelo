@@ -48,6 +48,7 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/web/app/enron-impala/enron-imp.js
     ${CMAKE_SOURCE_DIR}/web/app/enron-titan/enron-titan.js
     ${CMAKE_SOURCE_DIR}/web/app/enron-spark/enron-spark.js
+    ${CMAKE_SOURCE_DIR}/web/app/enron-shark/enron-shark.js
     ${CMAKE_SOURCE_DIR}/web/app/ner/ner.js
     ${CMAKE_SOURCE_DIR}/web/app/stats/stats.js
     ${CMAKE_SOURCE_DIR}/web/app/datatwiddle/datatwiddle.js
@@ -102,6 +103,9 @@ set(SOURCES
     web/app/enron-spark/enron-spark.js
     web/app/enron-spark/index.html
     web/app/enron-spark/service/emailers-spark.py
+    web/app/enron-shark/enron-shark.js
+    web/app/enron-shark/index.html
+    web/app/enron-shark/service/emailers-shark.py
     web/app/flickr/flickr.js
     web/app/flickr/index.html
     web/app/flickr-impala/flickr-impala.js
