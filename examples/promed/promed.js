@@ -9,13 +9,32 @@ promed.transform = {
 };
 promed.degree = 0;
 
-function filterGraph(graph, degree) {
+function roundDay(dateval) {
+    var date = new Date(dateval);
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate()).valueOf();
+}
+
+function getNodeDate(n) {
+    var datestring;
+
+    datestring = n.promed_id.split(".")[0];
+    year = +datestring.substr(0, 4);
+    month = +datestring.substr(4, 2) - 1;
+    day = +datestring.substr(6, 2);
+
+    return new Date(year, month, day).valueOf();
+}
+
+function filterGraph(graph, degree, startdate, enddate) {
     var nodes,
         links;
 
     // Filter the data by degree.
     nodes = graph.nodes.filter(function (v) {
-        return v.degree >= degree;
+        var vdate;
+        vdate = getNodeDate(v);
+
+        return v.degree >= degree && vdate >= startdate && vdate <= enddate;
     });
 
     // Create a node set for quick membership testing.
@@ -43,7 +62,7 @@ function update() {
         start_time,
         end_time;
 
-    filtered = filterGraph(promed.graph, promed.degree);
+    filtered = filterGraph(promed.graph, promed.degree, promed.startdate, promed.enddate);
 
     // Recompute the circle elements.
     nodes = d3.select("#nodes")
@@ -243,6 +262,64 @@ $(function () {
         // Whip the data into shape, so that D3's graph layout can make use of
         // it easily.
         promed.graph = prepare(json);
+
+        // Find the minimum and maximum dates in the data.
+        mindate = Number.MAX_VALUE;
+        maxdate = 0;
+
+        $.each(promed.graph.nodes, function (i, v) {
+            var date = getNodeDate(v);
+
+            if (mindate > date) {
+                mindate = date;
+            }
+
+            if (maxdate < date) {
+                maxdate = date;
+            }
+        });
+
+        displayTimes = function (evt, ui) {
+            var low,
+                high,
+                printdate;
+
+            printdate = function (date) {
+                return date.toString()
+                    .split(" ")
+                    .slice(0, 4)
+                    .join(" ");
+            };
+
+            low = printdate(new Date(ui.values[0]));
+            high = printdate(new Date(ui.values[1]));
+
+            d3.select("#starttime")
+                .text(low);
+            d3.select("#endtime")
+                .text(high);
+        }
+
+        $("#timefilt").slider({
+            range: true,
+            min: mindate,
+            max: maxdate,
+            slide: displayTimes,
+            change: function (evt, ui) {
+                displayTimes(evt, ui);
+
+                promed.startdate = roundDay($(this).slider("values", 0));
+                promed.enddate = roundDay($(this).slider("values", 1));
+
+                if (promed.graph) {
+                    update();
+                }
+            }
+        });
+        $("#timefilt").slider("values", 0, mindate);
+        $("#timefilt").slider("values", 1, maxdate);
+        displayTimes(undefined, {values: [mindate, maxdate]});
+
         update();
     });
 });
