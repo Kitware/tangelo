@@ -8,6 +8,12 @@ promed.transform = {
     translate: [0.0, 0.0]
 };
 promed.degree = 0;
+promed.startdate = null;
+promed.enddate = null;
+promed.colormaps = {
+    disease: d3.scale.category20(),
+    location: d3.scale.category20()
+};
 
 function roundDay(dateval) {
     var date = new Date(dateval);
@@ -75,8 +81,8 @@ function update() {
         .classed("node", true)
         .attr("r", 0.0)
         .style("opacity", 0.0)
-        .style("fill", "blue")
         .style("stroke", "black")
+        .style("fill", "white")
         .each(function (d) {
             var cfg,
                 msg,
@@ -104,11 +110,17 @@ function update() {
             };
 
             $(this).popover(cfg);
-        })
-        .transition()
+        });
+
+    // Color the nodes according to the current colormap.
+    colormode = $("input[name=colormap]:radio:checked").attr("id");
+    nodes.transition()
         .duration(1000)
         .attr("r", 5.0)
-        .style("opacity", 1.0);
+        .style("opacity", 1.0)
+        .style("fill", function (d) {
+            return promed.colormaps[colormode](d[colormode]);
+        });
 
     nodes.exit()
         .transition()
@@ -135,7 +147,7 @@ function update() {
         .transition()
         .duration(1000)
         .style("stroke-width", 1.0)
-        .style("opacity", 1.0);
+        .style("opacity", 0.5);
 
     links.exit()
         .transition()
@@ -162,8 +174,16 @@ function update() {
 }
 
 function prepare(graph) {
-    // Make an index map for the nodes.
+    var idxmap,
+        diseasemap,
+        locationmap;
+
+    // Make an index map for the nodes, as well as sets of diseases, locations,
+    // etc. found in the node attributes.
     idxmap = {};
+    diseasemap = {};
+    locationmap = {};
+
     $.each(graph.nodes, function (i, v) {
         if (idxmap[v.promed_id]) {
             throw "fatal error: duplicate promed_id '" + v.promed_id + "'";
@@ -172,7 +192,14 @@ function prepare(graph) {
         idxmap[v.promed_id] = i;
 
         v.degree = 0;
+
+        diseasemap[v.disease] = true;
+        locationmap[v.location] = true;
     });
+
+    // Store global lists of the promed attributes.
+    promed.diseases = Object.keys(diseasemap);
+    promed.locations = Object.keys(locationmap);
 
     // Replace each target and source in the link list with a reference to a
     // node.
@@ -315,6 +342,12 @@ $(function () {
         $("#timefilt").slider("values", 0, mindate);
         $("#timefilt").slider("values", 1, maxdate);
         displayTimes(undefined, {values: [mindate, maxdate]});
+
+        d3.selectAll("input[name=colormap]")
+            .on("click", function () {
+                console.log("yowza!");
+                update();
+            });
 
         update();
     });
