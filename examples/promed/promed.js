@@ -138,8 +138,8 @@ function update() {
     });
 
     // Set the force layout up and start it.
-    promed.force.nodes(promed.data.nodes)
-        .links(promed.data.links)
+    promed.force.nodes(filtered.nodes)
+        .links(filtered.links)
         .start();
 }
 
