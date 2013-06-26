@@ -1,5 +1,5 @@
 var promed = {};
-promed.data = null;
+promed.graph = null;
 promed.force = null;
 promed.width = null;
 promed.height = null;
@@ -43,7 +43,7 @@ function update() {
         start_time,
         end_time;
 
-    filtered = filterGraph(promed.data, promed.degree);
+    filtered = filterGraph(promed.graph, promed.degree);
 
     // Recompute the circle elements.
     nodes = d3.select("#nodes")
@@ -200,7 +200,7 @@ $(function () {
         var value = ui.value || $(this).spinner("value");
         console.log(value);
 
-        if (promed.data) {
+        if (promed.graph) {
             update({
                 degree: value
             });
@@ -212,14 +212,14 @@ $(function () {
         spin: function (evt, ui) {
             promed.degree = ui.value;
 
-            if (promed.data) {
+            if (promed.graph) {
                 update();
             }
         },
         change: function (evt, ui) {
             promed.degree = $(this).spinner("value");
 
-            if (promed.data) {
+            if (promed.graph) {
                 update();
             }
         }
@@ -240,7 +240,9 @@ $(function () {
             throw "Could not load file promed_links.json: " + err;
         }
 
-        promed.data = prepare(json);
+        // Whip the data into shape, so that D3's graph layout can make use of
+        // it easily.
+        promed.graph = prepare(json);
         update();
     });
 });
