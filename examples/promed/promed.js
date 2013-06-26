@@ -7,16 +7,11 @@ promed.transform = {
     scale: 1.0,
     translate: [0.0, 0.0]
 };
+promed.degree = 0;
 
-function filterGraph(graph, cfg) {
-    var degree,
-        nodes,
+function filterGraph(graph, degree) {
+    var nodes,
         links;
-
-    // Read in the config arguments.
-    cfg = cfg || {};
-    degree = cfg.degree || 0;
-    // TODO: start/end times.
 
     // Filter the data by degree.
     nodes = graph.nodes.filter(function (v) {
@@ -31,6 +26,7 @@ function filterGraph(graph, cfg) {
 
     // Filter the links by membership of its nodes in the node set.
     links = graph.links.filter(function (v) {
+        //return (degree === 0 && v.degree === 0) || nodeset.hasOwnProperty(v.source.promed_id) && nodeset.hasOwnProperty(v.target.promed_id);
         return nodeset.hasOwnProperty(v.source.promed_id) && nodeset.hasOwnProperty(v.target.promed_id);
     });
 
@@ -40,14 +36,14 @@ function filterGraph(graph, cfg) {
     };
 }
 
-function update(cfg) {
+function update() {
     var nodes,
         links,
         filtered,
         start_time,
         end_time;
 
-    filtered = filterGraph(promed.data, cfg);
+    filtered = filterGraph(promed.data, promed.degree);
 
     // Recompute the circle elements.
     nodes = d3.select("#nodes")
@@ -69,9 +65,10 @@ function update(cfg) {
                 date;
 
             date = d.promed_id.split(".")[0];
-            msg = "<p><b>Date: </b>" + date.substr(0, 4) + "-" + date.substr(4, 2) + "-" + date.substr(6) + "</p>"
-            msg += "<p><b>Title: </b>" + d.title + "</p>";
-            msg += "<p><b>Degree: </b>" + d.degree + "</p>";
+            msg = "<b>Date: </b>" + date.substr(0, 4) + "-" + date.substr(4, 2) + "-" + date.substr(6) + "<br>";
+            msg += "<b>Title: </b>" + d.title + "<br>";
+            msg += "<b>Degree: </b>" + d.degree + "<br>";
+            msg += "<b>Promed ID: </b>" + d.promed_id;
 
             cfg = {
                 html: true,
@@ -198,6 +195,7 @@ $(function () {
     // Initialize the degree spinner.
     spinnerUpdate = function (evt, ui) {
         var value = ui.value || $(this).spinner("value");
+        console.log(value);
 
         if (promed.data) {
             update({
@@ -208,8 +206,20 @@ $(function () {
 
     $("#degreefilt").spinner({
         min: 0,
-        spin: spinnerUpdate,
-        change: spinnerUpdate
+        spin: function (evt, ui) {
+            promed.degree = ui.value;
+
+            if (promed.data) {
+                update();
+            }
+        },
+        change: function (evt, ui) {
+            promed.degree = $(this).spinner("value");
+
+            if (promed.data) {
+                update();
+            }
+        }
     });
     $("#degreefilt").spinner("value", 0);
 
