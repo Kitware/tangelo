@@ -45,7 +45,6 @@ function filterGraph(graph, degree, startdate, enddate) {
 
     // Filter the links by membership of its nodes in the node set.
     links = graph.links.filter(function (v) {
-        //return (degree === 0 && v.degree === 0) || nodeset.hasOwnProperty(v.source.promed_id) && nodeset.hasOwnProperty(v.target.promed_id);
         return nodeset.hasOwnProperty(v.source.promed_id) && nodeset.hasOwnProperty(v.target.promed_id);
     });
 
@@ -187,9 +186,6 @@ function prepare(graph) {
     $.each(graph.links, function (i, v) {
         v.source.degree++;
         v.target.degree++;
-
-        //v.source = graph.nodes[v.source];
-        //v.target = graph.nodes[v.target];
     });
 
     return graph;
