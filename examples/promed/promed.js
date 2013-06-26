@@ -8,19 +8,53 @@ promed.transform = {
     translate: [0.0, 0.0]
 };
 
-function update() {
-    var nodes,
+function filterGraph(graph, cfg) {
+    var degree,
+        nodes,
         links;
 
-    // TODO: filter the data here according to some criteria (perhaps passed in
-    // as args to this function).
+    // Read in the config arguments.
+    cfg = cfg || {};
+    degree = cfg.degree || 0;
+    // TODO: start/end times.
+
+    // Filter the data by degree.
+    nodes = graph.nodes.filter(function (v) {
+        return v.degree >= degree;
+    });
+
+    // Create a node set for quick membership testing.
+    nodeset = {};
+    $.each(nodes, function (i, v) {
+        nodeset[v.promed_id] = true;
+    });
+
+    // Filter the links by membership of its nodes in the node set.
+    links = graph.links.filter(function (v) {
+        return nodeset.hasOwnProperty(v.source.promed_id) && nodeset.hasOwnProperty(v.target.promed_id);
+    });
+
+    return {
+        nodes: nodes,
+        links: links
+    };
+}
+
+function update(cfg) {
+    var nodes,
+        links,
+        filtered,
+        start_time,
+        end_time;
+
+    filtered = filterGraph(promed.data, cfg);
 
     // Recompute the circle elements.
     nodes = d3.select("#nodes")
-        .selectAll("circle.node", function (d) {
+        .selectAll("circle.node")
+        .data(filtered.nodes, function (d) {
             return d.promed_id;
-        })
-        .data(promed.data.nodes);
+        });
 
     nodes.enter()
         .append("circle")
@@ -35,7 +69,9 @@ function update() {
                 date;
 
             date = d.promed_id.split(".")[0];
-            msg = date.substr(0, 4) + "-" + date.substr(4, 2) + "-" + date.substr(6) + ": " + d.title;
+            msg = "<p><b>Date: </b>" + date.substr(0, 4) + "-" + date.substr(4, 2) + "-" + date.substr(6) + "</p>"
+            msg += "<p><b>Title: </b>" + d.title + "</p>";
+            msg += "<p><b>Degree: </b>" + d.degree + "</p>";
 
             cfg = {
                 html: true,
@@ -67,10 +103,10 @@ function update() {
 
     // Now the links.
     links = d3.select("#links")
-        .selectAll("line.link", function (d) {
-            d.target + "->" + d.source;
-        })
-        .data(promed.data.links);
+        .selectAll("line.link")
+        .data(filtered.links, function (d) {
+            return d.target.promed_id + "->" + d.source.promed_id;
+        });
 
     links.enter()
         .append("line")
@@ -107,7 +143,7 @@ function update() {
         .start();
 }
 
-function computeIndices(graph) {
+function prepare(graph) {
     // Make an index map for the nodes.
     idxmap = {};
     $.each(graph.nodes, function (i, v) {
@@ -116,12 +152,25 @@ function computeIndices(graph) {
         }
 
         idxmap[v.promed_id] = i;
+
+        v.degree = 0;
     });
 
-    // Replace each target and source in the link list with an index.
+    // Replace each target and source in the link list with a reference to a
+    // node.
     $.each(graph.links, function (i, v) {
-        v.source = idxmap[v.source];
-        v.target = idxmap[v.target];
+        v.source = graph.nodes[idxmap[v.source]];
+        v.target = graph.nodes[idxmap[v.target]];
+    });
+
+    // Compute the degree of each node, and replace the indices in the links
+    // list with references to nodes.
+    $.each(graph.links, function (i, v) {
+        v.source.degree++;
+        v.target.degree++;
+
+        //v.source = graph.nodes[v.source];
+        //v.target = graph.nodes[v.target];
     });
 
     return graph;
@@ -129,6 +178,8 @@ function computeIndices(graph) {
 
 $(function () {
     tangelo.requireCompatibleVersion("0.2");
+
+    var spinnerUpdate;
 
     // Get the window size.
     promed.width = $(window).width();
@@ -140,10 +191,27 @@ $(function () {
             .scale(1.0)
             .translate([0.0, 0.0])
             .on("zoom", function () {
-                console.log("yay");
                 d3.select("#group")
                     .attr("transform", "translate(" + d3.event.translate[0] + ", " + d3.event.translate[1] + ") scale(" + d3.event.scale + ")");
             }));
+
+    // Initialize the degree spinner.
+    spinnerUpdate = function (evt, ui) {
+        var value = ui.value || $(this).spinner("value");
+
+        if (promed.data) {
+            update({
+                degree: value
+            });
+        }
+    };
+
+    $("#degreefilt").spinner({
+        min: 0,
+        spin: spinnerUpdate,
+        change: spinnerUpdate
+    });
+    $("#degreefilt").spinner("value", 0);
 
     // Initialize a force layout object.
     promed.force = d3.layout.force()
@@ -159,7 +227,7 @@ $(function () {
             throw "Could not load file promed_links.json: " + err;
         }
 
-        promed.data = computeIndices(json);
+        promed.data = prepare(json);
         update();
     });
 });

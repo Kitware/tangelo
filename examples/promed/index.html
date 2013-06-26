@@ -1,8 +1,10 @@
 <!doctype html>
 <script src=/js/loader/load-tangelo.min.js></script>
+<script src=/js/lib/jquery-ui-1.9.1.js></script>
 <script src=promed.js></script>
 
 <link href=/css/tangelo.css rel=stylesheet>
+<link href=http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css rel=stylesheet>
 
 <style>
     html, body {
@@ -34,6 +36,15 @@
 </svg>
 
 <div data-tangelo-type=control-panel>
-    <div>
+    <div class=row>
+        <div class=span3>
+            <h4>Time filter</h4>
+            <div id=timefilt></div>
+        </div>
+
+        <div class=span3>
+            <h4>Degree filter</h4>
+            <input id=degreefilt />
+        </div>
     </div>
 </div>
