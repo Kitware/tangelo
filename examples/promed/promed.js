@@ -67,6 +67,9 @@ function update() {
             date = d.promed_id.split(".")[0];
             msg = "<b>Date: </b>" + date.substr(0, 4) + "-" + date.substr(4, 2) + "-" + date.substr(6) + "<br>";
             msg += "<b>Title: </b>" + d.title + "<br>";
+            msg += "<b>Disease: </b>" + d.disease + "<br>";
+            msg += "<b>Location: </b>" + d.location + "<br>";
+            msg += "<b>Source Organization: </b>" + d.source_organization + "<br>";
             msg += "<b>Degree: </b>" + d.degree + "<br>";
             msg += "<b>Promed ID: </b>" + d.promed_id;
 
