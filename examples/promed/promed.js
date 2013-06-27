@@ -14,6 +14,10 @@ promed.colormaps = {
     disease: d3.scale.category20(),
     location: d3.scale.category20()
 };
+promed.zoom = {
+    behavior: null,
+    mousedown: null
+};
 
 function roundDay(dateval) {
     var date = new Date(dateval);
@@ -83,6 +87,25 @@ function update() {
         .style("opacity", 0.0)
         .style("stroke", "black")
         .style("fill", "white")
+        .on("mousedown", function () {
+            // Suspend the initiation of drag behavior while the user is
+            // clicking on a node.
+            d3.select("#graph")
+                .on("mousedown.zoom", null);
+
+            // Install a "global" mouseup handler so the release of the mouse
+            // button is detected even if the user moves the mouse faster than
+            // the node can catch up - use it to (2) uninstall itself and (2)
+            // restore the drag behavior callback.
+            d3.select(window.document)
+                .on("mouseup.catchall", function () {
+                    d3.select("#graph")
+                        .on("mousedown.zoom", promed.zoom.mousedown);
+
+                    d3.select(window.document)
+                        .on("mouseup.catchall", null);
+                });
+        })
         .each(function (d) {
             var cfg,
                 msg,
@@ -221,21 +244,35 @@ function prepare(graph) {
 $(function () {
     tangelo.requireCompatibleVersion("0.2");
 
-    var spinnerUpdate;
+    var spinnerUpdate,
+        graph;
 
     // Get the window size.
     promed.width = $(window).width();
     promed.height = $(window).height();
 
     // Set pan/zoom mouse interaction on the SVG element.
-    d3.select("#graph")
-        .call(d3.behavior.zoom()
-            .scale(1.0)
-            .translate([0.0, 0.0])
-            .on("zoom", function () {
-                d3.select("#group")
-                    .attr("transform", "translate(" + d3.event.translate[0] + ", " + d3.event.translate[1] + ") scale(" + d3.event.scale + ")");
-            }));
+    promed.zoom.behavior = d3.behavior.zoom()
+        .scale(1.0)
+        .translate([0.0, 0.0])
+        .on("zoom", function () {
+            d3.select("#group")
+                .attr("transform", "translate(" + d3.event.translate[0] + ", " + d3.event.translate[1] + ") scale(" + d3.event.scale + ")");
+        });
+
+    // Install the zoom behavior on the graph element.
+    graph = d3.select("#graph");
+    graph.call(d3.behavior.zoom()
+        .scale(1.0)
+        .translate([0.0, 0.0])
+        .on("zoom", function () {
+            d3.select("#group")
+                .attr("transform", "translate(" + d3.event.translate[0] + ", " + d3.event.translate[1] + ") scale(" + d3.event.scale + ")");
+        }));
+
+    // Save the mousedown callback from the zoom behavior so it can be
+    // suppressed/restored at will.
+    promed.zoom.mousedown = graph.on("mousedown.zoom");
 
     // Initialize the degree spinner.
     spinnerUpdate = function (evt, ui) {
@@ -345,7 +382,6 @@ $(function () {
 
         d3.selectAll("input[name=colormap]")
             .on("click", function () {
-                console.log("yowza!");
                 update();
             });
 
