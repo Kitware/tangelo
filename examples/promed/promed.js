@@ -440,7 +440,7 @@ $(function () {
                 if (this.value.length > 0) {
                     promed.timeoutID[mode] = window.setTimeout(search, 300, mode, this.value);
                 } else {
-                    promed[search + mode] = undefined;
+                    promed["search" + mode] = undefined;
                     update();
                 }
             };
@@ -448,6 +448,9 @@ $(function () {
 
         d3.select("#disease-search")
             .on("keyup", keyup("diseases"));
+
+        d3.select("#location-search")
+            .on("keyup", keyup("locations"));
 
         update();
     });
