@@ -1,0 +1,37 @@
+#!/bin/sh
+#
+# init.d startup/shutdown script for Tangelo.
+#
+# This was written to conform to the deployment practices of the XDATA summer
+# camp Vis VM.  It works by deferring to the 'tangelo' script, but placing the
+# log and PID files in /var.
+
+tangelo=@CMAKE_BINARY_DIR@/@DEPLOY_DIR@/tangelo
+here=`dirname $0`
+logdir=/var/log
+piddir=/var/run
+
+retval=0
+
+case "$1" in
+    start)
+        ${tangelo} --logdir ${logdir} --piddir ${piddir} start
+        retval=$?
+        ;;
+
+    stop)
+        ${tangelo} --logdir ${logdir} --piddir ${piddir} stop
+        retval=$?
+        ;;
+
+    restart)
+        ${tangelo} --logdir ${logdir} --piddir ${piddir} restart
+        retval=$?
+        ;;
+
+    *)
+        echo "usage: $0 {start|stop|restart}" >/dev/stderr
+        exit 1
+esac
+
+exit ${RETVAL}

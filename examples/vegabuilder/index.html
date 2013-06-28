@@ -1,0 +1,55 @@
+<!doctype html>
+<meta charset="utf-8">
+
+<!-- Tangelo -->
+<script src="/js/loader/load-tangelo.min.js"></script>
+
+<!-- Vega -->
+<script src="/js/lib/vega-1.0.0.js"></script>
+
+<!-- Driver script for this app -->
+<script src="vegabuilder.js"></script>
+
+<!-- Styling for app -->
+<link href="/css/tangelo.css" rel="stylesheet" type="text/css">
+
+<link rel="shortcut icon" href="/img/tangelo.ico">
+
+<style>
+.axis path, .axis line {
+  fill: none;
+  stroke: black;
+  stroke-width: 1px;
+  shape-rendering: crispEdges;
+}
+.axis text {
+  font-family: sans-serif;
+  font-size: 11px;
+}
+
+.header {
+    position: fixed;
+    top: 0px;
+    width: 100%;
+    background-color: rgba(255,255,255,0.5);
+}
+
+body {
+	padding-top: 400px;
+}
+
+</style>
+
+<title>Vega Builder</title>
+
+<div class="header">
+	<div class="row-fluid">
+		<div class="span6 offset3" id="vis"></div>
+	</div>
+</div>
+
+<div class="container-fluid">
+	<div class="row-fluid">
+		<div class="span12" id="editor"></div>
+	</div>
+</div>

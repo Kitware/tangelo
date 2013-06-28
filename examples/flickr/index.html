@@ -1,0 +1,170 @@
+<!doctype html>
+<meta charset=utf-8>
+
+<!-- Tangelo -->
+<script src=/js/loader/load-tangelo.js></script>
+
+<!-- JQuery UI -->
+<script src=/js/lib/jquery-ui-1.9.1.js></script>
+
+<!-- Google Maps API -->
+<script src=https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false></script>
+
+<!-- Driver script for this app -->
+<script src=flickr.js></script>
+
+<!-- Styling for UI elements -->
+<link href=/css/jquery-ui-1.9.1.css rel=stylesheet type=text/css>
+
+<!-- Styling for app -->
+<link href=/css/tangelo.css rel=stylesheet type=text/css>
+
+<link rel="shortcut icon" href=/img/tangelo.ico>
+
+<style>
+    html {
+        height: 100%;
+    }
+
+    body {
+        padding-top: 60px;
+        height: 100%;
+    }
+</style>
+
+<title>Flickr Metadata Maps</title>
+
+<!-- Create a navbar with info and config panels -->
+<div data-tangelo-type=navbar data-tangelo-brand=XDATA@Kitware data-tangelo-brand-href=/app data-tangelo-app="Flickr Maps" data-config-load=showConfig data-config-save=updateConfig data-config-default=setConfigDefaults>
+    <div data-tangelo-type=info>
+        <p>Explore the locations where millions of Flickr photos were taken.</p>
+
+        <p>This application retrieves Flickr metadata stored in a database and
+        displays the locations on a Google map.  Use the controls to trigger a
+        new lookup, or change the visualization properties.</p>
+
+        <p>Hover over a location to see more information from that photo's
+        metadata.</p>
+    </div>
+
+    <div data-tangelo-type=config>
+        <div class="alert alert-danger">
+            WARNING: hostnames in this configuration are relative to the <b>server</b>
+            (e.g., "localhost" refers to the <b>webserver</b> itself, <b>not</b> your local machine).
+        </div>
+        MongoDB host <input id=mongodb-server type=text><br>
+        MongoDB database <input id=mongodb-db type=text><br>
+        MongoDB collection <input id=mongodb-coll type=text>
+    </div>
+</div>
+
+<!-- Create a fullscreen Google map -->
+<div id=map class=gmap style="width:100%;height:100%"></div>
+
+<!-- Create a drawer panel with the controls in it -->
+<div data-tangelo-type=control-panel>
+    <div class=container>
+        <div class=row>
+            <div class=span3>
+                <h4>Time filter <i id=time-filter-help class=icon-question-sign></i></h4>
+                <div id="time-slider"></div>
+                <div class=code id="low"></div>
+                <div class=code id="high"></div>
+                <a class="btn btn-small" id=zoom>Zoom to range</a>
+                <a class="btn btn-small disabled" id=unzoom>Unzoom</a>
+            </div>
+
+            <div class=span3>
+                <h4>Hashtag filter <i id=hashtag-filter-help class=icon-question-sign></i></h4>
+                <input id=hashtags type=text>
+            </div>
+
+            <div class=span3>
+                <h4>Record count limit</h4>
+                <input id=record-limit type=text value=1000>
+            </div>
+
+            <div class=span3>
+                <h4>&nbsp</h4>
+                <a id=abort class="btn btn-large"></a>
+            </div>
+        </div>
+
+        <div class=row>
+            <div class=span3>
+                <h4>Day filter</h4>
+                <label class="checkbox">
+                    <input type=checkbox id=Sun> Sunday
+                </label>
+
+                <label class="checkbox">
+                    <input type=checkbox id=Mon> Monday
+                </label>
+
+                <label class="checkbox">
+                    <input type=checkbox id=Tue> Tuesday
+                </label>
+
+                <label class="checkbox">
+                    <input type=checkbox id=Wed> Wednesday
+                </label>
+
+                <label class="checkbox">
+                    <input type=checkbox id=Thu> Thursday
+                </label>
+
+                <label class="checkbox">
+                    <input type=checkbox id=Fri> Friday
+                </label>
+
+                <label class="checkbox">
+                    <input type=checkbox id=Sat> Saturday
+                </label>
+            </ul>
+        </div>
+
+        <div class=span3>
+            <h4>Colormap</h4>
+
+            <div class=row>
+                <div class=span3>
+                    <label class=radio>
+                        <input name=colormap type=radio id=month> Month
+                    </label>
+
+                    <label class=radio>
+                        <input name=colormap type=radio id=day> Day
+                    </label>
+
+                    <label class=radio>
+                        <input name=colormap type=radio id=rb> Recency (red-blue)
+                        <label class=checkbox>
+                            <input type=checkbox id=invert> Invert color scale
+                        </label>
+                    </label>
+
+                    <label class=radio>
+                        <input name=colormap type=radio id=none checked> None
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class=span3>
+            <h4>Glyph size</h4>
+            <label class=radio>
+                <input name=size type=radio id=recency> Recency (earlier is larger)
+            </label>
+
+            <label class=radio>
+                <input name=size type=radio id=constant checked> Constant
+            </label>
+            <input type=text id=size class=span1 value=5>
+        </div>
+
+        <div class=span3>
+            <h4>Opacity</h4>
+            <div id=opacity class=span2></div>
+        </div>
+    </div>
+</div>

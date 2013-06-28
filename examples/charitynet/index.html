@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<html>
+    <head>
+        <link href="/css/tangelo.css" rel=stylesheet type="text/css">
+        <title>CharityNet</title/>
+        <script src="/js/loader/load-tangelo.min.js"></script>
+        <script src="/js/lib/vega-1.0.0.js"></script>
+        <script src="charitynet.js"></script>
+        <style>
+    html {
+        height: 100%;
+    }
+
+    body {
+        padding-top: 60px;
+        height: 100%;
+        background-color: #ddd;
+    }
+        </style>
+    </head>
+    <body>
+<div data-tangelo-type="navbar" data-tangelo-brand="XDATA@Kitware" data-tangelo-brand-href=/app data-tangelo-app="CharityNet">
+    <div data-tangelo-type="info">
+        <p>Examining ~3 million charitable contributions.</p>
+
+        <p>The map displays charitable contributions split at the county level across the US at
+        a particular month.</p>
+    </div>
+</div>
+        <div id="vis"></div>
+<div data-tangelo-type="control-panel">
+    <div class="container">
+        <div class="row">
+            <div class="span2">
+                <select id="time" class="input-block-level"></select>
+            </div>
+            <div class="span1">
+                <a id="play" class="btn btn-success"><i class="icon-pause icon-white"></i></a>
+            </div>
+            <div class="span5">
+                <select id="charity" class="input-block-level"></select>
+            </div>
+            <div class="span2">
+                <input id="popnorm" type="checkbox"> Normalize by population
+            </div>
+        </div>
+    </div>
+</div>
+    </body>
+</html>

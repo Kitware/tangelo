@@ -73,7 +73,7 @@ class Server(object):
                             return result
                         else:
                             result["auth_type"] = v
-                    elif k == "AuthUserFile":
+                    elif k in ["AuthPasswordFile", "AuthUserFile"]:
                         result["user_file"] = v
                     elif k == "AuthRealm":
                         result["realm"] = v
@@ -508,8 +508,8 @@ def start():
     cherrypy.config.update({"environment": "production",
                             "log.error_file": logfile,
                             "log.screen": not daemonize,
-                            "server.socket_host": "@SERVER_HOSTNAME@",
-                            "server.socket_port": @SERVER_PORT@,
+                            "server.socket_host": hostname,
+                            "server.socket_port": port,
                             "error_page.default": Server.error_page})
 
     # Create an instance of the main handler object.
@@ -640,55 +640,76 @@ def restart():
     else:
         return stopval
 
-p = argparse.ArgumentParser(description="Control execution of a Tangelo server.")
-p.add_argument("-d", "--no-daemon", action="store_true", help="run Tangelo in-console (not as a daemon).")
-p.add_argument("-a", "--no-auth", action="store_true", help="disable HTTP authentication (i.e. processing of .htaccess files).")
-p.add_argument("-p", "--no-drop-privileges", action="store_true", help="disable privilege drop when started as superuser.")
-p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
-args = p.parse_args()
+if __name__ == "__main__":
+    p = argparse.ArgumentParser(description="Control execution of a Tangelo server.")
+    p.add_argument("-d", "--no-daemon", action="store_true", help="run Tangelo in-console (not as a daemon).")
+    p.add_argument("-a", "--no-auth", action="store_true", help="disable HTTP authentication (i.e. processing of .htaccess files).")
+    p.add_argument("-p", "--no-drop-privileges", action="store_true", help="disable privilege drop when started as superuser.")
+    p.add_argument("--hostname", type=str, default=None, metavar="HOSTNAME", help="overrides configured hostname on which to run Tangelo")
+    p.add_argument("--port", type=int, default=None, metavar="PORT", help="overrides configured port number on which to run Tangelo")
+    p.add_argument("--logdir", type=str, default=None, metavar="DIR", help="where to place the log file (rather than in the directory where this program is")
+    p.add_argument("--piddir", type=str, default=None, metavar="DIR", help="where to place the PID file (rather than in the directory where this program is")
+    p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
+    args = p.parse_args()
 
-no_daemon = args.no_daemon
-do_auth = not args.no_auth
-drop_priv = not args.no_drop_privileges
-action = args.action
+    no_daemon = args.no_daemon
+    do_auth = not args.no_auth
+    drop_priv = not args.no_drop_privileges
+    action = args.action
+    hostname = args.hostname or "@SERVER_HOSTNAME@"
+    port = args.port or @SERVER_PORT@
+    logdir = args.logdir
+    piddir = args.piddir
 
-# Configured variables.
-cherry = "@CherryPy_EXECUTABLE@"
+    # Configured variables.
+    cherry = "@CherryPy_EXECUTABLE@"
 
-# Detect operating system (and OSX version, if applicable).
-os_name = platform.system()
-if os_name == "Darwin":
-    version = map(int, platform.mac_ver()[0].split("."))
+    # Detect operating system (and OSX version, if applicable).
+    os_name = platform.system()
+    if os_name == "Darwin":
+        version = map(int, platform.mac_ver()[0].split("."))
 
-# Determine the current directory based on the invocation of this script.
-current_dir = os.path.dirname(os.path.abspath(__file__))
-tangelo.set_webroot(current_dir + "/web")
+    # Determine the current directory based on the invocation of this script.
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    tangelo.set_webroot(current_dir + "/web")
 
-# Decide whether to daemonize, based on whether the user wishes not to, and
-# whether the platform supports it.
-daemonize = not no_daemon and not(os_name == "Windows" or (os_name == "Darwin" and version[1] == 6))
+    # Decide whether to daemonize, based on whether the user wishes not to, and
+    # whether the platform supports it.
+    daemonize = not no_daemon and not(os_name == "Windows" or (os_name == "Darwin" and version[1] == 6))
 
-# Determine the path to this script.
-path = os.path.dirname(os.path.abspath(sys.argv[0]))
-pidfile = path + "/tangelo.pid"
-logfile = path + "/tangelo.log"
+    # Get the path of the tangelo script.
+    path = os.path.dirname(os.path.abspath(sys.argv[0]))
 
-# Dispatch on action argument.
-code = 1
-if action == "start":
-    code = start()
-elif action == "stop":
-    if not daemonize:
-        sys.stderr.write("error: stop action not supported on this platform\n")
-        sys.exit(1)
-    code = stop()
-elif action == "restart":
-    if not daemonize:
-        sys.stderr.write("error: restart action not supported on this platform\n")
-        sys.exit(1)
-    code = restart()
-else:
-    p.print_usage()
+    # Determine the paths to place the PID file and log file in.  This defaults
+    # to the same directory that contains the tangelo control script.
+    if piddir is None:
+        pidpath = path
+    else:
+        pidpath = os.path.abspath(piddir)
+    pidfile = pidpath + "/tangelo.pid"
+
+    if logdir is None:
+        logpath = path
+    else:
+        logpath = os.path.abspath(logdir)
+    logfile = logpath + "/tangelo.log"
+
+    # Dispatch on action argument.
     code = 1
+    if action == "start":
+        code = start()
+    elif action == "stop":
+        if not daemonize:
+            sys.stderr.write("error: stop action not supported on this platform\n")
+            sys.exit(1)
+        code = stop()
+    elif action == "restart":
+        if not daemonize:
+            sys.stderr.write("error: restart action not supported on this platform\n")
+            sys.exit(1)
+        code = restart()
+    else:
+        p.print_usage()
+        code = 1
 
-sys.exit(code)
+    sys.exit(code)
