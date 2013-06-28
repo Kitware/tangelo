@@ -19,7 +19,7 @@ enron.host = null;
 
 function stringifyDate(d) {
     "use strict";
-    
+
     var format = d3.format("02d");
     return d.getFullYear() + "-" + format(d.getMonth() + 1) + "-" + format(d.getDate());
 }
@@ -69,7 +69,7 @@ function updateGraph() {
     };
 
     $.ajax({
-        url: "service/emailers-impala/xdata/enron4",
+        url: "service/emailers-impala/xdata/enron",
         data: data,
         dataType: "json",
         success: function (resp) {
