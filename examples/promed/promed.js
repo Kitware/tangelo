@@ -18,6 +18,11 @@ promed.zoom = {
     behavior: null,
     mousedown: null
 };
+promed.timeoutID = null;
+promed.diseases = null;
+promed.locations = null;
+promed.searchdiseases = undefined;
+promed.searchlocations = undefined;
 
 function roundDay(dateval) {
     var date = new Date(dateval);
@@ -35,16 +40,31 @@ function getNodeDate(n) {
     return new Date(year, month, day).valueOf();
 }
 
-function filterGraph(graph, degree, startdate, enddate) {
+function filterGraph(graph, degree, startdate, enddate, diseaselist, locationlist) {
     var nodes,
-        links;
+        links,
+        filterdisease,
+        filterlocation;
+
+    filterdisease = diseaselist ? function (d) {
+        return d.toLowerCase() in diseaselist;
+    } :
+    function (d) { return true; };
+
+    filterlocation = locationlist ? function (d) {
+        return d.toLowerCase() in locationlist;
+    } :
+    function (d) { return true; };
 
     // Filter the data by degree.
     nodes = graph.nodes.filter(function (v) {
         var vdate;
         vdate = getNodeDate(v);
 
-        return v.degree >= degree && vdate >= startdate && vdate <= enddate;
+        return (v.degree >= degree) &&
+            (vdate >= startdate && vdate <= enddate) &&
+            (filterdisease(v.disease)) &&
+            (filterlocation(v.location));
     });
 
     // Create a node set for quick membership testing.
@@ -64,6 +84,24 @@ function filterGraph(graph, degree, startdate, enddate) {
     };
 }
 
+function search(which, term) {
+    var results,
+        set;
+
+    results = promed[which].filter(function (d) {
+        return d.toLowerCase().indexOf(term.toLowerCase()) !== -1;
+    });
+    results = results.map(function (s) { return s.toLowerCase(); });
+
+    set = promed["search" + which] = {};
+
+    $.each(results, function (i, v) {
+        set[v] = true;
+    });
+
+    update();
+}
+
 function update() {
     var nodes,
         links,
@@ -71,7 +109,7 @@ function update() {
         start_time,
         end_time;
 
-    filtered = filterGraph(promed.graph, promed.degree, promed.startdate, promed.enddate);
+    filtered = filterGraph(promed.graph, promed.degree, promed.startdate, promed.enddate, promed.searchdiseases, promed.searchlocations);
 
     // Recompute the circle elements.
     nodes = d3.select("#nodes")
@@ -383,6 +421,25 @@ $(function () {
         d3.selectAll("input[name=colormap]")
             .on("click", function () {
                 update();
+            });
+
+        d3.select("#disease-search")
+            .on("keyup", function () {
+                // Cancel any pending search (from, e.g., the previous
+                // keystroke).
+                if (promed.timeoutID !== null) {
+                    window.clearTimeout(promed.timeoutID);
+                }
+
+                // If the user actually typed something in (rather than deleting
+                // the search terms), then schedule a search operation for a
+                // little bit from now.
+                if (this.value.length > 0) {
+                    promed.timeoutID = window.setTimeout(search, 300, "diseases", this.value);
+                } else {
+                    promed.searchdiseases = undefined;
+                    update();
+                }
             });
 
         update();
