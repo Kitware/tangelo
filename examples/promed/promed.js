@@ -18,7 +18,10 @@ promed.zoom = {
     behavior: null,
     mousedown: null
 };
-promed.timeoutID = null;
+promed.timeoutID = {
+    diseases: null,
+    locations: null
+};
 promed.diseases = null;
 promed.locations = null;
 promed.searchdiseases = undefined;
@@ -423,24 +426,28 @@ $(function () {
                 update();
             });
 
-        d3.select("#disease-search")
-            .on("keyup", function () {
+        keyup = function (mode) {
+            return function () {
                 // Cancel any pending search (from, e.g., the previous
                 // keystroke).
-                if (promed.timeoutID !== null) {
-                    window.clearTimeout(promed.timeoutID);
+                if (promed.timeoutID[mode] !== null) {
+                    window.clearTimeout(promed.timeoutID[mode]);
                 }
 
                 // If the user actually typed something in (rather than deleting
                 // the search terms), then schedule a search operation for a
                 // little bit from now.
                 if (this.value.length > 0) {
-                    promed.timeoutID = window.setTimeout(search, 300, "diseases", this.value);
+                    promed.timeoutID[mode] = window.setTimeout(search, 300, mode, this.value);
                 } else {
-                    promed.searchdiseases = undefined;
+                    promed[search + mode] = undefined;
                     update();
                 }
-            });
+            };
+        };
+
+        d3.select("#disease-search")
+            .on("keyup", keyup("diseases"));
 
         update();
     });
