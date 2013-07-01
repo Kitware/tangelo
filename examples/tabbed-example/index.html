@@ -24,13 +24,24 @@ using the text box.</p>
         </div>
     </div>
 
-    <div id=transcript class=row>
-        <div class=row>
-            <strong><u>Transcript</u></strong>
-        </div>
+    <div class=row>
+        <strong><u>Transcript</u></strong>
+    </div>
+
+    <div id=transcript>
     </div>
 
     <div class=row>
-        Type a message: <input type=text>
+        Type a message: <input id=text type=text>
+    </div>
+
+    <div class=row>
+        <label class=radio>
+            <input name=target type=radio id=a checked> Send to A
+        </label>
+
+        <label class=radio>
+            <input name=target type=radio id=b> Send to B
+        </label>
     </div>
 </div>
