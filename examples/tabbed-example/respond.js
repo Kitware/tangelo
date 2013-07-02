@@ -1,11 +1,26 @@
+var respond = {};
+respond.identity = null;
+
 function receiveMessage(e) {
     if (e.source !== window.opener) {
         return;
     }
 
-    d3.select("#transcript")
-        .append("div")
-        .html("<span style=\"color:blue\"><strong>You:</strong></span> " + e.data);
+    switch (e.data.type) {
+        case "message":
+            d3.select("#transcript")
+                .append("div")
+                .html("<span style=\"color:blue\"><strong>You:</strong></span> " + e.data.msg);
+            break;
+
+        case "identity":
+            respond.identity = e.data.identity;
+            break;
+
+        default:
+            throw "unknown message type '" + e.data.type + "'";
+            break;
+    }
 }
 
 $(function() {
@@ -18,7 +33,7 @@ $(function() {
             var e = d3.event;
 
             if (e.keyCode === 13) {
-                window.opener.postMessage(this.value, "*");
+                window.opener.postMessage({type: "message", msg: this.value}, "*");
 
                 d3.select("#transcript")
                     .append("div")
@@ -30,4 +45,10 @@ $(function() {
         });
 
     window.addEventListener("message", receiveMessage);
+
+    window.opener.postMessage({type: "request identity"}, "*");
+
+    window.onunload = function () {
+        window.opener.postMessage({type: "tab closed", identity: respond.identity}, "*");
+    };
 });
