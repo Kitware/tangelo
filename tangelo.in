@@ -486,14 +486,46 @@ class Server(object):
 
         return result
 
+def live_pid(pid):
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    else:
+        return True
+
+def read_pid(pidfile):
+    # Open the file and convert the contents to an integer - if this fails for
+    # any reason, whatever exception is raised will propagate up to the caller.
+    f = open(pidfile)
+    pid = int(f.read())
+
+    return pid
+
 def start():
     sys.stderr.write("starting tangelo...")
 
-    # The presence of a pid file means this instance of Tangelo is already
-    # running.
+    # The presence of a pid file means that either this instance of Tangelo is
+    # already running, or the PID is stale.
     if os.path.exists(pidfile):
-        sys.stderr.write("failed (already seems to be running)\n")
-        return 1
+        # Get the pid.
+        try:
+            pid = read_pid(pidfile)
+        except ValueError:
+            sys.stderr.write("failed (pidfile exists and contains bad pid)\n")
+            return 1
+
+        # Check if the pid is live - if so, then Tangelo is already running; if
+        # not, then remove the pidfile.
+        if live_pid(pid):
+            sys.stderr.write("failed (already running)\n")
+            return 1
+        else:
+            try:
+                os.remove(pidfile)
+            except OSError:
+                sys.stderr.write("failed (could not remove stale pidfile)")
+                return 1
 
     # Make sure the working directory is the place where the control script
     # lives.
@@ -613,19 +645,26 @@ def stop():
     sys.stderr.write("stopping tangelo...")
 
     if os.path.exists(pidfile):
-        f = open(pidfile)
-
+        # Read the pid.
         try:
-            pid = int(f.read())
+            pid = read_pid(pidfile)
         except ValueError:
             sys.stderr.write("failed (tangelo.pid does not contain a valid process id)\n")
             return 1
 
+        # Attempt to kill the process, if it's still alive.
         try:
-            os.kill(pid, signal.SIGKILL)
-            os.remove(pidfile)
+            if live_pid(pid):
+                os.kill(pid, signal.SIGKILL)
         except OSError:
             sys.stderr.write("failed (could not kill process %d)\n" % (pid))
+            retval = 1
+
+        # Attempt to remove the pidfile.
+        try:
+            os.remove(pidfile)
+        except OSError:
+            sys.stderr.write("failed (could not remove pidfile)\n")
             retval = 1
 
     if retval == 0:
