@@ -623,10 +623,11 @@ def stop():
 
         try:
             os.kill(pid, signal.SIGKILL)
-            os.remove(pidfile)
         except OSError:
             sys.stderr.write("failed (could not kill process %d)\n" % (pid))
             retval = 1
+        finally:
+            os.remove(pidfile)
 
     if retval == 0:
         sys.stderr.write("success\n")
