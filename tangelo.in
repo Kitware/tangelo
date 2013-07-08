@@ -645,19 +645,26 @@ def stop():
     sys.stderr.write("stopping tangelo...")
 
     if os.path.exists(pidfile):
-        f = open(pidfile)
-
+        # Read the pid.
         try:
-            pid = int(f.read())
+            pid = read_pid(pidfile)
         except ValueError:
             sys.stderr.write("failed (tangelo.pid does not contain a valid process id)\n")
             return 1
 
+        # Attempt to kill the process, if it's still alive.
         try:
-            os.kill(pid, signal.SIGKILL)
-            os.remove(pidfile)
+            if live_pid(pid):
+                os.kill(pid, signal.SIGKILL)
         except OSError:
             sys.stderr.write("failed (could not kill process %d)\n" % (pid))
+            retval = 1
+
+        # Attempt to remove the pidfile.
+        try:
+            os.remove(pidfile)
+        except OSError:
+            sys.stderr.write("failed (could not remove pidfile)\n")
             retval = 1
 
     if retval == 0:
