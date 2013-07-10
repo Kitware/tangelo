@@ -42,6 +42,7 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/web/js/core.js
     ${CMAKE_SOURCE_DIR}/web/js/controlPanel.js
     ${CMAKE_SOURCE_DIR}/web/js/date.js
+    ${CMAKE_SOURCE_DIR}/web/js/GMap.js
     ${CMAKE_SOURCE_DIR}/web/js/navbar.js
     ${CMAKE_SOURCE_DIR}/web/js/svgColorLegend.js
     ${CMAKE_SOURCE_DIR}/web/js/landingPage.js
@@ -60,6 +61,7 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/web/js/core.js
     ${CMAKE_SOURCE_DIR}/web/js/controlPanel.js
     ${CMAKE_SOURCE_DIR}/web/js/date.js
+    ${CMAKE_SOURCE_DIR}/web/js/GMap.js
     ${CMAKE_SOURCE_DIR}/web/js/navbar.js
     ${CMAKE_SOURCE_DIR}/web/js/util.js
     ${CMAKE_SOURCE_DIR}/web/js/svgColorLegend.js
