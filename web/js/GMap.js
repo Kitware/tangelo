@@ -3,6 +3,13 @@
 (function () {
     "use strict";
 
+    if (!window.google) {
+        tangelo.GMap = function () {
+            throw "Use of the GMap class requires loading the Google Map API *before* loading Tangelo.";
+        };
+        return;
+    }
+
     tangelo.GMap = function (elem, mapoptions, cfg) {
         var that;
 
