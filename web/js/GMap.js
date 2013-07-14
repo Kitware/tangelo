@@ -35,8 +35,8 @@
 
     tangelo.GMap.prototype = new google.maps.OverlayView();
 
-    tangelo.GMap.prototype.getSVG = function () {
-        return this.svg.node();
+    tangelo.GMap.prototype.getSVGGroup = function () {
+        return this.group.node();
     };
 
     tangelo.GMap.prototype.onAdd = function () {
