@@ -35,10 +35,14 @@
         that = this;
         google.maps.event.addListener(this.map, "drag", function () { that.draw(); });
 
-        this.cfg = cfg;
+        this.cfg = cfg || {};
     };
 
     tangelo.GMap.prototype = new google.maps.OverlayView();
+
+    tangelo.GMap.prototype.getSVG = function () {
+        return this.svg.node();
+    };
 
     tangelo.GMap.prototype.onAdd = function () {
         // Grab the overlay mouse target element (because it can accept, e.g.,
@@ -46,7 +50,7 @@
         // and add the SVG element to it.
         this.overlayLayer = this.getPanes().overlayMouseTarget;
 
-        var svg = d3.select(this.overlayLayer).append("div")
+        var svg = this.svg = d3.select(this.overlayLayer).append("div")
             .attr("id", "svgcontainer")
             .style("position", "relative")
             .style("left", "0px")
