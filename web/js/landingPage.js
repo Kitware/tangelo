@@ -61,7 +61,7 @@
                     app = apps[i];
 
                     col.append("a")
-                        .attr("href", "/app/" + app.path + "/")
+                        .attr("href", app.path)
                         .append("h4")
                         .html(app.name);
                     col.append("p")
