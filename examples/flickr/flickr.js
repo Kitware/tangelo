@@ -10,6 +10,9 @@ flickr.cfgDefaults = null;
 
 flickr.locationData = null;
 
+flickr.dayColor = d3.scale.category10();
+flickr.monthColor = d3.scale.category20();
+
 flickr.getMongoDBInfo = function () {
     "use strict";
 
@@ -173,14 +176,10 @@ function retrieveData(initial) {
                     initialize: function (svg) {
                         // Add an SVG group whose contents will change or
                         // disappear based on the active colormap.
-
                         this.legend = d3.select(svg).append("g").node();
-
-                        // TODO(choudhury): it might be better to actually copy the values here.
-                        //this.locationData = flickr.locationData;
                     },
 
-                    draw: function (proj, svg, divOffset) {
+                    draw: function (proj, svg) {
                         var data,
                             days,
                             N,
@@ -194,8 +193,6 @@ function retrieveData(initial) {
                         // entry.
                         data = flickr.locationData.map(function (d) {
                             d.pixelLocation = proj.fromLatLngToDivPixel(new google.maps.LatLng(d.location[1], d.location[0]));
-                            d.pixelLocation.x -= divOffset.x;
-                            d.pixelLocation.y -= divOffset.y;
                             return d;
                         });
 
@@ -223,8 +220,9 @@ function retrieveData(initial) {
                                 range,
                                 scale;
 
-                            // Capture the color legend SVG group element.
-                            legend = that.legend;
+                            if (!flickr.legend) {
+                                flickr.legend = d3.select(that.getSVG()).append("g").node();
+                            }
 
                             // Determine which radio button is currently selected.
                             which = $("input[name=colormap]:radio:checked").attr("id");
@@ -233,12 +231,12 @@ function retrieveData(initial) {
                             // based on it.
                             if (which === 'month') {
                                 colormap = function (d) {
-                                    return that.monthColor(d.month);
+                                    return flickr.monthColor(d.month);
                                 };
 
-                                $(legend).svgColorLegend({
-                                    cmap_func: that.monthColor,
-                                    xoffset: 10,
+                                $(flickr.legend).svgColorLegend({
+                                    cmap_func: flickr.monthColor,
+                                    xoffset: 60,
                                     yoffset: 10,
                                     categories: tangelo.monthNames(),
                                     height_padding: 5,
@@ -256,11 +254,11 @@ function retrieveData(initial) {
                                 retval = colormap;
                             } else if (which === 'day') {
                                 colormap = function (d) {
-                                    return that.dayColor(d.day);
+                                    return flickr.dayColor(d.day);
                                 };
 
-                                $(legend).svgColorLegend({
-                                    cmap_func: that.dayColor,
+                                $(flickr.legend).svgColorLegend({
+                                    cmap_func: flickr.dayColor,
                                     xoffset: 10,
                                     yoffset: 10,
                                     categories: tangelo.dayNames(),
@@ -326,8 +324,7 @@ function retrieveData(initial) {
                         // the MongoDB unique id value as the key function.
                         //
                         /*jslint nomen: true */
-                        markers = d3.select(this.overlay)
-                            .select("#markers")
+                        markers = d3.select(svg)
                             .selectAll("circle")
                             .data(data, function (d) {
                                 return d._id.$oid;
