@@ -220,8 +220,9 @@ function retrieveData(initial) {
                                 range,
                                 scale;
 
-                            // Capture the color legend SVG group element.
-                            legend = that.legend;
+                            if (!flickr.legend) {
+                                flickr.legend = d3.select(that.getSVG()).append("g").node();
+                            }
 
                             // Determine which radio button is currently selected.
                             which = $("input[name=colormap]:radio:checked").attr("id");
@@ -233,9 +234,9 @@ function retrieveData(initial) {
                                     return flickr.monthColor(d.month);
                                 };
 
-                                $(legend).svgColorLegend({
+                                $(flickr.legend).svgColorLegend({
                                     cmap_func: flickr.monthColor,
-                                    xoffset: 10,
+                                    xoffset: 60,
                                     yoffset: 10,
                                     categories: tangelo.monthNames(),
                                     height_padding: 5,
@@ -256,7 +257,7 @@ function retrieveData(initial) {
                                     return flickr.dayColor(d.day);
                                 };
 
-                                $(legend).svgColorLegend({
+                                $(flickr.legend).svgColorLegend({
                                     cmap_func: flickr.dayColor,
                                     xoffset: 10,
                                     yoffset: 10,
