@@ -159,7 +159,8 @@ function update() {
             msg += "<b>Location: </b>" + d.location + "<br>";
             msg += "<b>Source Organization: </b>" + d.source_organization + "<br>";
             msg += "<b>Degree: </b>" + d.degree + "<br>";
-            msg += "<b>Promed ID: </b>" + d.promed_id;
+            msg += "<b>Promed ID: </b>" + d.promed_id + "<br>";
+            msg += "<b>Symptoms: </b>" + d.symptoms.join(", ");
 
             cfg = {
                 html: true,
