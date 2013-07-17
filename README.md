@@ -44,6 +44,9 @@ on the wiki for more information.
 
 # Get Involved
 
+Please join our [mailing list](http://public.kitware.com/cgi-bin/mailman/listinfo/tangelo-users)
+to ask questions about setting up and using Tangelo.
+
 Fork our repository and do great things. At [Kitware](http://www.kitware.com),
 we've been contributing to open-source software for 15 years and counting, and
 want to make Tangelo as useful to as many as possible.
