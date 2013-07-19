@@ -24,8 +24,11 @@ promed.timeoutID = {
 };
 promed.diseases = null;
 promed.locations = null;
+promed.symptoms = null;
+promed.disease_symptoms = null;
 promed.searchdiseases = undefined;
 promed.searchlocations = undefined;
+promed.searchsymptoms = undefined;
 
 function roundDay(dateval) {
     var date = new Date(dateval);
@@ -43,7 +46,7 @@ function getNodeDate(n) {
     return new Date(year, month, day).valueOf();
 }
 
-function filterGraph(graph, degree, startdate, enddate, diseaselist, locationlist) {
+function filterGraph(graph, degree, startdate, enddate, diseaselist, locationlist, symptomlist) {
     var nodes,
         links,
         filterdisease,
@@ -59,6 +62,11 @@ function filterGraph(graph, degree, startdate, enddate, diseaselist, locationlis
     } :
     function (d) { return true; };
 
+    filtersymptom = symptomlist ? function (d) {
+        return d.toLowerCase() in symptomlist;
+    } :
+    function (d) { return true; };
+
     // Filter the data by degree.
     nodes = graph.nodes.filter(function (v) {
         var vdate;
@@ -67,7 +75,8 @@ function filterGraph(graph, degree, startdate, enddate, diseaselist, locationlis
         return (v.degree >= degree) &&
             (vdate >= startdate && vdate <= enddate) &&
             (filterdisease(v.disease)) &&
-            (filterlocation(v.location));
+            (filterlocation(v.location)) &&
+            (filtersymptom(v.disease));
     });
 
     // Create a node set for quick membership testing.
@@ -87,13 +96,93 @@ function filterGraph(graph, degree, startdate, enddate, diseaselist, locationlis
     };
 }
 
+function intersect(_a, _b, sort) {
+    var ai = 0,
+        bi = 0,
+        a = _a,
+        b = _b,
+        intersection = [];
+
+    if (sort) {
+        a = _a.slice().sort();
+        b = _b.slice().sort();
+    }
+
+    while (ai < a.length && bi < b.length) {
+        if (a[ai] < b[bi]) {
+            ai += 1;
+        } else if (a[ai] > b[bi]) {
+            bi += 1;
+        } else {
+            intersection.push(a[ai]);
+            ai += 1;
+            bi += 1;
+        }
+    }
+
+    return intersection;
+}
+
+function intersectAll(l, sort) {
+    var intersection,
+        retval;
+
+    if (l.length === 0) {
+        retval = [];
+    } else if (l.length === 1) {
+        retval = l[0]
+    } else {
+        intersection = intersect(l[0], l[1], sort);
+        for (i = 2; i < l.length; i += 1) {
+            intersection = intersect(intersection, l[i]);
+        }
+
+        retval = intersection;
+    }
+
+    return retval;
+}
+
 function search(which, term) {
     var results,
-        set;
+        set,
+        partials,
+        s;
 
-    results = promed[which].filter(function (d) {
-        return d.toLowerCase().indexOf(term.toLowerCase()) !== -1;
-    });
+    if (which === "symptoms") {
+        term = term.split(/\s+/)
+            .map(function (s) {
+                return s.toLowerCase();
+            });
+
+        partials = [];
+        partials.length = term.length;
+        $.each(term, function (i, v) {
+            s = promed.symptoms.filter(function (d) {
+                return d.toLowerCase().indexOf(v) !== -1;
+            });
+
+            partials[i] = promed.diseases.filter(function (d) {
+                var retval = false;
+
+                $.each(promed.disease_symptoms[d], function (i, v) {
+                    if (s.indexOf(v.toLowerCase()) !== -1) {
+                        retval = true;
+                        return;
+                    }
+                });
+
+                return retval;
+            });
+        });
+
+        results = intersectAll(partials);
+    } else {
+        results = promed[which].filter(function (d) {
+            return d.toLowerCase().indexOf(term.toLowerCase()) !== -1;
+        });
+    }
+
     results = results.map(function (s) { return s.toLowerCase(); });
 
     set = promed["search" + which] = {};
@@ -112,7 +201,7 @@ function update() {
         start_time,
         end_time;
 
-    filtered = filterGraph(promed.graph, promed.degree, promed.startdate, promed.enddate, promed.searchdiseases, promed.searchlocations);
+    filtered = filterGraph(promed.graph, promed.degree, promed.startdate, promed.enddate, promed.searchdiseases, promed.searchlocations, promed.searchsymptoms);
 
     // Recompute the circle elements.
     nodes = d3.select("#nodes")
@@ -159,7 +248,8 @@ function update() {
             msg += "<b>Location: </b>" + d.location + "<br>";
             msg += "<b>Source Organization: </b>" + d.source_organization + "<br>";
             msg += "<b>Degree: </b>" + d.degree + "<br>";
-            msg += "<b>Promed ID: </b>" + d.promed_id;
+            msg += "<b>Promed ID: </b>" + d.promed_id + "<br>";
+            msg += "<b>Symptoms: </b>" + d.symptoms.join(", ");
 
             cfg = {
                 html: true,
@@ -243,10 +333,12 @@ function prepare(graph) {
         locationmap;
 
     // Make an index map for the nodes, as well as sets of diseases, locations,
-    // etc. found in the node attributes.
+    // and symptoms found in the node attributes.
     idxmap = {};
     diseasemap = {};
     locationmap = {};
+    symptommap = {};
+    promed.disease_symptoms = {};
 
     $.each(graph.nodes, function (i, v) {
         if (idxmap[v.promed_id]) {
@@ -258,12 +350,17 @@ function prepare(graph) {
         v.degree = 0;
 
         diseasemap[v.disease] = true;
+        promed.disease_symptoms[v.disease] = v.symptoms;
         locationmap[v.location] = true;
+        $.each(v.symptoms, function (i, v) {
+            symptommap[v] = true;
+        });
     });
 
     // Store global lists of the promed attributes.
     promed.diseases = Object.keys(diseasemap);
     promed.locations = Object.keys(locationmap);
+    promed.symptoms = Object.keys(symptommap);
 
     // Replace each target and source in the link list with a reference to a
     // node.
@@ -318,7 +415,6 @@ $(function () {
     // Initialize the degree spinner.
     spinnerUpdate = function (evt, ui) {
         var value = ui.value || $(this).spinner("value");
-        console.log(value);
 
         if (promed.graph) {
             update({
@@ -451,6 +547,9 @@ $(function () {
 
         d3.select("#location-search")
             .on("keyup", keyup("locations"));
+
+        d3.select("#symptom-search")
+            .on("keyup", keyup("symptoms"));
 
         update();
     });
