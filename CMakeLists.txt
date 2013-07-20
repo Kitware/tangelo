@@ -54,6 +54,10 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/examples/ner/ner.js
     ${CMAKE_SOURCE_DIR}/examples/ssci/ssci.js
     ${CMAKE_SOURCE_DIR}/examples/flickr/flickr.js
+    ${CMAKE_SOURCE_DIR}/examples/enron-titan/enron-titan.js
+    ${CMAKE_SOURCE_DIR}/examples/enron-spark/enron-spark.js
+    ${CMAKE_SOURCE_DIR}/examples/enron-shark/enron-shark.js
+    ${CMAKE_SOURCE_DIR}/examples/flickr-impala/flickr-impala.js
 )
 
 # These files should be uglified and concatenated.

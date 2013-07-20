@@ -1,38 +1,33 @@
-import impala
-import json
-import tangelo
+import datetime
 import itertools
+import pymongo
+import tangelo
+import sys
 
-def convert(value, type):
-  if type == "tinyint":
-    return int(value)
-  elif type == "int":
-    return int(value)
-  elif type == "double":
-    return float(value)
-  elif type == "string":
-    return value
-  elif type == "boolean":
-    return True if value == "true" else False
-  return None
+from hive_service import ThriftHive
+from hive_service.ttypes import HiveServerException
+from thrift import Thrift
+from thrift.transport import TSocket
+from thrift.transport import TTransport
+from thrift.protocol import TBinaryProtocol
 
-def convert_results(results, fields=False):
-  schema = results.schema.fieldSchemas
-  converted = []
-  for d in results.data:
-    parts = d.split("\t")
-    if fields:
-      row = {}
-      for i in range(len(parts)):
-        row[schema[i].name] = convert(parts[i], schema[i].type)
-    else:
-      row = []
-      for i in range(len(parts)):
-        row.append(convert(parts[i], schema[i].type))
-    converted.append(row)
-  return converted
+def init_shark(host, port, database):
+    try:
+        transport = TSocket.TSocket(host, port)
+        transport = TTransport.TBufferedTransport(transport)
+        protocol = TBinaryProtocol.TBinaryProtocol(transport)
 
-def run(database, table, start_time, end_time, center, degree, host="mongo", port="21000", fields="true"):
+        client = ThriftHive.Client(protocol)
+        transport.open()
+        client.execute('use %s' % (database))
+        
+        return client
+        
+    except Thrift.TException, tx:
+        raise Exception('Exception : %s' % (tx.message))
+
+
+def run(database, table, start_time, end_time, center, degree, host="localhost", port=10000, fields="true"):
         response = tangelo.empty_response()
 
         try:
@@ -41,8 +36,7 @@ def run(database, table, start_time, end_time, center, degree, host="mongo", por
           response["error"] = "argument 'degree' must be an integer"
           return response
   
-        client = impala.ImpalaBeeswaxClient(host + ':' + port)
-        client.connect()
+        client = init_shark(host, port, database)
 
         talkers = set([center])
 
@@ -53,13 +47,13 @@ def run(database, table, start_time, end_time, center, degree, host="mongo", por
 
         for i in range(degree):
           query = build_query(database, table, start_time, end_time, current_talkers)
-          qResults = client.execute(query)
           
-          results = convert_results(qResults, "true")
+          client.execute(query)
+          results = client.fetchAll()
           
-          current_talkers = list(itertools.chain(*map(lambda x: [x["emailto"], x["emailfrom"]], results)))
+          current_talkers = list(itertools.chain(*map(lambda x: [x.split("\t")[0], x.split("\t")[1]], results)))
           current_talkers = list(set(current_talkers))
-
+            
           talkers = talkers.union(current_talkers)
 
           for t in current_talkers:
@@ -68,16 +62,18 @@ def run(database, table, start_time, end_time, center, degree, host="mongo", por
 
           all_results.append(results)
 
+        
         talkers = list(talkers)
         talker_index = {name: index for (index, name) in enumerate(talkers)}
 
         all_results = itertools.chain(*all_results)
         
         edges = []
-        ident = 0
+        ident = 0;
         for result in all_results:
-            source = result["emailfrom"]
-            target = result["emailto"]
+            resultArray = result.split("\t")
+            source = resultArray[1]
+            target = resultArray[0]
             ident += 1
             
             rec = { "source": talker_index[source],
@@ -97,5 +93,5 @@ def build_query(database, table, start_time, end_time, talkers_list):
   
   talkers_string = '"'+'", "'.join(talkers_list)+'"'
 
-  query = 'select emailto, emailfrom from %s.%s where emaildate < "%s" and emaildate >= "%s" and emailfrom <> "" and emailto <> "" and (emailfrom in (%s) or emailto in (%s))' % (database, table, end_time, start_time, talkers_string, talkers_string)
+  query = 'select distinct emailto, emailfrom from %s where emaildate < "%s" and emaildate >= "%s" and emailfrom <> "" and emailto <> "" and (emailfrom in (%s) or emailto in (%s))' % (table, end_time, start_time, talkers_string, talkers_string)
   return query

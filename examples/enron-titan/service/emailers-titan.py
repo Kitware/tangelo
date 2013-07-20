@@ -62,29 +62,30 @@ def run(host, port, graph, start_time=None, days=1, center=None, degree=None):
     for i in range(degree):
        
         new_talkers = []
-        for day in dateList:
-          dayString = day.strftime('%m/%d/%Y')
           
-          for talker_email in current_talkers:
-          
+        for talker_email in current_talkers:
+        
             current_vertex = g.vertices.index.lookup(email=talker_email).next()
-            
-            adjacent = current_vertex.bothV(dayString)
-            if adjacent != None:
-                adjacent_talkers = list(set(itertools.chain(*map(lambda x: [x.email], adjacent))))
+          
+            for day in dateList:
+                dayString = day.strftime('%m/%d/%Y')
+              
+                adjacent = current_vertex.bothV(dayString)
                 
-                if '' in adjacent_talkers:
-                    adjacent_talkers.remove('')
-                
-                for this_talker in adjacent_talkers:
-                    newEdge = { "source": this_talker,
-                    "target": talker_email,
-                    "id": edgeId }
-                    edges.append(newEdge)
-                    edgeId += 1
-                
-                new_talkers.extend(adjacent_talkers)
-               
+                if adjacent != None:
+                    adjacent_talkers = list(set(itertools.chain(*map(lambda x: [x.email], adjacent))))
+                    
+                    if '' in adjacent_talkers:
+                        adjacent_talkers.remove('')
+                    
+                    for this_talker in adjacent_talkers:
+                        newEdge = { "source": this_talker,
+                        "target": talker_email,
+                        "id": edgeId }
+                        edges.append(newEdge)
+                        edgeId += 1
+                    
+                    new_talkers.extend(adjacent_talkers)
             
         current_talkers.extend(new_talkers)
         current_talkers = list(set(current_talkers))
