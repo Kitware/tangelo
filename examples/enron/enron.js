@@ -111,8 +111,8 @@ function updateGraph() {
             tau = 2 * Math.PI;
             angle = tau / newidx.length;
             $.each(newidx, function (i, v) {
-                graph.nodes[i].x = (width / 4) * Math.cos(i * angle) + (width / 2);
-                graph.nodes[i].y = (height / 4) * Math.sin(i * angle) + (height / 2);
+                graph.nodes[v].x = (width / 4) * Math.cos(i * angle) + (width / 2);
+                graph.nodes[v].y = (height / 4) * Math.sin(i * angle) + (height / 2);
             });
 
             transition_time = 1000;
