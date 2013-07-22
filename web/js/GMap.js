@@ -27,7 +27,7 @@
         // Be sure to call the draw method on drag and resize events.
         that = this;
         google.maps.event.addListener(this.map, "drag", function () { that.draw(); });
-        $(window).resize(function () { that.draw(); });
+        $(elem).resize(function () { google.maps.event.trigger(that.map, "resize"); });
 
         // Fake an empty configuration if the user did not send one in.
         this.cfg = cfg || {};
