@@ -177,9 +177,10 @@ function retrieveData(initial) {
                         // Add an SVG group whose contents will change or
                         // disappear based on the active colormap.
                         this.legend = d3.select(svg).append("g").node();
+                        this.draw();
                     },
 
-                    draw: function (proj, svg) {
+                    draw: function (svg, proj) {
                         var data,
                             days,
                             N,
@@ -192,7 +193,7 @@ function retrieveData(initial) {
                         // Process the data by adjoining pixel locations to each
                         // entry.
                         data = flickr.locationData.map(function (d) {
-                            d.pixelLocation = proj.fromLatLngToDivPixel(new google.maps.LatLng(d.location[1], d.location[0]));
+                            d.pixelLocation = proj.fromLatLngToContainerPixel(new google.maps.LatLng(d.location[1], d.location[0]));
                             return d;
                         });
 
@@ -220,11 +221,8 @@ function retrieveData(initial) {
                                 range,
                                 scale;
 
-                            if (!flickr.legend) {
-                                flickr.legend = d3.select(that.getSVG()).append("g").node();
-                            }
-
-                            // Determine which radio button is currently selected.
+                            // Determine which radio button is currently
+                            // selected.
                             which = $("input[name=colormap]:radio:checked").attr("id");
 
                             // Generate a colormap function to return, and place a color legend
@@ -234,10 +232,10 @@ function retrieveData(initial) {
                                     return flickr.monthColor(d.month);
                                 };
 
-                                $(flickr.legend).svgColorLegend({
+                                $(that.legend).svgColorLegend({
                                     cmap_func: flickr.monthColor,
-                                    xoffset: 60,
-                                    yoffset: 10,
+                                    xoffset: $(window).width() - 100,
+                                    yoffset: 50,
                                     categories: tangelo.monthNames(),
                                     height_padding: 5,
                                     width_padding: 7,
@@ -257,10 +255,10 @@ function retrieveData(initial) {
                                     return flickr.dayColor(d.day);
                                 };
 
-                                $(flickr.legend).svgColorLegend({
+                                $(that.legend).svgColorLegend({
                                     cmap_func: flickr.dayColor,
-                                    xoffset: 10,
-                                    yoffset: 10,
+                                    xoffset: $(window).width() - 100,
+                                    yoffset: 50,
                                     categories: tangelo.dayNames(),
                                     height_padding: 5,
                                     width_padding: 7,
@@ -271,7 +269,7 @@ function retrieveData(initial) {
 
                                 retval = colormap;
                             } else if (which === 'rb') {
-                                d3.select(legend).selectAll("*").remove();
+                                d3.select(that.legend).selectAll("*").remove();
 
                                 invert = document.getElementById("invert").checked;
                                 range = invert ? ['blue', 'red'] : ['red', 'blue'];
@@ -283,7 +281,7 @@ function retrieveData(initial) {
                                     return scale(i);
                                 };
                             } else {
-                                d3.select(legend).selectAll("*").remove();
+                                d3.select(that.legend).selectAll("*").remove();
                                 retval = "pink";
                             }
 
@@ -399,9 +397,6 @@ function retrieveData(initial) {
                             .duration(500)
                             .style("opacity", 0.0)
                             .remove();
-                    },
-
-                    destroy: function () {
                     }
                 };
 
@@ -414,9 +409,7 @@ function retrieveData(initial) {
                     mapTypeId: google.maps.MapTypeId.ROADMAP
                 };
                 div = d3.select("#map").node();
-                flickr.map = new tangelo.GMap(div, options, gmap_cfg);
-                flickr.map.draw();
-
+                flickr.map = new tangelo.GoogleMapSVG(div, options, gmap_cfg);
             }
         }
     });
