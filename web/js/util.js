@@ -89,4 +89,29 @@
             callback(json || {}, err);
         });
     };
+
+    // Returns a unique ID for use as, e.g., ids for dynamically generated html
+    // elements, etc.
+    tangelo.uniqueID = (function () {
+        var ids = {"": true};
+        var letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        return function (n) {
+            var id = "",
+                i;
+
+            n = n || 6;
+
+            while (id in ids) {
+                id = "";
+                for (i = 0; i < n; i += 1) {
+                    id += letters[Math.floor(Math.random() * 52)];
+                }
+            }
+
+            ids[id] = true;
+
+            return id;
+        };
+    }());
 }());
