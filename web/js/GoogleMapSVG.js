@@ -118,7 +118,7 @@
 
         // Call the user's draw method, if there is one.
         if (this.cfg.draw) {
-            this.cfg.draw.call(this, this.svg.node(), this.getProjection(), this.map);
+            this.cfg.draw.call(this, this.svg.node(), this.getProjection(), this.map.getZoom(), this.map);
         }
     };
 }());
