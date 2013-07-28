@@ -12,7 +12,7 @@
         return;
     }
 
-    tangelo.GoogleMapSVG = function (elem, mapoptions, cfg) {
+    tangelo.GoogleMapSVG = function (elem, mapoptions, cfg, cont) {
         var that,
             idle,
             sel;
@@ -53,9 +53,19 @@
 
         // Store the config for later use.
         this.cfg = cfg || {};
+
+        if (cont) {
+            google.maps.event.addListenerOnce(this.map, "idle", function () {
+                cont(that);
+            });
+        }
     };
 
     tangelo.GoogleMapSVG.prototype = new google.maps.OverlayView();
+
+    tangelo.GoogleMapSVG.prototype.getSVG = function () {
+        return this.svg.node();
+    };
 
     tangelo.GoogleMapSVG.prototype.onAdd = function () {
         // Put an SVG element in the mouse target overlay.
@@ -108,7 +118,7 @@
 
         // Call the user's draw method, if there is one.
         if (this.cfg.draw) {
-            this.cfg.draw.call(this, this.svg.node(), this.getProjection(), this.map);
+            this.cfg.draw.call(this, this.svg.node(), this.getProjection(), this.map.getZoom(), this.map);
         }
     };
 }());
