@@ -54,6 +54,8 @@
         // Store the config for later use.
         this.cfg = cfg || {};
 
+        // If a continuation function was passed, call it with the new object as
+        // soon as the map is actually ready.
         if (cont) {
             google.maps.event.addListenerOnce(this.map, "idle", function () {
                 cont(that);
@@ -61,12 +63,17 @@
         }
     };
 
+    // Enable the class to use Google Map overlays.
     tangelo.GoogleMapSVG.prototype = new google.maps.OverlayView();
 
+    // Function to return the SVG DOM node, for generic manipulation.
     tangelo.GoogleMapSVG.prototype.getSVG = function () {
         return this.svg.node();
     };
 
+    // This function is part of the overlay interface - it will be called when a
+    // new map element is added to the overlay (as in the constructor function
+    // above).
     tangelo.GoogleMapSVG.prototype.onAdd = function () {
         // Put an SVG element in the mouse target overlay.
         this.svg = d3.select(this.getPanes().overlayMouseTarget)
@@ -74,12 +81,15 @@
             .attr("width", this.size.width)
             .attr("height", this.size.height);
 
+        // If the user supplied an initialization function, call it now.
         if (this.cfg.initialize) {
-            this.cfg.initialize.call(this, this.svg.node(), this.getProjection(), this.map);
+            this.cfg.initialize.call(this, this.svg.node(), this.getProjection(), this.map.getZoom());
         }
 
     };
 
+    // This is called when the Google Map API decides to redraw the map, or when
+    // the GoogleMapSVG interface needs the map redrawn.
     tangelo.GoogleMapSVG.prototype.draw = function () {
         var mattrans,
             xtrans,
@@ -118,7 +128,7 @@
 
         // Call the user's draw method, if there is one.
         if (this.cfg.draw) {
-            this.cfg.draw.call(this, this.svg.node(), this.getProjection(), this.map.getZoom(), this.map);
+            this.cfg.draw.call(this, this.svg.node(), this.getProjection(), this.map.getZoom());
         }
     };
 }());
