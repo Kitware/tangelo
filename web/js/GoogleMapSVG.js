@@ -71,6 +71,10 @@
         return this.svg.node();
     };
 
+    tangelo.GoogleMapSVG.prototype.getMap = function () {
+        return this.map;
+    };
+
     // This function is part of the overlay interface - it will be called when a
     // new map element is added to the overlay (as in the constructor function
     // above).
