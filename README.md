@@ -9,7 +9,7 @@ your web *applications* (pure Javascript, HTML, and CSS) and web *services*
 (pure Python), bundled with some great tools to get you started. Mix and match
 from the following to create your own breed:
 
-* [Bootstrap](http://twitter.github.com/bootstrap/) to put your app's style on a solid
+* [Bootstrap](http://twitter.github.io/bootstrap/) to put your app's style on a solid
 footing.
 * [D3](http://d3js.org) for constructing all manner of dynamic and animated charts.
 * *Vega*, a brand new declarative language for defining visual interfaces.
@@ -18,16 +18,12 @@ data to your apps.
 * *tangelo.js*, a set of tools and interface elements that make it easy to create
 apps that put your data front and center.
 
-# Installation
+## Documentation
 
-Installation is simple -- just install a few dependencies, clone this repository,
-build the system, and run the `tangelo start` command. Then, point your
-browser to [http://localhost:8080](http://localhost:8080) to check things out.
+See our [documentation](http://kitware.github.io/tangelo/) for a getting started guide
+and API descriptions.
 
-See the [Installation](http://github.com/Kitware/tangelo/wiki/Installation) page on
-the wiki for detailed instructions.
-
-# System Architecture
+## System Architecture
 
 Tangelo applications are divided into two functional layers: the *frontend*
 and *backend*, with [Ajax](http://en.wikipedia.org/wiki/Ajax\_(programming\))
@@ -42,7 +38,7 @@ you can imagine.
 See the [Application Architecture](http://github.com/Kitware/tangelo/wiki/Architecture) page
 on the wiki for more information.
 
-# Get Involved
+## Get Involved
 
 Please join our [mailing list](http://public.kitware.com/cgi-bin/mailman/listinfo/tangelo-users)
 to ask questions about setting up and using Tangelo.
@@ -51,6 +47,6 @@ Fork our repository and do great things. At [Kitware](http://www.kitware.com),
 we've been contributing to open-source software for 15 years and counting, and
 want to make Tangelo as useful to as many as possible.
 
-# Acknowledgement
+## Acknowledgement
 
-Tangelo development is sponsored by the Air Force Research Laboratory and DARPA.
+Tangelo development is sponsored by the Air Force Research Laboratory and DARPA XDATA program.
