@@ -76,6 +76,12 @@ Tutorials
 
     building-an-app
 
+Other
+=====
+
+.. toctree::
+    coding-style-guide
+
 Indices and tables
 ==================
 
