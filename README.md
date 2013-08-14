@@ -35,8 +35,9 @@ also make Ajax calls to the Python *backend* modules to request various
 services, such as database access, server side processing, or anything else that
 you can imagine.
 
-See the [Application Architecture](http://github.com/Kitware/tangelo/wiki/Architecture) page
-on the wiki for more information.
+See the [Application
+Architecture](http://kitware.github.io/tangelo/architecture.html) page in the
+documentation for more information.
 
 ## Get Involved
 
