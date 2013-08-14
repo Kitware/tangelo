@@ -185,7 +185,11 @@ endforeach()
 # Set up options to create an unminified file.
 #
 # TODO(choudhury): if platform is windows, use "type" instead of "cat"
-set(concatenator cat)
+if(WIN32)
+    set(concatenator type)
+else()
+    set(concatenator cat)
+endif()
 set(output_operator ">")
 
 # Use UglifyJS to create a minified file, falling back on an unminified file if
