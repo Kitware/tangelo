@@ -245,6 +245,7 @@ if(${DEPLOY_DOCUMENTATION})
     set(DOCUMENTATION_STAMP ${CMAKE_BINARY_DIR}/documentation_stamp)
 
     set(DOCUMENTATION_SOURCES
+        ${CMAKE_SOURCE_DIR}/docs/architecture.rst
         ${CMAKE_SOURCE_DIR}/docs/basic-usage.rst
         ${CMAKE_SOURCE_DIR}/docs/building-an-app.rst
         ${CMAKE_SOURCE_DIR}/docs/coding-style-guide.rst

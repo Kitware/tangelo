@@ -81,6 +81,7 @@ Other
 
 .. toctree::
     coding-style-guide
+    architecture
 
 Indices and tables
 ==================
