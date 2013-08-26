@@ -25,7 +25,7 @@ class Server(object):
     # An HTML parser for use in the error_page handler.
     html = HTMLParser.HTMLParser()
 
-    def __init__(self, auth):
+    def __init__(self, auth, vtkweb_ports=None):
         # A boolean indicating whether to perform HTTP authentication or not.
         self.auth = auth
 
@@ -39,6 +39,18 @@ class Server(object):
 
         # A dict containing currently running streaming data sources.
         self.streams = {}
+
+        # A set containing available ports for running VTK Web processes on, and
+        # a dict mapping keys to such processes.
+        #
+        # TODO(choudhury): use a deque instead, so port numbers can be tried in
+        # order in case one of them goes wrong (like there's another program
+        # sitting on a port, etc.) (Be sure to count how many ports have been
+        # tried, in case all of them are bad ;) ).
+        self.vtkweb_ports = set(vtkweb_ports or [])
+        self.vtkweb_processes = {}
+
+        print self.vtkweb_ports
 
     @staticmethod
     def error_page(status, message, traceback, version):
@@ -204,6 +216,9 @@ class Server(object):
             # bytes from the system - ensure the random key is not already in
             # the table (even though it would be crazy to wind up with a
             # collision).
+            #
+            # TODO(choudhury): replace this with a call to generateNewKey().
+            # Move the comment above into the generateNewKey() function.
             key = md5.md5(os.urandom(100)).hexdigest()
             while key in self.streams:
                 key = md5.md5(os.urandom(100)).hexdigest()
@@ -501,11 +516,35 @@ class Server(object):
             # filename or program text, generate a new key, and return it (and
             # whatever other info is appropriate, like that returned by the GET
             # request).
-            return "vtkweb POST"
+
+            # Check for an available port.
+            if len(self.vtkweb_ports) > 0:
+                p = self.vtkweb_ports.pop()
+                key = generateNewKey(self.vtkweb_processes.keys())
+
+                self.vtkweb_processes[key] = {"port": p}
+
+                return json.dumps({"status": "complete", "key": key})
+            else:
+                return json.dumps({"status": "failed", "reason": "no available ports"})
         elif method == "DELETE":
             # TODO(choudhury): shut down a vtkweb process by key after a given
             # timeout.
-            return "vtkweb DELETE"
+
+            # Make sure there's a key.
+            if key is None:
+                return json.dumps({"status": "incomplete", "reason": "'key' argument is REQUIRED"})
+
+            # Check for the key in the process table.
+            if key not in self.vtkweb_processes:
+                return json.dumps({"status": "failed", "reason": "no such key in process table"})
+
+            # Reclaim the port number being used by the process, and remove it
+            # from the table.
+            self.vtkweb_ports.add(self.vtkweb_processes[key]["port"])
+            del self.vtkweb_processes[key]
+
+            return json.dumps({"status": "complete"})
         else:
            raise cherrypy.HTTPError(405, "Method not allowed")
 
@@ -525,7 +564,14 @@ def read_pid(pidfile):
 
     return pid
 
-def start():
+def generateNewKey(taken, randbytes=128):
+    key = md5.md5(os.urandom(randbytes)).hexdigest()
+    while key in taken:
+        key = md5.md5(os.urandom(randbytes)).hexdigest()
+
+    return key
+
+def start(vtkweb_ports=None):
     sys.stderr.write("starting tangelo...")
 
     # The presence of a pid file means that either this instance of Tangelo is
@@ -568,7 +614,7 @@ def start():
                             "error_page.default": Server.error_page})
 
     # Create an instance of the main handler object.
-    cherrypy.tree.mount(Server(do_auth), "/")
+    cherrypy.tree.mount(Server(do_auth, vtkweb_ports), "/")
 
     # Assume things are going to go well.
     retval = 0
@@ -698,7 +744,7 @@ def stop():
 def restart():
     stopval = stop()
     if stopval == 0:
-        return start()
+        return start(args.vtkweb_ports)
     else:
         return stopval
 
@@ -730,7 +776,7 @@ if __name__ == "__main__":
             # It will allow spaces around the punctuation, but reject too many
             # hyphens, and "blank" entries (i.e. two commas next to each other
             # etc.).
-            args.vtkweb_ports = list(itertools.chain.from_iterable(map(lambda y: range(y[0], y[1]) if len(y) == 2 else [y[0]], map(lambda x: map(int, x.split("-", 1)), args.vtkweb_ports.split(",")))))
+            args.vtkweb_ports = itertools.chain.from_iterable(map(lambda y: range(y[0], y[1]) if len(y) == 2 else [y[0]], map(lambda x: map(int, x.split("-", 1)), args.vtkweb_ports.split(","))))
         except ValueError:
             print >>sys.stderr, "error: could not parse VTK Web port range specification '%s'" % (args.vtkweb_ports)
             sys.exit(1)
@@ -738,8 +784,6 @@ if __name__ == "__main__":
         if args.vtkweb_ports == []:
             print >>sys.stderr, "error: VTK Web port specification '%s' produces no ports" % (args.vtkweb_ports)
             sys.exit(1)
-    else:
-        args.vtkweb_ports = []
 
     # Configured variables.
     cherry = "@CherryPy_EXECUTABLE@"
@@ -777,7 +821,7 @@ if __name__ == "__main__":
     # Dispatch on action argument.
     code = 1
     if action == "start":
-        code = start()
+        code = start(args.vtkweb_ports)
     elif action == "stop":
         if not daemonize:
             sys.stderr.write("error: stop action not supported on this platform\n")
