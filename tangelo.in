@@ -486,6 +486,28 @@ class Server(object):
 
         return result
 
+    @cherrypy.expose
+    def vtkweb(self, key=None, progfile=None, progtext=None, progargs="", timeout=0):
+        method = cherrypy.request.method
+
+        if method == "GET":
+            # TODO(choudhury): compute something about the process associated
+            # with the key.
+            return "vtkweb GET"
+        elif method == "POST":
+            # TODO(choudhury): launch a new vtkweb process, if possible (i.e. if
+            # there is an available port) using either the supplied program
+            # filename or program text, generate a new key, and return it (and
+            # whatever other info is appropriate, like that returned by the GET
+            # request).
+            return "vtkweb POST"
+        elif method == "DELETE":
+            # TODO(choudhury): shut down a vtkweb process by key after a given
+            # timeout.
+            return "vtkweb DELETE"
+        else:
+           raise cherrypy.HTTPError(405, "Method not allowed")
+
 def live_pid(pid):
     try:
         os.kill(pid, 0)
