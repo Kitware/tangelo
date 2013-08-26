@@ -7,6 +7,7 @@ import cherrypy.process.plugins
 import datetime
 import HTMLParser
 import imp
+import itertools
 import json
 import md5
 import os
@@ -708,6 +709,7 @@ if __name__ == "__main__":
     p.add_argument("-p", "--no-drop-privileges", action="store_true", help="disable privilege drop when started as superuser.")
     p.add_argument("--hostname", type=str, default=None, metavar="HOSTNAME", help="overrides configured hostname on which to run Tangelo")
     p.add_argument("--port", type=int, default=None, metavar="PORT", help="overrides configured port number on which to run Tangelo")
+    p.add_argument("--vtkweb-ports", type=str, default=None, metavar="PORT RANGE", help="specifies the port range to use for VTK Web processes")
     p.add_argument("--logdir", type=str, default=None, metavar="DIR", help="where to place the log file (rather than in the directory where this program is")
     p.add_argument("--piddir", type=str, default=None, metavar="DIR", help="where to place the PID file (rather than in the directory where this program is")
     p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
@@ -721,6 +723,23 @@ if __name__ == "__main__":
     port = args.port or @SERVER_PORT@
     logdir = args.logdir
     piddir = args.piddir
+
+    if args.vtkweb_ports is not None:
+        try:
+            # This parses expressions of the form "8081-8090,12000,13500-13600".
+            # It will allow spaces around the punctuation, but reject too many
+            # hyphens, and "blank" entries (i.e. two commas next to each other
+            # etc.).
+            args.vtkweb_ports = list(itertools.chain.from_iterable(map(lambda y: range(y[0], y[1]) if len(y) == 2 else [y[0]], map(lambda x: map(int, x.split("-", 1)), args.vtkweb_ports.split(",")))))
+        except ValueError:
+            print >>sys.stderr, "error: could not parse VTK Web port range specification '%s'" % (args.vtkweb_ports)
+            sys.exit(1)
+
+        if args.vtkweb_ports == []:
+            print >>sys.stderr, "error: VTK Web port specification '%s' produces no ports" % (args.vtkweb_ports)
+            sys.exit(1)
+    else:
+        args.vtkweb_ports = []
 
     # Configured variables.
     cherry = "@CherryPy_EXECUTABLE@"
