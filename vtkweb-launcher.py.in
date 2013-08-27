@@ -1,3 +1,5 @@
+#!${VTKPYTHON_EXECUTABLE}
+
 r"""
     This module is a VTK Web server application.
     The following command line illustrate how to use it::
