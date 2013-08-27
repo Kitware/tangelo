@@ -140,7 +140,7 @@ class Server(object):
         # Import the module.
         try:
             stamp = self.modules.get(module)
-            mtime = time.getmtime(module)
+            mtime = os.path.getmtime(module)
             if stamp is None or mtime > stamp["mtime"]:
                 service = imp.load_source("service", module)
                 self.modules[module] = {"module": service, "mtime": mtime}
