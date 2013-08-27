@@ -22,6 +22,8 @@ r"""
              server expect "vtk-secret" as secret key.
 """
 
+import imp
+
 # import to process args
 import sys
 import os
@@ -44,28 +46,36 @@ except ImportError:
 # Create custom File Opener class to handle clients requests
 # =============================================================================
 
-class VTKWebApp(vtkweb_wamp.ServerProtocol):
-    # Application configuration
-    view    = None
-    authKey = "vtkweb-secret"
+def VTKWebAppProtocol(args, usermod):
+    class VTKWebApp(vtkweb_wamp.ServerProtocol):
+        # Application configuration
+        view    = None
+        authKey = "vtkweb-secret"
 
-    def __init__(self, args):
-        self.args = args
+        def __init__(self):
+            # Because the ServerProtocol constructor directly calls
+            # initialize(), be sure to set these instance properties FIRST.
+            self.args = args
+            self.app = usermod
 
-    def initialize(self):
-        #global renderer, renderWindow, renderWindowInteractor, cone, mapper, actor
+            vtkweb_wamp.ServerProtocol.__init__(self)
 
-        # Bring used components
-        self.registerVtkWebProtocol(vtkweb_protocols.vtkWebMouseHandler())
-        self.registerVtkWebProtocol(vtkweb_protocols.vtkWebViewPort())
-        self.registerVtkWebProtocol(vtkweb_protocols.vtkWebViewPortImageDelivery())
-        self.registerVtkWebProtocol(vtkweb_protocols.vtkWebViewPortGeometryDelivery())
+        def initialize(self):
+            #global renderer, renderWindow, renderWindowInteractor, cone, mapper, actor
 
-        # Update authentication key to use
-        self.updateSecret(VTKWebApp.authKey)
+            # Bring used components
+            self.registerVtkWebProtocol(vtkweb_protocols.vtkWebMouseHandler())
+            self.registerVtkWebProtocol(vtkweb_protocols.vtkWebViewPort())
+            self.registerVtkWebProtocol(vtkweb_protocols.vtkWebViewPortImageDelivery())
+            self.registerVtkWebProtocol(vtkweb_protocols.vtkWebViewPortGeometryDelivery())
 
-        if "initialize" in usermod.__dict__:
-            usermod.initialize(self, VTKWebApp, self.args)
+            # Update authentication key to use
+            self.updateSecret(VTKWebApp.authKey)
+
+            if "initialize" in self.app.__dict__:
+                self.app.initialize(self, VTKWebApp, self.args)
+
+    return VTKWebApp
 
 # =============================================================================
 # Main: Parse args and start server
@@ -73,14 +83,19 @@ class VTKWebApp(vtkweb_wamp.ServerProtocol):
 
 if __name__ == "__main__":
     # Get the full path to the user's application file.
-    if len(sys.args) < 2:
+    if len(sys.argv) < 2:
+        print >>sys.stderr, "usage: vtkweb-launcher.py [tangelo-vtkweb-app] [arg1, arg2, arg3, ...]"
         sys.exit(1)
-    userfile = args[1]
+    userfile = sys.argv[1]
 
     # Import the user file as a module.
     try:
         usermod = imp.load_source("usermod", userfile)
+    except IOError:
+        print >>sys.stderr, "error: could not open file '%s'" % (userfile)
+        sys.exit(2)
     except ImportError:
+        print >>sys.stderr, "error: coult not import module '%s'" % (userfile)
         sys.exit(2)
 
     # Create argument parser
@@ -90,15 +105,15 @@ if __name__ == "__main__":
     web.add_arguments(parser)
 
     # Add local arguments, if any are specified in the user module.
-    try:
+    if "add_arguments" in usermod.__dict__:
         usermod.add_arguments(parser)
-    except AttributeError:
-        pass
 
     # Extract arguments (dropping the "usermodule" argument first).
-    args = parser.parse_args([sys.argv[0]] + [sys.argv[2:]])
+    del sys.argv[1]
+    args = parser.parse_args()
 
     # Configure our current application
+    VTKWebApp = VTKWebAppProtocol(args, usermod)
     VTKWebApp.authKey = args.authKey
 
     # Start server
