@@ -44,6 +44,34 @@ def set_webroot(r):
 def webroot():
     return _webroot
 
+def legal_path(path):
+    #orig = path
+    if os.path.isabs(path):
+        return (False, "absolute")
+
+    if path[0] != "~":
+        path = os.path.abspath(_webroot + os.path.sep + path)
+        if len(path) >= len(_webroot) and path[:len(_webroot)] == _webroot:
+            return (True, "web root")
+    else:
+        home = os.path.expanduser("~").split(os.path.sep)[:-1]
+        path = os.path.abspath(os.path.expanduser(path))
+        comp = path.split(os.path.sep)
+        if len(comp) >= len(home) + 2 and comp[:len(home)] == home and comp[len(home)+1] == "tangelo_html":
+            return (True, "home directory")
+
+    return (False, "illegal")
+
+def abspath(path):
+    if path[0] == "~":
+        comp = path.split(os.path.sep)
+        comp = [os.path.expanduser(comp[0])] + ["tangelo_html"] + comp[1:]
+        path = os.path.sep.join(comp)
+    else:
+        path = _webroot + os.path.sep + path
+
+    return os.path.abspath(path)
+
 def paths(runtimepaths):
     home = os.path.expanduser("~").split(os.path.sep)[:-1]
     root = webroot()

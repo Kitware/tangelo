@@ -503,30 +503,103 @@ class Server(object):
         return result
 
     @cherrypy.expose
-    def vtkweb(self, key=None, progfile=None, progtext=None, progargs="", timeout=0):
+    def vtkweb(self, *pargs, **kwargs):
+        key = kwargs.get("key", None)
+        progargs = kwargs.get("progargs", "")
+        timeout = kwargs.get("timeout", 0)
+
+        pargs = list(pargs)
+
         method = cherrypy.request.method
 
         if method == "GET":
-            # TODO(choudhury): compute something about the process associated
-            # with the key.
-            return "vtkweb GET"
+            # Verify required arguments.
+            if key is None:
+                return json.dumps({"status": "incomplete", "reason": "Missing parameter 'key'"})
+
+            # Check for the key in the process table.
+            if key not in self.vtkweb_processes:
+                return json.dumps({"status": "failed", "reason": "Requested key not in process table"})
+
+            # Retrieve the entry.
+            rec = self.vtkweb_processes[key]
+            response = {"status": "complete", "process": "running"}
+            returncode = rec["process"].poll()
+            if returncode is not None:
+                # Since the process has ended, reclaim its resources and delete
+                # the process object.
+                self.vtkweb_ports.add(rec["port"])
+                del self.vtkweb_processes[key]
+
+                # Fill out the report response.
+                response["process"] = "terminated"
+                response["returncode"] = returncode
+
+                stdout, stderr = rec["process"].communicate()
+                response["stdout"] = stdout
+                response["stderr"] = stderr
+
+            # Make a report to the user.
+            return json.dumps(response)
         elif method == "POST":
-            # TODO(choudhury): launch a new vtkweb process, if possible (i.e. if
-            # there is an available port) using either the supplied program
-            # filename or program text, generate a new key, and return it (and
-            # whatever other info is appropriate, like that returned by the GET
-            # request).
+            # Form the web path from the pargs components
+            progpath = os.path.sep.join(pargs)
+
+            # Verify that all required arguments are present.
+            if len(pargs) == 0:
+                return json.dumps({"status": "incomplete", "reason": "Missing program URL"})
+
+            # Check the user arguments.
+            userargs = progargs.split()
+            if "--port" in userargs:
+                return json.dumps({"status": "incomplete", "reason": "You may not specify --port in this interface"})
+
+            # Verify that the program path is legal.
+            if not tangelo.legal_path(progpath)[0]:
+                return json.dumps({"status": "incomplete", "reason": "Illegal program URL"})
+
+            # Obtain a filesystem path to the requested program.
+            progfile = tangelo.abspath(progpath)
 
             # Check for an available port.
-            if len(self.vtkweb_ports) > 0:
-                p = self.vtkweb_ports.pop()
-                key = generateNewKey(self.vtkweb_processes.keys())
+            if len(self.vtkweb_ports) == 0:
+                # Try to reclaim any dead processes.
+                #
+                # Collect a list of dead processes by key while reclaiming their
+                # port numbers.
+                good = False
+                delete = []
+                for k, v in self.vtkweb_processes:
+                    if v["process"].poll() is not None:
+                        good = True
+                        self.vtkweb_ports.add(v["port"])
+                        delete.push(k)
 
-                self.vtkweb_processes[key] = {"port": p}
+                # Delete the dead entries from the process table.
+                for d in delete:
+                    del self.vtkweb_processes[d]
 
-                return json.dumps({"status": "complete", "key": key})
-            else:
-                return json.dumps({"status": "failed", "reason": "no available ports"})
+                # If no process was dead, tell the user the bad news.
+                if not good:
+                    return json.dumps({"status": "failed", "reason": "no available ports"})
+
+            # Get a port and generate a unique key.
+            port = self.vtkweb_ports.pop()
+            key = generateNewKey(self.vtkweb_processes.keys())
+
+            # Launch the requested process.
+            try:
+                process = subprocess.Popen(["${VTKPYTHON_EXECUTABLE}", "${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/vtkweb-launcher.py", progfile, "--port", str(port)] + userargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            except OSError as e:
+                # On launch failure, replace the port number in the pool, and
+                # report the failure to the user.
+                self.vtkweb_ports.add(port)
+                return json.dumps({"status": "failed", "reason": e.message})
+
+            # Log the new process in the process table.
+            self.vtkweb_processes[key] = {"port": port, "process": process}
+
+            return json.dumps({"status": "complete", "key": key, "port": port})
         elif method == "DELETE":
             # TODO(choudhury): shut down a vtkweb process by key after a given
             # timeout.
@@ -539,9 +612,14 @@ class Server(object):
             if key not in self.vtkweb_processes:
                 return json.dumps({"status": "failed", "reason": "no such key in process table"})
 
+            # Terminate the process.
+            proc = self.vtkweb_processes[key]
+            proc["process"].terminate()
+            proc["process"].wait()
+
             # Reclaim the port number being used by the process, and remove it
             # from the table.
-            self.vtkweb_ports.add(self.vtkweb_processes[key]["port"])
+            self.vtkweb_ports.add(proc["port"])
             del self.vtkweb_processes[key]
 
             return json.dumps({"status": "complete"})
