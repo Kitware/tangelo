@@ -504,15 +504,26 @@ class Server(object):
 
     @cherrypy.expose
     def vtkweb(self, *pargs, **kwargs):
+        # TODO(choudhury): Implement a PUT method that expands the pool of
+        # usable port numbers.
+
+        tangelo.log(str(kwargs))
+
+        # Get keyword arguments.
         key = kwargs.get("key", None)
         progargs = kwargs.get("progargs", "")
         timeout = kwargs.get("timeout", 0)
 
+        # Convert the positional args to a list.
         pargs = list(pargs)
 
+        # Dispatch a RESTful action.
         method = cherrypy.request.method
-
         if method == "GET":
+            # TODO(choudhury): the bare GET action should be to show a table of
+            # information for all ports.  If the first positional argument is a
+            # key, then that key's info should be shown.
+            #
             # Verify required arguments.
             if key is None:
                 return json.dumps({"status": "incomplete", "reason": "Missing parameter 'key'"})
@@ -523,7 +534,7 @@ class Server(object):
 
             # Retrieve the entry.
             rec = self.vtkweb_processes[key]
-            response = {"status": "complete", "process": "running"}
+            response = {"status": "complete", "process": "running", "port": rec["port"]}
             returncode = rec["process"].poll()
             if returncode is not None:
                 # Since the process has ended, reclaim its resources and delete
@@ -569,6 +580,7 @@ class Server(object):
                 # port numbers.
                 good = False
                 delete = []
+                tangelo.log(str(self.vtkweb_processes))
                 for k, v in self.vtkweb_processes:
                     if v["process"].poll() is not None:
                         good = True
@@ -589,12 +601,21 @@ class Server(object):
 
             # Launch the requested process.
             try:
-                process = subprocess.Popen(["${VTKPYTHON_EXECUTABLE}", "${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/vtkweb-launcher.py", progfile, "--port", str(port)] + userargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                cmdline = ["${VTKPYTHON_EXECUTABLE}", "${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/vtkweb-launcher.py", progfile, "--port", str(port)] + userargs
+                tangelo.log(str(cmdline))
+                process = subprocess.Popen(cmdline, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             except OSError as e:
                 # On launch failure, replace the port number in the pool, and
                 # report the failure to the user.
                 self.vtkweb_ports.add(port)
                 return json.dumps({"status": "failed", "reason": e.message})
+
+            # Give the vtkweb process time to come up.
+            #
+            # TODO(choudhury): instead of just waiting one second, communicate
+            # with the VTK Web process, verifying that its initial output
+            # contains a signal phrase that means it's working (talk to Seb J.).
+            time.sleep(1)
 
             # Log the new process in the process table.
             self.vtkweb_processes[key] = {"port": port, "process": process}
