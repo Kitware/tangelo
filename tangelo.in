@@ -595,6 +595,10 @@ def start():
                 tangelo.log("no such group '%s' to drop privileges to" % (group), "ERROR")
                 sys.exit(1)
 
+            # Set the process home directory to be the dropped-down user's.
+            os.environ["HOME"] = os.path.expanduser("~%s" % (user))
+
+            # Perform the privilege drop.
             cherrypy.process.plugins.DropPrivileges(cherrypy.engine, uid=uid, gid=gid).subscribe()
 
             # Make sure the log file and pid file are owned by the same,
