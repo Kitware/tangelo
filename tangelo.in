@@ -137,7 +137,8 @@ class Server(object):
         # Extend the system path with the module's home path.
         sys.path.insert(0, modpath)
 
-        # Import the module.
+        # Import the module if not already imported previously (or if the module
+        # to import has been updated since the last import).
         try:
             stamp = self.modules.get(module)
             mtime = os.path.getmtime(module)
