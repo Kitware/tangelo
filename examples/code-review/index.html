@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.axis path {
+  stroke: none;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.hover {
+  fill: black;
+}
+
+.x.axis path {
+  display: none;
+}
+
+</style>
+<body>
+    <div>Topic name filter <input type="text" id="name-filter"></input> Owner filter <input type="text" id="author-filter"></input></div>
+<script src="/js/lib/d3.v3.js"></script>
+<script src="code-review.js"></script>
+</body>
