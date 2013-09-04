@@ -194,3 +194,19 @@ From the window that appears, go to the *Models* tab and download the
 clicking on each and pressing the download button. Similarly download the
 *words* dataset from the *Corpora* tab.  After closing the download window,
 ``quit()`` will exit the Python shell.
+
+Testing
+=======
+
+First, install Selenium and the Python Imaging Library with
+
+    pip install selenium PIL
+
+Next, install the Chrome Selenium driver for your platform by
+`downloading the binary <https://code.google.com/p/chromedriver/downloads/list>`_
+and copying it to a directory in your system path, e.g. on Mac/Linux:
+
+    mv /path/to/chromedriver /usr/local/bin/
+
+In order to test Tangelo, build your project by running ``make`` or ``ninja``,
+then execute ``ctest`` in the Tangelo build directory.

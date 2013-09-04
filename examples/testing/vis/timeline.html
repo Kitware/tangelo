@@ -1,0 +1,38 @@
+<head>
+    <title>timeline</title>
+    <style>
+    html, body {
+        height: 100%;
+    }
+    </style>
+    <link href="/css/jquery-ui-1.9.1.css" rel=stylesheet>
+    <link href="/css/tangelo.css" rel=stylesheet type=text/css>
+</head>
+<body>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+    <script src="/js/lib/d3.v3.js"></script>
+    <script src="/js/lib/topojson.js"></script>
+    <script src="/js/lib/vega-1.3.2.js"></script>
+    <script src="/js/lib/jquery-1.8.2.js"></script>
+    <script src="/js/lib/jquery-ui-1.9.1.js"></script>
+    <script src="/js/lib/dragslider.js"></script>
+    <script src="/js/tangelo.js"></script>
+<script>
+var data = [
+	{date: new Date('1-1-2013'), y1: 4, y2: 10},
+	{date: new Date('2-1-2013'), y1: 5, y2: 9},
+	{date: new Date('3-1-2013'), y1: 6, y2: 8},
+	{date: new Date('4-1-2013'), y1: 7, y2: 7},
+	{date: new Date('5-1-2013'), y1: 8, y2: 6},
+	{date: new Date('6-1-2013'), y1: 9, y2: 5},
+	{date: new Date('7-1-2013'), y1: 10, y2: 4}
+];
+
+var vis = tangelo.vis.timeline({
+	data: data,
+	el: "body",
+	date: {field: "date"},
+	y: [{field: "y1"}, {field: "y2"}]
+});
+</script>
+</body>

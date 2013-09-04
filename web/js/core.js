@@ -1,14 +1,57 @@
-/*global $ */
+/*jslint browser: true, unparam: true */
 
 // Export a global module.
 var tangelo = {};
 
-(function () {
+(function ($) {
     "use strict";
 
     // Tangelo version number.
     tangelo.version = function () {
         return "0.2.0";
+    };
+
+    tangelo.identity = function (d) { return d; };
+
+    tangelo.isNumber = function (value) {
+        return typeof value === 'number';
+    };
+
+    tangelo.isBoolean = function (value) {
+        return typeof value === 'boolean';
+    };
+
+    tangelo.isArray = function (value) {
+        return Object.prototype.toString.call(value) === '[object Array]';
+    };
+
+    tangelo.isObject = function (value) {
+        return Object.prototype.toString.call(value) === '[object Object]';
+    };
+
+    tangelo.isString = function (value) {
+        return Object.prototype.toString.call(value) === '[object String]';
+    };
+
+    tangelo.accessor = function (spec, defaultValue) {
+        var parts;
+        if (!spec) {
+            return function () { return defaultValue; };
+        }
+        if (spec.value) {
+            return function () { return spec.value; };
+        }
+        if (spec.field) {
+            parts = spec.field.split(".");
+            return function (d) {
+                var i;
+                for (i = 0; i < parts.length; i += 1) {
+                    d = d[parts[i]];
+                }
+                return d;
+            };
+        }
+        window.console.log("error: unknown accessor spec");
     };
 
     function hasNaN(values) {
@@ -23,6 +66,20 @@ var tangelo = {};
 
         return hasnan;
     }
+
+    tangelo.appendFunction = function(f1, f2) {
+        var that = this;
+        if (!f1) {
+            return f2;
+        }
+        if (!f2) {
+            return f1;
+        }
+        return function () {
+            f1.apply(that, arguments);
+            f2.apply(that, arguments);
+        };
+    };
 
     // Check for the required version number.
     tangelo.requireCompatibleVersion = function (reqvstr) {
@@ -75,4 +132,4 @@ var tangelo = {};
         // Instantiate a control panel if there is an element marked as such.
         $("[data-tangelo-type=control-panel]").controlPanel();
     });
-}());
+}(window.$));

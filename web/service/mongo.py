@@ -10,7 +10,7 @@ def decode(s, argname, resp):
         resp['error'] = e.message + " (argument '%s' was '%s')" % (argname, s)
         raise
 
-def run(server, db, coll, method='find', query=None, limit=1000, fields=None, sort=None, fill=None):
+def run(server, db, coll, method='find', query=None, limit=1000, skip=0, fields=None, sort=None, fill=None):
     # Create an empty response object.
     response = tangelo.empty_response()
 
@@ -38,6 +38,13 @@ def run(server, db, coll, method='find', query=None, limit=1000, fields=None, so
         response['error'] = "Argument 'limit' ('%s') could not be converted to int." % (limit)
         return bson.json_util.dumps(response)
 
+    # Cast the skip value to an int.
+    try:
+        skip = int(skip)
+    except ValueError:
+        response['error'] = "Argument 'skip' ('%s') could not be converted to int." % (skip)
+        return bson.json_util.dumps(response)
+
     # Create database connection.
     try:
         c = pymongo.Connection(server)[db][coll]
@@ -48,7 +55,7 @@ def run(server, db, coll, method='find', query=None, limit=1000, fields=None, so
     # Perform the requested action.
     if method == 'find':
         # Do a find operation with the passed arguments.
-        it = c.find(spec=query, fields=fields, limit=limit, sort=sort)
+        it = c.find(spec=query, fields=fields, skip=skip, limit=limit, sort=sort)
 
         # Create a list of the results.
         if fill:
@@ -67,4 +74,5 @@ def run(server, db, coll, method='find', query=None, limit=1000, fields=None, so
         raise RuntimeError("illegal method '%s' in module 'mongo'")
 
     # Return the response object.
+    tangelo.log(str(response))
     return bson.json_util.dumps(response)

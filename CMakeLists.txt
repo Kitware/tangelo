@@ -62,10 +62,23 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/web/js/controlPanel.js
     ${CMAKE_SOURCE_DIR}/web/js/date.js
     ${CMAKE_SOURCE_DIR}/web/js/GoogleMapSVG.js
-    ${CMAKE_SOURCE_DIR}/web/js/navbar.js
-    ${CMAKE_SOURCE_DIR}/web/js/util.js
-    ${CMAKE_SOURCE_DIR}/web/js/svgColorLegend.js
     ${CMAKE_SOURCE_DIR}/web/js/landingPage.js
+    ${CMAKE_SOURCE_DIR}/web/js/navbar.js
+    ${CMAKE_SOURCE_DIR}/web/js/resolve.js
+    ${CMAKE_SOURCE_DIR}/web/js/svgColorLegend.js
+    ${CMAKE_SOURCE_DIR}/web/js/util.js
+    ${CMAKE_SOURCE_DIR}/web/js/ui/_package.js
+    ${CMAKE_SOURCE_DIR}/web/js/ui/html.js
+    ${CMAKE_SOURCE_DIR}/web/js/ui/rangeslider.js
+    ${CMAKE_SOURCE_DIR}/web/js/ui/select.js
+    ${CMAKE_SOURCE_DIR}/web/js/ui/split.js
+    ${CMAKE_SOURCE_DIR}/web/js/vis/_package.js
+    ${CMAKE_SOURCE_DIR}/web/js/vis/geodots.js
+    ${CMAKE_SOURCE_DIR}/web/js/vis/geonodelink.js
+    ${CMAKE_SOURCE_DIR}/web/js/vis/mapdots.js
+    ${CMAKE_SOURCE_DIR}/web/js/vis/nodelink.js
+    ${CMAKE_SOURCE_DIR}/web/js/vis/timebar.js
+    ${CMAKE_SOURCE_DIR}/web/js/vis/timeline.js
 )
 
 # These files should be copied to the deployment directory.
@@ -75,6 +88,10 @@ set(SOURCES
     web/img/glyphicons-halflings.png
     web/img/tangelo.ico
     web/img/Tangelo_Mark_256.png
+    web/data/world-110m.json
+    web/vega/geonodelink.json
+    web/vega/timeline.json
+    web/vega/timebar.json
     web/js/loader/cdn-fallback-bootstrap.js
     web/js/loader/cdn-fallback-bootstrap.min.js
     web/js/loader/cdn-fallback-d3.js
@@ -91,11 +108,14 @@ set(SOURCES
     web/js/lib/bootstrap-2.3.0.min.js
     web/js/lib/d3.v3.js
     web/js/lib/d3.v3.min.js
+    web/js/lib/dragslider.js
     web/js/lib/jquery-1.8.2.js
     web/js/lib/jquery-1.8.2.min.js
     web/js/lib/jquery-ui-1.9.1.js
     web/js/lib/md5.js
+    web/js/lib/topojson.js
     web/js/lib/vega-1.0.0.js
+    web/js/lib/vega-1.3.2.js
     web/css/bootstrap-readable.css
     web/css/jquery-ui-1.9.1.css
     web/css/tangelo.css
@@ -312,6 +332,16 @@ if(NOT "${WIN32}")
     add_test(static-content ${tester}
         "curl --silent -I ${site} | head -n 1"
         "HTTP/1.1 200 OK\r"
+    )
+
+    add_test(geodots ${tester}
+        "python ${CMAKE_SOURCE_DIR}/imagetest.py --name=geodots --url=http://${site}/app/testing/vis/geodots.html --baseline-url=http://${site}/app/testing/vis/geodots.png"
+        "success"
+    )
+
+    add_test(resolve ${tester}
+        "python ${CMAKE_SOURCE_DIR}/examples/testing/resolve/test.py"
+        "success"
     )
 
     if(DEPLOY_TEST_SERVICES)
