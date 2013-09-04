@@ -32,6 +32,9 @@ class Server(object):
         # configs to execute authentication.
         self.app = None
 
+        # A dict containing information about imported modules.
+        self.modules = {}
+
         # A dict containing information about currently installed authentication
         # handlers.
         self.security = {}
@@ -134,9 +137,16 @@ class Server(object):
         # Extend the system path with the module's home path.
         sys.path.insert(0, modpath)
 
-        # Import the module.
+        # Import the module if not already imported previously (or if the module
+        # to import has been updated since the last import).
         try:
-            service = imp.load_source("service", module)
+            stamp = self.modules.get(module)
+            mtime = os.path.getmtime(module)
+            if stamp is None or mtime > stamp["mtime"]:
+                service = imp.load_source("service", module)
+                self.modules[module] = {"module": service, "mtime": mtime}
+            else:
+                service = stamp["module"]
         except:
             bt = traceback.format_exc()
 
