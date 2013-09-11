@@ -1,1 +1,1 @@
-vagrant ssh -c "/vagrant/build/deploy/tangelo $1"
+vagrant ssh -c "//vagrant/build/deploy/tangelo $1"

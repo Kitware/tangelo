@@ -5,7 +5,7 @@ apt-get update
 apt-get install -y build-essential cmake-curses-gui git python-pip python-dev python-sphinx
 
 # Install python packages
-pip install cherrypy pymongo sphinx_bootstrap_theme
+pip install cherrypy pymongo
 
 # Make the Tangelo build dir
 cd /vagrant
@@ -16,7 +16,6 @@ cd build
 # Configure Tangelo
 sudo -u vagrant cmake \
    -DSERVER_HOSTNAME:STRING=0.0.0.0 \
-   -DDEPLOY_EXAMPLES:BOOL=ON \
    -DDEPLOY_DOCUMENTATION:BOOL=ON \
    ..
 
