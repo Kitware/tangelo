@@ -45,7 +45,7 @@ Quick Start
 1. Install VirtualBox_.
 2. Install Vagrant_.
 3. Install Git_.
-4. Open a shell or (Git Bash shell) and run the following: ::
+4. Open a shell (or Git Bash shell) and run the following: ::
 
     git clone https://github.com/Kitware/tangelo.git
     cd tangelo
