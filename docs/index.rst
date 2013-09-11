@@ -39,6 +39,24 @@ information.  Happy hacking!
 .. _GitHub repository: https://github.com/Kitware/tangelo
 .. _Hadoop: http://hadoop.apache.org/
 
+Quick Start
+===========
+
+1. Install VirtualBox_.
+2. Install Vagrant_.
+3. Install Git_.
+4. Open a shell or (Git Bash shell) and run the following: ::
+
+    git clone https://github.com/Kitware/tangelo.git
+    cd tangelo
+    vagrant up
+
+5. Visit your Tangelo instance at http://localhost:9000.
+
+.. _VirtualBox: http://www.virtualbox.org
+.. _Vagrant: http://www.vagrantup.com
+.. _Git: http://gitscm.com
+
 Using Tangelo
 =============
 
@@ -89,4 +107,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

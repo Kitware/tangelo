@@ -1,3 +1,5 @@
 *.swp
 *.pyc
+.vagrant
+build
 CMakeLists.txt.user
