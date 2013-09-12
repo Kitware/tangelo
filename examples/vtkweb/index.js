@@ -11,7 +11,7 @@ function stop() {
         connection.session = null;
     }
 
-    req = d3.xhr("/vtkweb?key=" + key);
+    req = d3.xhr("/vtkweb/" + key);
     req.send("DELETE", function (e, resp) {
         if (resp.status !== "complete") {
             console.log("error: could not shut down vtkweb process");

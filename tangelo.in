@@ -585,7 +585,6 @@ class Server(object):
         # usable port numbers.
 
         # Get keyword arguments.
-        key = kwargs.get("key", None)
         progargs = kwargs.get("progargs", "")
         timeout = kwargs.get("timeout", 0)
 
@@ -600,8 +599,11 @@ class Server(object):
             # key, then that key's info should be shown.
             #
             # Verify required arguments.
-            if key is None:
+            if len(pargs) == 0:
                 return json.dumps({"status": "incomplete", "reason": "Missing parameter 'key'"})
+
+            # Extract the key argument.
+            key = pargs[0]
 
             # Check for the key in the process table.
             if key not in self.vtkweb_processes:
@@ -628,6 +630,9 @@ class Server(object):
             # Make a report to the user.
             return json.dumps(response)
         elif method == "POST":
+            if len(pargs) == 0:
+                return json.dumps({"status": "incomplete", "reason": "missing path to vtkweb script"})
+
             # Form the web path from the pargs components
             progpath = os.path.sep.join(pargs)
 
@@ -709,9 +714,11 @@ class Server(object):
             # timeout.
 
             # Make sure there's a key.
-            if key is None:
+            if len(pargs) == 0:
                 return json.dumps({"status": "incomplete", "reason": "'key' argument is REQUIRED"})
 
+            # Extract the key.
+            key = pargs[0]
             tangelo.log("shutting down %s" % (key))
 
             # Check for the key in the process table.
