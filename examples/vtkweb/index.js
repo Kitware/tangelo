@@ -19,10 +19,11 @@ function stop() {
     });
 }
 
+window.onunload = window.onbeforeunload = stop;
+
 window.onload = function () {
     proc = d3.json("/vtkweb/app/vtkweb/vtkweb_tree.py?progargs=" + encodeURIComponent("--tree /home/roni/work/ArborWebApps/vtk-phylo-app/data/anolis.phy --table /home/roni/work/ArborWebApps/vtk-phylo-app/data/anolisDataAppended.csv"));
     proc.post(function (e, resp) {
-        //resp = JSON.parse(resp.response);
         console.log(resp);
         if (resp.status !== "complete") {
             console.log("oops :(");
@@ -32,8 +33,7 @@ window.onload = function () {
         }
 
         var connection = {
-            sessionURL: "ws://" + window.location.hostname + ":" + resp.port + "/ws",
-            //sessionURL: "ws://" + "localhost" + ":" + resp.port + "/ws",
+            sessionURL: resp.url,
             name: "WebTree",
             description: "Simple VTK Web demo application",
             application: "tree"

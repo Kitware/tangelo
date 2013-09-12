@@ -17,13 +17,17 @@ import signal
 import subprocess
 import sys
 import tangelo
+import threading
 import traceback
 import time
 import types
 from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
-from ws4py.websocket import EchoWebSocket
+from ws4py.websocket import WebSocket
+from autobahn.websocket import connectWS
+from autobahn.wamp import WampClientProtocol, WampClientFactory
+from twisted.internet import reactor
 
-class WSHandler(object):
+class WebSocketHandler(object):
     @cherrypy.expose
     def index(self):
         return "OK"
@@ -31,6 +35,62 @@ class WSHandler(object):
     @cherrypy.expose
     def ws(self):
         pass
+
+def VTKWebSocketAB(url, relay):
+    class RegisteringWebSocketClientFactory(WampClientFactory):
+        def register(self, client):
+            self.client = client
+
+    class Protocol(WampClientProtocol):
+        def onOpen(self):
+            tangelo.log("Protocol.open")
+            self.factory.register(self)
+
+        def onMessage(self, msg, is_binary):
+            #tangelo.log("got message: %s" % (msg))
+            relay.send(msg)
+
+    class Connection(threading.Thread):
+        def run(self):
+            self.factory = RegisteringWebSocketClientFactory(url)
+            self.factory.protocol = Protocol
+            reactor.callFromThread(connectWS, self.factory)
+
+        def send(self, data):
+            #tangelo.log("sending msg out")
+            reactor.callFromThread(Protocol.sendMessage, self.factory.client, data)
+
+    c = Connection()
+    c.start()
+    return c
+
+def WebSocketRelay(hostname, port, key):
+    class Class(WebSocket):
+        def __init__(self, *pargs, **kwargs):
+            WebSocket.__init__(self, *pargs, **kwargs)
+
+            url = "ws://%s:%d/ws" % (hostname, port)
+
+            tangelo.log("websocket created at %s:%d/%s (proxy to %s)" % (hostname, port, key, url))
+
+            #tangelo.log("relay for %s:%d/%s" % (hostname, port, key))
+            #tangelo.log("(client url: %s)" % (url))
+
+            tangelo.log("creating client socket")
+            self.client = VTKWebSocketAB(url, self)
+            tangelo.log("created client socket")
+
+        def closed(self, code, reason):
+            # TODO(choudhury): figure out if recovery, etc. is possible if the
+            # socket is closed for some reason.
+            tangelo.log("websocket at %s:%d/%s closed with code %d (%s)" % (hostname, port, key, code, reason))
+            pass
+
+        def received_message(self, msg):
+            tangelo.log("proxy socket got message")
+            self.client.send(msg.data)
+
+    return Class
 
 class Server(object):
     # An HTML parser for use in the error_page handler.
@@ -61,7 +121,13 @@ class Server(object):
         self.vtkweb_ports = set(vtkweb_ports or [])
         self.vtkweb_processes = {}
 
-        print self.vtkweb_ports
+        tangelo.log("port pool for vtkweb processes: %s" % (str(list(self.vtkweb_ports))))
+
+    def cleanup(self):
+        # Terminate the VTK web processes.
+        for p in self.vtkweb_processes.values():
+            p["process"].terminate()
+            p["process"].wait()
 
     @staticmethod
     def error_page(status, message, traceback, version):
@@ -342,11 +408,6 @@ class Server(object):
         return None
 
     @cherrypy.expose
-    def newws(self, name):
-        ret = cherrypy.tree.mount(WSHandler(), "/ws/%s" % (name), config={"/ws": {"tools.websocket.on": True, "tools.websocket.handler_cls": EchoWebSocket}})
-        return "OK"
-
-    @cherrypy.expose
     def default(self, *path, **args):
         if self.app is None:
             self.app = cherrypy.tree.apps.values()[0]
@@ -523,8 +584,6 @@ class Server(object):
         # TODO(choudhury): Implement a PUT method that expands the pool of
         # usable port numbers.
 
-        tangelo.log(str(kwargs))
-
         # Get keyword arguments.
         key = kwargs.get("key", None)
         progargs = kwargs.get("progargs", "")
@@ -633,10 +692,18 @@ class Server(object):
             # contains a signal phrase that means it's working (talk to Seb J.).
             time.sleep(1)
 
+            # Create a websocket handler path dedicated to this process.
+            host = cherrypy.server.socket_host
+            if host == "0.0.0.0":
+                host = "localhost"
+            wshandler = WebSocketRelay(host, port, key)
+            cherrypy.tree.mount(WebSocketHandler(), "/%s" % (key), config={"/ws": {"tools.websocket.on": True, "tools.websocket.handler_cls": wshandler, "tools.websocket.protocols": ["wamp"]}})
+
             # Log the new process in the process table.
             self.vtkweb_processes[key] = {"port": port, "process": process}
 
-            return json.dumps({"status": "complete", "key": key, "port": port})
+            url = "ws://%s:%d/%s/ws" % (host, cherrypy.server.socket_port, key)
+            return json.dumps({"status": "complete", "key": key, "url": url})
         elif method == "DELETE":
             # TODO(choudhury): shut down a vtkweb process by key after a given
             # timeout.
@@ -645,17 +712,23 @@ class Server(object):
             if key is None:
                 return json.dumps({"status": "incomplete", "reason": "'key' argument is REQUIRED"})
 
+            tangelo.log("shutting down %s" % (key))
+
             # Check for the key in the process table.
             if key not in self.vtkweb_processes:
+                tangelo.log("key not found")
                 return json.dumps({"status": "failed", "reason": "no such key in process table"})
 
             # Terminate the process.
+            tangelo.log("terminating process")
             proc = self.vtkweb_processes[key]
             proc["process"].terminate()
             proc["process"].wait()
+            tangelo.log("terminated")
 
             # Reclaim the port number being used by the process, and remove it
             # from the table.
+            tangelo.log("reclaiming port %d" % (proc["port"]))
             self.vtkweb_ports.add(proc["port"])
             del self.vtkweb_processes[key]
 
@@ -686,7 +759,15 @@ def generateNewKey(taken, randbytes=128):
 
     return key
 
+def sighandler(signum, frame):
+    cpserver.cleanup()
+    reactor.stop()
+    cherrypy.engine.stop()
+    cherrypy.engine.exit()
+
 def start(vtkweb_ports=None):
+    global cpserver
+
     sys.stderr.write("starting tangelo...")
 
     # The presence of a pid file means that either this instance of Tangelo is
@@ -732,7 +813,8 @@ def start(vtkweb_ports=None):
     cherrypy.tools.websocket = WebSocketTool()
 
     # Create an instance of the main handler object.
-    cherrypy.tree.mount(Server(do_auth, vtkweb_ports), "/")
+    cpserver = Server(do_auth, vtkweb_ports)
+    cherrypy.tree.mount(cpserver, "/")
 
     # Assume things are going to go well.
     retval = 0
@@ -796,8 +878,6 @@ def start(vtkweb_ports=None):
             # Return value of 0 means this branch is the child - start the
             # process.
             cherrypy.process.plugins.PIDFile(cherrypy.engine, pidfile).subscribe()
-            cherrypy.engine.start()
-            cherrypy.engine.block()
         else:
             # This branch is the parent - poll the log file and print a message
             # on stdout.
@@ -820,9 +900,16 @@ def start(vtkweb_ports=None):
                         done = True
                     elif "Serving on" in line:
                         location = line.split("Serving on")[1].strip()
-    else:
-        cherrypy.engine.start()
-        cherrypy.engine.block()
+            sys.exit(0)
+
+    for sig in [signal.SIGINT, signal.SIGTERM, signal.SIGQUIT]:
+        signal.signal(sig, sighandler)
+    cherrypy.engine.start()
+
+    # Start the Twisted reactor in the main thread (it will block but the
+    # CherryPy engine has already started in a non-blocking manner).
+    reactor.run(installSignalHandlers=False)
+    cherrypy.engine.block()
 
     return retval
 
@@ -838,12 +925,12 @@ def stop():
             sys.stderr.write("failed (tangelo.pid does not contain a valid process id)\n")
             return 1
 
-        # Attempt to kill the process, if it's still alive.
+        # Attempt to terminate the process, if it's still alive.
         try:
             if live_pid(pid):
-                os.kill(pid, signal.SIGKILL)
+                os.kill(pid, signal.SIGTERM)
         except OSError:
-            sys.stderr.write("failed (could not kill process %d)\n" % (pid))
+            sys.stderr.write("failed (could not terminate process %d)\n" % (pid))
             retval = 1
 
         # Attempt to remove the pidfile.
