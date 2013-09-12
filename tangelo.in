@@ -43,11 +43,9 @@ def VTKWebSocketAB(url, relay):
 
     class Protocol(WampClientProtocol):
         def onOpen(self):
-            tangelo.log("Protocol.open")
             self.factory.register(self)
 
         def onMessage(self, msg, is_binary):
-            #tangelo.log("got message: %s" % (msg))
             relay.send(msg)
 
     class Connection(threading.Thread):
@@ -57,7 +55,6 @@ def VTKWebSocketAB(url, relay):
             reactor.callFromThread(connectWS, self.factory)
 
         def send(self, data):
-            #tangelo.log("sending msg out")
             reactor.callFromThread(Protocol.sendMessage, self.factory.client, data)
 
     c = Connection()
@@ -73,12 +70,7 @@ def WebSocketRelay(hostname, port, key):
 
             tangelo.log("websocket created at %s:%d/%s (proxy to %s)" % (hostname, port, key, url))
 
-            #tangelo.log("relay for %s:%d/%s" % (hostname, port, key))
-            #tangelo.log("(client url: %s)" % (url))
-
-            tangelo.log("creating client socket")
             self.client = VTKWebSocketAB(url, self)
-            tangelo.log("created client socket")
 
         def closed(self, code, reason):
             # TODO(choudhury): figure out if recovery, etc. is possible if the
@@ -87,7 +79,6 @@ def WebSocketRelay(hostname, port, key):
             pass
 
         def received_message(self, msg):
-            tangelo.log("proxy socket got message")
             self.client.send(msg.data)
 
     return Class
