@@ -1,6 +1,6 @@
 import vtk
 
-def initialize(self, VTKWebApp):
+def initialize(self, VTKWebApp, args):
     if not VTKWebApp.view:
         # VTK specific code
         renderer = vtk.vtkRenderer()
