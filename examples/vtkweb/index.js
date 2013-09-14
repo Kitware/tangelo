@@ -54,7 +54,7 @@ function startProcess(pathUrl, name) {
 
         // Perform the vtkweb connection.
         connection = {
-            sessionURL: "ws://" + window.location.host + "/" + resp.key + "/ws",
+            sessionURL: resp.url,
             name: name,
             description: "VTKWeb demo: " + name,
             application: name
