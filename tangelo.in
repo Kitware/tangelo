@@ -694,8 +694,7 @@ class Server(object):
             # Log the new process in the process table.
             self.vtkweb_processes[key] = {"port": port, "process": process}
 
-            url = "ws://%s:%d/%s/ws" % (host, cherrypy.server.socket_port, key)
-            return json.dumps({"status": "complete", "key": key, "url": url})
+            return json.dumps({"status": "complete", "key": key})
         elif method == "DELETE":
             # TODO(choudhury): shut down a vtkweb process by key after a given
             # timeout.
