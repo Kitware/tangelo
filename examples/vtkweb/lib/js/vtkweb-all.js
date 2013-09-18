@@ -1,5 +1,5 @@
-/*! ParaViewWeb - v2.0 - 2013-08-05
-* http://pvw.kitware.com/
+/*! vtkWeb/ParaViewWeb - v2.0 - 2013-09-18
+* http://www.kitware.com/
 * Copyright (c) 2013 Kitware; Licensed BSD */
 /**
  * vtkWeb JavaScript Library.
@@ -399,8 +399,6 @@
                             onReady(connection);
                         }
                     }).otherwise(function(error){
-                        console.log("alarrm!");
-                        console.log(error);
                         alert("Authentication error");
                         GLOBAL.close();
                     });
@@ -607,13 +605,27 @@
                         action: 'move',
                         current_button: current_button
                     }));
+                } else if(event.type === 'click' && current_button != null) {
+                    alert("Double click");
+                    renderersContainer.trigger($.extend(event, {
+                        type: 'mouse',
+                        action: 'dblclick',
+                        current_button: event.which
+                    }));
                 }
             }
         }
 
         // Bind listener to UI container
-        mouseListenerContainer.bind("contextmenu click mouseover", preventDefault);
+        mouseListenerContainer.bind("contextmenu mouseover click", preventDefault);
         mouseListenerContainer.bind('mousedown mouseup mousemove', mouseInteraction);
+        mouseListenerContainer.dblclick(function(event){
+            renderersContainer.trigger($.extend(event, {
+                type: 'mouse',
+                action: 'dblclick',
+                current_button: event.which
+            }));
+        });
     }
 
     // ----------------------------------------------------------------------
@@ -1523,8 +1535,8 @@
              * @event stop-loading
              */
             $(container).parent().trigger("stop-loading");
-            ctx2d.canvas.width = $(container).parent().innerWidth();
-            ctx2d.canvas.height = $(container).parent().innerHeight();
+            ctx2d.canvas.width = $(container).width();
+            ctx2d.canvas.height = $(container).height();
             ctx2d.drawImage(bgImage, 0, 0, bgImage.width, bgImage.height);
             renderStatistics();
         }
@@ -1559,7 +1571,7 @@
                 evt.preventDefault();
 
                 // Update quality based on the type of the event
-                if(evt.action === 'up') {
+                if(evt.action === 'up' || evt.action === 'dblclick') {
                     quality = options.stillQuality;
                 } else {
                     quality = options.interactiveQuality;
@@ -1597,6 +1609,7 @@
                      * - down
                      * - up
                      * - move
+                     * - dblclick
                      */
                     action: evt.action,
                     /**

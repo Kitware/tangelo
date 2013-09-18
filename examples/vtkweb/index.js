@@ -61,8 +61,6 @@ function startProcess(pathUrl, name) {
         };
 
         vtkWeb.connect(connection, function (serverConnection) {
-            console.log("aqui!");
-
             connection = serverConnection;
 
             app.viewport = vtkWeb.createViewport({session: connection.session});
