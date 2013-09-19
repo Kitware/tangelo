@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<head>
+    <title>Tangelo</title>
+    <link rel="shortcut icon" href="tangelo.ico">
+    <link href="bootstrap-tangelo.css" rel="stylesheet" type="text/css">
+    <link href="main.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+    <a href="https://github.com/Kitware/tangelo"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>
+    <div class="container">
+        <div class="masthead">
+            <h2>
+                <a href="#"><img class="brand-icon" src="Tangelo_Mark_64.png">Tangelo</a>
+                <span class="brand-tagline muted">
+                    (<span class="smallcaps">TAN</span>-jə-loh)
+                    <em>n.</em>
+                    a rapid, powerful, visual web application framework.
+                </span>
+            </h2>
+        </div>
+        <!--
+        <div class="navbar">
+            <div class="navbar-inner">
+                <ul class="nav">
+                    <li class="active"><a href="#">Home</a></li>
+                    <li><a href="http://tangelo.readthedocs.org">Documentation</a></li>
+                    <li><a href="https://github.com/Kitware/tangelo">Source Code</a></li>
+                    <li><a href="http://www.kitware.com/solutions/informatics/informatics.html">Support</a></li>
+                </ul>
+            </div>
+        </div>
+        -->
+        <ul class="nav nav-pills">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="http://tangelo.readthedocs.org">Documentation</a></li>
+            <li><a href="https://github.com/Kitware/tangelo">Source Code</a></li>
+            <li><a href="http://www.kitware.com/solutions/informatics/informatics.html">Support</a></li>
+        </ul>
+        <hr>
+        <div class="hero-unit">
+            <table>
+                <tr>
+                    <td width="275"><img src="Tangelo_Mark_256.png"></td>
+                    <td>
+                        <h2>A simple web framework for big data.</h2>
+                        <p class="lead">
+                            Tangelo makes it easy to create modern, dynamic web applications.
+                            With Tangelo, you can
+                            use a built-in data service, or write simple Python functions
+                            to access serve your data. Our client library, tangelo.js, wraps
+                            charts, maps, and other advanced HTML5 visualizations for
+                            fresh and dynamic applications with minimal code.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <!--
+        <h1>A simple web framework for big data</h1>
+        <p class="lead">
+            Tangelo makes it easy to create modern, dynamic web applications.
+            With Tangelo, you can
+            use a built-in data service, or write simple Python functions
+            to access serve your data. Our client library, tangelo.js, wraps
+            charts, maps, and other advanced HTML5 visualizations for
+            fresh and dynamic applications with minimal code.
+        </p>
+        -->
+        <h2>Built for ease of development</h2>
+        <p>
+            Starting a Tangelo application is as simple as creating an <code>index.html</code> file,
+            which can refer to supporting Javascript and CSS as needed.
+            If you need custom server-side processing, data gathering,
+            or a full REST API, put a Python file right alongside
+            your Javascript and HTML to expose it as a service.
+        </p>
+        <p>
+            For example, suppose you want to manipulate some text on your server. The app
+            starts with simple Bootstrap-infused HTML file containing a form to submit the text.
+        </p>
+        <script src="https://gist.github.com/jeffbaumes/6599647.js?file=index.html" type="text/javascript"></script>
+        <p>
+            The Javascript code provides a handler for the button
+            to submit the text to the server and display the results.
+            Note that we are using a custom service called <code>myservice</code>.
+        </p>
+        <script src="https://gist.github.com/jeffbaumes/6599647.js?file=myapp.js" type="text/javascript"></script>
+        <p>
+            To implement a service, just add a Python file anywhere. It will automatically
+            be exposed as a URL endpoint by the name of the Python file, here as <code>myservice</code>.
+            In Python, define a <code>run()</code> function with arbitrary arguments,
+            and URL paths and/or
+            query parameters will be mapped to those arguments. If you return a JSON-like Python
+            object (arbitrarily-nested dictionaries/arrays), Tangelo will convert that to JSON
+            text so it can be retrieved easily using Javascript Ajax utilities like
+            jQuery's <code>$.getJSON()</code>. Here we simply return the reversed text.
+        </p>
+        <script src="https://gist.github.com/jeffbaumes/6599647.js?file=myservice.py" type="text/javascript"></script>
+        <p>
+            That's it. Add these three files under the <code>build/deploy/web</code> directory of your
+            Tangelo instance, and the app will start being served on Tangelo. If you edit any of these
+            files, including the Python file, just refresh your page in the browser to see the changes,
+            no web server restart required.
+        </p>
+        <p>
+            For more information, take a look at the
+            <a href="http://tangelo.readthedocs.org">documentation</a>.
+            Dig deeper by visiting our <a href="https://github.com/Kitware/tangelo.git">GitHub</a>
+            repository to view the source, report bugs, or submit patches.
+        </p>
+        <hr>
+        <div class="footer muted text-center">
+            <small>
+                <p>
+                    Created by <a href="http://www.kitware.com">Kitware</a>.
+                    Site content is <a href="http://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.
+                    Code is <a href="https://github.com/Kitware/tangelo/blob/master/LICENSE">Apache v2</a>.
+                </p>
+                <p>
+                    Development is sponsored by the Air Force Research Laboratory and DARPA XDATA program.
+                </p>
+            </small>
+        </div>
+    </div>
+</body>
