@@ -19,7 +19,7 @@ function endProcess() {
         req = d3.json("/vtkweb/" + app.key);
         req.send("DELETE", function (e, resp) {
             if (resp.status !== "complete") {
-                throw "could not shut down process keyed by " + app.key + ": " + resp.reason;
+                console.log("could not shut down process keyed by " + app.key + ": " + resp.reason);
             }
         });
 
