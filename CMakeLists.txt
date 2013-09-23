@@ -37,6 +37,8 @@ find_package(PythonInterp 2.7 REQUIRED)
 include(cmake/FindPythonModule.cmake)
 find_python_module(cherrypy 3.2 REQUIRED)
 
+find_program(VTKPYTHON_EXECUTABLE vtkpython PATHS /usr/bin/vtkpython)
+
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/web/js/core.js
@@ -161,6 +163,12 @@ configure_file(
     tangelod.in
     ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/tangelod
     @ONLY
+)
+
+# Configure the vtkweb launcher.
+configure_file(
+    vtkweb-launcher.py.in
+    ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/vtkweb-launcher.py
 )
 
 # Configure the Tangelo password file generator.

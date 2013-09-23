@@ -7,6 +7,7 @@ import cherrypy.process.plugins
 import datetime
 import HTMLParser
 import imp
+import itertools
 import json
 import md5
 import os
@@ -16,15 +17,77 @@ import signal
 import subprocess
 import sys
 import tangelo
+import threading
 import traceback
 import time
 import types
+from ws4py.server.cherrypyserver import WebSocketPlugin, WebSocketTool
+from ws4py.websocket import WebSocket
+from autobahn.websocket import connectWS
+from autobahn.wamp import WampClientProtocol, WampClientFactory
+from twisted.internet import reactor
+
+class WebSocketHandler(object):
+    @cherrypy.expose
+    def index(self):
+        return "OK"
+
+    @cherrypy.expose
+    def ws(self):
+        pass
+
+def VTKWebSocketAB(url, relay):
+    class RegisteringWebSocketClientFactory(WampClientFactory):
+        def register(self, client):
+            self.client = client
+
+    class Protocol(WampClientProtocol):
+        def onOpen(self):
+            self.factory.register(self)
+
+        def onMessage(self, msg, is_binary):
+            relay.send(msg)
+
+    class Connection(threading.Thread):
+        def run(self):
+            self.factory = RegisteringWebSocketClientFactory(url)
+            self.factory.protocol = Protocol
+            reactor.callFromThread(connectWS, self.factory)
+
+        def send(self, data):
+            reactor.callFromThread(Protocol.sendMessage, self.factory.client, data)
+
+    c = Connection()
+    c.start()
+    return c
+
+def WebSocketRelay(hostname, port, key):
+    class Class(WebSocket):
+        def __init__(self, *pargs, **kwargs):
+            WebSocket.__init__(self, *pargs, **kwargs)
+
+            url = "ws://%s:%d/ws" % (hostname, port)
+
+            tangelo.log("websocket created at %s:%d/%s (proxy to %s)" % (hostname, port, key, url))
+
+            self.client = VTKWebSocketAB(url, self)
+
+        def closed(self, code, reason):
+            # TODO(choudhury): figure out if recovery, etc. is possible if the
+            # socket is closed for some reason.
+            tangelo.log("websocket at %s:%d/%s closed with code %d (%s)" % (hostname, port, key, code, reason))
+            pass
+
+        def received_message(self, msg):
+            self.client.send(msg.data)
+
+    return Class
 
 class Server(object):
     # An HTML parser for use in the error_page handler.
     html = HTMLParser.HTMLParser()
 
-    def __init__(self, auth):
+    def __init__(self, auth, vtkweb_ports=None):
         # A boolean indicating whether to perform HTTP authentication or not.
         self.auth = auth
 
@@ -41,6 +104,24 @@ class Server(object):
 
         # A dict containing currently running streaming data sources.
         self.streams = {}
+
+        # A set containing available ports for running VTK Web processes on, and
+        # a dict mapping keys to such processes.
+        #
+        # TODO(choudhury): use a deque instead, so port numbers can be tried in
+        # order in case one of them goes wrong (like there's another program
+        # sitting on a port, etc.) (Be sure to count how many ports have been
+        # tried, in case all of them are bad ;) ).
+        self.vtkweb_ports = set(vtkweb_ports or [])
+        self.vtkweb_processes = {}
+
+        tangelo.log("port pool for vtkweb processes: %s" % (str(list(self.vtkweb_ports))))
+
+    def cleanup(self):
+        # Terminate the VTK web processes.
+        for p in self.vtkweb_processes.values():
+            p["process"].terminate()
+            p["process"].wait()
 
     @staticmethod
     def error_page(status, message, traceback, version):
@@ -214,6 +295,9 @@ class Server(object):
             # bytes from the system - ensure the random key is not already in
             # the table (even though it would be crazy to wind up with a
             # collision).
+            #
+            # TODO(choudhury): replace this with a call to generateNewKey().
+            # Move the comment above into the generateNewKey() function.
             key = md5.md5(os.urandom(100)).hexdigest()
             while key in self.streams:
                 key = md5.md5(os.urandom(100)).hexdigest()
@@ -497,6 +581,168 @@ class Server(object):
 
         return result
 
+    @cherrypy.expose
+    def vtkweb(self, *pargs, **kwargs):
+        # TODO(choudhury): Implement a PUT method that expands the pool of
+        # usable port numbers.
+
+        # Get keyword arguments.
+        progargs = kwargs.get("progargs", "")
+        timeout = kwargs.get("timeout", 0)
+
+        # Convert the positional args to a list.
+        pargs = list(pargs)
+
+        # Dispatch a RESTful action.
+        method = cherrypy.request.method
+        if method == "GET":
+            # If there is no key argument, send back a list of all the keys.
+            if len(pargs) == 0:
+                response = self.vtkweb_processes.keys()
+            else:
+                # Extract the key argument.
+                key = pargs[0]
+
+                # Check for the key in the process table.
+                if key not in self.vtkweb_processes:
+                    return json.dumps({"status": "failed", "reason": "Requested key not in process table"})
+
+                # Retrieve the entry.
+                rec = self.vtkweb_processes[key]
+                response = {"status": "complete", "process": "running", "port": rec["port"]}
+                returncode = rec["process"].poll()
+                if returncode is not None:
+                    # Since the process has ended, reclaim its resources and delete
+                    # the process object.
+                    self.vtkweb_ports.add(rec["port"])
+                    del self.vtkweb_processes[key]
+
+                    # Fill out the report response.
+                    response["process"] = "terminated"
+                    response["returncode"] = returncode
+
+                    stdout, stderr = rec["process"].communicate()
+                    response["stdout"] = stdout
+                    response["stderr"] = stderr
+
+            # Make a report to the user.
+            return json.dumps(response)
+        elif method == "POST":
+            if len(pargs) == 0:
+                return json.dumps({"status": "incomplete", "reason": "missing path to vtkweb script"})
+
+            # Form the web path from the pargs components
+            progpath = os.path.sep.join(pargs)
+
+            # Verify that all required arguments are present.
+            if len(pargs) == 0:
+                return json.dumps({"status": "incomplete", "reason": "Missing program URL"})
+
+            # Check the user arguments.
+            userargs = progargs.split()
+            if "--port" in userargs:
+                return json.dumps({"status": "incomplete", "reason": "You may not specify --port in this interface"})
+
+            # Verify that the program path is legal.
+            if not tangelo.legal_path(progpath)[0]:
+                return json.dumps({"status": "incomplete", "reason": "Illegal program URL"})
+
+            # Obtain a filesystem path to the requested program.
+            progfile = tangelo.abspath(progpath)
+
+            # Check for an available port.
+            if len(self.vtkweb_ports) == 0:
+                # Try to reclaim any dead processes.
+                #
+                # Collect a list of dead processes by key while reclaiming their
+                # port numbers.
+                good = False
+                delete = []
+                tangelo.log(str(self.vtkweb_processes))
+                for k, v in self.vtkweb_processes.iteritems():
+                    if v["process"].poll() is not None:
+                        good = True
+                        self.vtkweb_ports.add(v["port"])
+                        delete.push(k)
+
+                # Delete the dead entries from the process table.
+                for d in delete:
+                    del self.vtkweb_processes[d]
+
+                # If no process was dead, tell the user the bad news.
+                if not good:
+                    return json.dumps({"status": "failed", "reason": "no available ports"})
+
+            # Get a port and generate a unique key.
+            port = self.vtkweb_ports.pop()
+            key = generateNewKey(self.vtkweb_processes.keys())
+
+            # Launch the requested process.
+            try:
+                cmdline = ["${VTKPYTHON_EXECUTABLE}", "${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/vtkweb-launcher.py", progfile, "--port", str(port)] + userargs
+                tangelo.log("starting a vtkweb process: %s" % (" ".join(cmdline)))
+                process = subprocess.Popen(cmdline, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            except OSError as e:
+                # On launch failure, replace the port number in the pool, and
+                # report the failure to the user.
+                self.vtkweb_ports.add(port)
+                return json.dumps({"status": "failed", "reason": e.message})
+
+            # Give the vtkweb process time to come up.
+            #
+            # TODO(choudhury): instead of just waiting one second, communicate
+            # with the VTK Web process, verifying that its initial output
+            # contains a signal phrase that means it's working (talk to Seb J.).
+            time.sleep(1)
+
+            # Create a websocket handler path dedicated to this process.
+            host = cherrypy.server.socket_host
+            if host == "0.0.0.0":
+                host = "localhost"
+            wshandler = WebSocketRelay(host, port, key)
+            cherrypy.tree.mount(WebSocketHandler(), "/%s" % (key), config={"/ws": {"tools.websocket.on": True, "tools.websocket.handler_cls": wshandler, "tools.websocket.protocols": ["wamp"]}})
+
+            # Log the new process in the process table.
+            self.vtkweb_processes[key] = {"port": port, "process": process}
+
+            # Form the websocket URL from the hostname/port used in the request,
+            # and the newly generated key.
+            url = "ws://%s/%s/ws" % (cherrypy.request.base.split("//")[1], key)
+            return json.dumps({"status": "complete", "key": key, "url": url})
+        elif method == "DELETE":
+            # TODO(choudhury): shut down a vtkweb process by key after a given
+            # timeout.
+
+            # Make sure there's a key.
+            if len(pargs) == 0:
+                return json.dumps({"status": "incomplete", "reason": "'key' argument is REQUIRED"})
+
+            # Extract the key.
+            key = pargs[0]
+            tangelo.log("shutting down %s" % (key))
+
+            # Check for the key in the process table.
+            if key not in self.vtkweb_processes:
+                tangelo.log("key not found")
+                return json.dumps({"status": "failed", "reason": "no such key in process table"})
+
+            # Terminate the process.
+            tangelo.log("terminating process")
+            proc = self.vtkweb_processes[key]
+            proc["process"].terminate()
+            proc["process"].wait()
+            tangelo.log("terminated")
+
+            # Reclaim the port number being used by the process, and remove it
+            # from the table.
+            tangelo.log("reclaiming port %d" % (proc["port"]))
+            self.vtkweb_ports.add(proc["port"])
+            del self.vtkweb_processes[key]
+
+            return json.dumps({"status": "complete"})
+        else:
+           raise cherrypy.HTTPError(405, "Method not allowed")
+
 def live_pid(pid):
     try:
         os.kill(pid, 0)
@@ -513,7 +759,22 @@ def read_pid(pidfile):
 
     return pid
 
-def start():
+def generateNewKey(taken, randbytes=128):
+    key = md5.md5(os.urandom(randbytes)).hexdigest()
+    while key in taken:
+        key = md5.md5(os.urandom(randbytes)).hexdigest()
+
+    return key
+
+def sighandler(signum, frame):
+    cpserver.cleanup()
+    reactor.stop()
+    cherrypy.engine.stop()
+    cherrypy.engine.exit()
+
+def start(vtkweb_ports=None):
+    global cpserver
+
     sys.stderr.write("starting tangelo...")
 
     # The presence of a pid file means that either this instance of Tangelo is
@@ -555,8 +816,12 @@ def start():
                             "server.socket_port": port,
                             "error_page.default": Server.error_page})
 
+    WebSocketPlugin(cherrypy.engine).subscribe()
+    cherrypy.tools.websocket = WebSocketTool()
+
     # Create an instance of the main handler object.
-    cherrypy.tree.mount(Server(do_auth), "/")
+    cpserver = Server(do_auth, vtkweb_ports)
+    cherrypy.tree.mount(cpserver, "/")
 
     # Assume things are going to go well.
     retval = 0
@@ -623,10 +888,7 @@ def start():
         if fork == 0:
             # Return value of 0 means this branch is the child - start the
             # process.
-            cherrypy.process.plugins.Daemonizer(cherrypy.engine).subscribe()
             cherrypy.process.plugins.PIDFile(cherrypy.engine, pidfile).subscribe()
-            cherrypy.engine.start()
-            cherrypy.engine.block()
         else:
             # This branch is the parent - poll the log file and print a message
             # on stdout.
@@ -649,9 +911,16 @@ def start():
                         done = True
                     elif "Serving on" in line:
                         location = line.split("Serving on")[1].strip()
-    else:
-        cherrypy.engine.start()
-        cherrypy.engine.block()
+            sys.exit(0)
+
+    for sig in [signal.SIGINT, signal.SIGTERM, signal.SIGQUIT]:
+        signal.signal(sig, sighandler)
+    cherrypy.engine.start()
+
+    # Start the Twisted reactor in the main thread (it will block but the
+    # CherryPy engine has already started in a non-blocking manner).
+    reactor.run(installSignalHandlers=False)
+    cherrypy.engine.block()
 
     return retval
 
@@ -667,19 +936,14 @@ def stop():
             sys.stderr.write("failed (tangelo.pid does not contain a valid process id)\n")
             return 1
 
-        # Attempt to kill the process, if it's still alive.
+        # Attempt to terminate the process, if it's still alive.
         try:
             if live_pid(pid):
-                os.kill(pid, signal.SIGKILL)
+                os.kill(pid, signal.SIGTERM)
+                while live_pid(pid):
+                    time.sleep(0.1)
         except OSError:
-            sys.stderr.write("failed (could not kill process %d)\n" % (pid))
-            retval = 1
-
-        # Attempt to remove the pidfile.
-        try:
-            os.remove(pidfile)
-        except OSError:
-            sys.stderr.write("failed (could not remove pidfile)\n")
+            sys.stderr.write("failed (could not terminate process %d)\n" % (pid))
             retval = 1
 
     if retval == 0:
@@ -690,7 +954,7 @@ def stop():
 def restart():
     stopval = stop()
     if stopval == 0:
-        return start()
+        return start(args.vtkweb_ports)
     else:
         return stopval
 
@@ -701,6 +965,7 @@ if __name__ == "__main__":
     p.add_argument("-p", "--no-drop-privileges", action="store_true", help="disable privilege drop when started as superuser.")
     p.add_argument("--hostname", type=str, default=None, metavar="HOSTNAME", help="overrides configured hostname on which to run Tangelo")
     p.add_argument("--port", type=int, default=None, metavar="PORT", help="overrides configured port number on which to run Tangelo")
+    p.add_argument("--vtkweb-ports", type=str, default=None, metavar="PORT RANGE", help="specifies the port range to use for VTK Web processes")
     p.add_argument("--logdir", type=str, default=None, metavar="DIR", help="where to place the log file (rather than in the directory where this program is")
     p.add_argument("--piddir", type=str, default=None, metavar="DIR", help="where to place the PID file (rather than in the directory where this program is")
     p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
@@ -714,6 +979,21 @@ if __name__ == "__main__":
     port = args.port or @SERVER_PORT@
     logdir = args.logdir
     piddir = args.piddir
+
+    if args.vtkweb_ports is not None:
+        try:
+            # This parses expressions of the form "8081-8090,12000,13500-13600".
+            # It will allow spaces around the punctuation, but reject too many
+            # hyphens, and "blank" entries (i.e. two commas next to each other
+            # etc.).
+            args.vtkweb_ports = itertools.chain.from_iterable(map(lambda y: range(y[0], y[1]) if len(y) == 2 else [y[0]], map(lambda x: map(int, x.split("-", 1)), args.vtkweb_ports.split(","))))
+        except ValueError:
+            print >>sys.stderr, "error: could not parse VTK Web port range specification '%s'" % (args.vtkweb_ports)
+            sys.exit(1)
+
+        if args.vtkweb_ports == []:
+            print >>sys.stderr, "error: VTK Web port specification '%s' produces no ports" % (args.vtkweb_ports)
+            sys.exit(1)
 
     # Configured variables.
     cherry = "@CherryPy_EXECUTABLE@"
@@ -751,7 +1031,7 @@ if __name__ == "__main__":
     # Dispatch on action argument.
     code = 1
     if action == "start":
-        code = start()
+        code = start(args.vtkweb_ports)
     elif action == "stop":
         if not daemonize:
             sys.stderr.write("error: stop action not supported on this platform\n")

@@ -1,0 +1,35 @@
+<!doctype html>
+<link href=/css/tangelo.css rel=stylesheet>
+
+<script src="ext/js-core/autobahn.min.js"></script>
+<script src="ext/js-core/jquery-1.8.2.min.js"></script>
+<script src="ext/js-core/gl-matrix-min.js"></script>
+<script src=/js/loader/load-tangelo.min.js></script>
+<script src=lib/js/vtkweb-all.js></script>
+
+<script src=index.js></script>
+
+<style>
+    #viewport {
+        background: lightgray;
+        position: relative;
+        height: 500px;
+    }
+</style>
+
+<h1>Tangelo/VTKWeb Demo</h1>
+
+<div class=container>
+    <div class=row>
+        <a id=cone class="btn offset3 span3">Cone</a>
+        <a id=phylo class="btn span3">PhyloTree</a>
+    </div>
+
+    <div class=row>
+        <a id=close class="btn offset3 span6">Close process</a>
+    </div>
+
+    <div class=row>
+        <div id=viewport class=span12></div>
+    </div>
+</div>
