@@ -22,7 +22,7 @@ function stop() {
 window.onunload = window.onbeforeunload = stop;
 
 window.onload = function () {
-    proc = d3.json("/vtkweb/app/vtkweb/vtk_web_cone.py");
+    proc = d3.json("/vtkweb/app/vtkweb/vtkweb_cone.py");
     proc.post(function (e, resp) {
         console.log(resp);
         if (resp.status !== "complete") {
