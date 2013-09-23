@@ -648,7 +648,7 @@ class Server(object):
                 good = False
                 delete = []
                 tangelo.log(str(self.vtkweb_processes))
-                for k, v in self.vtkweb_processes:
+                for k, v in self.vtkweb_processes.iteritems():
                     if v["process"].poll() is not None:
                         good = True
                         self.vtkweb_ports.add(v["port"])
