@@ -1,7 +1,10 @@
+import sys
 import time
 
 import selenium
 from selenium import webdriver
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import NoSuchElementException
 
 from vtkwebtest import now, compare_images
 
@@ -11,10 +14,18 @@ if __name__ == "__main__":
     browser.set_window_size(952, 718)
 
     # Load the vtkweb application page.
-    browser.get("http://localhost:8080/app/vtkweb")
+    url = "http://localhost:8080/app/vtkweb"
+    browser.get(url)
     
     # Click on the PhyloTree app launcher and wait for it to load.
-    button = browser.find_element_by_link_text("PhyloTree")
+    try:
+        button = browser.find_element_by_link_text("PhyloTree")
+    except NoSuchElementException:
+        print >>sys.stderr, "fatal error: could not find the 'PhyloTree' button!"
+        print >>sys.stderr, "(visit %s to diagnose the problem)" % (url)
+        browser.quit()
+        sys.exit(1)
+
     button.click()
     time.sleep(3)
 
@@ -22,7 +33,7 @@ if __name__ == "__main__":
     body = browser.find_element_by_tag_name("body")
 
     # Double-click on a sub-tree to collapse it.
-    dblclick = webdriver.common.action_chains.ActionChains(browser)
+    dblclick = ActionChains(browser)
     dblclick.move_to_element_with_offset(body, 475, 333)
     dblclick.double_click()
     dblclick.perform()

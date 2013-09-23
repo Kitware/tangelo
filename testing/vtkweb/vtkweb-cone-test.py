@@ -1,7 +1,10 @@
+import sys
 import time
 
 import selenium
 from selenium import webdriver
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import NoSuchElementException
 
 from vtkwebtest import now, compare_images
 
@@ -11,10 +14,18 @@ if __name__ == "__main__":
     browser.set_window_size(952, 718)
 
     # Load the vtkweb application page.
-    browser.get("http://localhost:8080/app/vtkweb")
+    url = "http://localhost:8080/app/vtkweb"
+    browser.get(url)
     
     # Click on the PhyloTree app launcher and wait for it to load.
-    button = browser.find_element_by_link_text("Cone")
+    try:
+        button = browser.find_element_by_link_text("Cone")
+    except NoSuchElementException:
+        print >>sys.stderr, "fatal error: could not find the 'Cone' button!"
+        print >>sys.stderr, "(visit %s to diagnose the problem)" % (url)
+        browser.quit()
+        sys.exit(1)
+
     button.click()
     time.sleep(3)
 
@@ -22,7 +33,7 @@ if __name__ == "__main__":
     div = browser.find_element_by_id("viewport")
 
     # Click-and-drag on the cone to change its position a bit.
-    drag = webdriver.common.action_chains.ActionChains(browser)
+    drag = ActionChains(browser)
     drag.move_to_element(div)
     drag.click_and_hold()
     drag.move_by_offset(-300, 100)
