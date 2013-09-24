@@ -845,20 +845,20 @@ def start(vtkweb_ports=None):
             import grp
             import pwd
 
-            # Set the username and groupname to drop privileges down to.
-            user = "@SERVER_USER@"
-            group = "@SERVER_GROUP@"
-
+            # Find the UID and GID for the requested user and group.
             try:
+                mode = "user"
+                value = user
                 uid = pwd.getpwnam(user).pw_uid
-            except KeyError:
-                tangelo.log("no such user '%s' to drop privileges to" % (user), "ERROR")
-                sys.exit(1)
 
-            try:
+                mode = "group"
+                value = group
                 gid = grp.getgrnam(group).gr_gid
             except KeyError:
-                tangelo.log("no such group '%s' to drop privileges to" % (group), "ERROR")
+                msg = "no such %s '%s' to drop privileges to" % (mode, value)
+                tangelo.log(msg, "ERROR")
+                print >>sys.stderr, "failed (%s)" % (msg)
+                os.remove(pidfile)
                 sys.exit(1)
 
             # Set the process home directory to be the dropped-down user's.
@@ -966,6 +966,8 @@ if __name__ == "__main__":
     p.add_argument("--hostname", type=str, default=None, metavar="HOSTNAME", help="overrides configured hostname on which to run Tangelo")
     p.add_argument("--port", type=int, default=None, metavar="PORT", help="overrides configured port number on which to run Tangelo")
     p.add_argument("--vtkweb-ports", type=str, default=None, metavar="PORT RANGE", help="specifies the port range to use for VTK Web processes")
+    p.add_argument("-u", "--user", type=str, default=None, metavar="USERNAME", help="specifies the user to run as when root privileges are dropped")
+    p.add_argument("-g", "--group", type=str, default=None, metavar="GROUPNAME", help="specifies the group to run as when root privileges are dropped")
     p.add_argument("--logdir", type=str, default=None, metavar="DIR", help="where to place the log file (rather than in the directory where this program is")
     p.add_argument("--piddir", type=str, default=None, metavar="DIR", help="where to place the PID file (rather than in the directory where this program is")
     p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
@@ -977,6 +979,8 @@ if __name__ == "__main__":
     action = args.action
     hostname = args.hostname or "@SERVER_HOSTNAME@"
     port = args.port or @SERVER_PORT@
+    user = args.user or "@SERVER_USER@"
+    group = args.group or "@SERVER_GROUP@"
     logdir = args.logdir
     piddir = args.piddir
 
