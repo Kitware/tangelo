@@ -20,7 +20,7 @@ apps that put your data front and center.
 
 ## Documentation
 
-See our [documentation](http://kitware.github.io/tangelo/) for a getting started guide
+See our [documentation](http://tangelo.readthedocs.org/) for a getting started guide
 and API descriptions.
 
 ## System Architecture
