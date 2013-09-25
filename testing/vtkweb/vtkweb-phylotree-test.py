@@ -14,7 +14,7 @@ if __name__ == "__main__":
     browser.set_window_size(952, 718)
 
     # Load the vtkweb application page.
-    url = "http://localhost:8080/app/vtkweb"
+    url = "http://localhost:8080/examples/vtkweb"
     browser.get(url)
     
     # Click on the PhyloTree app launcher and wait for it to load.
