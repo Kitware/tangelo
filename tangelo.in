@@ -780,7 +780,21 @@ def generateNewKey(taken, randbytes=128):
 
     return key
 
+def polite(signum, frame):
+    print >>sys.stderr, "Already shutting down.  To force shutdown immediately, send SIGQUIT (Ctrl-\\)."
+
+def die(signum, frame):
+    print >>sys.stderr, "Forced shutdown.  Exiting immediately."
+    os.kill(os.getpid(), signal.SIGKILL)
+
 def shutdown(signum, frame):
+    # Disbale the shutdown handler (i.e., for repeated Ctrl-C etc.) for the
+    # "polite" shutdown signals.
+    for sig in [signal.SIGINT, signal.SIGTERM]:
+        signal.signal(sig, polite)
+
+    # Perform (1) vtkweb process cleanup, (2) twisted reactor cleanup and quit,
+    # (3) CherryPy shutdown, and (4) CherryPy exit.
     cpserver.cleanup()
     reactor.stop()
     cherrypy.engine.stop()
@@ -940,8 +954,11 @@ def start(vtkweb_ports=None):
     cherrypy.tools.websocket = WebSocketTool()
 
     # Install signal handlers to allow for proper cleanup/shutdown.
-    for sig in [signal.SIGINT, signal.SIGTERM, signal.SIGQUIT]:
+    for sig in [signal.SIGINT, signal.SIGTERM]:
         signal.signal(sig, shutdown)
+
+    # Send SIGQUIT to an immediate, ungraceful shutdown instead.
+    signal.signal(signal.SIGQUIT, die)
 
     # Start the CherryPy engine.
     cherrypy.engine.start()
