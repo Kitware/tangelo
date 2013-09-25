@@ -2,15 +2,6 @@ var key;
 
 // Method call at exit time
 function stop() {
-    alert("quitting!");
-
-    if(false && connection.session) {
-        viewport.unbind();
-        connection.session.call('vtk:exit');
-        connection.session.close();
-        connection.session = null;
-    }
-
     req = d3.xhr("/vtkweb/" + key);
     req.send("DELETE", function (e, resp) {
         if (resp.status !== "complete") {

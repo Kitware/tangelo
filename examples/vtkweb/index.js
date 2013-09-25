@@ -24,8 +24,10 @@ function endProcess() {
         });
 
         // Unbind the viewport and clear its contents.
-        app.viewport.unbind();
-        $("#viewport").empty();
+        if (app.viewport) {
+            app.viewport.unbind();
+            $("#viewport").empty();
+        }
 
         // Unset the global application key.
         app.key = null;
@@ -46,7 +48,7 @@ function startProcess(pathUrl, name) {
         var connection;
 
         if (resp.status !== "complete") {
-            throw "could not start vtk_web_cone.py: " + resp.reason;
+            throw "could not start vtkweb_cone.py: " + resp.reason;
         }
 
         // Save the application key so it can be shut down later.
@@ -80,7 +82,7 @@ function startProcess(pathUrl, name) {
 function startCone() {
     "use strict";
 
-    startProcess("/app/vtkweb/vtk_web_cone.py?progargs=", "cone");
+    startProcess("/app/vtkweb/vtkweb_cone.py?progargs=", "cone");
 }
 
 function startPhylo() {

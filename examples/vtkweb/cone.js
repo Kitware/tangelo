@@ -2,15 +2,6 @@ var key;
 
 // Method call at exit time
 function stop() {
-    alert("quitting!");
-
-    if(false && connection.session) {
-        viewport.unbind();
-        connection.session.call('vtk:exit');
-        connection.session.close();
-        connection.session = null;
-    }
-
     req = d3.xhr("/vtkweb/" + key);
     req.send("DELETE", function (e, resp) {
         if (resp.status !== "complete") {
@@ -22,7 +13,7 @@ function stop() {
 window.onunload = window.onbeforeunload = stop;
 
 window.onload = function () {
-    proc = d3.json("/vtkweb/app/vtkweb/vtk_web_cone.py");
+    proc = d3.json("/vtkweb/app/vtkweb/vtkweb_cone.py");
     proc.post(function (e, resp) {
         console.log(resp);
         if (resp.status !== "complete") {
