@@ -27,6 +27,20 @@ from autobahn.websocket import connectWS
 from autobahn.wamp import WampClientProtocol, WampClientFactory
 from twisted.internet import reactor
 
+class WebSocketLowPriorityPlugin(WebSocketPlugin):
+    def __init__(self, *pargs, **kwargs):
+        WebSocketPlugin.__init__(self, *pargs, **kwargs)
+
+    # This version of start() differs only in that it has an assigned priority.
+    # The default priority is 50, which is what the actual WebSocketPlugin's
+    # start method gets, which means it runs before the privilege drop gets a
+    # chance to (priority 77, slightly lower than the 75 of the engine start
+    # itself).  For some reason if this runs before the priv drop, things get
+    # screwed up.
+    def start(self):
+        WebSocketPlugin.start(self)
+    start.priority = 80
+
 class WebSocketHandler(object):
     @cherrypy.expose
     def index(self):
@@ -754,8 +768,8 @@ def live_pid(pid):
 def read_pid(pidfile):
     # Open the file and convert the contents to an integer - if this fails for
     # any reason, whatever exception is raised will propagate up to the caller.
-    f = open(pidfile)
-    pid = int(f.read())
+    with open(pidfile) as f:
+        pid = int(f.read())
 
     return pid
 
@@ -766,7 +780,7 @@ def generateNewKey(taken, randbytes=128):
 
     return key
 
-def sighandler(signum, frame):
+def shutdown(signum, frame):
     cpserver.cleanup()
     reactor.stop()
     cherrypy.engine.stop()
@@ -816,21 +830,67 @@ def start(vtkweb_ports=None):
                             "server.socket_port": port,
                             "error_page.default": Server.error_page})
 
-    WebSocketPlugin(cherrypy.engine).subscribe()
-    cherrypy.tools.websocket = WebSocketTool()
+    # If we are daemonizing, do it here, before anything gets started.  We have
+    # to set this up in a certain way:
+    #
+    # 1. We fork ourselves immediately, so the child process, which will
+    # actually start CherryPy, doesn't scribble on the screen.
+    #
+    # 2. We get the parent process to poll the logfile for specific messages
+    # indicating success or failure, and use these to print an informative
+    # message on screen.
+    #
+    # The special behavior of the parent before it exits is the reason we don't
+    # just use the CherryPy Daemonizer plugin.
+    if daemonize:
+        fork = os.fork()
 
+        # The parent process - start a polling loop to watch for signals in the
+        # log file before exiting.
+        if fork != 0:
+            # Loop until we can open the logfile (this is in case the child
+            # process hasn't created it just yet).
+            opened = False
+            while not opened:
+                try:
+                    f = open(logfile)
+                    opened = True
+                except IOError:
+                    pass
+
+            # Seek to the end of the file.
+            f.seek(0, os.SEEK_END)
+
+            # In a loop, look for new lines being added to the log file, and
+            # examine them for signs of success or failure.
+            done = False
+            while not done:
+                cur_pos = f.tell()
+                line = f.readline()
+                if not line:
+                    f.seek(cur_pos)
+                else:
+                    if "Bus STARTED" in line:
+                        retval = 0
+                        print >>sys.stderr, "success (serving on %s)" % (location)
+                        done = True
+                    elif "Error" in line:
+                        retval = 1
+                        print >>sys.stderr, "failed (check tangelo.log for reason)"
+                        done = True
+                    elif "Serving on" in line:
+                        location = line.split("Serving on")[1].strip()
+
+            # The parent process can now exit, indicating success or failure of
+            # the child.
+            sys.exit(retval)
+
+    # From this point forward, we are the child process, and can now set up the
+    # server and get it going.
+    #
     # Create an instance of the main handler object.
     cpserver = Server(do_auth, vtkweb_ports)
     cherrypy.tree.mount(cpserver, "/")
-
-    # Assume things are going to go well.
-    retval = 0
-
-    # Create a pid file so we can make sure it's owned by the proper user later
-    # on.
-    if daemonize:
-        with open(pidfile, "a"):
-            pass
 
     # Try to drop privileges if requested, since we've bound to whatever port
     # superuser privileges were needed for already.
@@ -858,71 +918,38 @@ def start(vtkweb_ports=None):
                 msg = "no such %s '%s' to drop privileges to" % (mode, value)
                 tangelo.log(msg, "ERROR")
                 print >>sys.stderr, "failed (%s)" % (msg)
-                os.remove(pidfile)
                 sys.exit(1)
 
             # Set the process home directory to be the dropped-down user's.
             os.environ["HOME"] = os.path.expanduser("~%s" % (user))
 
-            # Perform the privilege drop.
+            # Transfer ownership of the log file to the non-root user.
+            os.chown(logfile, uid, gid)
+
+            # Perform the actual UID/GID change.
             cherrypy.process.plugins.DropPrivileges(cherrypy.engine, uid=uid, gid=gid).subscribe()
 
-            # Make sure the log file and pid file are owned by the same,
-            # non-superuser.
-            os.chown(logfile, uid, gid)
-            os.chown(pidfile, uid, gid)
-
-    # If we are daemonizing, we have to set things up in a certain way:
-    #
-    # 1. We fork ourselves immediately, so the child process, which will
-    # actually start CherryPy, doesn't scribble on the screen.
-    #
-    # 2. We get the parent process to poll the logfile for specific messages
-    # indicating success or failure, and use these to print an informative
-    # message on screen.
+    # If daemonizing, we need to maintain a pid file.
     if daemonize:
-        fork = os.fork()
+        cherrypy.process.plugins.PIDFile(cherrypy.engine, pidfile).subscribe()
 
-        # Fork the process to allow the parent to poll the logfile to check for
-        # success.
-        if fork == 0:
-            # Return value of 0 means this branch is the child - start the
-            # process.
-            cherrypy.process.plugins.PIDFile(cherrypy.engine, pidfile).subscribe()
-        else:
-            # This branch is the parent - poll the log file and print a message
-            # on stdout.
-            f = open(logfile)
-            f.seek(0, 2)
-            done = False
-            while not done:
-                cur_pos = f.tell()
-                line = f.readline()
-                if not line:
-                    f.seek(cur_pos)
-                else:
-                    if "Bus STARTED" in line:
-                        retval = 0
-                        sys.stderr.write("success (serving on %s)\n" % location)
-                        done = True
-                    elif "Error" in line:
-                        retval = 1
-                        sys.stderr.write("failed (check tangelo.log for reason)\n")
-                        done = True
-                    elif "Serving on" in line:
-                        location = line.split("Serving on")[1].strip()
-            sys.exit(0)
+    # Set up websocket handling.  Use the pass-through subclassed version of the
+    # plugin so we can set a priority on it that doesn't conflict with privilege
+    # drop.
+    WebSocketLowPriorityPlugin(cherrypy.engine).subscribe()
+    cherrypy.tools.websocket = WebSocketTool()
 
+    # Install signal handlers to allow for proper cleanup/shutdown.
     for sig in [signal.SIGINT, signal.SIGTERM, signal.SIGQUIT]:
-        signal.signal(sig, sighandler)
+        signal.signal(sig, shutdown)
+
+    # Start the CherryPy engine.
     cherrypy.engine.start()
 
     # Start the Twisted reactor in the main thread (it will block but the
     # CherryPy engine has already started in a non-blocking manner).
     reactor.run(installSignalHandlers=False)
     cherrypy.engine.block()
-
-    return retval
 
 def stop():
     retval = 0
