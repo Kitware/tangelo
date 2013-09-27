@@ -26,6 +26,9 @@ def log(*pargs, **kwargs):
 def request_path():
     return cherrypy.request.path_info
 
+def request_body():
+    return cherrypy.request.body.make_file()
+
 # TODO(choudhury): this leaves a global variable open for anyone to modify;
 # there's a crazy hack (sanctioned by Guido himself) that lets us get around it:
 # http://stackoverflow.com/questions/2447353/getattr-on-a-module (Ethan Furman's
