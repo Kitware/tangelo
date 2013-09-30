@@ -27,7 +27,33 @@ def request_path():
     return cherrypy.request.path_info
 
 def request_body():
-    return cherrypy.request.body.make_file()
+    class RequestBody:
+        get_request_error = RuntimeError("cannot read body from a GET request")
+
+        def __init__(self, filelike, process_request_body):
+            self.source = filelike
+            self.process_request_body = process_request_body
+            log(str(self.process_request_body))
+
+        def read(self, *pargs, **kwargs):
+            if not self.process_request_body:
+                raise RequestBody.get_request_error
+            else:
+                return self.source.read(*pargs, **kwargs)
+
+        def readline(self, *pargs, **kwargs):
+            if not self.process_request_body:
+                raise RequestBody.get_request_error
+            else:
+                return self.source.readline(*pargs, **kwargs)
+
+        def readlines(self, *pargs, **kwargs):
+            if not self.process_request_body:
+                raise RequestBody.get_request_error
+            else:
+                return self.readlines(*pargs, **kwargs)
+
+    return RequestBody(cherrypy.request.body, cherrypy.request.process_request_body)
 
 # TODO(choudhury): this leaves a global variable open for anyone to modify;
 # there's a crazy hack (sanctioned by Guido himself) that lets us get around it:
