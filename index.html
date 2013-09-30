@@ -32,83 +32,130 @@
         </div>
         -->
         <ul class="nav nav-pills">
-            <li class="active"><a href="#">Home</a></li>
-            <li><a href="http://tangelo.readthedocs.org">Documentation</a></li>
-            <li><a href="https://github.com/Kitware/tangelo">Source Code</a></li>
-            <li><a href="http://www.kitware.com/solutions/informatics/informatics.html">Support</a></li>
+            <li id="nav-home" class="active"><a href="#">Home</a></li>
+            <li id="nav-documentation"><a href="http://tangelo.readthedocs.org">Documentation</a></li>
+            <li id="nav-examples"><a href="/#examples" onclick="go(event, 'examples');">Examples</a></li>
+            <li id="nav-source"><a href="https://github.com/Kitware/tangelo">Source</a></li>
+            <li id="nav-support"><a href="/#support" onclick="go(event, 'support');">Support</a></li>
         </ul>
         <hr>
-        <div class="hero-unit">
-            <table>
-                <tr>
-                    <td width="275"><img src="Tangelo_Mark_256.png"></td>
-                    <td>
-                        <h2>A simple web framework for big data.</h2>
-                        <p class="lead">
-                            Tangelo makes it easy to create modern, dynamic web applications.
-                            With Tangelo, you can
-                            use a built-in data service, or write simple Python functions
-                            to access serve your data. Our client library, tangelo.js, wraps
-                            charts, maps, and other advanced HTML5 visualizations for
-                            fresh and dynamic applications with minimal code.
-                        </p>
-                    </td>
-                </tr>
-            </table>
+        <div id="home" style="display:none">
+            <div class="hero-unit">
+                <table>
+                    <tr>
+                        <td width="275"><img src="Tangelo_Mark_256.png"></td>
+                        <td>
+                            <h2>A simple web framework for big data.</h2>
+                            <p class="lead">
+                                Tangelo makes it easy to create modern, dynamic web applications.
+                                With Tangelo, you can
+                                use a built-in data service, or write simple Python functions
+                                to access serve your data. Our client library, tangelo.js, wraps
+                                charts, maps, and other advanced HTML5 visualizations for
+                                fresh and dynamic applications with minimal code.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <!--
+            <h1>A simple web framework for big data</h1>
+            <p class="lead">
+                Tangelo makes it easy to create modern, dynamic web applications.
+                With Tangelo, you can
+                use a built-in data service, or write simple Python functions
+                to access serve your data. Our client library, tangelo.js, wraps
+                charts, maps, and other advanced HTML5 visualizations for
+                fresh and dynamic applications with minimal code.
+            </p>
+            -->
+            <h3>Built for ease of development</h3>
+            <p>
+                Starting a Tangelo application is as simple as creating an <code>index.html</code> file,
+                which can refer to supporting Javascript and CSS as needed.
+                If you need custom server-side processing, data gathering,
+                or a full REST API, put a Python file right alongside
+                your Javascript and HTML to expose it as a service.
+            </p>
+            <p>
+                For example, suppose you want to manipulate some text on your server. The app
+                starts with simple Bootstrap-infused HTML file containing a form to submit the text.
+            </p>
+            <script src="https://gist.github.com/jeffbaumes/6599647.js?file=index.html" type="text/javascript"></script>
+            <p>
+                The Javascript code provides a handler for the button
+                to submit the text to the server and display the results.
+                Note that we are using a custom service called <code>myservice</code>.
+            </p>
+            <script src="https://gist.github.com/jeffbaumes/6599647.js?file=myapp.js" type="text/javascript"></script>
+            <p>
+                To implement a service, just add a Python file anywhere. It will automatically
+                be exposed as a URL endpoint by the name of the Python file, here as <code>myservice</code>.
+                In Python, define a <code>run()</code> function with arbitrary arguments,
+                and URL paths and/or
+                query parameters will be mapped to those arguments. If you return a JSON-like Python
+                object (arbitrarily-nested dictionaries/arrays), Tangelo will convert that to JSON
+                text so it can be retrieved easily using Javascript Ajax utilities like
+                jQuery's <code>$.getJSON()</code>. Here we simply return the reversed text.
+            </p>
+            <script src="https://gist.github.com/jeffbaumes/6599647.js?file=myservice.py" type="text/javascript"></script>
+            <p>
+                That's it. Add these three files under the <code>build/deploy/web</code> directory of your
+                Tangelo instance, and the app will start being served on Tangelo. If you edit any of these
+                files, including the Python file, just refresh your page in the browser to see the changes,
+                no web server restart required.
+            </p>
+            <p>
+                For more information, take a look at the
+                <a href="http://tangelo.readthedocs.org">documentation</a>.
+                Dig deeper by visiting our <a href="https://github.com/Kitware/tangelo.git">GitHub</a>
+                repository to view the source, report bugs, or submit patches.
+            </p>
+        </div> <!-- home -->
+        <div id="examples" style="display:none">
+            <h3>Examples</h3>
+            <div id="example-list">Coming soon ...</div>
         </div>
-        <!--
-        <h1>A simple web framework for big data</h1>
-        <p class="lead">
-            Tangelo makes it easy to create modern, dynamic web applications.
-            With Tangelo, you can
-            use a built-in data service, or write simple Python functions
-            to access serve your data. Our client library, tangelo.js, wraps
-            charts, maps, and other advanced HTML5 visualizations for
-            fresh and dynamic applications with minimal code.
-        </p>
-        -->
-        <h2>Built for ease of development</h2>
-        <p>
-            Starting a Tangelo application is as simple as creating an <code>index.html</code> file,
-            which can refer to supporting Javascript and CSS as needed.
-            If you need custom server-side processing, data gathering,
-            or a full REST API, put a Python file right alongside
-            your Javascript and HTML to expose it as a service.
-        </p>
-        <p>
-            For example, suppose you want to manipulate some text on your server. The app
-            starts with simple Bootstrap-infused HTML file containing a form to submit the text.
-        </p>
-        <script src="https://gist.github.com/jeffbaumes/6599647.js?file=index.html" type="text/javascript"></script>
-        <p>
-            The Javascript code provides a handler for the button
-            to submit the text to the server and display the results.
-            Note that we are using a custom service called <code>myservice</code>.
-        </p>
-        <script src="https://gist.github.com/jeffbaumes/6599647.js?file=myapp.js" type="text/javascript"></script>
-        <p>
-            To implement a service, just add a Python file anywhere. It will automatically
-            be exposed as a URL endpoint by the name of the Python file, here as <code>myservice</code>.
-            In Python, define a <code>run()</code> function with arbitrary arguments,
-            and URL paths and/or
-            query parameters will be mapped to those arguments. If you return a JSON-like Python
-            object (arbitrarily-nested dictionaries/arrays), Tangelo will convert that to JSON
-            text so it can be retrieved easily using Javascript Ajax utilities like
-            jQuery's <code>$.getJSON()</code>. Here we simply return the reversed text.
-        </p>
-        <script src="https://gist.github.com/jeffbaumes/6599647.js?file=myservice.py" type="text/javascript"></script>
-        <p>
-            That's it. Add these three files under the <code>build/deploy/web</code> directory of your
-            Tangelo instance, and the app will start being served on Tangelo. If you edit any of these
-            files, including the Python file, just refresh your page in the browser to see the changes,
-            no web server restart required.
-        </p>
-        <p>
-            For more information, take a look at the
-            <a href="http://tangelo.readthedocs.org">documentation</a>.
-            Dig deeper by visiting our <a href="https://github.com/Kitware/tangelo.git">GitHub</a>
-            repository to view the source, report bugs, or submit patches.
-        </p>
+        <div id="support" style="display:none">
+            <h3>Documentation</h3>
+            <p>
+                As always, check the
+                <a href="http://tangelo.readthedocs.org">documentation</a>
+                first to see if your question is answered there.
+            </p>
+            <h3>Mailing List</h3>
+            <p>
+                Please join our
+                <a href="http://public.kitware.com/cgi-bin/mailman/listinfo/tangelo-users">mailing list</a>
+                if you have questions.
+            </p>
+            <h3>Bug Tracker</h3>
+            <p>
+                Use <a href="https://github.com/Kitware/tangelo/issues">GitHub issues</a>
+                to submit bug reports or feature requests.
+            </p>
+            <h3>Kitware Support</h3>
+            <p>
+                This project is brought to you by
+                <a href="http://kitware.com">Kitware, Inc</a>.
+                Please contact us if you want to discuss options for collaboration
+                on your big-data web visualization project.
+                If you have a specific need in mind that you think we may be able
+                to help with, check our
+                <a href="http://www.kitware.com/products/support.html">support options</a>
+                for something that may work for you.
+            </p>
+            <p>
+                You may also be interested in our other work in
+                <a href="http://www.kitware.com/solutions/informatics/informatics.html">informatics</a>,
+                <a href="http://www.kitware.com/solutions/softwareprocess/softwareprocess.html">software process</a>,
+                <a href="http://www.kitware.com/solutions/scientificcomputing/scientificcomputing.html">scientific computing</a>,
+                <a href="http://www.kitware.com/solutions/datamanagement/datamanagement.html">data management</a>,
+                <a href="http://www.kitware.com/solutions/computervision/computervision.html">computer vision</a>,
+                and
+                <a href="http://www.kitware.com/solutions/medicalimaging/medicalimaging.html">medical computing<a>.
+            </p>
+        </div>
         <hr>
         <div class="footer muted text-center">
             <small>
@@ -123,4 +170,8 @@
             </small>
         </div>
     </div>
+    <script src="jquery-min.js"></script>
+    <script src="underscore-min.js"></script>
+    <script src="backbone-min.js"></script>
+    <script src="index.js"></script>
 </body>
