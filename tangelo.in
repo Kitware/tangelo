@@ -205,12 +205,12 @@ class Server(object):
         return result
 
     def invoke_service(self, module, *pargs, **kwargs):
-        # TODO(choudhury): This method should attempt to load the named module, then invoke it
-        # with the given arguments.  However, if the named module is "config" or
-        # something similar, the method should instead launch a special "config"
-        # app, which lists the available app modules, along with docstrings or
-        # similar.  It should also allow the user to add/delete search paths for
-        # other modules.
+        # TODO(choudhury): This method should attempt to load the named module,
+        # then invoke it with the given arguments.  However, if the named module
+        # is "config" or something similar, the method should instead launch a
+        # special "config" app, which lists the available app modules, along
+        # with docstrings or similar.  It should also allow the user to
+        # add/delete search paths for other modules.
         tangelo.content_type("text/plain")
 
         # Save the system path (be sure to *make a copy* using the list()
@@ -454,7 +454,7 @@ class Server(object):
 
             # Reaching this point means the path is relative to the server's web
             # root.
-            path = [tangelo.webroot()] + path
+            path = [cherrypy.config.get("webroot")] + path
 
         # Form a path name from the path components.
         finalpath = os.path.sep.join(path)
@@ -1053,7 +1053,7 @@ if __name__ == "__main__":
 
     # Determine the current directory based on the invocation of this script.
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    tangelo.set_webroot(current_dir + "/web")
+    cherrypy.config.update({"webroot": current_dir + "/web"})
 
     # Decide whether to daemonize, based on whether the user wishes not to, and
     # whether the platform supports it.
