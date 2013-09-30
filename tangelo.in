@@ -239,7 +239,9 @@ class Server(object):
             mtime = os.path.getmtime(module)
             if stamp is None or mtime > stamp["mtime"]:
                 tangelo.log("loading new module: " + module)
-                service = imp.load_source(module, module)
+                # Remove .py to get the module name
+                name = module[:-3]
+                service = imp.load_source(name, module)
                 self.modules[module] = {"module": service, "mtime": mtime}
             else:
                 service = stamp["module"]
