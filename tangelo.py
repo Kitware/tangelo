@@ -1,6 +1,7 @@
 import cherrypy
 import os.path
 import sys
+import types
 
 # This function defines the structure of a service response.  Each service
 # module should import this function from this package.
@@ -26,32 +27,17 @@ def log(*pargs, **kwargs):
 def request_path():
     return cherrypy.request.path_info
 
-# TODO(choudhury): this leaves a global variable open for anyone to modify;
-# there's a crazy hack (sanctioned by Guido himself) that lets us get around it:
-# http://stackoverflow.com/questions/2447353/getattr-on-a-module (Ethan Furman's
-# answer), which references this email:
-# http://mail.python.org/pipermail/python-ideas/2012-May/014969.html
-_modulepath = None
-def modulepath(mp):
-    global _modulepath
-    _modulepath = mp
-
-_webroot = None
-def set_webroot(r):
-    global _webroot
-    _webroot = r
-
-def webroot():
-    return _webroot
-
 def legal_path(path):
     #orig = path
     if os.path.isabs(path):
         return (False, "absolute")
 
+    # Extract the web root directory from the global config.
+    webroot = cherrypy.config.get("webroot")
+
     if path[0] != "~":
-        path = os.path.abspath(_webroot + os.path.sep + path)
-        if len(path) >= len(_webroot) and path[:len(_webroot)] == _webroot:
+        path = os.path.abspath(webroot + os.path.sep + path)
+        if len(path) >= len(webroot) and path[:len(webroot)] == webroot:
             return (True, "web root")
     else:
         home = os.path.expanduser("~").split(os.path.sep)[:-1]
@@ -68,13 +54,20 @@ def abspath(path):
         comp = [os.path.expanduser(comp[0])] + ["tangelo_html"] + comp[1:]
         path = os.path.sep.join(comp)
     else:
-        path = _webroot + os.path.sep + path
+        path = webroot + os.path.sep + path
 
     return os.path.abspath(path)
 
 def paths(runtimepaths):
+    # If a single string is passed in, wrap it into a singleton list (this is
+    # important because a string in Python is technically a list of lists, so
+    # without this check, this function will treat a single string as a list of
+    # single-letter strings - not at all what we expect to happen).
+    if type(runtimepaths) in types.StringTypes:
+        runtimepaths = [runtimepaths]
+
     home = os.path.expanduser("~").split(os.path.sep)[:-1]
-    root = webroot()
+    root = cherrypy.config.get("webroot")
 
     # This function returns an absolute path if the path is allowed (i.e., in
     # someone's tangelo_html directory, or under the web root directory), or
@@ -85,7 +78,7 @@ def paths(runtimepaths):
             log("Illegal path (absolute): %s" % (orig), "SERVICE")
             return None
 
-        path = os.path.abspath(_modulepath + os.path.sep + path)
+        path = os.path.abspath(cherrypy.thread_data.modulepath + os.path.sep + path)
         if len(path) >= len(root) and path[:len(root)] == root:
             return path
 
