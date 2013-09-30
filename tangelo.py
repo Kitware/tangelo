@@ -34,7 +34,6 @@ def request_body():
         def __init__(self, filelike, process_request_body):
             self.source = filelike
             self.process_request_body = process_request_body
-            log(str(self.process_request_body))
 
         def read(self, *pargs, **kwargs):
             if not self.process_request_body:
