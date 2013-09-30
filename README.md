@@ -36,7 +36,7 @@ services, such as database access, server side processing, or anything else that
 you can imagine.
 
 See the [Application
-Architecture](http://kitware.github.io/tangelo/architecture.html) page in the
+Architecture](https://tangelo.readthedocs.org/en/latest/architecture.html) page in the
 documentation for more information.
 
 ## Get Involved
