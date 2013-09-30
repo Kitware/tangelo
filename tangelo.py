@@ -26,16 +26,6 @@ def log(*pargs, **kwargs):
 def request_path():
     return cherrypy.request.path_info
 
-# TODO(choudhury): this leaves a global variable open for anyone to modify;
-# there's a crazy hack (sanctioned by Guido himself) that lets us get around it:
-# http://stackoverflow.com/questions/2447353/getattr-on-a-module (Ethan Furman's
-# answer), which references this email:
-# http://mail.python.org/pipermail/python-ideas/2012-May/014969.html
-_modulepath = None
-def modulepath(mp):
-    global _modulepath
-    _modulepath = mp
-
 _webroot = None
 def set_webroot(r):
     global _webroot
@@ -85,7 +75,7 @@ def paths(runtimepaths):
             log("Illegal path (absolute): %s" % (orig), "SERVICE")
             return None
 
-        path = os.path.abspath(_modulepath + os.path.sep + path)
+        path = os.path.abspath(cherrypy.thread_data.modulepath + os.path.sep + path)
         if len(path) >= len(root) and path[:len(root)] == root:
             return path
 
