@@ -1,6 +1,7 @@
 import cherrypy
 import os.path
 import sys
+import types
 
 # This function defines the structure of a service response.  Each service
 # module should import this function from this package.
@@ -63,6 +64,13 @@ def abspath(path):
     return os.path.abspath(path)
 
 def paths(runtimepaths):
+    # If a single string is passed in, wrap it into a singleton list (this is
+    # important because a string in Python is technically a list of lists, so
+    # without this check, this function will treat a single string as a list of
+    # single-letter strings - not at all what we expect to happen).
+    if type(runtimepaths) in types.StringTypes:
+        runtimepaths = [runtimepaths]
+
     home = os.path.expanduser("~").split(os.path.sep)[:-1]
     root = webroot()
 
