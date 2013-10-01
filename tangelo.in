@@ -101,6 +101,9 @@ class Server(object):
     # An HTML parser for use in the error_page handler.
     html = HTMLParser.HTMLParser()
 
+    # A list of acceptable authentication types.
+    allowed_auth_types = ["digest"]
+
     def __init__(self, auth, vtkweb_ports=None):
         # A boolean indicating whether to perform HTTP authentication or not.
         self.auth = auth
@@ -154,9 +157,6 @@ class Server(object):
                   "realm": None,
                   "userpass": None}
 
-        # Create a list of acceptable authentication types.
-        allowed = ["digest"]
-
         # Try to open and parse the file.
         try:
             with open(filename) as f:
@@ -166,8 +166,8 @@ class Server(object):
 
                 for i, (k, v) in enumerate(zip(keys, values)):
                     if k == "AuthType":
-                        if v not in allowed:
-                            result["msg"] = "%s is not a supported authentication type.  The supported types are: %s" % (v, ", ".join(allowed))
+                        if v not in Server.allowed_auth_types:
+                            result["msg"] = "%s is not a supported authentication type.  The supported types are: %s" % (v, ", ".join(Server.allowed_auth_types))
                             return result
                         else:
                             result["auth_type"] = v
@@ -387,6 +387,8 @@ class Server(object):
         # May also want to include a basic auth path as well, perhaps depending
         # on a key/value in the .htaccess file itself.
 
+        reload_page = None
+
         # If there is no htfile, then ensure that the path is unregistered from
         # the security dict, and unregister the config found there.  Otherwise,
         # parse the htfile and add whatever is found there to the security
@@ -394,7 +396,19 @@ class Server(object):
         if htfile is None:
             if path_info in self.security:
                 del self.security[path_info]
-                self.app.pop(path_info, None)
+                #self.app.pop(path_info, None)
+
+                # TODO(choudhury): this is an attempt to disable an existing
+                # tool - verify that this works.  It is meant to replace the
+                # commented-out line above.
+                cfg = self.app.config[path_info]
+                for a in Server.allowed_auth_types:
+                    key = "tools.auth_%s.on" % (a)
+                    if key in cfg:
+                        cfg[key] = False
+                        break
+                self.app.merge({path_info: cfg})
+                reload_page = False
         else:
             # Stat the file specifically to learn it's last-modified time.
             ht_mtime = os.stat(htfile).st_mtime
@@ -407,7 +421,7 @@ class Server(object):
                 htspec = Server.parse_htaccess(htfile)
                 if htspec["msg"]:
                     tangelo.log("Could not register %s: %s" % (path_info, htspec["msg"]), "HTACCESS")
-                    return htspec["msg"]
+                    return (False, htspec["msg"])
 
                 # Declare an auth config object using the values in the HtAccess
                 # object.
@@ -422,8 +436,9 @@ class Server(object):
 
                 # Store the htfile's last-modified time.
                 self.security[path_info] = ht_mtime
+                reload_page = True
 
-        return None
+        return (reload_page, None)
 
     @cherrypy.expose
     def default(self, *path, **args):
@@ -492,15 +507,24 @@ class Server(object):
         # (anywhere in either the requested path's directory itself, or any
         # ancestor directory).
         if self.auth:
+            # Get the list of path components.
             reqpathcomp = reqpath.split("/")
 
+            # If the request path is for a directory, it will end in a slash, so
+            # the component list will end in an empty string.  In this case,
+            # remove it.
+            if reqpathcomp[-1] == "":
+                reqpathcomp = reqpathcomp[:-1]
+
             # Now begin checking each directory up to the root for an updated
-            # .htaccess file.
+            # .htaccess file.  Do so by stripping in parallel an equal sized
+            # suffix of both the file path and request path component lists.
+            diff = len(path) - len(reqpathcomp)
             for i in range(len(reqpathcomp), 0, -1):
                 done = False
 
                 rqp = "/".join(reqpathcomp[:i])
-                fp = os.path.sep.join(path[:i])
+                fp = os.path.sep.join(path[:(i+diff)])
 
                 # Special case detection - if we wind up with rqp as "" or "/", then
                 # this means we have reached the web root and it is the last case we
@@ -512,12 +536,24 @@ class Server(object):
                     rqp = "/"
                     fp = current_dir + os.path.sep + "web"
 
+                # Create the full disk path to the htaccess file; use None if
+                # the file doesn't exist.
                 htfile = fp + "/.htaccess"
                 if not os.path.exists(htfile):
                     htfile = None
-                msg = self.htaccess(htfile, rqp)
+
+                # Call the htaccess() method to process the file - by installing
+                # a new handler, updating an existing handler, or removing it.
+                reload_page, msg = self.htaccess(htfile, rqp)
                 if msg is not None:
                     raise cherrypy.HTTPError(401, "There was an error in the HTTP authentication process: %s" % (msg))
+
+                # This is a hack to prevent the page from loading the very first
+                # time its htaccess handler is installed.  In the future, this
+                # needs to be taken care of in a before_request handler of some
+                # kind.
+                if reload_page:
+                    raise cherrypy.HTTPRedirect(cherrypy.request.path_info)
 
                 if done:
                     break
