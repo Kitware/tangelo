@@ -82,7 +82,7 @@ def abspath(path):
         comp = [os.path.expanduser(comp[0])] + ["tangelo_html"] + comp[1:]
         path = os.path.sep.join(comp)
     else:
-        path = webroot + os.path.sep + path
+        path = cherrypy.config.get("webroot") + os.path.sep + path
 
     return os.path.abspath(path)
 
