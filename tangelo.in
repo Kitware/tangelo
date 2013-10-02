@@ -108,10 +108,6 @@ class Server(object):
         # A boolean indicating whether to perform HTTP authentication or not.
         self.auth = auth
 
-        # A handle to the CherryPy app itself, for purposes of installing
-        # configs to execute authentication.
-        self.app = None
-
         # A dict containing information about imported modules.
         self.modules = {}
 
@@ -401,13 +397,13 @@ class Server(object):
                 # TODO(choudhury): this is an attempt to disable an existing
                 # tool - verify that this works.  It is meant to replace the
                 # commented-out line above.
-                cfg = self.app.config[path_info]
+                cfg = cpserver.config[path_info]
                 for a in Server.allowed_auth_types:
                     key = "tools.auth_%s.on" % (a)
                     if key in cfg:
                         cfg[key] = False
                         break
-                self.app.merge({path_info: cfg})
+                cpserver.merge({path_info: cfg})
                 reload_page = False
         else:
             # Stat the file specifically to learn it's last-modified time.
@@ -432,7 +428,7 @@ class Server(object):
                              toolname % "get_ha1": passdict,
                              toolname % "key": "deadbeef"}
 
-                self.app.merge({path_info: auth_conf})
+                cpserver.merge({path_info: auth_conf})
 
                 # Store the htfile's last-modified time.
                 self.security[path_info] = ht_mtime
@@ -442,11 +438,6 @@ class Server(object):
 
     @cherrypy.expose
     def default(self, *path, **args):
-        if self.app is None:
-            self.app = cherrypy.tree.apps.values()[0]
-
-        tangelo.log("same: %s" % (self.app.root is cpserver))
-
         # Convert the path argument into a list (from a tuple).
         path = list(path)
 
@@ -835,7 +826,7 @@ def shutdown(signum, frame):
 
     # Perform (1) vtkweb process cleanup, (2) twisted reactor cleanup and quit,
     # (3) CherryPy shutdown, and (4) CherryPy exit.
-    cpserver.cleanup()
+    cpserver.root.cleanup()
     reactor.stop()
     cherrypy.engine.stop()
     cherrypy.engine.exit()
@@ -943,8 +934,8 @@ def start(vtkweb_ports=None):
     # server and get it going.
     #
     # Create an instance of the main handler object.
-    cpserver = Server(do_auth, vtkweb_ports)
-    cherrypy.tree.mount(cpserver, "/", {"/": { "tools.test_before_handler.on": True }})
+    cpserver = cherrypy.Application(Server(do_auth, vtkweb_ports), "/")
+    cherrypy.tree.mount(cpserver, config={"/": { "tools.test_before_handler.on": True }})
 
     # Try to drop privileges if requested, since we've bound to whatever port
     # superuser privileges were needed for already.
