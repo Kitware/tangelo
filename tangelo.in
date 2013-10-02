@@ -445,6 +445,8 @@ class Server(object):
         if self.app is None:
             self.app = cherrypy.tree.apps.values()[0]
 
+        tangelo.log("same: %s" % (self.app.root is cpserver))
+
         # Convert the path argument into a list (from a tuple).
         path = list(path)
 
@@ -942,7 +944,7 @@ def start(vtkweb_ports=None):
     #
     # Create an instance of the main handler object.
     cpserver = Server(do_auth, vtkweb_ports)
-    cherrypy.tree.mount(cpserver, "/")
+    cherrypy.tree.mount(cpserver, "/", {"/": { "tools.test_before_handler.on": True }})
 
     # Try to drop privileges if requested, since we've bound to whatever port
     # superuser privileges were needed for already.
@@ -997,6 +999,11 @@ def start(vtkweb_ports=None):
 
     # Send SIGQUIT to an immediate, ungraceful shutdown instead.
     signal.signal(signal.SIGQUIT, die)
+
+    # TESTING.  Install some custom tools.
+    def print_reqpath():
+        tangelo.log("this is a testing tool: %s" % (cherrypy.request.path_info))
+    cherrypy.tools.test_before_handler = cherrypy.Tool("before_handler", print_reqpath, priority=0)
 
     # Start the CherryPy engine.
     cherrypy.engine.start()
