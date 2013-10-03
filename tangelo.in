@@ -33,8 +33,9 @@ def treat_url():
     reqpath = cherrypy.request.path_info
     webroot = cherrypy.config.get("webroot")
 
-    # Clear the "filepath" property in the thread storage.
+    # Clear the thread storage.
     cherrypy.thread_data.target = None
+    cherrypy.thread_data.do_auth = True
 
     # Special cases.
     if reqpath == "":
@@ -61,6 +62,18 @@ def treat_url():
     else:
         pathcomp = [webroot] + reqpathcomp
 
+    # Save the request path and disk path components in the thread storage,
+    # slightly modifying the request path if it refers to an absolute path
+    # (indicated by being one element shorter than the disk path).
+    if len(reqpathcomp) == len(pathcomp) - 1:
+        reqpathcomp_save = [""] + reqpathcomp
+    elif len(reqpathcomp) == len(pathcomp):
+        reqpathcomp_save = reqpathcomp
+    else:
+        raise RuntimeError("reqpathcomp and pathcomp lengths are wonky")
+    cherrypy.thread_data.reqpathcomp = reqpathcomp_save
+    cherrypy.thread_data.pathcomp = pathcomp
+
     # If pathcomp has more than one element, fuse the first two together.  This
     # makes the search for a possible service below much simpler.
     if len(pathcomp) > 1:
@@ -81,7 +94,7 @@ def treat_url():
     #
     # If it is not a regular file, then check to see if it is a python service.
     #
-    # Finally, if it is none of the above, then raise a 404 error.
+    # Finally, if it is none of the above, then indicate a 404 error.
     if os.path.isdir(path):
         if reqpath[-1] != "/":
             raise cherrypy.HTTPRedirect(reqpath + "/")
@@ -105,17 +118,23 @@ def treat_url():
         if pargs is None:
             cherrypy.thread_data.target = { "type": "404",
                                             "path": path }
+            cherrypy.thread_data.do_auth = False
         else:
             cherrypy.thread_data.target = { "type": "service",
                                             "path": service_path,
                                             "pargs": pargs }
 
 def auth_update():
+    if not cherrypy.thread_data.do_auth:
+        return
+
     tangelo.log("auth_update: %s" % (cherrypy.request.path_info))
 
-    path_info = cherrypy.request.path_info
+    reqpathcomp = cherrypy.thread_data.reqpathcomp
+    pathcomp = cherrypy.thread_data.pathcomp
 
-    #cherrypy.request.path_info += "lkjdslfkjds"
+    tangelo.log(str(reqpathcomp))
+    tangelo.log(str(pathcomp))
 
 class WebSocketLowPriorityPlugin(WebSocketPlugin):
     def __init__(self, *pargs, **kwargs):
@@ -1042,7 +1061,7 @@ def start(vtkweb_ports=None):
     #
     # Create an instance of the main handler object.
     cpserver = cherrypy.Application(Server(do_auth, vtkweb_ports), "/")
-    cherrypy.tree.mount(cpserver, config={"/": { "tools.auth_update.on": False,
+    cherrypy.tree.mount(cpserver, config={"/": { "tools.auth_update.on": True,
                                                  "tools.treat_url.on": True }})
 
     # Try to drop privileges if requested, since we've bound to whatever port
