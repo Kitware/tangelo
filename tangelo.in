@@ -103,7 +103,8 @@ def treat_url():
                 break
 
         if pargs is None:
-            cherrypy.thread_data.target = { "type": "404" }
+            cherrypy.thread_data.target = { "type": "404",
+                                            "path": path }
         else:
             cherrypy.thread_data.target = { "type": "service",
                                             "path": service_path,
@@ -538,7 +539,7 @@ class Server(object):
             elif target["type"] == "service":
                 return self.invoke_service(target["path"], *target["pargs"], **args)
             elif target["type"] == "404":
-                raise cherrypy.lib.static.serve_file("/" + "/".join(path))
+                raise cherrypy.lib.static.serve_file(target["path"])
             else:
                 raise RuntimeError("Illegal target type '%s'" % (target["type"]))
 
