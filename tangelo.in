@@ -68,11 +68,21 @@ def treat_url():
     if len(reqpathcomp) == len(pathcomp) - 1:
         reqpathcomp_save = [""] + reqpathcomp
     elif len(reqpathcomp) == len(pathcomp):
-        reqpathcomp_save = reqpathcomp
+        reqpathcomp_save = ["/" + reqpathcomp[0]] + reqpathcomp[1:]
     else:
         raise RuntimeError("reqpathcomp and pathcomp lengths are wonky")
+
+    # If the path represents a directory and has a trailing slash, remove it
+    # (this will make the auth update step easier).
+    if reqpathcomp_save[-1] == "" or pathcomp[-1] == "":
+        assert reqpathcomp_save[-1] == "" and pathcomp[-1] == ""
+        reqpathcomp_save = reqpathcomp_save[:-1]
+        pathcomp_save = pathcomp[:-1]
+    else:
+        pathcomp_save = pathcomp
+
     cherrypy.thread_data.reqpathcomp = reqpathcomp_save
-    cherrypy.thread_data.pathcomp = pathcomp
+    cherrypy.thread_data.pathcomp = pathcomp_save
 
     # If pathcomp has more than one element, fuse the first two together.  This
     # makes the search for a possible service below much simpler.
@@ -124,17 +134,159 @@ def treat_url():
                                             "path": service_path,
                                             "pargs": pargs }
 
-def auth_update():
-    if not cherrypy.thread_data.do_auth:
-        return
+class AuthUpdate(cherrypy.Tool):
+    # A list of acceptable authentication types.
+    allowed_auth_types = ["digest"]
 
-    tangelo.log("auth_update: %s" % (cherrypy.request.path_info))
+    def __init__(self, point="before_handler", priority=50):
+        # cherrypy.Tool attributes.
+        self._name = None
+        self._point = point
+        self._priority = priority
 
-    reqpathcomp = cherrypy.thread_data.reqpathcomp
-    pathcomp = cherrypy.thread_data.pathcomp
+        # A record of installed auth tools.
+        self.security = {}
 
-    tangelo.log(str(reqpathcomp))
-    tangelo.log(str(pathcomp))
+    @staticmethod
+    def parse_htaccess(filename):
+        result = {"msg": None,
+                  "auth_type": None,
+                  "user_file": None,
+                  "realm": None,
+                  "userpass": None}
+
+        # Try to open and parse the file.
+        try:
+            with open(filename) as f:
+                lines = filter(lambda x: len(x) > 0, map(lambda x: x.strip().split(), f.readlines()))
+                keys = map(lambda x: x[0], lines)
+                values = map(lambda x: " ".join(x[1:]), lines)
+
+                for i, (k, v) in enumerate(zip(keys, values)):
+                    if k == "AuthType":
+                        if v not in AuthUpdate.allowed_auth_types:
+                            result["msg"] = "%s is not a supported authentication type.  The supported types are: %s" % (v, ", ".join(AuthUpdate.allowed_auth_types))
+                            return result
+                        else:
+                            result["auth_type"] = v
+                    elif k in ["AuthPasswordFile", "AuthUserFile"]:
+                        result["user_file"] = v
+                    elif k == "AuthRealm":
+                        result["realm"] = v
+                    else:
+                        result["msg"] = "Unknown key '%s' on line %d of file '%s'" % (k, i+1, filename)
+                        return result
+        except IOError:
+            result["msg"] = "Could not open file '%s'" % (filename)
+            return result
+
+        # Open the user file and parse out the username/passwords of those users
+        # in the correct realm.
+        recs = None
+        if result["user_file"] is not None:
+            try:
+                with open(result["user_file"]) as f:
+                    recs = filter(lambda x: x[1] == result["realm"], map(lambda x: x.strip().split(":"), f.readlines()))
+            except IOError:
+                result["msg"] = "Could not open user password file '%s'" % (result["user_file"])
+                return result
+            except IndexError:
+                result["msg"] = "Malformed content in user password file '%s' (some line has too few fields)" % (result["user_file"])
+                return result
+
+        try:
+            result["userpass"] = {x[0]: x[2] for x in recs}
+        except IndexError:
+            result["msg"] = "Malformed content in user password file '%s' (some line has too few fields)" % (result["user_file"])
+            return result
+
+        return result
+
+    def htaccess(self, htfile, reqpath):
+        changed = False
+        if htfile is None:
+            if reqpath in self.security:
+                del self.security[reqpath]
+
+                cfg = cpserver.config[reqpath]
+                for a in AuthUpdate.allowed_auth_types:
+                    key = "tools.auth_%s.on" % (a)
+                    if key in cfg:
+                        cfg[key] = False
+                    cpserver.merge({reqpath: cfg})
+                    changed = True
+        else:
+            # Get the mtime of the htfile.
+            ht_mtime = os.stat(htfile).st_mtime
+
+            if reqpath not in self.security or ht_mtime > self.security[reqpath]:
+                # We have either a new .htaccess file, or one that has
+                # been modified list the last request to this path.
+                htspec = AuthUpdate.parse_htaccess(htfile)
+                if htspec["msg"] is not None:
+                    tangelo.log("[AuthUpdate] Could not register %s: %s" (reqpath, htspec["msg"]))
+                    return changed, htspec["msg"]
+
+                # Create an auth config tool using the values in the htspec.
+                toolname = "tools.auth_%s." % (htspec["auth_type"])
+                passdict = lambda realm, username: htspec["userpass"].get(username)
+                # TODO(choudhury): replace "deadbeef" with a nonce created
+                # randomly in the __init__() method.
+                auth_conf = { toolname + "on": True,
+                              toolname + "realm": htspec["realm"],
+                              toolname + "get_ha1": passdict,
+                              toolname + "key": "deadbeef" }
+
+                cpserver.merge({reqpath: auth_conf})
+
+                # Store the mtime in the security table.
+                self.security[reqpath] = ht_mtime
+
+                changed = True
+
+        return changed, None
+
+    def callable(self):
+        if not cherrypy.thread_data.do_auth:
+            return
+
+        # Grab the saved request and disk path lists.  The first component of
+        # both lists should be the "root" directory corresponding to the
+        # resource (either the webroot, or ~user/tangelo_html).
+        reqpathcomp = cherrypy.thread_data.reqpathcomp
+        pathcomp = cherrypy.thread_data.pathcomp
+
+        # The lengths of the lists should be equal.
+        assert len(reqpathcomp) == len(pathcomp)
+
+        # Create a list of paths to search, starting with the requested resource and
+        # moving towards the root.
+        paths = reversed(map(lambda i: ("/".join(reqpathcomp[:(i+1)]) or "/", os.path.sep.join(pathcomp[:(i+1)])), range(len(reqpathcomp))))
+
+        # Check each path that represents a directory for a .htaccess file, then
+        # decide what to do based on the current auth state for that path.
+        for rpath, dpath in paths:
+            if os.path.isdir(dpath):
+                htfile = dpath + os.path.sep + ".htaccess"
+                if not os.path.exists(htfile):
+                    htfile = None
+
+                changed, msg = self.htaccess(htfile, rpath)
+                if msg is not None:
+                    raise cherrypy.HTTPError(401, "There was an error in the HTTP authentication process: %s" % (msg))
+
+                # TODO(choudhury): I really don't understand why this hack is
+                # necessary.  Basically, when the auth_* tool is installed on
+                # the path in the htaccess() method, it doesn't seem to take
+                # hold until the next time the page is loaded.  So this hack
+                # forces a page reload, but it would be better to simply make
+                # the new config "take hold" instead.
+                if changed:
+                    raise cherrypy.HTTPRedirect(cherrypy.request.path_info)
+
+                # Don't bother updating the security table for higher paths -
+                # we'll process those later, when they are requested.
+                break
 
 class WebSocketLowPriorityPlugin(WebSocketPlugin):
     def __init__(self, *pargs, **kwargs):
@@ -210,19 +362,9 @@ class Server(object):
     # An HTML parser for use in the error_page handler.
     html = HTMLParser.HTMLParser()
 
-    # A list of acceptable authentication types.
-    allowed_auth_types = ["digest"]
-
-    def __init__(self, auth, vtkweb_ports=None):
-        # A boolean indicating whether to perform HTTP authentication or not.
-        self.auth = auth
-
+    def __init__(self, vtkweb_ports=None):
         # A dict containing information about imported modules.
         self.modules = {}
-
-        # A dict containing information about currently installed authentication
-        # handlers.
-        self.security = {}
 
         # A dict containing currently running streaming data sources.
         self.streams = {}
@@ -253,61 +395,6 @@ class Server(object):
 <p>%s
 <hr>
 <p><em>Powered by Tangelo</em> <img src=/img/tangelo.ico>""" % (status, message)
-
-    @staticmethod
-    def parse_htaccess(filename):
-        result = {"msg": None,
-                  "auth_type": None,
-                  "user_file": None,
-                  "realm": None,
-                  "userpass": None}
-
-        # Try to open and parse the file.
-        try:
-            with open(filename) as f:
-                lines = filter(lambda x: len(x) > 0, map(lambda x: x.strip().split(), f.readlines()))
-                keys = map(lambda x: x[0], lines)
-                values = map(lambda x: " ".join(x[1:]), lines)
-
-                for i, (k, v) in enumerate(zip(keys, values)):
-                    if k == "AuthType":
-                        if v not in Server.allowed_auth_types:
-                            result["msg"] = "%s is not a supported authentication type.  The supported types are: %s" % (v, ", ".join(Server.allowed_auth_types))
-                            return result
-                        else:
-                            result["auth_type"] = v
-                    elif k in ["AuthPasswordFile", "AuthUserFile"]:
-                        result["user_file"] = v
-                    elif k == "AuthRealm":
-                        result["realm"] = v
-                    else:
-                        result["msg"] = "Unknown key '%s' on line %d of file '%s'" % (k, i+1, filename)
-                        return result
-        except IOError:
-            result["msg"] = "Could not open file '%s'" % (filename)
-            return result
-
-        # Open the user file and parse out the username/passwords of those users
-        # in the correct realm.
-        recs = None
-        if result["user_file"] is not None:
-            try:
-                with open(result["user_file"]) as f:
-                    recs = filter(lambda x: x[1] == result["realm"], map(lambda x: x.strip().split(":"), f.readlines()))
-            except IOError:
-                result["msg"] = "Could not open user password file '%s'" % (result["user_file"])
-                return result
-            except IndexError:
-                result["msg"] = "Malformed content in user password file '%s' (some line has too few fields)" % (result["user_file"])
-                return result
-
-        try:
-            result["userpass"] = {x[0]: x[2] for x in recs}
-        except IndexError:
-            result["msg"] = "Malformed content in user password file '%s' (some line has too few fields)" % (result["user_file"])
-            return result
-
-        return result
 
     def invoke_service(self, module, *pargs, **kwargs):
         # TODO(choudhury): This method should attempt to load the named module,
@@ -483,70 +570,6 @@ class Server(object):
         #return "<!doctype html><h1>Directory Listing</h1>This is a dummy directory listing placeholder."
         return result
 
-    def htaccess(self, htfile, path_info):
-        # TODO(choudhury): look at
-        # /usr/lib/python2.7/site-packages/cherrypy/lib/auth_digest.py and
-        # /usr/lib/python2.7/site-packages/cherrypy/test/test_auth_digest.py for
-        # examples of how to do digest auth.  Will want to have users use a
-        # tangpass sort of script to generate .htaccess files, so the digest
-        # method can remain consistent.
-        #
-        # May also want to include a basic auth path as well, perhaps depending
-        # on a key/value in the .htaccess file itself.
-
-        reload_page = None
-
-        # If there is no htfile, then ensure that the path is unregistered from
-        # the security dict, and unregister the config found there.  Otherwise,
-        # parse the htfile and add whatever is found there to the security
-        # registry and the application configuration.
-        if htfile is None:
-            if path_info in self.security:
-                del self.security[path_info]
-                #self.app.pop(path_info, None)
-
-                # TODO(choudhury): this is an attempt to disable an existing
-                # tool - verify that this works.  It is meant to replace the
-                # commented-out line above.
-                cfg = cpserver.config[path_info]
-                for a in Server.allowed_auth_types:
-                    key = "tools.auth_%s.on" % (a)
-                    if key in cfg:
-                        cfg[key] = False
-                        break
-                cpserver.merge({path_info: cfg})
-                reload_page = False
-        else:
-            # Stat the file specifically to learn it's last-modified time.
-            ht_mtime = os.stat(htfile).st_mtime
-
-            if path_info not in self.security or ht_mtime > self.security[path_info]:
-                # We have found an htaccess file - if there is NO ENTRY in the
-                # security table, OR there IS an entry but the htaccess file is
-                # NEWER than the one used to create that entry, then we need to
-                # parse the file and insert (or update) the record in the table.
-                htspec = Server.parse_htaccess(htfile)
-                if htspec["msg"]:
-                    tangelo.log("Could not register %s: %s" % (path_info, htspec["msg"]), "HTACCESS")
-                    return (False, htspec["msg"])
-
-                # Declare an auth config object using the values in the HtAccess
-                # object.
-                toolname = "tools.auth_%s.%s" % (htspec["auth_type"], "%s")
-                passdict = lambda realm, username: htspec["userpass"].get(username)
-                auth_conf = {toolname % "on": True,
-                             toolname % "realm": htspec["realm"],
-                             toolname % "get_ha1": passdict,
-                             toolname % "key": "deadbeef"}
-
-                cpserver.merge({path_info: auth_conf})
-
-                # Store the htfile's last-modified time.
-                self.security[path_info] = ht_mtime
-                reload_page = True
-
-        return (reload_page, None)
-
     @cherrypy.expose
     def default(self, *path, **args):
         target = cherrypy.thread_data.target
@@ -561,147 +584,6 @@ class Server(object):
                 raise cherrypy.lib.static.serve_file(target["path"])
             else:
                 raise RuntimeError("Illegal target type '%s'" % (target["type"]))
-
-        assert False, "Illegal fall-through"
-
-        # Convert the path argument into a list (from a tuple).
-        path = list(path)
-
-        # If there are no positional arguments, behave as though the root
-        # index.html was requested.
-        if len(path) == 0:
-            path = ["index.html"]
-
-        # Check the first character of the first path component.  If it's a
-        # tilde, then assume the path points into a user's home directory.
-        if path[0][0] == "~":
-            # Only treat this component as a home directory if there is actually
-            # text following the tilde (rather than making the server serve
-            # files from the home directory of whatever user account it is using
-            # to run).
-            if len(path[0]) > 1:
-                # Expand the home directory, append the tangelo_html
-                # subdirectory, and then the tail of the original path.
-                path = os.path.expanduser(path[0]).split(os.path.sep) + ["tangelo_html"] + path[1:]
-        else:
-            # TODO(choudhury): check a table of configured custom mappings to
-            # see if the first path component should be mapped to some other
-            # filesystem path.
-
-            # Reaching this point means the path is relative to the server's web
-            # root.
-            path = [cherrypy.config.get("webroot")] + path
-
-        # Form a path name from the path components.
-        finalpath = os.path.sep.join(path)
-
-        # If the path represents a directory, assume the request is for an
-        # index.html file (look for an index.htm as a backup, and as a last
-        # resort, assume the user wants to see a directory listing).
-        #
-        # As this transformation is taking place, use the information to
-        # possibly modify the request path info as well.
-        reqpath = cherrypy.request.path_info
-        if reqpath[-1] == "/":
-            reqpath = reqpath[:-1]
-        if os.path.isdir(finalpath):
-            # If the URL is a directory, but without a trailing slash, redirect
-            # to the equivalent URL *with* a trailing slash.
-            if cherrypy.request.path_info == "" or cherrypy.request.path_info[-1] != "/":
-                raise cherrypy.HTTPRedirect(cherrypy.request.path_info + "/")
-
-            if os.path.exists(finalpath + os.path.sep + "index.html"):
-                path += ["index.html"]
-                finalpath += os.path.sep + "index.html"
-                reqpath += "/index.html"
-            elif os.path.exists(finalpath + os.path.sep + "index.htm"):
-                path += ["index.htm"]
-                finalpath += os.path.sep + "index.htm"
-                reqpath += "/index.htm"
-            else:
-                finalpath += os.path.sep
-                reqpath += "/"
-
-        # Check to see whether the path is protected by an .htaccess file
-        # (anywhere in either the requested path's directory itself, or any
-        # ancestor directory).
-        if self.auth:
-            # Get the list of path components.
-            reqpathcomp = reqpath.split("/")
-
-            # If the request path is for a directory, it will end in a slash, so
-            # the component list will end in an empty string.  In this case,
-            # remove it.
-            if reqpathcomp[-1] == "":
-                reqpathcomp = reqpathcomp[:-1]
-
-            # Now begin checking each directory up to the root for an updated
-            # .htaccess file.  Do so by stripping in parallel an equal sized
-            # suffix of both the file path and request path component lists.
-            diff = len(path) - len(reqpathcomp)
-            for i in range(len(reqpathcomp), 0, -1):
-                done = False
-
-                rqp = "/".join(reqpathcomp[:i])
-                fp = os.path.sep.join(path[:(i+diff)])
-
-                # Special case detection - if we wind up with rqp as "" or "/", then
-                # this means we have reached the web root and it is the last case we
-                # need to check.  Furthermore, if we arrived here by going one level
-                # up from someone's private web directory (e.g. from "/~roni") then
-                # we need to reset the filepath to point at the web root as well.
-                if rqp in ["", "/"]:
-                    done = True
-                    rqp = "/"
-                    fp = current_dir + os.path.sep + "web"
-
-                # Create the full disk path to the htaccess file; use None if
-                # the file doesn't exist.
-                htfile = fp + "/.htaccess"
-                if not os.path.exists(htfile):
-                    htfile = None
-
-                # Call the htaccess() method to process the file - by installing
-                # a new handler, updating an existing handler, or removing it.
-                reload_page, msg = self.htaccess(htfile, rqp)
-                if msg is not None:
-                    raise cherrypy.HTTPError(401, "There was an error in the HTTP authentication process: %s" % (msg))
-
-                # This is a hack to prevent the page from loading the very first
-                # time its htaccess handler is installed.  In the future, this
-                # needs to be taken care of in a before_request handler of some
-                # kind.
-                if reload_page:
-                    raise cherrypy.HTTPRedirect(cherrypy.request.path_info)
-
-                if done:
-                    break
-
-        # If the reqpath represents a directory (besides the web root), remove
-        # the trailing slash.
-        if reqpath == "":
-            reqpath = "/"
-        elif reqpath[-1] == "/":
-            reqpath = reqpath[:-1]
-
-        # Check the path components for a .py file.  If we find one, we'll take
-        # it to mean that (1) the user is trying to invoke that file as a web
-        # service and (2) anything appearing after that point in the URL is a
-        # positional argument to the service.
-        service_path = None
-        pargs = None
-        for i, p in enumerate(map(lambda x: os.sep.join(x), [path[:i] for i in range(len(path)+1)])):
-            if not os.path.isdir(p) and not os.path.exists(p) and os.path.exists(p + ".py"):
-                service_path = p + ".py"
-                pargs = path[i:]
-
-        # Serve the requested resource.
-        if service_path is not None:
-            return self.invoke_service(service_path, *pargs, **args)
-        elif os.path.isdir(finalpath):
-            return Server.dirlisting(finalpath, reqpath)
-        else:
-            return cherrypy.lib.static.serve_file(finalpath)
 
     @cherrypy.expose
     def stream(self, key=None, action="next"):
@@ -1060,8 +942,8 @@ def start(vtkweb_ports=None):
     # server and get it going.
     #
     # Create an instance of the main handler object.
-    cpserver = cherrypy.Application(Server(do_auth, vtkweb_ports), "/")
-    cherrypy.tree.mount(cpserver, config={"/": { "tools.auth_update.on": True,
+    cpserver = cherrypy.Application(Server(vtkweb_ports), "/")
+    cherrypy.tree.mount(cpserver, config={"/": { "tools.auth_update.on": do_auth,
                                                  "tools.treat_url.on": True }})
 
     # Try to drop privileges if requested, since we've bound to whatever port
@@ -1111,6 +993,11 @@ def start(vtkweb_ports=None):
     WebSocketLowPriorityPlugin(cherrypy.engine).subscribe()
     cherrypy.tools.websocket = WebSocketTool()
 
+    # Replace the stock auth_digest and auth_basic tools with ones that have
+    # slightly lower priority (so the AuthUpdate tool can run before them).
+    cherrypy.tools.auth_basic = cherrypy.Tool("before_handler", cherrypy.lib.auth_basic.basic_auth, priority=2)
+    cherrypy.tools.auth_digest = cherrypy.Tool("before_handler", cherrypy.lib.auth_digest.digest_auth, priority=2)
+
     # Install signal handlers to allow for proper cleanup/shutdown.
     for sig in [signal.SIGINT, signal.SIGTERM]:
         signal.signal(sig, shutdown)
@@ -1123,7 +1010,8 @@ def start(vtkweb_ports=None):
     # "auth update" tool, which checks for updated/new/deleted .htaccess files
     # and updates the state of auth tools on various paths.
     cherrypy.tools.treat_url = cherrypy.Tool("before_handler", treat_url, priority=0)
-    cherrypy.tools.auth_update = cherrypy.Tool("before_handler", auth_update, priority=1)
+    if do_auth:
+        cherrypy.tools.auth_update = AuthUpdate(point="before_handler", priority=1)
 
     # Start the CherryPy engine.
     cherrypy.engine.start()
