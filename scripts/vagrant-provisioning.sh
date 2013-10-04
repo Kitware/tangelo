@@ -16,7 +16,8 @@ apt-get install -y \
     vim \
     curl \
     couchdb \
-    mongodb-10gen
+    mongodb-10gen \
+    uglifyjs
 
 # Configure couch to work under port forwarding
 cp /vagrant/scripts/vagrant-couchdb-local.ini /etc/couchdb/local.ini
@@ -28,7 +29,7 @@ ps -U couchdb -o pid= | xargs kill -9
 /etc/init.d/couchdb start
 
 # Install python packages
-pip install cherrypy pymongo
+pip install cherrypy pymongo ws4py autobahn
 
 # Make the Tangelo build dir
 cd /vagrant
