@@ -85,6 +85,7 @@ set(JS_UGLIFY_FILES
 
 # These files should be copied to the deployment directory.
 set(SOURCES
+    minify_json.py
     tangelo.py
     web/img/glyphicons-halflings-white.png
     web/img/glyphicons-halflings.png
