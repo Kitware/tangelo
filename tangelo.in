@@ -10,6 +10,7 @@ import imp
 import itertools
 import json
 import md5
+from minify_json import json_minify
 import os
 import os.path
 import platform
@@ -420,6 +421,7 @@ class Server(object):
         # the "module boundary" properly).
         modpath = os.path.dirname(module)
         cherrypy.thread_data.modulepath = modpath
+        cherrypy.thread_data.modulename = module
 
         # Extend the system path with the module's home path.
         sys.path.insert(0, modpath)
@@ -431,6 +433,26 @@ class Server(object):
             mtime = os.path.getmtime(module)
             if stamp is None or mtime > stamp["mtime"]:
                 tangelo.log("loading new module: " + module)
+
+                # If we are really loading this module for the very first time,
+                # also try to load any configuration the module carries with it.
+                if stamp is None:
+                    assert module not in cherrypy.config["module-config"]
+                    config_file = module[:-2] + "json"
+                    if os.path.exists(config_file):
+                        try:
+                            with open(config_file) as f:
+                                config = json.loads(json_minify(f.read()))
+                            #cherrypy.config["module-config"][module] = config
+                        except IOError:
+                            tangelo.log("Could not open config file %s" % (config_file))
+                        except ValueError as e:
+                            tangelo.log("Error reading config file %s: %s" % (config_file, e))
+                    else:
+                        config = {}
+
+                    cherrypy.config["module-config"][module] = config
+
                 # Remove .py to get the module name
                 name = module[:-3]
                 service = imp.load_source(name, module)
@@ -1107,6 +1129,10 @@ if __name__ == "__main__":
     # Determine the current directory based on the invocation of this script.
     current_dir = os.path.dirname(os.path.abspath(__file__))
     cherrypy.config.update({"webroot": current_dir + "/web"})
+
+    # Place an empty dict to hold per-module configuration into the global
+    # configuration object.
+    cherrypy.config.update({"module-config": {}})
 
     # Decide whether to daemonize, based on whether the user wishes not to, and
     # whether the platform supports it.
