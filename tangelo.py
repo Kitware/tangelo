@@ -1,4 +1,5 @@
 import cherrypy
+import copy
 import os.path
 import sys
 import types
@@ -124,6 +125,15 @@ def paths(runtimepaths):
 
     # Finally, augment the path list.
     sys.path = newpaths + sys.path
+
+def config_dict():
+    return copy.deepcopy(cherrypy.config["module-config"][cherrypy.thread_data.modulename])
+
+def config(key):
+    return cherrypy.config["module-config"][cherrypy.thread_data.modulename][key]
+
+def config_get(key, default=None):
+    return cherrypy.config["module-config"][cherrypy.thread_data.modulename].get(key, default)
 
 class HTTPStatusCode:
     def __init__(self, code, msg=None):
