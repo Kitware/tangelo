@@ -427,36 +427,50 @@ class Server(object):
         sys.path.insert(0, modpath)
 
         # Import the module if not already imported previously (or if the module
-        # to import has been updated since the last import).
+        # to import, or its configuration file, has been updated since the last
+        # import).
         try:
             stamp = self.modules.get(module)
             mtime = os.path.getmtime(module)
-            if stamp is None or mtime > stamp["mtime"]:
-                tangelo.log("loading new module: " + module)
 
-                # If we are really loading this module for the very first time,
-                # also try to load any configuration the module carries with it.
+            config_file = module[:-2] + "json"
+            config_mtime = None
+            if os.path.exists(config_file):
+                config_mtime = os.path.getmtime(config_file)
+
+            if stamp is None or mtime > stamp["mtime"] or (config_mtime is not None and config_mtime > stamp["mtime"]):
                 if stamp is None:
-                    assert module not in cherrypy.config["module-config"]
-                    config_file = module[:-2] + "json"
-                    if os.path.exists(config_file):
-                        try:
-                            with open(config_file) as f:
-                                config = json.loads(json_minify(f.read()))
-                            #cherrypy.config["module-config"][module] = config
-                        except IOError:
-                            tangelo.log("Could not open config file %s" % (config_file))
-                        except ValueError as e:
-                            tangelo.log("Error reading config file %s: %s" % (config_file, e))
-                    else:
-                        config = {}
+                    tangelo.log("loading new module: " + module)
+                else:
+                    tangelo.log("reloading module: " + module)
 
-                    cherrypy.config["module-config"][module] = config
+                # Load any configuration the module might carry with it.
+                if config_mtime is not None:
+                    try:
+                        with open(config_file) as f:
+                            config = json.loads(json_minify(f.read()))
+                            if type(config) != dict:
+                                msg = "Service module configuration file does not contain a key-value store (i.e., a JSON Object)"
+                                tangelo.log(msg)
+                                raise TypeError(msg)
+                    except IOError:
+                        tangelo.log("Could not open config file %s" % (config_file))
+                        raise
+                    except ValueError as e:
+                        tangelo.log("Error reading config file %s: %s" % (config_file, e))
+                        raise
+                else:
+                    config = {}
+
+                cherrypy.config["module-config"][module] = config
 
                 # Remove .py to get the module name
                 name = module[:-3]
+
+                # Load the module.
                 service = imp.load_source(name, module)
-                self.modules[module] = {"module": service, "mtime": mtime}
+                self.modules[module] = { "module": service,
+                                         "mtime": max(mtime, config_mtime) }
             else:
                 service = stamp["module"]
         except:
