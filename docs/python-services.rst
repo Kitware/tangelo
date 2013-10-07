@@ -192,7 +192,55 @@ databases might look like the following:
         else:
             return db.find(query)
 
+Configuration
+=============
 
+You can optionally include a configuration file alongside the service itself.
+For instance, suppose we have the following service in `autodestruct.py`:
+
+.. code-block:: python
+
+    import tangelo
+    import starship
+
+    def run(officer=None, code=None, countdown=20*60):
+        config = tangelo.config()
+
+        if officer is None or code is None:
+            return { "status": "failed",
+                     "reason": "missing officer or code argument" }
+
+        if officer != config["officer"]:
+            return { "status": "failed",
+                     "reason": "unauthorized" }
+        elif code != config["code"]:
+            return { "status": "failed",
+                     "reason": "incorrect code" }
+
+        starship.autodestruct(countdown)
+
+        return { "status": "complete",
+                 "message": "Auto destruct in %d seconds!" % (countdown) }
+
+Via the `tangelo.config()` function, this service attempts to match the input
+data against credentials stored in the module level configuration, which is
+stored in `autodestruct.json`:
+
+.. code-block:: javascript
+
+    {
+        "officer": "picard",
+        "code": "echo november golf alpha golf echo four seven enable"
+    }
+
+The two files must have the same base name (`autodestruct` in this case) and be
+in the same location. Any time the module for a service is loaded, the
+configuration file will be parsed and loaded as well.  Changing either file will
+cause the module to be reloaded the next time it is invoked.  The
+`tangelo.config()` function returns a copy of the configuration dictionary, to
+prevent an errant service from updating the configuration in a persistent way.
+For this reason, it is advisable to only call this function once, capturing the
+result in a variable, and retrieving values from it as needed.
 
 .. _streaming:
 
