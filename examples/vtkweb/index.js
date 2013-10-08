@@ -82,13 +82,13 @@ function startProcess(pathUrl, name) {
 function startCone() {
     "use strict";
 
-    startProcess("/app/vtkweb/vtkweb_cone.py?progargs=", "cone");
+    startProcess("/examples/vtkweb/vtkweb_cone.py?progargs=", "cone");
 }
 
 function startPhylo() {
     "use strict";
 
-    startProcess("/app/vtkweb/vtkweb_tree.py?progargs=" + encodeURIComponent("--tree /home/roni/work/ArborWebApps/vtk-phylo-app/data/anolis.phy --table /home/roni/work/ArborWebApps/vtk-phylo-app/data/anolisDataAppended.csv"), "tree");
+    startProcess("/examples/vtkweb/vtkweb_tree.py?progargs=" + encodeURIComponent("--tree /home/roni/work/ArborWebApps/vtk-phylo-app/data/anolis.phy --table /home/roni/work/ArborWebApps/vtk-phylo-app/data/anolisDataAppended.csv"), "tree");
 }
 
 // When the page is closed, make sure to close any processes that were running.
