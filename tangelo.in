@@ -14,6 +14,7 @@ from minify_json import json_minify
 import os
 import os.path
 import platform
+import Queue
 import signal
 import subprocess
 import sys
@@ -359,6 +360,39 @@ def WebSocketRelay(hostname, port, key):
 
     return Class
 
+class NonBlockingReader(threading.Thread):
+    def __init__(self, stream):
+        threading.Thread.__init__(self)
+        self.daemon = True
+
+        self.stream = stream
+        self.queue = Queue.Queue()
+
+        self.start()
+
+    def run(self):
+        for line in iter(self.stream.readline, ""):
+            self.queue.put(line)
+        self.stream.close()
+
+    def readline(self):
+        try:
+            line = self.queue.get_nowait()
+        except Queue.Empty:
+            line = None
+
+        return line
+
+    def readlines(self):
+        lines = []
+        try:
+            while True:
+                lines.append(self.queue.get_nowait())
+        except Queue.Empty:
+            pass
+
+        return lines
+
 class Server(object):
     # An HTML parser for use in the error_page handler.
     html = HTMLParser.HTMLParser()
@@ -698,7 +732,12 @@ class Server(object):
 
                 # Retrieve the entry.
                 rec = self.vtkweb_processes[key]
-                response = {"status": "complete", "process": "running", "port": rec["port"]}
+                response = { "status": "complete",
+                             "process": "running",
+                             "port": rec["port"],
+                             "stdout": rec["stdout"].readlines(),
+                             "stderr": rec["stderr"].readlines() }
+
                 returncode = rec["process"].poll()
                 if returncode is not None:
                     # Since the process has ended, reclaim its resources and delete
@@ -709,10 +748,6 @@ class Server(object):
                     # Fill out the report response.
                     response["process"] = "terminated"
                     response["returncode"] = returncode
-
-                    stdout, stderr = rec["process"].communicate()
-                    response["stdout"] = stdout
-                    response["stderr"] = stderr
 
             # Make a report to the user.
             return json.dumps(response)
@@ -791,8 +826,12 @@ class Server(object):
             wshandler = WebSocketRelay(host, port, key)
             cherrypy.tree.mount(WebSocketHandler(), "/%s" % (key), config={"/ws": {"tools.websocket.on": True, "tools.websocket.handler_cls": wshandler, "tools.websocket.protocols": ["wamp"]}})
 
-            # Log the new process in the process table.
-            self.vtkweb_processes[key] = {"port": port, "process": process}
+            # Log the new process in the process table, including non-blocking
+            # stdout and stderr readers.
+            self.vtkweb_processes[key] = { "port": port,
+                                           "process": process,
+                                           "stdout": NonBlockingReader(process.stdout),
+                                           "stderr": NonBlockingReader(process.stderr) }
 
             # Form the websocket URL from the hostname/port used in the request,
             # and the newly generated key.
