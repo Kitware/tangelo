@@ -367,6 +367,7 @@ class NonBlockingReader(threading.Thread):
 
         self.stream = stream
         self.queue = Queue.Queue()
+        self.pushbuf = []
 
         self.start()
 
@@ -376,22 +377,37 @@ class NonBlockingReader(threading.Thread):
         self.stream.close()
 
     def readline(self):
-        try:
-            line = self.queue.get_nowait()
-        except Queue.Empty:
-            line = None
+        if len(self.pushbuf) > 0:
+            return self.pushbuf.pop()
+        else:
+            try:
+                line = self.queue.get_nowait()
+            except Queue.Empty:
+                line = None
 
-        return line
+            return line
 
     def readlines(self):
         lines = []
-        try:
-            while True:
-                lines.append(self.queue.get_nowait())
-        except Queue.Empty:
-            pass
+        done = False
+        while not done:
+            line = self.readline()
+            if line is not None:
+                lines.append(line)
+            else:
+                done = True
 
         return lines
+
+    def pushline(self, line):
+        if len(line) == 0 or line[-1] != "\n":
+            line.append("\n")
+
+        self.pushbuf.append(line)
+
+    def pushlines(self, lines):
+        for line in lines:
+            self.pushline(line)
 
 class Server(object):
     # An HTML parser for use in the error_page handler.
@@ -812,12 +828,55 @@ class Server(object):
                 self.vtkweb_ports.add(port)
                 return json.dumps({"status": "failed", "reason": e.message})
 
-            # Give the vtkweb process time to come up.
-            #
-            # TODO(choudhury): instead of just waiting one second, communicate
-            # with the VTK Web process, verifying that its initial output
-            # contains a signal phrase that means it's working (talk to Seb J.).
-            time.sleep(1)
+            # Capture the new process's stdout and stderr streams in
+            # non-blocking readers.
+            stdout = NonBlockingReader(process.stdout)
+            stderr = NonBlockingReader(process.stderr)
+
+            # Read from stdout to look for the signal that the process has
+            # started properly.
+            class FactoryStarted:
+                pass
+            class Failed:
+                pass
+            class Timeout:
+                pass
+            signal = "Starting factory"
+            timeout = 10
+            sleeptime = 0.5
+            wait = 0
+            saved_lines = []
+            try:
+                while True:
+                    lines = stdout.readlines()
+                    saved_lines += lines
+                    for line in lines:
+                        if line == "":
+                            # This indicates that stdout has closed without
+                            # starting the process.
+                            raise Failed()
+                        elif signal in line:
+                            # This means that the server has started.
+                            raise FactoryStarted()
+
+                    # If neither failure nor success occurred in the last block of
+                    # lines from stdout, either time out, or try again after a short
+                    # delay.
+                    if wait >= timeout:
+                        raise Timeout()
+
+                    wait += sleeptime
+                    time.sleep(sleeptime)
+            except Timeout:
+                return json.dumps({ "status": "failed",
+                                    "reason": "process startup timed out" })
+            except Failed:
+                return json.dumps({ "status": "failed",
+                                    "reason": "process did not start up properly",
+                                    "stdout": saved_lines,
+                                    "stderr": stderr.readlines()})
+            except FactoryStarted:
+                stdout.pushlines(saved_lines)
 
             # Create a websocket handler path dedicated to this process.
             host = cherrypy.server.socket_host
@@ -830,8 +889,8 @@ class Server(object):
             # stdout and stderr readers.
             self.vtkweb_processes[key] = { "port": port,
                                            "process": process,
-                                           "stdout": NonBlockingReader(process.stdout),
-                                           "stderr": NonBlockingReader(process.stderr) }
+                                           "stdout": stdout,
+                                           "stderr": stderr }
 
             # Form the websocket URL from the hostname/port used in the request,
             # and the newly generated key.
