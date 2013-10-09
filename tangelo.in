@@ -1182,10 +1182,10 @@ def stop():
 
     return retval
 
-def restart():
+def restart(vtkweb_ports=None):
     stopval = stop()
     if stopval == 0:
-        return start(args.vtkweb_ports)
+        return start(vtkweb_ports)
     else:
         return stopval
 
@@ -1221,13 +1221,17 @@ if __name__ == "__main__":
             # It will allow spaces around the punctuation, but reject too many
             # hyphens, and "blank" entries (i.e. two commas next to each other
             # etc.).
-            args.vtkweb_ports = itertools.chain.from_iterable(map(lambda y: range(y[0], y[1]) if len(y) == 2 else [y[0]], map(lambda x: map(int, x.split("-", 1)), args.vtkweb_ports.split(","))))
+            vtkweb_port_list = list(itertools.chain.from_iterable(map(lambda y: range(y[0], y[1]) if len(y) == 2 else [y[0]], map(lambda x: map(int, x.split("-", 1)), args.vtkweb_ports.split(",")))))
         except ValueError:
             print >>sys.stderr, "error: could not parse VTK Web port range specification '%s'" % (args.vtkweb_ports)
             sys.exit(1)
 
-        if args.vtkweb_ports == []:
+        if vtkweb_port_list == []:
             print >>sys.stderr, "error: VTK Web port specification '%s' produces no ports" % (args.vtkweb_ports)
+            sys.exit(1)
+
+        if port in vtkweb_port_list:
+            print >>sys.stderr, "error: Tangelo server port %d cannot be part of VTK Web port specification ('%s')" % (port, args.vtkweb_ports)
             sys.exit(1)
 
     # Configured variables.
@@ -1270,7 +1274,7 @@ if __name__ == "__main__":
     # Dispatch on action argument.
     code = 1
     if action == "start":
-        code = start(args.vtkweb_ports)
+        code = start(vtkweb_port_list)
     elif action == "stop":
         if not daemonize:
             sys.stderr.write("error: stop action not supported on this platform\n")
@@ -1280,7 +1284,7 @@ if __name__ == "__main__":
         if not daemonize:
             sys.stderr.write("error: restart action not supported on this platform\n")
             sys.exit(1)
-        code = restart()
+        code = restart(vtkweb_port_list)
     else:
         p.print_usage()
         code = 1
