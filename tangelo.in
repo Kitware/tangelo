@@ -1234,9 +1234,6 @@ if __name__ == "__main__":
             print >>sys.stderr, "error: Tangelo server port %d cannot be part of VTK Web port specification ('%s')" % (port, args.vtkweb_ports)
             sys.exit(1)
 
-    # Configured variables.
-    cherry = "@CherryPy_EXECUTABLE@"
-
     # Detect operating system (and OSX version, if applicable).
     os_name = platform.system()
     if os_name == "Darwin":
