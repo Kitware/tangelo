@@ -1215,6 +1215,7 @@ if __name__ == "__main__":
     logdir = args.logdir
     piddir = args.piddir
 
+    vtkweb_port_list = []
     if args.vtkweb_ports is not None:
         try:
             # This parses expressions of the form "8081-8090,12000,13500-13600".
