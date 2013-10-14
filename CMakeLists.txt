@@ -12,6 +12,7 @@ set(DEPLOY_TEST_SERVICES OFF CACHE BOOL "Deploy the \"testing\" web service modu
 set(DEPLOY_SERVICE_MONGO ON CACHE BOOL "Deploy the mongo.py service (depends on pymongo).")
 set(DEPLOY_SERVICE_IMPALA ON CACHE BOOL "Deploy the impala-json.py service (depends on impala).")
 set(DEPLOY_EXAMPLES OFF CACHE BOOL "Deploy web applications in the examples directory under the /examples URL (creates symlink).")
+set(DEPLOY_SERVICE_CELERY ON CACHE BOOL "Deploy the celery.py service (depends on celery).")
 set(SERVER_HOSTNAME localhost CACHE STRING "The hostname of the machine that will run the server.")
 set(SERVER_PORT 8080 CACHE STRING "The port the server will run on.")
 set(DEPLOY_DOCUMENTATION OFF CACHE BOOL "Generate documentation for project.")
@@ -134,6 +135,13 @@ endif()
 if(DEPLOY_SERVICE_IMPALA)
     list(APPEND SOURCES
         web/service/impala-json.py)
+endif()
+
+if(DEPLOY_SERVICE_CELERY)
+    list(APPEND SOURCES
+        web/service/tasks/__init__.py
+        web/service/tasks/celeryconfig.py
+        web/service/tasks/celery.py)
 endif()
 
 if(DEPLOY_TEST_SERVICES)
