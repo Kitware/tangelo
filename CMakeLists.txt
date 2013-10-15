@@ -26,9 +26,6 @@ else()
     set(SERVER_GROUP "users" CACHE STRING "The group Tangelo will run as, if started as root.")
 endif()
 
-# Non-cache variables.
-set(DEPLOY_DIR deploy)
-
 # Find a Python2.7 interpreter.  2.7 is required because of the use of
 # dictionary comprehensions.
 find_package(PythonInterp 2.7 REQUIRED)
@@ -83,10 +80,15 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/web/js/vis/timeline.js
 )
 
-# These files should be copied to the deployment directory.
+# These files should be copied to the build directory.
 set(SOURCES
-    minify_json.py
-    tangelo.py
+    tangelo/__init__.py
+    tangelo/__main__.py
+    tangelo/minify_json.py
+    tangelo/server.py
+    tangelo/tool.py
+    tangelo/util.py
+    tangelo/websocket.py
     web/img/glyphicons-halflings-white.png
     web/img/glyphicons-halflings.png
     web/img/tangelo.ico
@@ -153,23 +155,17 @@ configure_file(
     @ONLY
 )
 
-# Configure the Tangelo control script.
-configure_file(
-    tangelo.in
-    ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/tangelo
-)
-
 # Configure the dd
 configure_file(
     tangelod.in
-    ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/tangelod
+    ${CMAKE_BINARY_DIR}/tangelod
     @ONLY
 )
 
 # Configure the vtkweb launcher.
 configure_file(
     vtkweb-launcher.py.in
-    ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/vtkweb-launcher.py
+    ${CMAKE_BINARY_DIR}/vtkweb-launcher.py
 )
 
 # Configure the Tangelo password file generator.
@@ -186,34 +182,38 @@ else()
 endif()
 configure_file(
     ${index_file}
-    ${DEPLOY_DIR}/web/index.html
+    ${CMAKE_BINARY_DIR}/web/index.html
 )
-
 
 # Configure load-tangelo.js and load-tangelo.min.js.
 #
 # Start by reading the contents of loader-preamble.js into a variable.
 file(READ web/js/loader/loader-preamble.js LOADER_PREAMBLE)
-configure_file(web/js/loader/load-tangelo.js.in ${DEPLOY_DIR}/web/js/loader/load-tangelo.js)
-configure_file(web/js/loader/load-tangelo.min.js.in ${DEPLOY_DIR}/web/js/loader/load-tangelo.min.js)
+configure_file(web/js/loader/load-tangelo.js.in ${CMAKE_BINARY_DIR}/web/js/loader/load-tangelo.js)
+configure_file(web/js/loader/load-tangelo.min.js.in ${CMAKE_BINARY_DIR}/web/js/loader/load-tangelo.min.js)
 
-# Copy the files to the deployment directory.
-set(ALL_TARGETS)
-foreach(m ${SOURCES})
-    set(outfile ${DEPLOY_DIR}/${m})
+function(copy_file f)
+    set(outfile ${CMAKE_BINARY_DIR}/${f})
     add_custom_command(
-        OUTPUT ${outfile}
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/${m} ${CMAKE_BINARY_DIR}/${outfile}
-        DEPENDS ${m}
+        OUTPUT ${CMAKE_BINARY_DIR}/${f}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/${f} ${CMAKE_BINARY_DIR}/${f}
+        DEPENDS ${f}
     )
-    list(APPEND ALL_TARGETS ${outfile})
+    set_property(
+        GLOBAL
+        APPEND
+        PROPERTY copied_files ${f}
+    )
+endfunction()
+
+# Copy the files to the build directory.
+foreach(m ${SOURCES})
+    copy_file(${m})
 endforeach()
 
 # Uglify and concatenate the library js files.
 #
 # Set up options to create an unminified file.
-#
-# TODO(choudhury): if platform is windows, use "type" instead of "cat"
 if(WIN32)
     set(concatenator type)
 else()
@@ -236,8 +236,8 @@ else()
     unset(min_mangle_flag)
 endif()
 
-set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/js/tangelo.min.js)
-set(JS_FILE ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/js/tangelo.js)
+set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/web/js/tangelo.min.js)
+set(JS_FILE ${CMAKE_BINARY_DIR}/web/js/tangelo.js)
 
 add_custom_command(
     OUTPUT ${MIN_JS_FILE}
@@ -253,7 +253,7 @@ add_custom_command(
 
 if(${DEPLOY_EXAMPLES})
     set(symlink_source ${CMAKE_SOURCE_DIR}/examples)
-    set(symlink_target ${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/web/examples)
+    set(symlink_target ${CMAKE_BINARY_DIR}/web/examples)
     if(${WIN32})
         string(REPLACE "/" "\\" symlink_source ${symlink_source})
         string(REPLACE "/" "\\" symlink_target ${symlink_target})
@@ -266,7 +266,7 @@ if(${DEPLOY_EXAMPLES})
         COMMAND ${symlink_command}
         DEPENDS ${symlink_source}
     )    
-    list(APPEND ALL_TARGETS ${symlink_target})
+    list(APPEND EXAMPLES_SYMLINK ${symlink_target})
 endif()
 
 # Generate documentation.
@@ -301,17 +301,21 @@ if(${DEPLOY_DOCUMENTATION})
     # A command to generate the documentation.
     add_custom_command(
         OUTPUT ${DOCUMENTATION_STAMP}
-        COMMAND ${Sphinx_EXECUTABLE} -b html ${CMAKE_SOURCE_DIR}/docs ${CMAKE_BINARY_DIR}/deploy/web/docs
+        COMMAND ${Sphinx_EXECUTABLE} -b html ${CMAKE_SOURCE_DIR}/docs ${CMAKE_BINARY_DIR}/docs
         COMMAND ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_STAMP}
         DEPENDS ${DOCUMENTATION_SOURCES} ${DOCUMENTATION_CONTROL_FILE}
     )
 endif()
 
 # The top-level target.
+#
+# Get the list of all files that were copied to the build directory, and make
+# sure they are added as targets.
+get_property(ALL_COPIED_FILES GLOBAL PROPERTY copied_files)
 add_custom_target(
-    deploy
+    tangelo
     ALL
-    DEPENDS ${ALL_TARGETS} ${MIN_JS_FILE} ${JS_FILE} ${DOCUMENTATION_STAMP}
+    DEPENDS ${ALL_COPIED_FILES} ${EXAMPLES_SYMLINK} ${MIN_JS_FILE} ${JS_FILE} ${DOCUMENTATION_STAMP}
 )
 
 # Testing
