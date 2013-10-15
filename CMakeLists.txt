@@ -198,6 +198,7 @@ function(copy_file f)
         OUTPUT ${CMAKE_BINARY_DIR}/${f}
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/${f} ${CMAKE_BINARY_DIR}/${f}
         DEPENDS ${f}
+        COMMENT "Copying ${f} to build directory"
     )
     set_property(
         GLOBAL
@@ -243,12 +244,14 @@ add_custom_command(
     OUTPUT ${MIN_JS_FILE}
     COMMAND ${min_concatenator} ${JS_UGLIFY_FILES} ${min_mangle_flag} ${min_output_operator} ${MIN_JS_FILE}
     DEPENDS ${JS_UGLIFY_FILES}
+    COMMENT "Creating minified javascript library"
 )
 
 add_custom_command(
     OUTPUT ${JS_FILE}
     COMMAND ${concatenator} ${JS_UGLIFY_FILES} ${mangle_flag} ${output_operator} ${JS_FILE}
     DEPENDS ${JS_UGLIFY_FILES}
+    COMMENT "Creating unminified javascript library"
 )
 
 if(${DEPLOY_EXAMPLES})
@@ -265,6 +268,7 @@ if(${DEPLOY_EXAMPLES})
         OUTPUT ${symlink_target}
         COMMAND ${symlink_command}
         DEPENDS ${symlink_source}
+        COMMENT "Creating symlink to examples"
     )    
     list(APPEND EXAMPLES_SYMLINK ${symlink_target})
 endif()
@@ -304,6 +308,7 @@ if(${DEPLOY_DOCUMENTATION})
         COMMAND ${Sphinx_EXECUTABLE} -b html ${CMAKE_SOURCE_DIR}/docs ${CMAKE_BINARY_DIR}/docs
         COMMAND ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_STAMP}
         DEPENDS ${DOCUMENTATION_SOURCES} ${DOCUMENTATION_CONTROL_FILE}
+        COMMENT "Generating documentation"
     )
 endif()
 
