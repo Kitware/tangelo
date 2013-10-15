@@ -48,7 +48,7 @@ class Tangelo(object):
             p["process"].wait()
 
     @staticmethod
-    def error_page(status, message, tb, version):
+    def error_page(status, message, traceback, version):
         message = Tangelo.html.unescape(message)
         return """<!doctype html>
 <h2>%s</h2>

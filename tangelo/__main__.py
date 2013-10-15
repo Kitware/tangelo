@@ -3,11 +3,11 @@ import itertools
 import os
 import cherrypy
 import platform
-
 import signal
-from twisted.internet import reactor
+import twisted.internet
 import sys
 import time
+import ws4py.server
 
 import tangelo
 import tangelo.server
@@ -31,7 +31,7 @@ def shutdown(signum, frame):
     # Perform (1) vtkweb process cleanup, (2) twisted reactor cleanup and quit,
     # (3) CherryPy shutdown, and (4) CherryPy exit.
     tangelo.server.cpserver.root.cleanup()
-    reactor.stop()
+    twisted.internet.reactor.stop()
     cherrypy.engine.stop()
     cherrypy.engine.exit()
 
@@ -186,7 +186,7 @@ def start():
     # plugin so we can set a priority on it that doesn't conflict with privilege
     # drop.
     tangelo.websocket.WebSocketLowPriorityPlugin(cherrypy.engine).subscribe()
-    cherrypy.tools.websocket = tangelo.websocket.WebSocketTool()
+    cherrypy.tools.websocket = ws4py.server.cherrypyserver.WebSocketTool()
 
     # Replace the stock auth_digest and auth_basic tools with ones that have
     # slightly lower priority (so the AuthUpdate tool can run before them).
@@ -213,7 +213,7 @@ def start():
 
     # Start the Twisted reactor in the main thread (it will block but the
     # CherryPy engine has already started in a non-blocking manner).
-    reactor.run(installSignalHandlers=False)
+    twisted.internet.reactor.run(installSignalHandlers=False)
     cherrypy.engine.block()
 
 def stop():
