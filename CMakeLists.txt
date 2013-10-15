@@ -140,7 +140,7 @@ endif()
 if(DEPLOY_SERVICE_CELERY)
     list(APPEND SOURCES
         web/service/tasks/__init__.py
-        web/service/tasks/celeryconfig.py
+        web/service/tasks/celery.json
         web/service/tasks/celery.py)
 endif()
 

@@ -6,7 +6,7 @@ import json
 # RESTful service used to create, monitor and terminate celery
 # tasks.
 #
-import celeryconfig
+
 # Remove current directory from search path so we don't hide the really
 # celery module.
 sys.path = sys.path[1:]
@@ -17,7 +17,8 @@ from celery.result import AsyncResult
 from celery import states
 
 celery = Celery()
-celery.config_from_object(celeryconfig)
+config = tangelo.config()
+celery.conf.update(**config)
 
 @tangelo.restful
 def get(job_id, operation, **kwargs):
