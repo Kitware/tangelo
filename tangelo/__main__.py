@@ -308,7 +308,7 @@ if __name__ == "__main__":
         version = map(int, platform.mac_ver()[0].split("."))
 
     # Determine the current directory based on the invocation of this script.
-    current_dir = os.path.dirname(os.path.abspath(__file__))
+    current_dir = os.getcwd()
     cherrypy.config.update({"webroot": current_dir + "/web"})
 
     # Place an empty dict to hold per-module configuration into the global
@@ -319,19 +319,16 @@ if __name__ == "__main__":
     # whether the platform supports it.
     daemonize = not no_daemon and not(os_name == "Windows" or (os_name == "Darwin" and version[1] == 6))
 
-    # Get the path of the tangelo script.
-    path = os.path.dirname(os.path.abspath(sys.argv[0]))
-
     # Determine the paths to place the PID file and log file in.  This defaults
     # to the same directory that contains the tangelo control script.
     if piddir is None:
-        pidpath = path
+        pidpath = current_dir
     else:
         pidpath = os.path.abspath(piddir)
     pidfile = pidpath + "/tangelo.pid"
 
     if logdir is None:
-        logpath = path
+        logpath = current_dir
     else:
         logpath = os.path.abspath(logdir)
     logfile = logpath + "/tangelo.log"
