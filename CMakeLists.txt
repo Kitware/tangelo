@@ -12,19 +12,8 @@ set(DEPLOY_TEST_SERVICES OFF CACHE BOOL "Deploy the \"testing\" web service modu
 set(DEPLOY_SERVICE_MONGO ON CACHE BOOL "Deploy the mongo.py service (depends on pymongo).")
 set(DEPLOY_SERVICE_IMPALA ON CACHE BOOL "Deploy the impala-json.py service (depends on impala).")
 set(DEPLOY_EXAMPLES OFF CACHE BOOL "Deploy web applications in the examples directory under the /examples URL (creates symlink).")
-set(SERVER_HOSTNAME localhost CACHE STRING "The hostname of the machine that will run the server.")
-set(SERVER_PORT 8080 CACHE STRING "The port the server will run on.")
 set(DEPLOY_DOCUMENTATION OFF CACHE BOOL "Generate documentation for project.")
 set(JSLINT OFF CACHE BOOL "Generate tests for JS source files using JSLint program.")
-
-if("${WIN32}")
-    set(SERVER_USER "windows" CACHE STRING "The user Tangelo will run as, if started as root (unused on Windows)." FORCE)
-    set(SERVER_GROUP "windows" CACHE STRING "The group Tangelo will run as, if started as root (unused on Windows)." FORCE)
-    mark_as_advanced(FORCE SERVER_USER SERVER_GROUP)
-else()
-    set(SERVER_USER $ENV{USER} CACHE STRING "The user Tangelo will run as, if started as root.")
-    set(SERVER_GROUP "users" CACHE STRING "The group Tangelo will run as, if started as root.")
-endif()
 
 # Find a Python2.7 interpreter.  2.7 is required because of the use of
 # dictionary comprehensions.
