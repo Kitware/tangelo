@@ -8,12 +8,25 @@ import twisted.internet
 import sys
 import time
 import ws4py.server
+import json
 
 import tangelo
+from   tangelo.minify_json import json_minify
 import tangelo.server
 import tangelo.tool
 import tangelo.util
 import tangelo.websocket
+
+def read_config(cfgfile):
+    if cfgfile is None:
+        return {}
+
+    # Read out the text of the file.
+    with open(cfgfile) as f:
+        text = f.read()
+
+    # Strip comments and then parse into a dict.
+    return json.loads(json_minify(text))
 
 def polite(signum, frame):
     print >>sys.stderr, "Already shutting down.  To force shutdown immediately, send SIGQUIT (Ctrl-\\)."
@@ -138,12 +151,12 @@ def start():
     #
     # Create an instance of the main handler object.
     tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(vtkweb_port_list), "/")
-    cherrypy.tree.mount(tangelo.server.cpserver, config={"/": { "tools.auth_update.on": do_auth,
+    cherrypy.tree.mount(tangelo.server.cpserver, config={"/": { "tools.auth_update.on": access_auth,
                                                                 "tools.treat_url.on": True }})
 
     # Try to drop privileges if requested, since we've bound to whatever port
     # superuser privileges were needed for already.
-    if drop_priv:
+    if drop_privileges:
         # If we're on windows, don't supply any username/groupname, and just
         # assume we should drop priveleges.
         if os_name == "Windows":
@@ -205,7 +218,7 @@ def start():
     # "auth update" tool, which checks for updated/new/deleted .htaccess files
     # and updates the state of auth tools on various paths.
     cherrypy.tools.treat_url = cherrypy.Tool("before_handler", tangelo.tool.treat_url, priority=0)
-    if do_auth:
+    if access_auth:
         cherrypy.tools.auth_update = tangelo.tool.AuthUpdate(point="before_handler", priority=1)
 
     # Start the CherryPy engine.
@@ -258,9 +271,13 @@ if __name__ == "__main__":
     sys.argv[0] = sys.argv[0].replace("__main__.py", "tangelo")
 
     p = argparse.ArgumentParser(description="Control execution of a Tangelo server.")
-    p.add_argument("-d", "--no-daemon", action="store_true", help="run Tangelo in-console (not as a daemon).")
-    p.add_argument("-a", "--no-auth", action="store_true", help="disable HTTP authentication (i.e. processing of .htaccess files).")
-    p.add_argument("-p", "--no-drop-privileges", action="store_true", help="disable privilege drop when started as superuser.")
+    p.add_argument("-c", "--config", type=str, default=None, metavar="FILE", help="specifies configuration file to use")
+    p.add_argument("-d", "--daemonize", action="store_const", const=True, default=None, help="run Tangelo as a daemon (default)")
+    p.add_argument("-nd", "--no-daemonize", action="store_const", const=True, default=None, help="run Tangelo in-console (not as a daemon)")
+    p.add_argument("-a", "--access-auth", action="store_const", const=True, default=None, help="enable HTTP authentication (i.e. processing of .htaccess files) (default)")
+    p.add_argument("-na", "--no-access-auth", action="store_const", const=True, default=None, help="disable HTTP authentication (i.e. processing of .htaccess files)")
+    p.add_argument("-p", "--drop-privileges", action="store_const", const=True, default=None, help="enable privilege drop when started as superuser (default)")
+    p.add_argument("-np", "--no-drop-privileges", action="store_const", const=True, default=None, help="disable privilege drop when started as superuser")
     p.add_argument("--hostname", type=str, default=None, metavar="HOSTNAME", help="overrides configured hostname on which to run Tangelo")
     p.add_argument("--port", type=int, default=None, metavar="PORT", help="overrides configured port number on which to run Tangelo")
     p.add_argument("--vtkweb-ports", type=str, default=None, metavar="PORT RANGE", help="specifies the port range to use for VTK Web processes")
@@ -271,16 +288,75 @@ if __name__ == "__main__":
     p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
     args = p.parse_args()
 
-    no_daemon = args.no_daemon
-    do_auth = not args.no_auth
-    drop_priv = not args.no_drop_privileges
+    # Make sure user didn't specify conflicting flags.
+    if args.daemonize and args.no_daemonize:
+        print >>sys.stderr, "error: can't specify both --daemonize (-d) and --no-daemonize (-nd) together"
+        sys.exit(1)
+
+    if args.access_auth and args.no_access_auth:
+        print >>sys.stderr, "error: can't specify both --access-auth (-a) and --no-access-auth (-na) together"
+        sys.exit(1)
+
+    if args.drop_privileges and args.no_drop_privileges:
+        print >>sys.stderr, "error: can't specify both --drop-privileges (-p) and --no-drop-privileges (-np) together"
+        sys.exit(1)
+
+    # Before extracting the other arguments, find a configuration file.  Check
+    # the command line arguments first, then look for one in a sequence of other
+    # places.
+    cfg_file = args.config
+    if cfg_file is None:
+        for loc in ["/etc/tangelo.conf", os.path.expanduser("~/.config/tangelo/tangelo.conf")]:
+            if os.path.exists(loc):
+                cfg_file = loc
+                break
+
+    # Get a dict representing the contents of the config file.
+    config = read_config(cfg_file)
+
+    # Decide whether to daemonize, based on whether the user wishes not to, and
+    # whether the platform supports it.
+    #
+    # First detect the operating system (and OSX version, if applicable).
+    os_name = platform.system()
+    if os_name == "Darwin":
+        version = map(int, platform.mac_ver()[0].split("."))
+
+    # Determine whether to daemonize.
+    daemonize_flag = True
+    if args.daemonize is None and args.no_daemonize is None:
+        if config.get("daemonize") is not None:
+            daemonize_flag = config.get("daemonize")
+    else:
+        daemonize_flag = (args.daemonize is not None) or (not args.no_daemonize)
+    daemonize = daemonize_flag and not(os_name == "Windows" or (os_name == "Darwin" and version[1] == 6))
+
+    # Determine whether to use access auth.
+    access_auth = True
+    if args.access_auth is None and args.no_access_auth is None:
+        if config.get("access_auth") is not None:
+            access_auth = config.get("access_auth")
+    else:
+        access_auth = (args.access_auth is not None) or (not args.no_access_auth)
+
+    # Determine whether to perform privilege drop.
+    drop_privileges = True
+    if args.drop_privileges is None and args.no_drop_privileges is None:
+        if config.get("drop_privileges") is not None:
+            drop_privileges = config.get("drop_privileges")
+    else:
+        drop_privileges = (args.drop_privileges is not None) or (not args.no_drop_privileges)
+
+    # Extract the rest of the arguments, giving priority first to command line
+    # arguments, then to the configuration file (if any), and finally to a
+    # hard-coded default value.
     action = args.action
-    hostname = args.hostname or "localhost"
-    port = args.port or 8080
-    user = args.user or "nobody"
-    group = args.group or "nobody"
-    logdir = args.logdir
-    piddir = args.piddir
+    hostname = args.hostname or config.get("hostname") or "localhost"
+    port = args.port or config.get("port") or 8080
+    user = args.user or config.get("user") or "nobody"
+    group = args.group or config.get("group") or "nobody"
+    logdir = os.path.abspath(args.logdir or config.get("logdir") or ".")
+    piddir = os.path.abspath(args.piddir or config.get("piddir") or ".")
 
     vtkweb_port_list = []
     if args.vtkweb_ports is not None:
@@ -302,11 +378,6 @@ if __name__ == "__main__":
             print >>sys.stderr, "error: Tangelo server port %d cannot be part of VTK Web port specification ('%s')" % (port, args.vtkweb_ports)
             sys.exit(1)
 
-    # Detect operating system (and OSX version, if applicable).
-    os_name = platform.system()
-    if os_name == "Darwin":
-        version = map(int, platform.mac_ver()[0].split("."))
-
     # Determine the current directory based on the invocation of this script.
     current_dir = os.getcwd()
     cherrypy.config.update({"webroot": current_dir + "/web"})
@@ -315,28 +386,15 @@ if __name__ == "__main__":
     # configuration object.
     cherrypy.config.update({"module-config": {}})
 
-    # Decide whether to daemonize, based on whether the user wishes not to, and
-    # whether the platform supports it.
-    daemonize = not no_daemon and not(os_name == "Windows" or (os_name == "Darwin" and version[1] == 6))
+    # Name the PID file.
+    pidfile = piddir + "/tangelo.pid"
 
-    # Determine the paths to place the PID file and log file in.  This defaults
-    # to the same directory that contains the tangelo control script.
-    if piddir is None:
-        pidpath = current_dir
-    else:
-        pidpath = os.path.abspath(piddir)
-    pidfile = pidpath + "/tangelo.pid"
-
-    if logdir is None:
-        logpath = current_dir
-    else:
-        logpath = os.path.abspath(logdir)
-    logfile = logpath + "/tangelo.log"
+    # Name the log file.
+    logfile = logdir + "/tangelo.log"
 
     # Dispatch on action argument.
     code = 1
     if action == "start":
-        #code = start(pidfile=pidfile, logfile=logfile, daemonize=daemonize, hostname=hostname, port=port, vtkweb_ports=vtkweb_port_list)
         code = start()
     elif action == "stop":
         if not daemonize:
