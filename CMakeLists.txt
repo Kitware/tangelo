@@ -8,33 +8,19 @@ project(Tangelo NONE)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 # Cache variables.
-set(DEPLOY_TEST_SERVICES OFF CACHE BOOL "Deploy the \"testing\" web service modules.")
-set(DEPLOY_SERVICE_MONGO ON CACHE BOOL "Deploy the mongo.py service (depends on pymongo).")
-set(DEPLOY_SERVICE_IMPALA ON CACHE BOOL "Deploy the impala-json.py service (depends on impala).")
-set(DEPLOY_EXAMPLES OFF CACHE BOOL "Deploy web applications in the examples directory under the /examples URL (creates symlink).")
 set(DEPLOY_DOCUMENTATION OFF CACHE BOOL "Generate documentation for project.")
 set(JSLINT OFF CACHE BOOL "Generate tests for JS source files using JSLint program.")
 
-# Find a Python2.7 interpreter.  2.7 is required because of the use of
-# dictionary comprehensions.
-find_package(PythonInterp 2.7 REQUIRED)
-
-# Find the cherrypy module.
-include(cmake/FindPythonModule.cmake)
-find_python_module(cherrypy 3.2 REQUIRED)
-
-find_program(VTKPYTHON_EXECUTABLE vtkpython PATHS /usr/bin/vtkpython)
-
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
-    ${CMAKE_SOURCE_DIR}/web/js/core.js
-    ${CMAKE_SOURCE_DIR}/web/js/controlPanel.js
-    ${CMAKE_SOURCE_DIR}/web/js/date.js
-    ${CMAKE_SOURCE_DIR}/web/js/GoogleMapSVG.js
-    ${CMAKE_SOURCE_DIR}/web/js/navbar.js
-    ${CMAKE_SOURCE_DIR}/web/js/svgColorLegend.js
-    ${CMAKE_SOURCE_DIR}/web/js/landingPage.js
-    ${CMAKE_SOURCE_DIR}/web/js/util.js
+    ${CMAKE_SOURCE_DIR}/src/js/core.js
+    ${CMAKE_SOURCE_DIR}/src/js/controlPanel.js
+    ${CMAKE_SOURCE_DIR}/src/js/date.js
+    ${CMAKE_SOURCE_DIR}/src/js/GoogleMapSVG.js
+    ${CMAKE_SOURCE_DIR}/src/js/navbar.js
+    ${CMAKE_SOURCE_DIR}/src/js/svgColorLegend.js
+    ${CMAKE_SOURCE_DIR}/src/js/landingPage.js
+    ${CMAKE_SOURCE_DIR}/src/js/util.js
     ${CMAKE_SOURCE_DIR}/examples/index.js
     ${CMAKE_SOURCE_DIR}/examples/biofabric/biofabric.js
     ${CMAKE_SOURCE_DIR}/examples/enron/enron.js
@@ -46,96 +32,43 @@ set(JS_LINT_FILES
 
 # These files should be uglified and concatenated.
 set(JS_UGLIFY_FILES
-    ${CMAKE_SOURCE_DIR}/web/js/core.js
-    ${CMAKE_SOURCE_DIR}/web/js/controlPanel.js
-    ${CMAKE_SOURCE_DIR}/web/js/date.js
-    ${CMAKE_SOURCE_DIR}/web/js/GoogleMapSVG.js
-    ${CMAKE_SOURCE_DIR}/web/js/landingPage.js
-    ${CMAKE_SOURCE_DIR}/web/js/navbar.js
-    ${CMAKE_SOURCE_DIR}/web/js/resolve.js
-    ${CMAKE_SOURCE_DIR}/web/js/svgColorLegend.js
-    ${CMAKE_SOURCE_DIR}/web/js/util.js
-    ${CMAKE_SOURCE_DIR}/web/js/ui/_package.js
-    ${CMAKE_SOURCE_DIR}/web/js/ui/html.js
-    ${CMAKE_SOURCE_DIR}/web/js/ui/rangeslider.js
-    ${CMAKE_SOURCE_DIR}/web/js/ui/select.js
-    ${CMAKE_SOURCE_DIR}/web/js/ui/split.js
-    ${CMAKE_SOURCE_DIR}/web/js/vis/_package.js
-    ${CMAKE_SOURCE_DIR}/web/js/vis/geodots.js
-    ${CMAKE_SOURCE_DIR}/web/js/vis/geonodelink.js
-    ${CMAKE_SOURCE_DIR}/web/js/vis/mapdots.js
-    ${CMAKE_SOURCE_DIR}/web/js/vis/nodelink.js
-    ${CMAKE_SOURCE_DIR}/web/js/vis/timebar.js
-    ${CMAKE_SOURCE_DIR}/web/js/vis/timeline.js
+    ${CMAKE_SOURCE_DIR}/src/js/core.js
+    ${CMAKE_SOURCE_DIR}/src/js/controlPanel.js
+    ${CMAKE_SOURCE_DIR}/src/js/date.js
+    ${CMAKE_SOURCE_DIR}/src/js/GoogleMapSVG.js
+    ${CMAKE_SOURCE_DIR}/src/js/landingPage.js
+    ${CMAKE_SOURCE_DIR}/src/js/navbar.js
+    ${CMAKE_SOURCE_DIR}/src/js/resolve.js
+    ${CMAKE_SOURCE_DIR}/src/js/svgColorLegend.js
+    ${CMAKE_SOURCE_DIR}/src/js/util.js
+    ${CMAKE_SOURCE_DIR}/src/js/ui/_package.js
+    ${CMAKE_SOURCE_DIR}/src/js/ui/html.js
+    ${CMAKE_SOURCE_DIR}/src/js/ui/rangeslider.js
+    ${CMAKE_SOURCE_DIR}/src/js/ui/select.js
+    ${CMAKE_SOURCE_DIR}/src/js/ui/split.js
+    ${CMAKE_SOURCE_DIR}/src/js/vis/_package.js
+    ${CMAKE_SOURCE_DIR}/src/js/vis/geodots.js
+    ${CMAKE_SOURCE_DIR}/src/js/vis/geonodelink.js
+    ${CMAKE_SOURCE_DIR}/src/js/vis/mapdots.js
+    ${CMAKE_SOURCE_DIR}/src/js/vis/nodelink.js
+    ${CMAKE_SOURCE_DIR}/src/js/vis/timebar.js
+    ${CMAKE_SOURCE_DIR}/src/js/vis/timeline.js
 )
+
+function(glob_recurse_ungit var path)
+    file(GLOB_RECURSE all_files RELATIVE ${CMAKE_SOURCE_DIR} ${path})
+    foreach(f ${all_files})
+        string(FIND ${f} ".git" index)
+        if(${index} EQUAL -1)
+            list(APPEND files ${f})
+        endif()
+    endforeach()
+
+    set(${var} ${files} PARENT_SCOPE)
+endfunction()
 
 # These files should be copied to the build directory.
-set(SOURCES
-    tangelo/__init__.py
-    tangelo/__main__.py
-    tangelo/minify_json.py
-    tangelo/server.py
-    tangelo/tool.py
-    tangelo/util.py
-    tangelo/websocket.py
-    web/img/glyphicons-halflings-white.png
-    web/img/glyphicons-halflings.png
-    web/img/tangelo.ico
-    web/img/Tangelo_Mark_256.png
-    web/data/world-110m.json
-    web/vega/geonodelink.json
-    web/vega/timeline.json
-    web/vega/timebar.json
-    web/js/loader/cdn-fallback-bootstrap.js
-    web/js/loader/cdn-fallback-bootstrap.min.js
-    web/js/loader/cdn-fallback-d3.js
-    web/js/loader/cdn-fallback-d3.min.js
-    web/js/loader/cdn-fallback-jquery.js
-    web/js/loader/cdn-fallback-jquery.min.js
-    web/js/loader/load-bootstrap.js
-    web/js/loader/load-bootstrap.min.js
-    web/js/loader/load-d3.js
-    web/js/loader/load-d3.min.js
-    web/js/loader/load-jquery.js
-    web/js/loader/load-jquery.min.js
-    web/js/lib/bootstrap-2.3.0.js
-    web/js/lib/bootstrap-2.3.0.min.js
-    web/js/lib/d3.v3.js
-    web/js/lib/d3.v3.min.js
-    web/js/lib/dragslider.js
-    web/js/lib/jquery-1.8.2.js
-    web/js/lib/jquery-1.8.2.min.js
-    web/js/lib/jquery-ui-1.9.1.js
-    web/js/lib/md5.js
-    web/js/lib/topojson.js
-    web/js/lib/vega-1.0.0.js
-    web/js/lib/vega-1.3.2.js
-    web/css/bootstrap-readable.css
-    web/css/jquery-ui-1.9.1.css
-    web/css/tangelo.css
-    web/img/glyphicons-halflings.png
-    web/img/glyphicons-halflings-white.png
-)
-
-if(DEPLOY_SERVICE_MONGO)
-    list(APPEND SOURCES
-        web/service/mongo.py)
-endif()
-
-if(DEPLOY_SERVICE_IMPALA)
-    list(APPEND SOURCES
-        web/service/impala-json.py)
-endif()
-
-if(DEPLOY_TEST_SERVICES)
-    list(APPEND SOURCES
-        web/service/test/404.py
-        web/service/test/broken.py
-        web/service/test/echo.py
-        web/service/test/exceptional.py
-        web/service/test/restful.py
-        web/service/test/testapp.py)
-endif()
+glob_recurse_ungit(TANGELO_SOURCES Tangelo/*)
 
 # Configure the shellscript testing driver.
 configure_file(
@@ -157,48 +90,32 @@ configure_file(
     ${CMAKE_BINARY_DIR}/vtkweb-launcher.py
 )
 
-# Configure the Tangelo password file generator.
-configure_file(
-    tangelo-passwd.in
-    ${CMAKE_BINARY_DIR}/tangelo-passwd
-)
-
-# Configure main index.html.
-if (${DEPLOY_EXAMPLES})
-    set(index_file web/index-examples.html)
-else()
-    set(index_file web/index.html)
-endif()
-configure_file(
-    ${index_file}
-    ${CMAKE_BINARY_DIR}/web/index.html
-)
-
 # Configure load-tangelo.js and load-tangelo.min.js.
 #
 # Start by reading the contents of loader-preamble.js into a variable.
-file(READ web/js/loader/loader-preamble.js LOADER_PREAMBLE)
-configure_file(web/js/loader/load-tangelo.js.in ${CMAKE_BINARY_DIR}/web/js/loader/load-tangelo.js)
-configure_file(web/js/loader/load-tangelo.min.js.in ${CMAKE_BINARY_DIR}/web/js/loader/load-tangelo.min.js)
+file(READ src/js/loader/loader-preamble.js LOADER_PREAMBLE)
+configure_file(src/js/loader/load-tangelo.js.in ${CMAKE_BINARY_DIR}/Tangelo/web/js/loader/load-tangelo.js)
+configure_file(src/js/loader/load-tangelo.min.js.in ${CMAKE_BINARY_DIR}/Tangelo/web/js/loader/load-tangelo.min.js)
 
-function(copy_file f)
-    set(outfile ${CMAKE_BINARY_DIR}/${f})
+function(copy_file f dest)
+    set(outfile ${dest}/${f})
+
     add_custom_command(
-        OUTPUT ${CMAKE_BINARY_DIR}/${f}
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/${f} ${CMAKE_BINARY_DIR}/${f}
+        OUTPUT ${outfile}
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/${f} ${outfile}
         DEPENDS ${f}
-        COMMENT "Copying ${f} to build directory"
+        COMMENT "Copying ${f}"
     )
     set_property(
         GLOBAL
         APPEND
-        PROPERTY copied_files ${f}
+        PROPERTY copied_files ${outfile}
     )
 endfunction()
 
-# Copy the files to the build directory.
-foreach(m ${SOURCES})
-    copy_file(${m})
+# Copy package files to build directory.
+foreach(m ${TANGELO_SOURCES})
+    copy_file(${m} ${CMAKE_BINARY_DIR})
 endforeach()
 
 # Uglify and concatenate the library js files.
@@ -226,11 +143,12 @@ else()
     unset(min_mangle_flag)
 endif()
 
-set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/web/js/tangelo.min.js)
-set(JS_FILE ${CMAKE_BINARY_DIR}/web/js/tangelo.js)
+set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/Tangelo/web/js/tangelo.min.js)
+set(JS_FILE ${CMAKE_BINARY_DIR}/Tangelo/web/js/tangelo.js)
 
 add_custom_command(
     OUTPUT ${MIN_JS_FILE}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/Tangelo/web/js
     COMMAND ${min_concatenator} ${JS_UGLIFY_FILES} ${min_mangle_flag} ${min_output_operator} ${MIN_JS_FILE}
     DEPENDS ${JS_UGLIFY_FILES}
     COMMENT "Creating minified javascript library"
@@ -294,7 +212,7 @@ if(${DEPLOY_DOCUMENTATION})
     # A command to generate the documentation.
     add_custom_command(
         OUTPUT ${DOCUMENTATION_STAMP}
-        COMMAND ${Sphinx_EXECUTABLE} -b html ${CMAKE_SOURCE_DIR}/docs ${CMAKE_BINARY_DIR}/docs
+        COMMAND ${Sphinx_EXECUTABLE} -b html ${CMAKE_SOURCE_DIR}/docs ${CMAKE_BINARY_DIR}/Tangelo/docs
         COMMAND ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_STAMP}
         DEPENDS ${DOCUMENTATION_SOURCES} ${DOCUMENTATION_CONTROL_FILE}
         COMMENT "Generating documentation"
