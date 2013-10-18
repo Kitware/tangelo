@@ -1,9 +1,12 @@
-# Tangelo: Rapidly create powerfully visual web applications.
+============================================================
+ Tangelo: Rapidly create powerfully visual web applications
+============================================================
 
-### http://kitware.github.io/tangelo/
+http://kitware.github.io/tangelo/
+---------------------------------
 
 **Tangelo** is a web framework built on top of
-[CherryPy](http://www.cherrypy.org/) for producing rich web applications
+`CherryPy <http://www.cherrypy.org/>`_ for producing rich web applications
 that pair your data with cutting-edge visual interfaces.
 
 In a nutshell, Tangelo is a flexible HTML5 web server architecture that cleanly separates
@@ -11,24 +14,26 @@ your web *applications* (pure Javascript, HTML, and CSS) and web *services*
 (pure Python), bundled with some great tools to get you started. Mix and match
 from the following to create your own breed:
 
-* [Bootstrap](http://twitter.github.io/bootstrap/) to put your app's style on a solid
-footing.
-* [D3](http://d3js.org) for constructing all manner of dynamic and animated charts.
+* `Bootstrap <http://twitter.github.io/bootstrap/>`_ to put your app's style on a solid
+  footing.
+* `D3 <http://d3js.org>`_ for constructing all manner of dynamic and animated charts.
 * *Vega*, a brand new declarative language for defining visual interfaces.
-* [MongoDB](http://www.mongodb.org) for a flexible, speedy NoSQL backend to feed
-data to your apps.
+* `MongoDB <http://www.mongodb.org>`_ for a flexible, speedy NoSQL backend to feed
+  data to your apps.
 * *tangelo.js*, a set of tools and interface elements that make it easy to create
-apps that put your data front and center.
+  apps that put your data front and center.
 
-## Documentation
+Documentation
+=============
 
-See our [documentation](http://tangelo.readthedocs.org/) for a getting started guide
+See our `documentation <http://tangelo.readthedocs.org/>`_ for a getting started guide
 and API descriptions.
 
-## System Architecture
+System Architecture
+===================
 
 Tangelo applications are divided into two functional layers: the *frontend*
-and *backend*, with [Ajax](http://en.wikipedia.org/wiki/Ajax\_(programming\))
+and *backend*, with `Ajax <http://en.wikipedia.org/wiki/Ajax_(programming)>`_
 bridging the gap between them.
 
 The *frontend* is a standard website -- HTML for content and formatting, with
@@ -37,19 +42,20 @@ also make Ajax calls to the Python *backend* modules to request various
 services, such as database access, server side processing, or anything else that
 you can imagine.
 
-See the [Application
-Architecture](https://tangelo.readthedocs.org/en/latest/architecture.html) page in the
+See the `Application Architecture <https://tangelo.readthedocs.org/en/latest/architecture.html>`_ page in the
 documentation for more information.
 
-## Get Involved
+Get Involved
+============
 
-Please join our [mailing list](http://public.kitware.com/cgi-bin/mailman/listinfo/tangelo-users)
+Please join our `mailing list <http://public.kitware.com/cgi-bin/mailman/listinfo/tangelo-users>`_
 to ask questions about setting up and using Tangelo.
 
-Fork our repository and do great things. At [Kitware](http://www.kitware.com),
+Fork our repository and do great things. At `Kitware <http://www.kitware.com>`_,
 we've been contributing to open-source software for 15 years and counting, and
 want to make Tangelo as useful to as many as possible.
 
-## Acknowledgement
+Acknowledgement
+===============
 
 Tangelo development is sponsored by the Air Force Research Laboratory and DARPA XDATA program.
