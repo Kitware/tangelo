@@ -97,9 +97,7 @@ file(READ src/js/loader/loader-preamble.js LOADER_PREAMBLE)
 configure_file(src/js/loader/load-tangelo.js.in ${CMAKE_BINARY_DIR}/Tangelo/web/js/loader/load-tangelo.js)
 configure_file(src/js/loader/load-tangelo.min.js.in ${CMAKE_BINARY_DIR}/Tangelo/web/js/loader/load-tangelo.min.js)
 
-function(copy_file f dest)
-    set(outfile ${dest}/${f})
-
+function(copy_file f outfile)
     add_custom_command(
         OUTPUT ${outfile}
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/${f} ${outfile}
@@ -115,8 +113,11 @@ endfunction()
 
 # Copy package files to build directory.
 foreach(m ${TANGELO_SOURCES})
-    copy_file(${m} ${CMAKE_BINARY_DIR})
+    copy_file(${m} ${CMAKE_BINARY_DIR}/${m})
 endforeach()
+
+# Also copy the README file.
+copy_file(README.rst ${CMAKE_BINARY_DIR}/Tangelo/README)
 
 # Uglify and concatenate the library js files.
 #
