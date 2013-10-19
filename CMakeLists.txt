@@ -83,19 +83,6 @@ configure_file(
     @ONLY
 )
 
-# Configure the dd
-configure_file(
-    tangelod.in
-    ${CMAKE_BINARY_DIR}/tangelod
-    @ONLY
-)
-
-# Configure the vtkweb launcher.
-configure_file(
-    vtkweb-launcher.py.in
-    ${CMAKE_BINARY_DIR}/vtkweb-launcher.py
-)
-
 # Configure load-tangelo.js and load-tangelo.min.js.
 #
 # Start by reading the contents of loader-preamble.js into a variable.
@@ -200,8 +187,7 @@ if(${BUILD_DOCUMENTATION})
     # A command to generate the documentation.
     add_custom_command(
         OUTPUT ${DOCUMENTATION_STAMP}
-        COMMAND ${Sphinx_EXECUTABLE} -b html ${CMAKE_SOURCE_DIR}/docs ${CMAKE_BINARY_DIR}/Tangelo/docs
-        COMMAND ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_STAMP}
+        COMMAND ${Sphinx_EXECUTABLE} -b html ${CMAKE_SOURCE_DIR}/docs ${CMAKE_BINARY_DIR}/Tangelo/docs && ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_STAMP}
         DEPENDS ${DOCUMENTATION_SOURCES} ${DOCUMENTATION_CONTROL_FILE}
         COMMENT "Generating documentation"
     )
@@ -212,8 +198,7 @@ get_property(ALL_COPIED_FILES GLOBAL PROPERTY copied_files)
 set(DIST_STAMP ${CMAKE_BINARY_DIR}/stamps/dist)
 add_custom_command(
     OUTPUT ${DIST_STAMP}
-    COMMAND ${PYTHON_EXECUTABLE} setup.py sdist --dist-dir ../dist
-    COMMAND ${CMAKE_COMMAND} -E touch ${DIST_STAMP}
+    COMMAND ${PYTHON_EXECUTABLE} setup.py sdist --dist-dir ../dist >../dist.log && ${CMAKE_COMMAND} -E touch ${DIST_STAMP}
     DEPENDS ${ALL_COPIED_FILES}
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/Tangelo
     COMMENT "Generating Python package"

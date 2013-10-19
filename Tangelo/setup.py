@@ -33,7 +33,7 @@ distutils.core.setup(name="Tangelo",
                      author_email="tangelo-users@public.kitware.com",
                      url="http://tangelo.kitware.com",
                      packages=["tangelo"],
-                     scripts=["bin/tangelo", "bin/tangelo-passwd"],
+                     scripts=["bin/tangelo", "bin/tangelo-passwd", "bin/vtkweb-launcher.py"],
                      data_files=data_files_list,
                      description="Tangelo Web Framework",
-                     install_requires=["cherrypy >= 3.2"])
+                     requires=["cherrypy(>=3.2)"])
