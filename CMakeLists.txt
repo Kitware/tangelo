@@ -7,9 +7,13 @@ project(Tangelo NONE)
 # Extend cmake module path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+# Include utility functions.
+include(tangelo)
+
 # Cache variables.
 set(BUILD_DOCUMENTATION OFF CACHE BOOL "Generate documentation for project.")
-set(JSLINT OFF CACHE BOOL "Generate tests for JS source files using JSLint program.")
+set(JSLINT_TESTS OFF CACHE BOOL "Generate tests for JS source files using JSLint program.")
+set(SERVICE_TESTS OFF CACHE BOOL "Generate tests for Tangelo test services.")
 
 # We will need the Python interpreter to build the package and run the tests.
 find_package(PythonInterp 2.7 REQUIRED)
@@ -61,59 +65,30 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/vis/timeline.js
 )
 
-function(glob_recurse_ungit var path)
-    file(GLOB_RECURSE all_files RELATIVE ${CMAKE_SOURCE_DIR} ${path})
-    foreach(f ${all_files})
-        string(FIND ${f} ".git" index)
-        if(${index} EQUAL -1)
-            string(FIND ${f} "/." index)
-        endif()
-        if(${index} EQUAL -1)
-            list(APPEND files ${f})
-        endif()
-    endforeach()
-
-    set(${var} ${files} PARENT_SCOPE)
-endfunction()
-
 # These files should be copied to the build directory.
 glob_recurse_ungit(TANGELO_SOURCES Tangelo/*)
 
-# Configure the shellscript testing driver.
-configure_file(
-    testing/tangelo-server-test.sh
-    ${CMAKE_BINARY_DIR}/tangelo-server-test.sh
-    @ONLY
-)
-
-# Configure load-tangelo.js and load-tangelo.min.js.
-#
-# Start by reading the contents of loader-preamble.js into a variable.
+# Configure load-tangelo.js and load-tangelo.min.js.  # Start by reading the
+# contents of loader-preamble.js into a variable.
 file(READ src/js/loader/loader-preamble.js LOADER_PREAMBLE)
 configure_file(src/js/loader/load-tangelo.js.in ${CMAKE_BINARY_DIR}/Tangelo/web/js/loader/load-tangelo.js)
 configure_file(src/js/loader/load-tangelo.min.js.in ${CMAKE_BINARY_DIR}/Tangelo/web/js/loader/load-tangelo.min.js)
 
-function(copy_file f outfile)
-    add_custom_command(
-        OUTPUT ${outfile}
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/${f} ${outfile}
-        DEPENDS ${f}
-        COMMENT "Copying ${f}"
-    )
-    set_property(
-        GLOBAL
-        APPEND
-        PROPERTY copied_files ${outfile}
-    )
-endfunction()
-
 # Copy package files to build directory.
 foreach(m ${TANGELO_SOURCES})
-    copy_file(${m} ${CMAKE_BINARY_DIR}/${m})
+    set(outfile ${CMAKE_BINARY_DIR}/${m})
+    copy_file(${m} ${outfile})
+    list(APPEND TANGELO_BUILD_FILES ${outfile})
 endforeach()
 
 # Also copy the README file.
 copy_file(README.rst ${CMAKE_BINARY_DIR}/Tangelo/README)
+
+# And the server testing framework script.
+copy_file(
+    testing/tangelo-server-test.sh
+    ${CMAKE_BINARY_DIR}/testing/tangelo-server-test.sh
+)
 
 # Uglify and concatenate the library js files.
 #
@@ -202,7 +177,7 @@ set(DIST_STAMP ${CMAKE_BINARY_DIR}/stamps/dist)
 add_custom_command(
     OUTPUT ${DIST_STAMP}
     COMMAND ${PYTHON_EXECUTABLE} setup.py sdist --dist-dir ../dist >../dist.log && ${CMAKE_COMMAND} -E touch ${DIST_STAMP}
-    DEPENDS ${ALL_COPIED_FILES}
+    DEPENDS ${TANGELO_BUILD_FILES}
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/Tangelo
     COMMENT "Generating Python package"
 )
@@ -219,7 +194,7 @@ include(CTest)
 enable_testing()
 
 # JSLint tests.
-if(${JSLINT})
+if(${JSLINT_TESTS})
     # Find JSLint.
     find_package(JSLint REQUIRED)
 
@@ -229,11 +204,8 @@ if(${JSLINT})
     endforeach()
 endif()
 
-# Python web service tests.
-set(PYTEST ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/tangelo-pytest.py)
-
 if(NOT "${WIN32}")
-    set(tester "${CMAKE_BINARY_DIR}/tangelo-server-test.sh")
+    set(tester "${CMAKE_BINARY_DIR}/testing/tangelo-server-test.sh")
     set(site "${SERVER_HOSTNAME}:${SERVER_PORT}")
 
     # curl uses \r at the ends of lines for some reason when reporting response
@@ -244,16 +216,16 @@ if(NOT "${WIN32}")
     )
 
     add_test(geodots ${tester}
-        "python ${CMAKE_SOURCE_DIR}/imagetest.py --name=geodots --url=http://${site}/app/testing/vis/geodots.html --baseline-url=http://${site}/app/testing/vis/geodots.png"
+        "python ${CMAKE_SOURCE_DIR}/src/imagetest.py --name=geodots --url=http://${site}/app/testing/vis/geodots.html --baseline-url=http://${site}/app/testing/vis/geodots.png"
         "success"
     )
 
     add_test(resolve ${tester}
-        "python ${CMAKE_SOURCE_DIR}/examples/testing/resolve/test.py"
+        "python ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/testing/resolve/test.py"
         "success"
     )
 
-    if(DEPLOY_TEST_SERVICES)
+    if(SERVICE_TESTS)
         add_test(rest-get ${tester}
             "curl --silent -X GET ${site}/service/test/restful/one/two/three?foo=bar"
             "GET: one two three{'foo': u'bar'}"
