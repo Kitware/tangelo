@@ -357,8 +357,8 @@ if __name__ == "__main__":
     port = args.port or config.get("port") or 8080
     user = args.user or config.get("user") or "nobody"
     group = args.group or config.get("group") or "nobody"
-    logdir = os.path.abspath(args.logdir or config.get("logdir") or ".")
-    piddir = os.path.abspath(args.piddir or config.get("piddir") or ".")
+    logdir = os.path.expanduser(args.logdir or config.get("logdir") or ".")
+    piddir = os.path.expanduser(args.piddir or config.get("piddir") or ".")
 
     vtkweb_port_list = []
     if args.vtkweb_ports is not None:
