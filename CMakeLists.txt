@@ -11,6 +11,12 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 set(BUILD_DOCUMENTATION OFF CACHE BOOL "Generate documentation for project.")
 set(JSLINT OFF CACHE BOOL "Generate tests for JS source files using JSLint program.")
 
+# We will need the Python interpreter to build the package and run the tests.
+find_package(PythonInterp 2.7 REQUIRED)
+
+# Create a binary directory to hold various timestamps.
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/stamps)
+
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/src/js/core.js
@@ -168,7 +174,7 @@ if(${BUILD_DOCUMENTATION})
     find_package(Sphinx REQUIRED)
 
     # A signal file to indicate the last time the documentation was built.
-    set(DOCUMENTATION_STAMP ${CMAKE_BINARY_DIR}/documentation_stamp)
+    set(DOCUMENTATION_STAMP ${CMAKE_BINARY_DIR}/stamps/documentation)
 
     set(DOCUMENTATION_SOURCES
         ${CMAKE_SOURCE_DIR}/docs/architecture.rst
@@ -201,15 +207,23 @@ if(${BUILD_DOCUMENTATION})
     )
 endif()
 
-# The top-level target.
-#
-# Get the list of all files that were copied to the build directory, and make
-# sure they are added as targets.
+# A target to build the package.
 get_property(ALL_COPIED_FILES GLOBAL PROPERTY copied_files)
+set(DIST_STAMP ${CMAKE_BINARY_DIR}/stamps/dist)
+add_custom_command(
+    OUTPUT ${DIST_STAMP}
+    COMMAND ${PYTHON_EXECUTABLE} setup.py sdist --dist-dir ../dist
+    COMMAND ${CMAKE_COMMAND} -E touch ${DIST_STAMP}
+    DEPENDS ${ALL_COPIED_FILES}
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/Tangelo
+    COMMENT "Generating Python package"
+)
+
+# The top-level target.
 add_custom_target(
     tangelo
     ALL
-    DEPENDS ${ALL_COPIED_FILES} ${EXAMPLES_SYMLINK} ${MIN_JS_FILE} ${JS_FILE} ${DOCUMENTATION_STAMP}
+    DEPENDS ${ALL_COPIED_FILES} ${EXAMPLES_SYMLINK} ${MIN_JS_FILE} ${JS_FILE} ${DOCUMENTATION_STAMP} ${DIST_STAMP}
 )
 
 # Testing
