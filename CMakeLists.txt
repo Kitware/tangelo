@@ -8,7 +8,7 @@ project(Tangelo NONE)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 # Cache variables.
-set(DEPLOY_DOCUMENTATION OFF CACHE BOOL "Generate documentation for project.")
+set(BUILD_DOCUMENTATION OFF CACHE BOOL "Generate documentation for project.")
 set(JSLINT OFF CACHE BOOL "Generate tests for JS source files using JSLint program.")
 
 # These files should be validated with JSLint.
@@ -163,7 +163,7 @@ add_custom_command(
 )
 
 # Generate documentation.
-if(${DEPLOY_DOCUMENTATION})
+if(${BUILD_DOCUMENTATION})
     # Find Sphinx
     find_package(Sphinx REQUIRED)
 
