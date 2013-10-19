@@ -162,25 +162,6 @@ add_custom_command(
     COMMENT "Creating unminified javascript library"
 )
 
-if(${DEPLOY_EXAMPLES})
-    set(symlink_source ${CMAKE_SOURCE_DIR}/examples)
-    set(symlink_target ${CMAKE_BINARY_DIR}/web/examples)
-    if(${WIN32})
-        string(REPLACE "/" "\\" symlink_source ${symlink_source})
-        string(REPLACE "/" "\\" symlink_target ${symlink_target})
-        set(symlink_command mklink /J ${symlink_target} ${symlink_source})
-    else()
-        set(symlink_command ${CMAKE_COMMAND} -E create_symlink ${symlink_source} ${symlink_target})
-    endif()
-    add_custom_command(
-        OUTPUT ${symlink_target}
-        COMMAND ${symlink_command}
-        DEPENDS ${symlink_source}
-        COMMENT "Creating symlink to examples"
-    )    
-    list(APPEND EXAMPLES_SYMLINK ${symlink_target})
-endif()
-
 # Generate documentation.
 if(${DEPLOY_DOCUMENTATION})
     # Find Sphinx
