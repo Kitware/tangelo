@@ -172,7 +172,6 @@ if(${BUILD_DOCUMENTATION})
 endif()
 
 # A target to build the package.
-get_property(ALL_COPIED_FILES GLOBAL PROPERTY copied_files)
 set(DIST_STAMP ${CMAKE_BINARY_DIR}/stamps/dist)
 add_custom_command(
     OUTPUT ${DIST_STAMP}
@@ -183,8 +182,9 @@ add_custom_command(
 )
 
 # The top-level target.
+get_property(ALL_COPIED_FILES GLOBAL PROPERTY copied_files)
 add_custom_target(
-    tangelo
+    tangelo-all
     ALL
     DEPENDS ${ALL_COPIED_FILES} ${EXAMPLES_SYMLINK} ${MIN_JS_FILE} ${JS_FILE} ${DOCUMENTATION_STAMP} ${DIST_STAMP}
 )
