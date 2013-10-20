@@ -285,8 +285,8 @@ if __name__ == "__main__":
     p.add_argument("--vtkweb-ports", type=str, default=None, metavar="PORT RANGE", help="specifies the port range to use for VTK Web processes")
     p.add_argument("-u", "--user", type=str, default=None, metavar="USERNAME", help="specifies the user to run as when root privileges are dropped")
     p.add_argument("-g", "--group", type=str, default=None, metavar="GROUPNAME", help="specifies the group to run as when root privileges are dropped")
-    p.add_argument("--logdir", type=str, default=None, metavar="DIR", help="where to place the log file (rather than in the directory where this program is")
-    p.add_argument("--piddir", type=str, default=None, metavar="DIR", help="where to place the PID file (rather than in the directory where this program is")
+    p.add_argument("--logdir", type=str, default=None, metavar="DIR", help="where to place the log file (default: location from which Tangelo was started)")
+    p.add_argument("--piddir", type=str, default=None, metavar="DIR", help="where to place the PID file (default: location from which Tangelo was started)")
     p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
     args = p.parse_args()
 
@@ -357,8 +357,8 @@ if __name__ == "__main__":
     port = args.port or config.get("port") or 8080
     user = args.user or config.get("user") or "nobody"
     group = args.group or config.get("group") or "nobody"
-    logdir = os.path.expanduser(args.logdir or config.get("logdir") or ".")
-    piddir = os.path.expanduser(args.piddir or config.get("piddir") or ".")
+    logdir = tangelo.util.expandpath(args.logdir or config.get("logdir") or ".")
+    piddir = tangelo.util.expandpath(args.piddir or config.get("piddir") or ".")
 
     vtkweb_port_list = []
     if args.vtkweb_ports is not None:

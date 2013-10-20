@@ -1,7 +1,11 @@
 import os
+import os.path
 import md5
 import threading
 import Queue
+
+def expandpath(spec):
+    return (os.path.expanduser if spec[0] == "~" else os.path.abspath)(spec)
 
 def live_pid(pid):
     try:
