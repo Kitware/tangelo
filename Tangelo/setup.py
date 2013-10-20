@@ -36,4 +36,6 @@ distutils.core.setup(name="Tangelo",
                      scripts=["bin/tangelo", "bin/tangelo-passwd", "bin/vtkweb-launcher.py"],
                      data_files=data_files_list,
                      description="Tangelo Web Framework",
-                     requires=["cherrypy(>=3.2)"])
+                     install_requires=["cherrypy >= 3.2",
+                                       "ws4py >= 0.3.2",
+                                       "autobahn >= 0.5.14"])
