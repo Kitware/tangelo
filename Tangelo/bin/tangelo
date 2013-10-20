@@ -287,6 +287,7 @@ if __name__ == "__main__":
     p.add_argument("-g", "--group", type=str, default=None, metavar="GROUPNAME", help="specifies the group to run as when root privileges are dropped")
     p.add_argument("--logdir", type=str, default=None, metavar="DIR", help="where to place the log file (default: location from which Tangelo was started)")
     p.add_argument("--piddir", type=str, default=None, metavar="DIR", help="where to place the PID file (default: location from which Tangelo was started)")
+    p.add_argument("-r", "--root", type=str, default=None, metavar="DIR", help="the directory from which Tangelo will serve content")
     p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
     args = p.parse_args()
 
@@ -360,6 +361,15 @@ if __name__ == "__main__":
     logdir = tangelo.util.expandpath(args.logdir or config.get("logdir") or ".")
     piddir = tangelo.util.expandpath(args.piddir or config.get("piddir") or ".")
 
+    # If we are starting a Tangelo server, then the web root MUST be specified,
+    # either in the config file or on the command line.
+    root = args.root or config.get("root")
+    if action not in ["stop"]:
+        if root is None:
+            print >>sys.stderr, "error: no web root specified"
+            sys.exit(1)
+        root = tangelo.util.expandpath(root)
+
     vtkweb_port_list = []
     if args.vtkweb_ports is not None:
         try:
@@ -380,9 +390,8 @@ if __name__ == "__main__":
             print >>sys.stderr, "error: Tangelo server port %d cannot be part of VTK Web port specification ('%s')" % (port, args.vtkweb_ports)
             sys.exit(1)
 
-    # Determine the current directory based on the invocation of this script.
-    current_dir = os.getcwd()
-    cherrypy.config.update({"webroot": current_dir + "/web"})
+    # Set the web root directory.
+    cherrypy.config.update({"webroot": root})
 
     # Place an empty dict to hold per-module configuration into the global
     # configuration object.
