@@ -14,30 +14,31 @@ def treat_url():
     cherrypy.thread_data.target = None
     cherrypy.thread_data.do_auth = True
 
-    # Special cases.
+    # If the request path is blank, redirect to /.
     if reqpath == "":
         raise cherrypy.HTTPRedirect("/")
-    elif reqpath == "/":
-        raise cherrypy.InternalRedirect("/index.html")
 
-    # If we make it here, then reqpath has nonzero length, and its first
-    # character should always be a slash.
-    assert reqpath[0] == "/"
-
-    # Split the request path into path components, omitting the leading slash.
-    reqpathcomp = reqpath[1:].split("/")
-
-    # Compute the disk path the URL corresponds to.
-    #
-    # First check to see whether the path is absolute (i.e. rooted at webroot)
-    # or in a user home directory.
-    if reqpathcomp[0][0] == "~" and len(reqpathcomp[0]) > 1:
-        # Only treat this component as a home directory if there is actually
-        # text following the tilde (rather than making the server serve files
-        # from the home directory of whatever user account it is using to run).
-        pathcomp = [os.path.expanduser(reqpathcomp[0]) + os.path.sep + "tangelo_html"] + reqpathcomp[1:]
+    # Compute "parallel" path component lists based on the web root and the disk
+    # root.
+    if len(reqpath) == "/":
+        reqpathcomp = []
+        pathcomp = [webroot]
     else:
-        pathcomp = [webroot] + reqpathcomp
+        # Split the request path into path components, omitting the leading
+        # slash.
+        reqpathcomp = reqpath[1:].split("/")
+
+        # Compute the disk path the URL corresponds to.
+        #
+        # First check to see whether the path is absolute (i.e. rooted at webroot)
+        # or in a user home directory.
+        if reqpathcomp[0][0] == "~" and len(reqpathcomp[0]) > 1:
+            # Only treat this component as a home directory if there is actually
+            # text following the tilde (rather than making the server serve files
+            # from the home directory of whatever user account it is using to run).
+            pathcomp = [os.path.expanduser(reqpathcomp[0]) + os.path.sep + "tangelo_html"] + reqpathcomp[1:]
+        else:
+            pathcomp = [webroot] + reqpathcomp
 
     # Save the request path and disk path components in the thread storage,
     # slightly modifying the request path if it refers to an absolute path
@@ -51,7 +52,7 @@ def treat_url():
 
     # If the path represents a directory and has a trailing slash, remove it
     # (this will make the auth update step easier).
-    if reqpathcomp_save[-1] == "" or pathcomp[-1] == "":
+    if len(reqpathcomp_save) > 1 and reqpathcomp_save[-1] == "" or pathcomp[-1] == "":
         assert reqpathcomp_save[-1] == "" and pathcomp[-1] == ""
         reqpathcomp_save = reqpathcomp_save[:-1]
         pathcomp_save = pathcomp[:-1]
