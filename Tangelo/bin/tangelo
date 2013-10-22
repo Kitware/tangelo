@@ -252,13 +252,14 @@ def stop():
         except OSError:
             sys.stderr.write("failed (could not terminate process %d)\n" % (pid))
             return 1
+        else:
+            print >>sys.stderr, "success"
+            return 0
     else:
         print >>sys.stderr, "success (tangelo was not running)"
         return 0
 
     assert False
-    print >>sys.stderr, "success"
-    return 0
 
 def restart():
     stopval = stop()
