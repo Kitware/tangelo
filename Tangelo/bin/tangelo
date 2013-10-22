@@ -300,6 +300,7 @@ def status(hostname, port, logfile):
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Control execution of a Tangelo server.")
     p.add_argument("-c", "--config", type=str, default=None, metavar="FILE", help="specifies configuration file to use")
+    p.add_argument("-nc", "--no-config", action="store_true", help="skips looking for and using a configuration file")
     p.add_argument("-d", "--daemonize", action="store_const", const=True, default=None, help="run Tangelo as a daemon (default)")
     p.add_argument("-nd", "--no-daemonize", action="store_const", const=True, default=None, help="run Tangelo in-console (not as a daemon)")
     p.add_argument("-a", "--access-auth", action="store_const", const=True, default=None, help="enable HTTP authentication (i.e. processing of .htaccess files) (default)")
@@ -331,6 +332,10 @@ if __name__ == "__main__":
         print >>sys.stderr, "error: can't specify both --drop-privileges (-p) and --no-drop-privileges (-np) together"
         sys.exit(1)
 
+    if args.no_config and args.config is not None:
+        print >>sys.stderr, "error: can't specify both --config (-c) and --no-config (-nc) together"
+        sys.exit(1)
+
     # Figure out where this is being called from - that will be useful for a
     # couple of purposes.
     invocation_dir = os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/..")
@@ -345,26 +350,32 @@ if __name__ == "__main__":
                 print >>sys.stderr, msg
     verbose = Verbose(args.verbose)
 
-    # Before extracting the other arguments, find a configuration file.  Check
-    # the command line arguments first, then look for one in a sequence of other
-    # places.
-    cfg_file = args.config
-    if cfg_file is None:
-        verbose.write("No configuration file specified - searching...")
-        for loc in ["/etc/tangelo.conf", os.path.expanduser("~/.config/tangelo/tangelo.conf"), invocation_dir + "/share/tangelo/conf/tangelo.conf.local"]:
-            if os.path.exists(loc):
-                cfg_file = loc
-                break
-            else:
-                verbose.write("%s does not exist" % (loc))
-
-    if cfg_file is None:
-        verbose.write("No configuration file found - will use command line args and defaults")
+    # Before extracting the other arguments, compute a configuration dictionary.
+    # If --no-config was specified, this will be the empty dictionary;
+    # otherwise, check the command line arguments for a config file first, then
+    # look for one in a sequence of other places.
+    cfg_file = None
+    config = {}
+    if args.no_config:
+        verbose.write("Not using any configuration file")
     else:
-        verbose.write("Using configuration file %s" % (cfg_file))
+        cfg_file = args.config
+        if cfg_file is None:
+            verbose.write("No configuration file specified - searching...")
+            for loc in ["/etc/tangelo.conf", os.path.expanduser("~/.config/tangelo/tangelo.conf"), invocation_dir + "/share/tangelo/conf/tangelo.conf.local"]:
+                if os.path.exists(loc):
+                    cfg_file = loc
+                    break
+                else:
+                    verbose.write("%s does not exist" % (loc))
 
-    # Get a dict representing the contents of the config file.
-    config = read_config(cfg_file)
+        if cfg_file is None:
+            verbose.write("No configuration file found - will use command line args and defaults")
+        else:
+            verbose.write("Using configuration file %s" % (cfg_file))
+
+        # Get a dict representing the contents of the config file.
+        config = read_config(cfg_file)
 
     # Decide whether to daemonize, based on whether the user wishes not to, and
     # whether the platform supports it.
