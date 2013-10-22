@@ -232,9 +232,6 @@ def start():
     cherrypy.engine.block()
 
 def stop():
-    if pidfile is None:
-        raise TypeError("'pidfile' argument is required")
-
     retval = 0
     sys.stderr.write("stopping tangelo...")
 
