@@ -152,7 +152,7 @@ def start():
     # server and get it going.
     #
     # Create an instance of the main handler object.
-    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(vtkweb_port_list, here=os.path.dirname(os.path.abspath(__file__))), "/")
+    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(vtkweb_port_list, here=invocation_dir), "/")
     cherrypy.tree.mount(tangelo.server.cpserver, config={"/": { "tools.auth_update.on": access_auth,
                                                                 "tools.treat_url.on": True }})
 
@@ -284,6 +284,7 @@ if __name__ == "__main__":
     p.add_argument("--logdir", type=str, default=None, metavar="DIR", help="where to place the log file (default: location from which Tangelo was started)")
     p.add_argument("--piddir", type=str, default=None, metavar="DIR", help="where to place the PID file (default: location from which Tangelo was started)")
     p.add_argument("-r", "--root", type=str, default=None, metavar="DIR", help="the directory from which Tangelo will serve content")
+    p.add_argument("--verbose", "-v", action="store_true", help="display extra information as Tangelo starts up")
     p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
     args = p.parse_args()
 
@@ -300,15 +301,37 @@ if __name__ == "__main__":
         print >>sys.stderr, "error: can't specify both --drop-privileges (-p) and --no-drop-privileges (-np) together"
         sys.exit(1)
 
+    # Figure out where this is being called from - that will be useful for a
+    # couple of purposes.
+    invocation_dir = os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/..")
+
+    # A simple class for conditional printing in verbose mode.
+    class Verbose:
+        def __init__(self, verbose):
+            self.verbose = verbose
+
+        def write(self, msg):
+            if self.verbose:
+                print >>sys.stderr, msg
+    verbose = Verbose(args.verbose)
+
     # Before extracting the other arguments, find a configuration file.  Check
     # the command line arguments first, then look for one in a sequence of other
     # places.
     cfg_file = args.config
     if cfg_file is None:
-        for loc in ["/etc/tangelo.conf", os.path.expanduser("~/.config/tangelo/tangelo.conf")]:
+        verbose.write("No configuration file specified - searching...")
+        for loc in ["/etc/tangelo.conf", os.path.expanduser("~/.config/tangelo/tangelo.conf"), invocation_dir + "/share/tangelo/conf/tangelo.conf.local"]:
             if os.path.exists(loc):
                 cfg_file = loc
                 break
+            else:
+                verbose.write("%s does not exist" % (loc))
+
+    if cfg_file is None:
+        verbose.write("No configuration file found - will use command line args and defaults")
+    else:
+        verbose.write("Using configuration file %s" % (cfg_file))
 
     # Get a dict representing the contents of the config file.
     config = read_config(cfg_file)
@@ -330,6 +353,11 @@ if __name__ == "__main__":
         daemonize_flag = (args.daemonize is not None) or (not args.no_daemonize)
     daemonize = daemonize_flag and not(os_name == "Windows" or (os_name == "Darwin" and version[1] == 6))
 
+    if daemonize_flag and not daemonize:
+        verbose.write("Daemonization requested, but not possible on this platform")
+    else:
+        verbose.write("Daemonization %s" % ("enabled" if daemonize else "disabled"))
+
     # Determine whether to use access auth.
     access_auth = True
     if args.access_auth is None and args.no_access_auth is None:
@@ -338,6 +366,8 @@ if __name__ == "__main__":
     else:
         access_auth = (args.access_auth is not None) or (not args.no_access_auth)
 
+    verbose.write("Access authentication %s" % ("enabled" if access_auth else "disabled"))
+
     # Determine whether to perform privilege drop.
     drop_privileges = True
     if args.drop_privileges is None and args.no_drop_privileges is None:
@@ -345,6 +375,8 @@ if __name__ == "__main__":
             drop_privileges = config.get("drop_privileges")
     else:
         drop_privileges = (args.drop_privileges is not None) or (not args.no_drop_privileges)
+
+    verbose.write("Privilege drop %s" % ("enabled" if drop_privileges else "disabled"))
 
     # Extract the rest of the arguments, giving priority first to command line
     # arguments, then to the configuration file (if any), and finally to a
@@ -366,6 +398,8 @@ if __name__ == "__main__":
             sys.exit(1)
         root = tangelo.util.expandpath(root)
 
+    verbose.write("Serving content from %s" % (root))
+
     vtkweb_port_list = []
     if args.vtkweb_ports is not None:
         try:
@@ -386,6 +420,11 @@ if __name__ == "__main__":
             print >>sys.stderr, "error: Tangelo server port %d cannot be part of VTK Web port specification ('%s')" % (port, args.vtkweb_ports)
             sys.exit(1)
 
+    if len(vtkweb_port_list) == 0:
+        verbose.write("No vtkweb ports reserved")
+    else:
+        verbose.write("Ports reserved for vtkweb processes: %s" % (str(vtkweb_port_list)))
+
     # Set the web root directory.
     cherrypy.config.update({"webroot": root})
 
@@ -395,9 +434,11 @@ if __name__ == "__main__":
 
     # Name the PID file.
     pidfile = piddir + "/tangelo.pid"
+    verbose.write("PID file: %s" % (pidfile))
 
     # Name the log file.
     logfile = logdir + "/tangelo.log"
+    verbose.write("Log file: %s" % (pidfile))
 
     # Dispatch on action argument.
     code = 1

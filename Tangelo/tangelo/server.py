@@ -449,7 +449,7 @@ class Tangelo(object):
 
             # Launch the requested process.
             try:
-                cmdline = [self.vtkpython, self.here + "/vtkweb-launcher.py", progfile, "--port", str(port)] + userargs
+                cmdline = [self.vtkpython, self.here + "/bin/vtkweb-launcher.py", progfile, "--port", str(port)] + userargs
                 tangelo.log("starting a vtkweb process: %s" % (" ".join(cmdline)))
                 process = subprocess.Popen(cmdline, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             except OSError as e:
