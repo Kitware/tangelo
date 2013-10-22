@@ -22,12 +22,18 @@ class Tangelo(object):
     # An HTML parser for use in the error_page handler.
     html = HTMLParser.HTMLParser()
 
-    def __init__(self, vtkweb_ports=None):
+    def __init__(self, vtkweb_ports=None, here=None):
         # A dict containing information about imported modules.
         self.modules = {}
 
         # A dict containing currently running streaming data sources.
         self.streams = {}
+
+        # The directory containing the tangelo start script.
+        self.here = here
+
+        # The vtkpython executable.
+        self.vtkpython = os.environ.get("VTKPYTHON")
 
         # A set containing available ports for running VTK Web processes on, and
         # a dict mapping keys to such processes.
@@ -334,6 +340,15 @@ class Tangelo(object):
         # TODO(choudhury): Implement a PUT method that expands the pool of
         # usable port numbers.
 
+        # Be sure there was a vtkpython executable specified via the
+        # environment, and a value provided for self.here.
+        if self.vtkpython is None:
+            return json.dumps({ "status": "failed",
+                                "reason": "no VTKPYTHON in environment" })
+        if self.here is None:
+            return json.dumps({ "status": "failed",
+                                "reason": "no 'here' argument provided to Tangelo object constructor" })
+
         # Get keyword arguments.
         progargs = kwargs.get("progargs", "")
         timeout = kwargs.get("timeout", 0)
@@ -426,16 +441,21 @@ class Tangelo(object):
             port = self.vtkweb_ports.pop()
             key = tangelo.util.generate_key(self.vtkweb_processes.keys())
 
-            # Launch the requested process.
-            try:
-                cmdline = ["${VTKPYTHON_EXECUTABLE}", "${CMAKE_BINARY_DIR}/${DEPLOY_DIR}/vtkweb-launcher.py", progfile, "--port", str(port)] + userargs
-                tangelo.log("starting a vtkweb process: %s" % (" ".join(cmdline)))
-                process = subprocess.Popen(cmdline, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            except OSError as e:
+            def launch_failure(msg):
                 # On launch failure, replace the port number in the pool, and
                 # report the failure to the user.
                 self.vtkweb_ports.add(port)
-                return json.dumps({"status": "failed", "reason": e.message})
+                return json.dumps({"status": "failed", "reason": msg})
+
+            # Launch the requested process.
+            try:
+                cmdline = [self.vtkpython, self.here + "/vtkweb-launcher.py", progfile, "--port", str(port)] + userargs
+                tangelo.log("starting a vtkweb process: %s" % (" ".join(cmdline)))
+                process = subprocess.Popen(cmdline, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            except OSError as e:
+                return launch_failure(e.strerror)
+            except IOError as e:
+                return launch_failure(e.strerror)
 
             # Capture the new process's stdout and stderr streams in
             # non-blocking readers.
@@ -488,7 +508,7 @@ class Tangelo(object):
             host = cherrypy.server.socket_host
             if host == "0.0.0.0":
                 host = "localhost"
-            wshandler = tools.websocket.WebSocketRelay(host, port, key)
+            wshandler = tangelo.websocket.WebSocketRelay(host, port, key)
             cherrypy.tree.mount(tangelo.websocket.WebSocketHandler(),
                                 "/%s" % (key),
                                 config={"/ws": { "tools.websocket.on": True,
@@ -539,4 +559,3 @@ class Tangelo(object):
             return json.dumps({"status": "complete"})
         else:
             raise cherrypy.HTTPError(405, "Method not allowed")
-

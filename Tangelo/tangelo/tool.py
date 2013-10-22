@@ -20,7 +20,7 @@ def treat_url():
 
     # Compute "parallel" path component lists based on the web root and the disk
     # root.
-    if len(reqpath) == "/":
+    if reqpath == "/":
         reqpathcomp = []
         pathcomp = [webroot]
     else:

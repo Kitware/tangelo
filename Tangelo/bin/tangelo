@@ -152,7 +152,7 @@ def start():
     # server and get it going.
     #
     # Create an instance of the main handler object.
-    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(vtkweb_port_list), "/")
+    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(vtkweb_port_list, here=os.path.dirname(os.path.abspath(__file__))), "/")
     cherrypy.tree.mount(tangelo.server.cpserver, config={"/": { "tools.auth_update.on": access_auth,
                                                                 "tools.treat_url.on": True }})
 

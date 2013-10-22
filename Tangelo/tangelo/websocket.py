@@ -33,9 +33,6 @@ class WebSocketHandler(object):
 
 def VTKWebSocketAB(url, relay):
     class RegisteringWebSocketClientFactory(autobahn.wamp.WampClientFactory):
-        def __init__(self):
-            self.client = None
-
         def register(self, client):
             self.client = client
 
@@ -47,9 +44,6 @@ def VTKWebSocketAB(url, relay):
             relay.send(msg)
 
     class Connection(threading.Thread):
-        def __init__(self):
-            self.factory = None
-
         def run(self):
             self.factory = RegisteringWebSocketClientFactory(url)
             self.factory.protocol = Protocol
