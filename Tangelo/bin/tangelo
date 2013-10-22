@@ -268,10 +268,6 @@ def restart():
     else:
         return stopval
 if __name__ == "__main__":
-    # Twiddle the command line so the name of the program is "tangelo" rather
-    # than "__main__".
-    sys.argv[0] = sys.argv[0].replace("__main__.py", "tangelo")
-
     p = argparse.ArgumentParser(description="Control execution of a Tangelo server.")
     p.add_argument("-c", "--config", type=str, default=None, metavar="FILE", help="specifies configuration file to use")
     p.add_argument("-d", "--daemonize", action="store_const", const=True, default=None, help="run Tangelo as a daemon (default)")
