@@ -468,7 +468,7 @@ if __name__ == "__main__":
 
     # Name the log file.
     logfile = logdir + "/tangelo.log"
-    verbose.write("Log file: %s" % (pidfile))
+    verbose.write("Log file: %s" % (logfile))
 
     # Dispatch on action argument.
     code = 1
