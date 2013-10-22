@@ -251,12 +251,14 @@ def stop():
                     time.sleep(0.1)
         except OSError:
             sys.stderr.write("failed (could not terminate process %d)\n" % (pid))
-            retval = 1
+            return 1
+    else:
+        print >>sys.stderr, "success (tangelo was not running)"
+        return 0
 
-    if retval == 0:
-        sys.stderr.write("success\n")
-
-    return retval
+    assert False
+    print >>sys.stderr, "success"
+    return 0
 
 def restart():
     stopval = stop()
@@ -264,6 +266,36 @@ def restart():
         return start()
     else:
         return stopval
+
+def status(hostname, port, logfile):
+    retval = None
+    pid = None
+
+    # Attempt to read the PID file and check if the process is running.
+    if os.path.exists(pidfile):
+        try:
+            pid = tangelo.util.read_pid(pidfile)
+        except ValueError:
+            print >>sys.stderr, "error: %s does not contain a valid process id"
+            retval = 1
+        else:
+            if tangelo.util.live_pid(pid):
+                print >>sys.stderr, "tangelo is running on %s:%d" % (hostname, port)
+            else:
+                print >>sys.stderr, "tangelo is not running, but %s exists and contains a process id"
+            retval = 0
+    else:
+        print >>sys.stderr, "tangelo is not running"
+        retval = 0
+
+    if pid is not None:
+        print >>sys.stderr, "process id: %d" % (pid)
+    print >>sys.stderr, "config file: %s" % (cfg_file or "none")
+    print >>sys.stderr, "log file: %s" % (logfile)
+    print >>sys.stderr, "process id file: %s" % (pidfile)
+
+    return retval
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Control execution of a Tangelo server.")
     p.add_argument("-c", "--config", type=str, default=None, metavar="FILE", help="specifies configuration file to use")
@@ -282,7 +314,7 @@ if __name__ == "__main__":
     p.add_argument("--piddir", type=str, default=None, metavar="DIR", help="where to place the PID file (default: location from which Tangelo was started)")
     p.add_argument("-r", "--root", type=str, default=None, metavar="DIR", help="the directory from which Tangelo will serve content")
     p.add_argument("--verbose", "-v", action="store_true", help="display extra information as Tangelo starts up")
-    p.add_argument("action", metavar="<start|stop|restart>", help="perform this action for the current Tangelo instance.")
+    p.add_argument("action", metavar="<start|stop|restart|status>", help="perform this action for the current Tangelo instance.")
     args = p.parse_args()
 
     # Make sure user didn't specify conflicting flags.
@@ -389,7 +421,7 @@ if __name__ == "__main__":
     # If we are starting a Tangelo server, then the web root MUST be specified,
     # either in the config file or on the command line.
     root = args.root or config.get("root")
-    if action not in ["stop"]:
+    if action not in ["stop", "status"]:
         if root is None:
             print >>sys.stderr, "error: no web root specified"
             sys.exit(1)
@@ -451,6 +483,11 @@ if __name__ == "__main__":
             sys.stderr.write("error: restart action not supported on this platform\n")
             sys.exit(1)
         code = restart()
+    elif action == "status":
+        if not daemonize:
+            print >>sys.stderr, "error: status action not supported on this platform"
+            sys.exit(1)
+        code = status(hostname, port, logfile)
     else:
         p.print_usage()
         code = 1
