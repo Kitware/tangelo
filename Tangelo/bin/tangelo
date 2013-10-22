@@ -384,7 +384,11 @@ if __name__ == "__main__":
             verbose.write("Using configuration file %s" % (cfg_file))
 
         # Get a dict representing the contents of the config file.
-        config = read_config(cfg_file)
+        try:
+            config = read_config(cfg_file)
+        except ValueError as e:
+            print >>sys.stderr, "error reading configuration file %s: %s" % (cfg_file, e.message)
+            sys.exit(1)
 
     # Decide whether to daemonize, based on whether the user wishes not to, and
     # whether the platform supports it.
