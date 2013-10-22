@@ -169,15 +169,24 @@ def start():
             import grp
             import pwd
 
+            # On some systems, negative uids and gids are allowed.  These will
+            # render in Python as very large unsigned values.  This function
+            # treats the argument as a bit representation of a *signed* value
+            # and performs the proper arithmetic to turn it into a signed one.
+            def to_signed(val):
+                # Check sign bit, and subtract the unsigned range from the value
+                # if it is set.
+                return val - 0x100000000 if val & 0x80000000 else val
+
             # Find the UID and GID for the requested user and group.
             try:
                 mode = "user"
                 value = user
-                uid = pwd.getpwnam(user).pw_uid
+                uid = to_signed(pwd.getpwnam(user).pw_uid)
 
                 mode = "group"
                 value = group
-                gid = grp.getgrnam(group).gr_gid
+                gid = to_signed(grp.getgrnam(group).gr_gid)
             except KeyError:
                 msg = "no such %s '%s' to drop privileges to" % (mode, value)
                 tangelo.log(msg, "ERROR")
