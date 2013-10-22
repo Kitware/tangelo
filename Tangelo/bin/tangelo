@@ -277,7 +277,7 @@ def restart():
     else:
         return stopval
 
-def status(hostname, port, logfile):
+def status(hostname, port, logfile, webroot):
     retval = None
     pid = None
 
@@ -303,6 +303,7 @@ def status(hostname, port, logfile):
     print >>sys.stderr, "config file: %s" % (cfg_file or "none")
     print >>sys.stderr, "log file: %s" % (logfile)
     print >>sys.stderr, "process id file: %s" % (pidfile)
+    print >>sys.stderr, "web root: %s" % (webroot)
 
     return retval
 
@@ -512,7 +513,7 @@ if __name__ == "__main__":
         if not daemonize:
             print >>sys.stderr, "error: status action not supported on this platform"
             sys.exit(1)
-        code = status(hostname, port, logfile)
+        code = status(hostname, port, logfile, root)
     else:
         p.print_usage()
         code = 1
