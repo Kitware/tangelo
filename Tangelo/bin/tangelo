@@ -474,9 +474,9 @@ if __name__ == "__main__":
     logdir = tangelo.util.expandpath(args.logdir or config.get("logdir") or ".")
     piddir = tangelo.util.expandpath(args.piddir or config.get("piddir") or ".")
 
-    # If we are starting a Tangelo server, then the web root MUST be specified,
-    # either in the config file or on the command line.
-    root = args.root or config.get("root")
+    # If we are starting a Tangelo server, we need a web root - use the
+    # installed example web directory as a fallback.
+    root = args.root or config.get("root") or sys.prefix + "/share/tangelo/web"
     if action not in ["stop", "status"]:
         if root is None:
             print >>sys.stderr, "error: no web root specified"
