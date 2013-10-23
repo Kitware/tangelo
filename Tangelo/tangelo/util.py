@@ -1,3 +1,4 @@
+import errno
 import os
 import os.path
 import md5
@@ -10,8 +11,13 @@ def expandpath(spec):
 def live_pid(pid):
     try:
         os.kill(pid, 0)
-    except OSError:
-        return False
+    except OSError as e:
+        # This means that os.kill() failed to find the requested pid; therefore,
+        # there is no process using it.  If the error is of some other type,
+        # simply re-raise it and let the caller deal with it.
+        if e.errno == errno.ESRCH:
+            return False
+        raise
     else:
         return True
 
