@@ -265,12 +265,26 @@ def stop():
                 sys.stderr.write("failed (could not terminate process %d)\n" % (pid))
             return 1
         else:
-            # This line is here because in case we performed a privilege drop,
-            # the PIDFile plugin will no longer have sufficient permissions to
-            # delete this file - but if this script reaches this point, it means
-            # *it* had sufficient permissions to end the process, and therefore
-            # has the same levels needed to erase this file.
-            os.remove(pidfile)
+            # On some systems, root privileges are required to remove a file
+            # from a root-owned directory that doesn't provide write access to
+            # non-root users - even if the file in question is owned by the
+            # non-root user that wants to remove it.  On such systems, a
+            # privilege-dropped PIDFile plugin will *not* be able to remove such
+            # a file.  The remove call below is meant to handle this case, since
+            # reaching this point in the stop() function means that the invoking
+            # user *does* have the correct privileges to shut down the running
+            # server, and therefore should have the ability to remove this file
+            # as well.
+            #
+            # On other systems, however, the PIDFile plugin *will* succeed in
+            # removing the file, even without root privileges; on these systems,
+            # it appears that attempting to remove a non-existent file causes an
+            # exception to be thrown.
+            #
+            # Therefore, this call is guarded to make sure no exceptions are
+            # thrown, while also enxure
+            if os.path.exists(pidfile):
+                os.remove(pidfile)
 
             print >>sys.stderr, "success"
             return 0
