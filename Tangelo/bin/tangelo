@@ -477,12 +477,6 @@ if __name__ == "__main__":
     # If we are starting a Tangelo server, we need a web root - use the
     # installed example web directory as a fallback.
     root = args.root or config.get("root") or sys.prefix + "/share/tangelo/web"
-    if action not in ["stop", "status"]:
-        if root is None:
-            print >>sys.stderr, "error: no web root specified"
-            sys.exit(1)
-        root = tangelo.util.expandpath(root)
-
     verbose.write("Serving content from %s" % (root))
 
     vtkweb_port_list = []
