@@ -266,4 +266,3 @@ class AuthUpdate(cherrypy.Tool):
                 # Don't bother updating the security table for higher paths -
                 # we'll process those later, when they are requested.
                 break
-
