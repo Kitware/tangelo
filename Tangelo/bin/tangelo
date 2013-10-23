@@ -161,11 +161,19 @@ def start():
             import grp
             import pwd
 
-            # On some systems, negative uids and gids are allowed.  These will
-            # render in Python as very large unsigned values.  This function
-            # treats the argument as a bit representation of a *signed* value
-            # and performs the proper arithmetic to turn it into a signed one.
+            # On some systems, negative uids and gids are allowed.  These can
+            # render in Python (in particular, on OS X) as very large unsigned
+            # values.  This function first checks to see if the input value is
+            # already negative; if so, there's no issue and we return it
+            # unchanged.  Otherwise, we treat the argument as a bit
+            # representation of a *signed* value, check the sign bit to see if
+            # it *should* be a negative number, and then perform the proper
+            # arithmetic to turn it into a signed one.
             def to_signed(val):
+                # If we already see a negative number, just return it.
+                if val < 0:
+                    return val
+
                 # Check sign bit, and subtract the unsigned range from the value
                 # if it is set.
                 return val - 0x100000000 if val & 0x80000000 else val
