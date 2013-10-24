@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Start the server, and report an error on failure.
-@CMAKE_BINARY_DIR@/@DEPLOY_DIR@/tangelo restart
+tangelo restart
 if [ "$?" != 0 ]; then
     echo "Couldn't start server"
     exit 1
@@ -29,6 +29,6 @@ else
     echo "Strings do not match"
 fi
 
-@CMAKE_BINARY_DIR@/@DEPLOY_DIR@/tangelo stop
+tangelo stop
 
 exit ${retval}

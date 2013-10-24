@@ -1,0 +1,26 @@
+// This is the *global* Tangelo configuration file example, i.e., for a
+// system-wide installation of Tangelo that is managed by someone with superuser
+// access to the server.
+//
+//  Copy this file to /etc/tangelo.conf, then edit the values in the fields
+//  below to reflect your setup parameters.
+
+{
+    // Set these to the hostname and port interface Tangelo should listen on.
+    // Setting the hostname to "0.0.0.0" will cause Tangelo to listen on all
+    // interfaces.
+    "hostname": "localhost",
+    "port":     80,
+
+    // These are user and group under which Tangelo will run if started as root.
+    // Best practice is to create a new user and group called "tangelo" that has
+    // no shell and no rights.  If an attacker manages to compromise this
+    // account, other services running under other user accounts will not be
+    // affected.
+    "user":     "nobody",
+    "group":    "nobody",
+
+    // These are standard locations for the log and pid files.
+    "logdir":   "/var/log",
+    "piddir":   "/var/run"
+}

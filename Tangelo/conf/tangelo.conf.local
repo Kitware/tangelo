@@ -1,0 +1,20 @@
+// This is the *local* Tangelo configuration file example, i.e., for an
+// installation in a non-superuser's home directory, administered directly by
+// that user on a non-privileged port.
+//
+// Copy this file to ~/.config/tangelo/tangelo.conf, then edit the values in the
+// fields below to reflect your setup parameters.
+
+{
+    // Set these to the hostname and port interface Tangelo should listen on.
+    // Setting the hostname to "0.0.0.0" will cause Tangelo to listen on all
+    // interfaces.  Select a port number above 1024, that is not being used by
+    // another service.
+    "hostname": "localhost",
+    "port":     8080,
+
+    // Change these to custom locations if you do not want the log and pid files
+    // to sit next to the configuration file.
+    "logdir":   "~/.config/tangelo",
+    "piddir":   "~/.config/tangelo"
+}

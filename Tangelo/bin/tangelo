@@ -1,0 +1,539 @@
+#!python
+
+import argparse
+import errno
+import itertools
+import os
+import cherrypy
+import platform
+import signal
+import twisted.internet
+import sys
+import time
+import ws4py.server
+import json
+import re
+
+import tangelo
+from   tangelo.minify_json import json_minify
+import tangelo.plugin
+import tangelo.server
+import tangelo.tool
+import tangelo.util
+import tangelo.websocket
+
+def running_pids():
+    return map(lambda x: int(x.group(1)), filter(None, map(lambda x: re.search(r"^tangelo\.([0-9]*)$", x), os.walk(tangelo.plugin.StatusFile.tmpdir).next()[2])))
+
+def report_running():
+    running = running_pids()
+    if len(running) == 0:
+        print >>sys.stderr, "no tangelo instances are running"
+    else:
+        print >>sys.stderr, "tangelo instances are running with the following process ids: %s" % (", ".join(map(str, running)))
+        print >>sys.stderr, "(use --pid to get information about one of these)"
+
+def read_config(cfgfile):
+    if cfgfile is None:
+        return {}
+
+    # Read out the text of the file.
+    with open(cfgfile) as f:
+        text = f.read()
+
+    # Strip comments and then parse into a dict.
+    return json.loads(json_minify(text))
+
+def polite(signum, frame):
+    print >>sys.stderr, "Already shutting down.  To force shutdown immediately, send SIGQUIT (Ctrl-\\)."
+
+def die(signum, frame):
+    print >>sys.stderr, "Forced shutdown.  Exiting immediately."
+    os.kill(os.getpid(), signal.SIGKILL)
+
+def shutdown(signum, frame):
+    # Disbale the shutdown handler (i.e., for repeated Ctrl-C etc.) for the
+    # "polite" shutdown signals.
+    for sig in [signal.SIGINT, signal.SIGTERM]:
+        signal.signal(sig, polite)
+
+    # Perform (1) vtkweb process cleanup, (2) twisted reactor cleanup and quit,
+    # (3) CherryPy shutdown, and (4) CherryPy exit.
+    tangelo.server.cpserver.root.cleanup()
+    twisted.internet.reactor.stop()
+    cherrypy.engine.stop()
+    cherrypy.engine.exit()
+
+def start():
+    sys.stderr.write("starting tangelo...")
+
+    # Set up the global configuration.  This includes the hostname and port
+    # number as specified in the CMake phase.
+    #
+    # Whether to log directly to the screen has to do with whether we are
+    # daemonizing - if we are, we want to suppress the output, and if we are
+    # not, we want to see everything.
+    cherrypy.config.update({"environment": "production",
+                            "log.error_file": logfile,
+                            "log.screen": not daemonize,
+                            "server.socket_host": hostname,
+                            "server.socket_port": port,
+                            "error_page.default": tangelo.server.Tangelo.error_page})
+
+    # If we are daemonizing, do it here, before anything gets started.  We have
+    # to set this up in a certain way:
+    #
+    # 1. We fork ourselves immediately, so the child process, which will
+    # actually start CherryPy, doesn't scribble on the screen.
+    #
+    # 2. We get the parent process to poll the logfile for specific messages
+    # indicating success or failure, and use these to print an informative
+    # message on screen.
+    #
+    # The special behavior of the parent before it exits is the reason we don't
+    # just use the CherryPy Daemonizer plugin.
+    if daemonize:
+        fork = os.fork()
+
+        # The parent process - start a polling loop to watch for signals in the
+        # log file before exiting.
+        if fork != 0:
+            # Loop until we can open the logfile (this is in case the child
+            # process hasn't created it just yet).
+            opened = False
+            while not opened:
+                try:
+                    f = open(logfile)
+                    opened = True
+                except IOError:
+                    pass
+
+            # Seek to the end of the file.
+            f.seek(0, os.SEEK_END)
+
+            # In a loop, look for new lines being added to the log file, and
+            # examine them for signs of success or failure.
+            done = False
+            location = None
+            while not done:
+                cur_pos = f.tell()
+                line = f.readline()
+                if not line:
+                    f.seek(cur_pos)
+                else:
+                    if "Bus STARTED" in line:
+                        retval = 0
+                        print >>sys.stderr, "success (serving on %s)" % (location)
+                        done = True
+                    elif "Error" in line:
+                        retval = 1
+                        print >>sys.stderr, "failed (check tangelo.log for reason)"
+                        done = True
+                    elif "Serving on" in line:
+                        location = line.split("Serving on")[1].strip()
+
+            # The parent process can now exit, indicating success or failure of
+            # the child.
+            sys.exit(retval)
+
+    # From this point forward, we are the child process, and can now set up the
+    # server and get it going.
+    #
+    # Create an instance of the main handler object.
+    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(vtkweb_port_list, here=invocation_dir), "/")
+    cherrypy.tree.mount(tangelo.server.cpserver, config={"/": { "tools.auth_update.on": access_auth,
+                                                                "tools.treat_url.on": True }})
+
+    # Try to drop privileges if requested, since we've bound to whatever port
+    # superuser privileges were needed for already.
+    if drop_privileges:
+        # If we're on windows, don't supply any username/groupname, and just
+        # assume we should drop priveleges.
+        if os_name == "Windows":
+            cherrypy.process.plugins.DropPrivileges(cherrypy.engine).subscribe()
+        elif os.getuid() == 0:
+            # Reaching here means we're on unix, and we are the root user, so go
+            # ahead and drop privileges to the requested user/group.
+            import grp
+            import pwd
+
+            # On some systems, negative uids and gids are allowed.  These can
+            # render in Python (in particular, on OS X) as very large unsigned
+            # values.  This function first checks to see if the input value is
+            # already negative; if so, there's no issue and we return it
+            # unchanged.  Otherwise, we treat the argument as a bit
+            # representation of a *signed* value, check the sign bit to see if
+            # it *should* be a negative number, and then perform the proper
+            # arithmetic to turn it into a signed one.
+            def to_signed(val):
+                # If we already see a negative number, just return it.
+                if val < 0:
+                    return val
+
+                # Check sign bit, and subtract the unsigned range from the value
+                # if it is set.
+                return val - 0x100000000 if val & 0x80000000 else val
+
+            # Find the UID and GID for the requested user and group.
+            try:
+                mode = "user"
+                value = user
+                uid = to_signed(pwd.getpwnam(user).pw_uid)
+
+                mode = "group"
+                value = group
+                gid = to_signed(grp.getgrnam(group).gr_gid)
+            except KeyError:
+                msg = "no such %s '%s' to drop privileges to" % (mode, value)
+                tangelo.log(msg, "ERROR")
+                print >>sys.stderr, "failed (%s)" % (msg)
+                sys.exit(1)
+
+            # Set the process home directory to be the dropped-down user's.
+            os.environ["HOME"] = os.path.expanduser("~%s" % (user))
+
+            # Transfer ownership of the log file to the non-root user.
+            os.chown(logfile, uid, gid)
+
+            # Perform the actual UID/GID change.
+            cherrypy.process.plugins.DropPrivileges(cherrypy.engine, uid=uid, gid=gid).subscribe()
+
+    # If daemonizing, we need to maintain a status file.
+    if daemonize:
+        tangelo.plugin.StatusFile(cherrypy.engine, cfg_file=cfg_file, logfile=logfile, webroot=root, hostname=hostname, port=port).subscribe()
+
+    # Set up websocket handling.  Use the pass-through subclassed version of the
+    # plugin so we can set a priority on it that doesn't conflict with privilege
+    # drop.
+    tangelo.websocket.WebSocketLowPriorityPlugin(cherrypy.engine).subscribe()
+    cherrypy.tools.websocket = ws4py.server.cherrypyserver.WebSocketTool()
+
+    # Replace the stock auth_digest and auth_basic tools with ones that have
+    # slightly lower priority (so the AuthUpdate tool can run before them).
+    cherrypy.tools.auth_basic = cherrypy.Tool("before_handler", cherrypy.lib.auth_basic.basic_auth, priority=2)
+    cherrypy.tools.auth_digest = cherrypy.Tool("before_handler", cherrypy.lib.auth_digest.digest_auth, priority=2)
+
+    # Install signal handlers to allow for proper cleanup/shutdown.
+    for sig in [signal.SIGINT, signal.SIGTERM]:
+        signal.signal(sig, shutdown)
+
+    # Send SIGQUIT to an immediate, ungraceful shutdown instead.
+    signal.signal(signal.SIGQUIT, die)
+
+    # Install the "treat_url" tool, which performs redirections and analyzes the
+    # request path to see what kind of resource is being requested, and the
+    # "auth update" tool, which checks for updated/new/deleted .htaccess files
+    # and updates the state of auth tools on various paths.
+    cherrypy.tools.treat_url = cherrypy.Tool("before_handler", tangelo.tool.treat_url, priority=0)
+    if access_auth:
+        cherrypy.tools.auth_update = tangelo.tool.AuthUpdate(point="before_handler", priority=1)
+
+    # Start the CherryPy engine.
+    cherrypy.engine.start()
+
+    # Start the Twisted reactor in the main thread (it will block but the
+    # CherryPy engine has already started in a non-blocking manner).
+    twisted.internet.reactor.run(installSignalHandlers=False)
+    cherrypy.engine.block()
+
+def stop():
+    # First see how many tangelos are running.  If there is more than one, the
+    # user needs to have specified which one to stop with --pid.
+    running = running_pids()
+    if len(running) == 0:
+        print >>sys.stderr, "no tangelo instances are running"
+        return 0
+    elif len(running) > 1:
+        if status_pid is None:
+            print >>sys.stderr, "multiple tangelo instances are running, with process IDs: %s" % (", ".join(map(str, running)))
+            print >>sys.stderr, "use --pid to select one to stop"
+            return 1
+        else:
+            if status_pid in running:
+                pid = status_pid
+            else:
+                print >>sys.stderr, "no tangelo instance with pid %d" % (status_pid)
+                return 1
+    else:
+        pid = running[0]
+
+    sys.stderr.write("stopping tangelo...")
+
+    try:
+        if tangelo.util.live_pid(pid):
+            os.kill(pid, signal.SIGTERM)
+            while tangelo.util.live_pid(pid):
+                time.sleep(0.1)
+    except OSError as e:
+        if e.errno == errno.EPERM:
+            print >>sys.stderr, "failed (insufficient permissions)"
+        else:
+            print >>sys.stderr, "failed (could not terminate process %d)" % (pid)
+        return 1
+
+    print >>sys.stderr, "success"
+    return 0
+
+def restart():
+    stopval = stop()
+    if stopval == 0:
+        return start()
+    else:
+        return stopval
+
+def status(pid):
+    # See if the process is actually running.
+    running = tangelo.util.live_pid(pid)
+
+    # Find the tangelo status file associated with the pid.
+    status_file = tangelo.plugin.StatusFile.status_filename(pid)
+
+    if not os.path.exists(status_file):
+        if tangelo.util.live_pid(pid):
+            print >>sys.stderr, "a process is running with process ID %d, but %s does not exist" % (pid, status_file)
+        else:
+            print >>sys.stderr, "no tangelo instance with process ID %d" % (pid)
+        return 0
+
+    try:
+        status = tangelo.plugin.StatusFile.read_status_file(status_file)
+    except IOError as e:
+        print >>sys.stderr, e.strerror
+        return 1
+    except ValueError as v:
+        print >>sys.stderr, e.message
+        return 1
+
+    print >>sys.stderr, "process id:  %d" % (pid)
+    print >>sys.stderr, "status:      %s" % ("running" if running else "dead")
+    print >>sys.stderr, "interface:   %s:%s" % (status.get("hostname", "<unknown>"), status.get("port", "<unknown>"))
+    print >>sys.stderr, "config file: %s" % (status.get("cfg_file") or "unknown")
+    print >>sys.stderr, "log file:    %s" % (status.get("logfile") or "unknown")
+    print >>sys.stderr, "web root:    %s" % (status.get("webroot") or "unknown")
+    return 0
+
+if __name__ == "__main__":
+    p = argparse.ArgumentParser(description="Control execution of a Tangelo server.")
+    p.add_argument("-c", "--config", type=str, default=None, metavar="FILE", help="specifies configuration file to use")
+    p.add_argument("-nc", "--no-config", action="store_true", help="skips looking for and using a configuration file")
+    p.add_argument("-d", "--daemonize", action="store_const", const=True, default=None, help="run Tangelo as a daemon (default)")
+    p.add_argument("-nd", "--no-daemonize", action="store_const", const=True, default=None, help="run Tangelo in-console (not as a daemon)")
+    p.add_argument("-a", "--access-auth", action="store_const", const=True, default=None, help="enable HTTP authentication (i.e. processing of .htaccess files) (default)")
+    p.add_argument("-na", "--no-access-auth", action="store_const", const=True, default=None, help="disable HTTP authentication (i.e. processing of .htaccess files)")
+    p.add_argument("-p", "--drop-privileges", action="store_const", const=True, default=None, help="enable privilege drop when started as superuser (default)")
+    p.add_argument("-np", "--no-drop-privileges", action="store_const", const=True, default=None, help="disable privilege drop when started as superuser")
+    p.add_argument("--hostname", type=str, default=None, metavar="HOSTNAME", help="overrides configured hostname on which to run Tangelo")
+    p.add_argument("--port", type=int, default=None, metavar="PORT", help="overrides configured port number on which to run Tangelo")
+    p.add_argument("--vtkweb-ports", type=str, default=None, metavar="PORT RANGE", help="specifies the port range to use for VTK Web processes")
+    p.add_argument("-u", "--user", type=str, default=None, metavar="USERNAME", help="specifies the user to run as when root privileges are dropped")
+    p.add_argument("-g", "--group", type=str, default=None, metavar="GROUPNAME", help="specifies the group to run as when root privileges are dropped")
+    p.add_argument("--logdir", type=str, default=None, metavar="DIR", help="where to place the log file (default: location from which Tangelo was started)")
+    p.add_argument("-r", "--root", type=str, default=None, metavar="DIR", help="the directory from which Tangelo will serve content")
+    p.add_argument("--pid", type=int, default=None, metavar="PID", help="use with 'status' action to get information about a running Tangelo instance")
+    p.add_argument("--pids", action="store_true", help="use with 'status' action to get a list of running Tangelo process IDs")
+    p.add_argument("--verbose", "-v", action="store_true", help="display extra information as Tangelo starts up")
+    p.add_argument("action", metavar="<start|stop|restart|status>", help="perform this action for the current Tangelo instance.")
+    args = p.parse_args()
+
+    # Make sure user didn't specify conflicting flags.
+    if args.daemonize and args.no_daemonize:
+        print >>sys.stderr, "error: can't specify both --daemonize (-d) and --no-daemonize (-nd) together"
+        sys.exit(1)
+
+    if args.access_auth and args.no_access_auth:
+        print >>sys.stderr, "error: can't specify both --access-auth (-a) and --no-access-auth (-na) together"
+        sys.exit(1)
+
+    if args.drop_privileges and args.no_drop_privileges:
+        print >>sys.stderr, "error: can't specify both --drop-privileges (-p) and --no-drop-privileges (-np) together"
+        sys.exit(1)
+
+    if args.no_config and args.config is not None:
+        print >>sys.stderr, "error: can't specify both --config (-c) and --no-config (-nc) together"
+        sys.exit(1)
+
+    if args.pids and args.pid is not None:
+        print >>sys.stderr, "error: can't specify both --pids and --pid together"
+        sys.exit(1)
+
+    # Figure out where this is being called from - that will be useful for a
+    # couple of purposes.
+    invocation_dir = os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/..")
+
+    # A simple class for conditional printing in verbose mode.
+    class Verbose:
+        def __init__(self, verbose):
+            self.verbose = verbose
+
+        def write(self, msg):
+            if self.verbose:
+                print >>sys.stderr, msg
+    verbose = Verbose(args.verbose)
+
+    # Before extracting the other arguments, compute a configuration dictionary.
+    # If --no-config was specified, this will be the empty dictionary;
+    # otherwise, check the command line arguments for a config file first, then
+    # look for one in a sequence of other places.
+    cfg_file = None
+    config = {}
+    if args.no_config:
+        verbose.write("Not using any configuration file")
+    else:
+        cfg_file = args.config
+        if cfg_file is None:
+            verbose.write("No configuration file specified - searching...")
+            for loc in ["/etc/tangelo.conf", os.path.expanduser("~/.config/tangelo/tangelo.conf"), invocation_dir + "/share/tangelo/conf/tangelo.conf.local"]:
+                if os.path.exists(loc):
+                    cfg_file = loc
+                    break
+                else:
+                    verbose.write("%s does not exist" % (loc))
+
+        if cfg_file is None:
+            verbose.write("No configuration file found - will use command line args and defaults")
+        else:
+            verbose.write("Using configuration file %s" % (cfg_file))
+
+        # Get a dict representing the contents of the config file.
+        try:
+            config = read_config(cfg_file)
+        except ValueError as e:
+            print >>sys.stderr, "error reading configuration file %s: %s" % (cfg_file, e.message)
+            sys.exit(1)
+
+    # Decide whether to daemonize, based on whether the user wishes not to, and
+    # whether the platform supports it.
+    #
+    # First detect the operating system (and OSX version, if applicable).
+    os_name = platform.system()
+    if os_name == "Darwin":
+        version = map(int, platform.mac_ver()[0].split("."))
+
+    # Determine whether to daemonize.
+    daemonize_flag = True
+    if args.daemonize is None and args.no_daemonize is None:
+        if config.get("daemonize") is not None:
+            daemonize_flag = config.get("daemonize")
+    else:
+        daemonize_flag = (args.daemonize is not None) or (not args.no_daemonize)
+    daemonize = daemonize_flag and not(os_name == "Windows" or (os_name == "Darwin" and version[1] == 6))
+
+    if daemonize_flag and not daemonize:
+        verbose.write("Daemonization requested, but not possible on this platform")
+    else:
+        verbose.write("Daemonization %s" % ("enabled" if daemonize else "disabled"))
+
+    # Determine whether to use access auth.
+    access_auth = True
+    if args.access_auth is None and args.no_access_auth is None:
+        if config.get("access_auth") is not None:
+            access_auth = config.get("access_auth")
+    else:
+        access_auth = (args.access_auth is not None) or (not args.no_access_auth)
+
+    verbose.write("Access authentication %s" % ("enabled" if access_auth else "disabled"))
+
+    # Determine whether to perform privilege drop.
+    drop_privileges = True
+    if args.drop_privileges is None and args.no_drop_privileges is None:
+        if config.get("drop_privileges") is not None:
+            drop_privileges = config.get("drop_privileges")
+    else:
+        drop_privileges = (args.drop_privileges is not None) or (not args.no_drop_privileges)
+
+    verbose.write("Privilege drop %s" % ("enabled" if drop_privileges else "disabled"))
+
+    # Extract the rest of the arguments, giving priority first to command line
+    # arguments, then to the configuration file (if any), and finally to a
+    # hard-coded default value.
+    action = args.action
+    hostname = args.hostname or config.get("hostname") or "localhost"
+    port = args.port or config.get("port") or 8080
+    user = args.user or config.get("user") or "nobody"
+    group = args.group or config.get("group") or "nobody"
+    logdir = tangelo.util.expandpath(args.logdir or config.get("logdir") or ".")
+
+    # If we are starting a Tangelo server, we need a web root - use the
+    # installed example web directory as a fallback.
+    root = args.root or config.get("root") or sys.prefix + "/share/tangelo/web"
+    verbose.write("Serving content from %s" % (root))
+
+    # See if the user is asking for information on a particular PID.
+    status_pid = args.pid
+    pids = args.pids
+
+    vtkweb_port_list = []
+    if args.vtkweb_ports is not None:
+        try:
+            # This parses expressions of the form "8081-8090,12000,13500-13600".
+            # It will allow spaces around the punctuation, but reject too many
+            # hyphens, and "blank" entries (i.e. two commas next to each other
+            # etc.).
+            vtkweb_port_list = list(itertools.chain.from_iterable(map(lambda y: range(y[0], y[1]) if len(y) == 2 else [y[0]], map(lambda x: map(int, x.split("-", 1)), args.vtkweb_ports.split(",")))))
+        except ValueError:
+            print >>sys.stderr, "error: could not parse VTK Web port range specification '%s'" % (args.vtkweb_ports)
+            sys.exit(1)
+
+        if vtkweb_port_list == []:
+            print >>sys.stderr, "error: VTK Web port specification '%s' produces no ports" % (args.vtkweb_ports)
+            sys.exit(1)
+
+        if port in vtkweb_port_list:
+            print >>sys.stderr, "error: Tangelo server port %d cannot be part of VTK Web port specification ('%s')" % (port, args.vtkweb_ports)
+            sys.exit(1)
+
+    if len(vtkweb_port_list) == 0:
+        verbose.write("No vtkweb ports reserved")
+    else:
+        verbose.write("Ports reserved for vtkweb processes: %s" % (str(vtkweb_port_list)))
+
+    # Set the web root directory.
+    cherrypy.config.update({"webroot": root})
+
+    # Place an empty dict to hold per-module configuration into the global
+    # configuration object.
+    cherrypy.config.update({"module-config": {}})
+
+    # Name the log file.
+    logfile = logdir + "/tangelo.log"
+    verbose.write("Log file: %s" % (logfile))
+
+    # Dispatch on action argument.
+    code = 1
+    if action == "start":
+        code = start()
+    elif action == "stop":
+        if not daemonize:
+            sys.stderr.write("error: stop action not supported on this platform\n")
+            sys.exit(1)
+        code = stop()
+    elif action == "restart":
+        if not daemonize:
+            sys.stderr.write("error: restart action not supported on this platform\n")
+            sys.exit(1)
+        code = restart()
+    elif action == "status":
+        if not daemonize:
+            print >>sys.stderr, "error: status action not supported on this platform"
+            sys.exit(1)
+
+        # The status actions has a few options: --pids will simply list out the
+        # running PIDs for tangelo instances; --pid will show the status for a
+        # single process; omitting all flags will show the status information
+        # for all processes.
+        if pids:
+            report_running()
+        elif status_pid is not None:
+            status(status_pid)
+        else:
+            running = running_pids()
+            for i, pid in enumerate(running):
+                status(pid)
+                if i < len(running) - 1:
+                    print >>sys.stderr
+            code = 0
+    else:
+        p.print_usage()
+        code = 1
+
+    sys.exit(code)

@@ -1,4 +1,4 @@
-#!${PYTHON_EXECUTABLE}
+#!python
 
 import argparse
 import getpass

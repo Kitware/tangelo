@@ -1,4 +1,4 @@
-#!${VTKPYTHON_EXECUTABLE}
+#!python
 
 r"""
     This module is a VTK Web server application.
