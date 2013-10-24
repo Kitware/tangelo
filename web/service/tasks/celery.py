@@ -44,6 +44,7 @@ def post(*pargs, **kwargs):
   if not pargs:
     return tangelo.HTTPStatusCode(400, "No task module specified")
 
+  pargs = filter(None, pargs)
   task_module = '.'.join(pargs)
   async_result  = celery.send_task('%s.run' % task_module, [input])
 
