@@ -73,12 +73,17 @@ def start():
     # Whether to log directly to the screen has to do with whether we are
     # daemonizing - if we are, we want to suppress the output, and if we are
     # not, we want to see everything.
-    cherrypy.config.update({"environment": "production",
-                            "log.error_file": logfile,
-                            "log.screen": not daemonize,
-                            "server.socket_host": hostname,
-                            "server.socket_port": port,
-                            "error_page.default": tangelo.server.Tangelo.error_page})
+    try:
+        cherrypy.config.update({"environment": "production",
+                                "log.error_file": logfile,
+                                "log.screen": not daemonize,
+                                "server.socket_host": hostname,
+                                "server.socket_port": port,
+                                "error_page.default": tangelo.server.Tangelo.error_page})
+    except IOError as e:
+        print >>sys.stderr, "failed"
+        print >>sys.stderr, "error with config file %s: %s" % (e.filename, e.strerror)
+        return 1
 
     # If we are daemonizing, do it here, before anything gets started.  We have
     # to set this up in a certain way:
