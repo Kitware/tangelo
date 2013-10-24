@@ -12,13 +12,26 @@ import sys
 import time
 import ws4py.server
 import json
+import re
 
 import tangelo
 from   tangelo.minify_json import json_minify
+import tangelo.plugin
 import tangelo.server
 import tangelo.tool
 import tangelo.util
 import tangelo.websocket
+
+def running_pids():
+    return map(lambda x: int(x.group(1)), filter(None, map(lambda x: re.search(r"^tangelo\.([0-9]*)$", x), os.walk(tangelo.plugin.StatusFile.tmpdir).next()[2])))
+
+def report_running():
+    running = running_pids()
+    if len(running) == 0:
+        print >>sys.stderr, "no tangelo instances are running"
+    else:
+        print >>sys.stderr, "tangelo instances are running with the following process ids: %s" % (", ".join(map(str, running)))
+        print >>sys.stderr, "(use --pid to get information about one of these)"
 
 def read_config(cfgfile):
     if cfgfile is None:
@@ -53,23 +66,6 @@ def shutdown(signum, frame):
 
 def start():
     sys.stderr.write("starting tangelo...")
-
-    # The presence of a pid file means that either this instance of Tangelo is
-    # already running, or the PID is stale.
-    if os.path.exists(pidfile):
-        # Get the pid.
-        try:
-            pid = tangelo.util.read_pid(pidfile)
-        except ValueError:
-            sys.stderr.write("failed (pidfile exists and contains bad pid)\n")
-            return 1
-        else:
-            print >>sys.stderr, "failed (already running, process id %d)" % (pid)
-            return 1
-
-    # Make sure the working directory is the place where the control script
-    # lives.
-    #os.chdir(path)
 
     # Set up the global configuration.  This includes the hostname and port
     # number as specified in the CMake phase.
@@ -202,9 +198,9 @@ def start():
             # Perform the actual UID/GID change.
             cherrypy.process.plugins.DropPrivileges(cherrypy.engine, uid=uid, gid=gid).subscribe()
 
-    # If daemonizing, we need to maintain a pid file.
+    # If daemonizing, we need to maintain a status file.
     if daemonize:
-        cherrypy.process.plugins.PIDFile(cherrypy.engine, pidfile).subscribe()
+        tangelo.plugin.StatusFile(cherrypy.engine, cfg_file=cfg_file, logfile=logfile, webroot=root, hostname=hostname, port=port).subscribe()
 
     # Set up websocket handling.  Use the pass-through subclassed version of the
     # plugin so we can set a priority on it that doesn't conflict with privilege
@@ -241,58 +237,42 @@ def start():
     cherrypy.engine.block()
 
 def stop():
-    retval = 0
-    sys.stderr.write("stopping tangelo...")
-
-    if os.path.exists(pidfile):
-        # Read the pid.
-        try:
-            pid = tangelo.util.read_pid(pidfile)
-        except ValueError:
-            sys.stderr.write("failed (tangelo.pid does not contain a valid process id)\n")
-            return 1
-
-        # Attempt to terminate the process, if it's still alive.
-        try:
-            if tangelo.util.live_pid(pid):
-                os.kill(pid, signal.SIGTERM)
-                while tangelo.util.live_pid(pid):
-                    time.sleep(0.1)
-        except OSError as e:
-            if e.errno == errno.EPERM:
-                print >>sys.stderr, "failed (insufficient permissions)"
-            else:
-                sys.stderr.write("failed (could not terminate process %d)\n" % (pid))
+    # First see how many tangelos are running.  If there is more than one, the
+    # user needs to have specified which one to stop with --pid.
+    running = running_pids()
+    if len(running) == 0:
+        print >>sys.stderr, "no tangelo instances are running"
+        return 0
+    elif len(running) > 1:
+        if status_pid is None:
+            print >>sys.stderr, "multiple tangelo instances are running, with process IDs: %s" % (", ".join(map(str, running)))
+            print >>sys.stderr, "use --pid to select one to stop"
             return 1
         else:
-            # On some systems, root privileges are required to remove a file
-            # from a root-owned directory that doesn't provide write access to
-            # non-root users - even if the file in question is owned by the
-            # non-root user that wants to remove it.  On such systems, a
-            # privilege-dropped PIDFile plugin will *not* be able to remove such
-            # a file.  The remove call below is meant to handle this case, since
-            # reaching this point in the stop() function means that the invoking
-            # user *does* have the correct privileges to shut down the running
-            # server, and therefore should have the ability to remove this file
-            # as well.
-            #
-            # On other systems, however, the PIDFile plugin *will* succeed in
-            # removing the file, even without root privileges; on these systems,
-            # it appears that attempting to remove a non-existent file causes an
-            # exception to be thrown.
-            #
-            # Therefore, this call is guarded to make sure no exceptions are
-            # thrown, while also enxure
-            if os.path.exists(pidfile):
-                os.remove(pidfile)
-
-            print >>sys.stderr, "success"
-            return 0
+            if status_pid in running:
+                pid = status_pid
+            else:
+                print >>sys.stderr, "no tangelo instance with pid %d" % (status_pid)
+                return 1
     else:
-        print >>sys.stderr, "success (tangelo was not running)"
-        return 0
+        pid = running[0]
 
-    assert False
+    sys.stderr.write("stopping tangelo...")
+
+    try:
+        if tangelo.util.live_pid(pid):
+            os.kill(pid, signal.SIGTERM)
+            while tangelo.util.live_pid(pid):
+                time.sleep(0.1)
+    except OSError as e:
+        if e.errno == errno.EPERM:
+            print >>sys.stderr, "failed (insufficient permissions)"
+        else:
+            print >>sys.stderr, "failed (could not terminate process %d)" % (pid)
+        return 1
+
+    print >>sys.stderr, "success"
+    return 0
 
 def restart():
     stopval = stop()
@@ -301,41 +281,36 @@ def restart():
     else:
         return stopval
 
-def status(hostname, port, logfile, webroot):
-    retval = None
-    pid = None
+def status(pid):
+    # See if the process is actually running.
+    running = tangelo.util.live_pid(pid)
 
-    # Attempt to read the PID file and check if the process is running.
-    if os.path.exists(pidfile):
-        try:
-            pid = tangelo.util.read_pid(pidfile)
-        except ValueError:
-            print >>sys.stderr, "error: %s does not contain a valid process id" % (pidfile)
-            retval = 1
+    # Find the tangelo status file associated with the pid.
+    status_file = tangelo.plugin.StatusFile.status_filename(pid)
+
+    if not os.path.exists(status_file):
+        if tangelo.util.live_pid(pid):
+            print >>sys.stderr, "a process is running with process ID %d, but %s does not exist" % (pid, status_file)
         else:
-            try:
-                if tangelo.util.live_pid(pid):
-                    print >>sys.stderr, "tangelo is running on %s:%d" % (hostname, port)
-                else:
-                    print >>sys.stderr, "tangelo is not running, but %s exists and contains a process id" % (pidfile)
-                retval = 0
-            except OSError as e:
-                assert e.errno == errno.EPERM
-                print >>sys.stderr, "error: insufficient permissions to query tangelo's running state"
-                retval = 1
+            print >>sys.stderr, "no tangelo instance with process ID %d" % (pid)
+        return 0
 
-    else:
-        print >>sys.stderr, "tangelo is not running"
-        retval = 0
+    try:
+        status = tangelo.plugin.StatusFile.read_status_file(status_file)
+    except IOError as e:
+        print >>sys.stderr, e.strerror
+        return 1
+    except ValueError as v:
+        print >>sys.stderr, e.message
+        return 1
 
-    if pid is not None:
-        print >>sys.stderr, "process id: %d" % (pid)
-    print >>sys.stderr, "config file: %s" % (cfg_file or "none")
-    print >>sys.stderr, "log file: %s" % (logfile)
-    print >>sys.stderr, "process id file: %s" % (pidfile)
-    print >>sys.stderr, "web root: %s" % (webroot)
-
-    return retval
+    print >>sys.stderr, "process id:  %d" % (pid)
+    print >>sys.stderr, "status:      %s" % ("running" if running else "dead")
+    print >>sys.stderr, "interface:   %s:%s" % (status.get("hostname", "<unknown>"), status.get("port", "<unknown>"))
+    print >>sys.stderr, "config file: %s" % (status.get("cfg_file") or "unknown")
+    print >>sys.stderr, "log file:    %s" % (status.get("logfile") or "unknown")
+    print >>sys.stderr, "web root:    %s" % (status.get("webroot") or "unknown")
+    return 0
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Control execution of a Tangelo server.")
@@ -353,8 +328,9 @@ if __name__ == "__main__":
     p.add_argument("-u", "--user", type=str, default=None, metavar="USERNAME", help="specifies the user to run as when root privileges are dropped")
     p.add_argument("-g", "--group", type=str, default=None, metavar="GROUPNAME", help="specifies the group to run as when root privileges are dropped")
     p.add_argument("--logdir", type=str, default=None, metavar="DIR", help="where to place the log file (default: location from which Tangelo was started)")
-    p.add_argument("--piddir", type=str, default=None, metavar="DIR", help="where to place the PID file (default: location from which Tangelo was started)")
     p.add_argument("-r", "--root", type=str, default=None, metavar="DIR", help="the directory from which Tangelo will serve content")
+    p.add_argument("--pid", type=int, default=None, metavar="PID", help="use with 'status' action to get information about a running Tangelo instance")
+    p.add_argument("--pids", action="store_true", help="use with 'status' action to get a list of running Tangelo process IDs")
     p.add_argument("--verbose", "-v", action="store_true", help="display extra information as Tangelo starts up")
     p.add_argument("action", metavar="<start|stop|restart|status>", help="perform this action for the current Tangelo instance.")
     args = p.parse_args()
@@ -374,6 +350,10 @@ if __name__ == "__main__":
 
     if args.no_config and args.config is not None:
         print >>sys.stderr, "error: can't specify both --config (-c) and --no-config (-nc) together"
+        sys.exit(1)
+
+    if args.pids and args.pid is not None:
+        print >>sys.stderr, "error: can't specify both --pids and --pid together"
         sys.exit(1)
 
     # Figure out where this is being called from - that will be useful for a
@@ -472,12 +452,15 @@ if __name__ == "__main__":
     user = args.user or config.get("user") or "nobody"
     group = args.group or config.get("group") or "nobody"
     logdir = tangelo.util.expandpath(args.logdir or config.get("logdir") or ".")
-    piddir = tangelo.util.expandpath(args.piddir or config.get("piddir") or ".")
 
     # If we are starting a Tangelo server, we need a web root - use the
     # installed example web directory as a fallback.
     root = args.root or config.get("root") or sys.prefix + "/share/tangelo/web"
     verbose.write("Serving content from %s" % (root))
+
+    # See if the user is asking for information on a particular PID.
+    status_pid = args.pid
+    pids = args.pids
 
     vtkweb_port_list = []
     if args.vtkweb_ports is not None:
@@ -511,10 +494,6 @@ if __name__ == "__main__":
     # configuration object.
     cherrypy.config.update({"module-config": {}})
 
-    # Name the PID file.
-    pidfile = piddir + "/tangelo.pid"
-    verbose.write("PID file: %s" % (pidfile))
-
     # Name the log file.
     logfile = logdir + "/tangelo.log"
     verbose.write("Log file: %s" % (logfile))
@@ -537,7 +516,22 @@ if __name__ == "__main__":
         if not daemonize:
             print >>sys.stderr, "error: status action not supported on this platform"
             sys.exit(1)
-        code = status(hostname, port, logfile, root)
+
+        # The status actions has a few options: --pids will simply list out the
+        # running PIDs for tangelo instances; --pid will show the status for a
+        # single process; omitting all flags will show the status information
+        # for all processes.
+        if pids:
+            report_running()
+        elif status_pid is not None:
+            status(status_pid)
+        else:
+            running = running_pids()
+            for i, pid in enumerate(running):
+                status(pid)
+                if i < len(running) - 1:
+                    print >>sys.stderr
+            code = 0
     else:
         p.print_usage()
         code = 1

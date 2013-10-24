@@ -12,12 +12,11 @@ def live_pid(pid):
     try:
         os.kill(pid, 0)
     except OSError as e:
-        # This means that os.kill() failed to find the requested pid; therefore,
-        # there is no process using it.  If the error is of some other type,
-        # simply re-raise it and let the caller deal with it.
-        if e.errno == errno.ESRCH:
-            return False
-        raise
+        # ESRCH means os.kill() couldn't find a valid pid to send the signal to,
+        # which means it's not a live PID.  The other possible error value is
+        # EPERM, meaning that the pid is live but the user doesn't have the
+        # permissions to send it a signal.
+        return e.errno != errno.ESRCH
     else:
         return True
 
