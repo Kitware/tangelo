@@ -1,12 +1,10 @@
 import sys
 import time
 
-import selenium
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.common.exceptions import NoSuchElementException
 
-from vtkwebtest import now, compare_images
+import vtkwebtest
 
 if __name__ == "__main__":
     # Create a Chrome window driver.
@@ -27,7 +25,10 @@ if __name__ == "__main__":
         sys.exit(1)
 
     button.click()
-    time.sleep(3)
+
+    # Wait for the vtkweb process to start (but time out after 10 seconds).
+    if not vtkwebtest.wait_with_timeout(delay=0.5, limit=10, criterion=vtkwebtest.found_viewport(browser)):
+        print >>sys.stderr, "fatal error: timed out while waiting for vtkweb process to start"
 
     # Grab the body element to use as a positional reference.
     body = browser.find_element_by_tag_name("body")
@@ -42,11 +43,11 @@ if __name__ == "__main__":
     time.sleep(1)
 
     # Take a screenshot.
-    shot = "phylotree-%s.png" % (now())
+    shot = "phylotree-%s.png" % (vtkwebtest.now())
     browser.save_screenshot(shot)
 
     # Compare the screenshot with the baseline, and report to stdout.
-    print compare_images(shot, "baseline-phylotree.png")
+    vtkwebtest.compare_images(shot, "baseline-phylotree.png")
 
     # Close the browser window.
     browser.quit()

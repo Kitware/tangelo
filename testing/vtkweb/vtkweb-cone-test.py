@@ -1,12 +1,11 @@
 import sys
 import time
 
-import selenium
 from selenium import webdriver
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.action_chains import ActionChains
 
-from vtkwebtest import now, compare_images
+import vtkwebtest
 
 if __name__ == "__main__":
     # Create a Chrome window driver.
@@ -27,7 +26,10 @@ if __name__ == "__main__":
         sys.exit(1)
 
     button.click()
-    time.sleep(3)
+
+    # Wait for the vtkweb process to start (but time out after 10 seconds).
+    if not vtkwebtest.wait_with_timeout(delay=0.5, limit=10, criterion=vtkwebtest.found_viewport(browser)):
+        print >>sys.stderr, "fatal error: timed out while waiting for vtkweb process to start"
 
     # Grab the viewport element so we know where to put the mouse.
     div = browser.find_element_by_id("viewport")
@@ -44,11 +46,11 @@ if __name__ == "__main__":
     time.sleep(1)
 
     # Take a screenshot.
-    shot = "cone-%s.png" % (now())
+    shot = "cone-%s.png" % (vtkwebtest.now())
     browser.save_screenshot(shot)
 
     # Compare the screenshot with the baseline, and report to stdout.
-    print compare_images(shot, "baseline-cone.png")
+    vtkwebtest.compare_images(shot, "baseline-cone.png")
 
     # Close the browser window.
     browser.quit()

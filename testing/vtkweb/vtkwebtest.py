@@ -1,33 +1,43 @@
 import datetime
-import Image
 import itertools
+import time
+import types
+
+import vtk
+
+from selenium.common.exceptions import NoSuchElementException
 
 def now():
     return datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
 
-def compare_images(file1, file2):
-    img1 = Image.open(file1)
-    img2 = Image.open(file2)
+def compare_images(test_img, baseline_img):
+    # Create a vtkTesting object, and tell it to use the current directory as
+    # the "baseline root directory", and specify the name of the baseline image
+    # file itself.
+    t = vtk.vtkTesting()
+    t.AddArgument("-B")
+    t.AddArgument(".")
+    t.AddArgument("-V")
+    t.AddArgument(baseline_img)
 
-    if img1.size[0] != img2.size[0] or img1.size[1] != img2.size[1]:
-        raise ValueError("Images are of different sizes")
+    # Perform the image comparison test and print out the result.
+    t.RegressionTest(test_img, 0.0)
 
-    size = img1.size
+def wait_with_timeout(delay=None, limit=None, criterion=None):
+    for i in itertools.count():
+        if criterion():
+            return True
+        elif delay * i > limit:
+            return False
+        else:
+            time.sleep(delay)
 
-    img1 = img1.load()
-    img2 = img2.load()
+def found_viewport(browser):
+    def func():
+        try:
+            browser.find_element_by_css_selector("[__vtkweb_viewport__=true]")
+            return True
+        except NoSuchElementException:
+            return False
 
-    def color_diff(c1, c2):
-        return sum(map(lambda v1, v2: abs(v1 - v2), c1, c2))
-
-    indices = itertools.product(range(size[0]), range(size[1]))
-    diff = 0
-    for i, j in indices:
-        p1 = img1[i, j]
-        p2 = img2[i, j]
-        diff += abs(p1[0] - p2[0]) + abs(p1[1] - p2[1]) + abs(p1[2] - p2[2])
-    return diff
-
-    difflist = map(lambda c: color_diff(img2[c[0], c[1]], img2[c[0], c[1]]), indices)
-    print difflist
-    return sum(difflist)
+    return func
