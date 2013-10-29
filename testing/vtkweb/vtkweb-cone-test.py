@@ -1,56 +1,55 @@
 import sys
 import time
 
-from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
 
 import vtkwebtest
 
+def found_viewport(browser):
+    def func():
+        try:
+            browser.find_element_by_css_selector("[__vtkweb_viewport__=true]")
+            return True
+        except NoSuchElementException:
+            return False
+
+    return func
+
+class ConeTest(vtkwebtest.CDashImageComparator):
+    def __init__(self, **kwargs):
+        vtkwebtest.CDashImageComparator.__init__(self, filepat="cone-%s.png", baseline="baseline-cone.png", size=(952, 718), **kwargs)
+
+    def setup(self):
+        try:
+            button = self.window.find_element_by_link_text("Cone")
+        except NoSuchElementException:
+            print >>sys.stderr, "fatal error: could not find the 'Cone' button!"
+            print >>sys.stderr, "(visit %s to diagnose the problem)" % (url)
+            raise vtkwebtest.WebTest.Abort()
+
+        button.click()
+
+        # Wait for the vtkweb process to start (but time out after 10 seconds).
+        if not vtkwebtest.wait_with_timeout(delay=0.5, limit=10, criterion=found_viewport(self.window)):
+            print >>sys.stderr, "fatal error: timed out while waiting for vtkweb process to start"
+            raise vtkwebtest.WebTest.Abort()
+
+        # Grab the viewport element so we know where to put the mouse.
+        div = self.window.find_element_by_id("viewport")
+
+        # Click-and-drag on the cone to change its position a bit.
+        drag = ActionChains(self.window)
+        drag.move_to_element(div)
+        drag.click_and_hold()
+        drag.move_by_offset(-300, 100)
+        drag.release()
+        drag.perform()
+
+        # Give the page some time to update the image.
+        time.sleep(1)
+
 if __name__ == "__main__":
-    # Create a Chrome window driver.
-    browser = webdriver.Chrome()
-    browser.set_window_size(952, 718)
-
-    # Load the vtkweb application page.
-    url = "http://localhost:8080/examples/vtkweb"
-    browser.get(url)
-    
-    # Click on the PhyloTree app launcher and wait for it to load.
-    try:
-        button = browser.find_element_by_link_text("Cone")
-    except NoSuchElementException:
-        print >>sys.stderr, "fatal error: could not find the 'Cone' button!"
-        print >>sys.stderr, "(visit %s to diagnose the problem)" % (url)
-        browser.quit()
-        sys.exit(1)
-
-    button.click()
-
-    # Wait for the vtkweb process to start (but time out after 10 seconds).
-    if not vtkwebtest.wait_with_timeout(delay=0.5, limit=10, criterion=vtkwebtest.found_viewport(browser)):
-        print >>sys.stderr, "fatal error: timed out while waiting for vtkweb process to start"
-
-    # Grab the viewport element so we know where to put the mouse.
-    div = browser.find_element_by_id("viewport")
-
-    # Click-and-drag on the cone to change its position a bit.
-    drag = ActionChains(browser)
-    drag.move_to_element(div)
-    drag.click_and_hold()
-    drag.move_by_offset(-300, 100)
-    drag.release()
-    drag.perform()
-
-    # Give the page some time to update the image.
-    time.sleep(1)
-
-    # Take a screenshot.
-    shot = "cone-%s.png" % (vtkwebtest.now())
-    browser.save_screenshot(shot)
-
-    # Compare the screenshot with the baseline, and report to stdout.
-    vtkwebtest.compare_images(shot, "baseline-cone.png")
-
-    # Close the browser window.
-    browser.quit()
+    tester = ConeTest(url="http://localhost:8080/examples/vtkweb", browser=vtkwebtest.Browsers.chrome)
+    result = tester.run_test()
+    sys.exit(result)
