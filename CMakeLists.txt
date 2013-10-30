@@ -193,6 +193,24 @@ add_custom_target(
 include(CTest)
 enable_testing()
 
+set(TESTING_SOURCES
+    testing/vtkweb/vtkwebtest.py
+    testing/vtkweb/baseline-cone.png
+    testing/vtkweb/baseline-phylotree.png
+    testing/vtkweb/tangelo-vtkweb-test.py
+)
+
+foreach(f ${TESTING_SOURCES})
+    configure_file(${f} ${f} COPYONLY)
+endforeach()
+
+# VTKWeb test.
+add_test(
+    NAME vtkwebcone
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/testing/vtkweb
+    COMMAND /home/roni/work/VTK/build-osmesa/bin/vtkpython vtkweb-cone-test.py
+)
+
 # JSLint tests.
 if(${JSLINT_TESTS})
     # Find JSLint.
