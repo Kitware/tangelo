@@ -1,4 +1,4 @@
-/*! vtkWeb/ParaViewWeb - v2.0 - 2013-09-18
+/*! vtkWeb/ParaViewWeb - v2.0 - 2013-10-11
 * http://www.kitware.com/
 * Copyright (c) 2013 Kitware; Licensed BSD */
 /**
@@ -605,13 +605,6 @@
                         action: 'move',
                         current_button: current_button
                     }));
-                } else if(event.type === 'click' && current_button != null) {
-                    alert("Double click");
-                    renderersContainer.trigger($.extend(event, {
-                        type: 'mouse',
-                        action: 'dblclick',
-                        current_button: event.which
-                    }));
                 }
             }
         }
@@ -624,6 +617,15 @@
                 type: 'mouse',
                 action: 'dblclick',
                 current_button: event.which
+            }));
+        });
+        mouseListenerContainer.bind("DOMMouseScroll mousewheel",function(event){
+            var scrollValue = (event.originalEvent.wheelDeltaY || -event.originalEvent.detail);
+            renderersContainer.trigger($.extend(event, {
+                type: 'mouse',
+                action: 'scroll',
+                current_button: current_button,
+                scroll: scrollValue
             }));
         });
     }
@@ -1300,7 +1302,7 @@
         /// throttled.
         function eatMouseEvent(event) {
             var force_event = (button_state.left !== event.buttonLeft || button_state.right  !== event.buttonRight || button_state.middle !== event.buttonMiddle);
-            if (!force_event && !event.buttonLeft && !event.buttonRight && !event.buttonMiddle) {
+            if (!force_event && !event.buttonLeft && !event.buttonRight && !event.buttonMiddle && !event.scroll) {
                 return true;
             }
             if (!force_event && action_pending) {
@@ -1571,7 +1573,7 @@
                 evt.preventDefault();
 
                 // Update quality based on the type of the event
-                if(evt.action === 'up' || evt.action === 'dblclick') {
+                if(evt.action === 'up' || evt.action === 'dblclick' || evt.action === 'scroll') {
                     quality = options.stillQuality;
                 } else {
                     quality = options.interactiveQuality;
@@ -1610,6 +1612,7 @@
                      * - up
                      * - move
                      * - dblclick
+                     * - scroll
                      */
                     action: evt.action,
                     /**
@@ -1659,8 +1662,13 @@
                     y : (evt.pageY - elem_position.top)
                 };
 
-                vtkWeb_event.x = pointer.x / renderer.width();
-                vtkWeb_event.y = 1.0 - (pointer.y / renderer.height());
+                if(evt.action === 'scroll') {
+                    vtkWeb_event.scroll = evt.scroll;
+                } else {
+                    vtkWeb_event.x = pointer.x / renderer.width();
+                    vtkWeb_event.y = 1.0 - (pointer.y / renderer.height());
+                }
+
                 if (eatMouseEvent(vtkWeb_event)) {
                     return;
                 }
