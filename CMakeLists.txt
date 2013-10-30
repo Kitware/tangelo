@@ -195,10 +195,9 @@ enable_testing()
 
 set(TESTING_SOURCES
     testing/vtkweb/vtkwebtest.py
-    testing/vtkweb/vtkweb-cone-test.py
-    testing/vtkweb/vtkweb-phylotree-test.py
     testing/vtkweb/baseline-cone.png
     testing/vtkweb/baseline-phylotree.png
+    testing/vtkweb/tangelo-vtkweb-test.py
 )
 
 foreach(f ${TESTING_SOURCES})
