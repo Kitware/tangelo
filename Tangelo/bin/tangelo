@@ -397,6 +397,7 @@ if __name__ == "__main__":
         if cfg_file is None:
             verbose.write("No configuration file found - will use command line args and defaults")
         else:
+            cfg_file = tangelo.util.expandpath(cfg_file)
             verbose.write("Using configuration file %s" % (cfg_file))
 
         # Get a dict representing the contents of the config file.
