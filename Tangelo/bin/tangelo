@@ -286,7 +286,7 @@ def restart():
     else:
         return stopval
 
-def status(pid):
+def status(pid, attr=None):
     # See if the process is actually running.
     running = tangelo.util.live_pid(pid)
 
@@ -309,15 +309,34 @@ def status(pid):
         print >>sys.stderr, e.message
         return 1
 
-    print >>sys.stderr, "process id:  %d" % (pid)
-    print >>sys.stderr, "status:      %s" % ("running" if running else "dead")
-    print >>sys.stderr, "interface:   %s:%s" % (status.get("hostname", "<unknown>"), status.get("port", "<unknown>"))
-    print >>sys.stderr, "config file: %s" % (status.get("cfg_file") or "unknown")
-    print >>sys.stderr, "log file:    %s" % (status.get("logfile") or "unknown")
-    print >>sys.stderr, "web root:    %s" % (status.get("webroot") or "unknown")
+    if attr is not None:
+        if attr == "pid":
+            print pid
+        elif attr == "status":
+            print ("running" if running else "dead")
+        elif attr == "interface":
+            print "%s:%s" % (status.get("hostname", "<unknown>"), status.get("port", "<unknown>"))
+        elif attr == "config":
+            print status.get("cfg_file", "unknown")
+        elif attr == "log":
+            print status.get("logfile", "unknown")
+        elif attr == "root":
+            print status.get("webroot", "unknown")
+        else:
+            print >>sys.stderr, "error: illegal attr '%s' - available attrs are %s" % (attr, attrs)
+    else:
+        print >>sys.stderr, "process id:  %d" % (pid)
+        print >>sys.stderr, "status:      %s" % ("running" if running else "dead")
+        print >>sys.stderr, "interface:   %s:%s" % (status.get("hostname", "<unknown>"), status.get("port", "<unknown>"))
+        print >>sys.stderr, "config file: %s" % (status.get("cfg_file", "unknown"))
+        print >>sys.stderr, "log file:    %s" % (status.get("logfile", "unknown"))
+        print >>sys.stderr, "web root:    %s" % (status.get("webroot", "unknown"))
+
     return 0
 
 if __name__ == "__main__":
+    attrs = ", ".join(["pid", "status", "interface", "config", "log", "root"])
+
     p = argparse.ArgumentParser(description="Control execution of a Tangelo server.")
     p.add_argument("-c", "--config", type=str, default=None, metavar="FILE", help="specifies configuration file to use")
     p.add_argument("-nc", "--no-config", action="store_true", help="skips looking for and using a configuration file")
@@ -336,6 +355,7 @@ if __name__ == "__main__":
     p.add_argument("--vtkpython", type=str, default=None, metavar="FILE", help="the vtkpython executable, for use with the vtkweb service (default: \"vtkpython\")")
     p.add_argument("--pid", type=int, default=None, metavar="PID", help="use with 'status' action to get information about a running Tangelo instance")
     p.add_argument("--pids", action="store_true", help="use with 'status' action to get a list of running Tangelo process IDs")
+    p.add_argument("--attr", type=str, default=None, help="use with 'status' action to get a single status attribute (available attrs: %s)" % (attrs))
     p.add_argument("--verbose", "-v", action="store_true", help="display extra information as Tangelo starts up")
     p.add_argument("action", metavar="<start|stop|restart|status>", help="perform this action for the current Tangelo instance.")
     args = p.parse_args()
@@ -397,6 +417,7 @@ if __name__ == "__main__":
         if cfg_file is None:
             verbose.write("No configuration file found - will use command line args and defaults")
         else:
+            cfg_file = tangelo.util.expandpath(cfg_file)
             verbose.write("Using configuration file %s" % (cfg_file))
 
         # Get a dict representing the contents of the config file.
@@ -508,11 +529,11 @@ if __name__ == "__main__":
         if pids:
             report_running()
         elif status_pid is not None:
-            status(status_pid)
+            status(status_pid, args.attr)
         else:
             running = running_pids()
             for i, pid in enumerate(running):
-                status(pid)
+                status(pid, args.attr)
                 if i < len(running) - 1:
                     print >>sys.stderr
             code = 0
