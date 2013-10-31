@@ -145,7 +145,7 @@ def start():
     # server and get it going.
     #
     # Create an instance of the main handler object.
-    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(vtkweb_port_list, here=invocation_dir), "/")
+    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(here=invocation_dir), "/")
     cherrypy.tree.mount(tangelo.server.cpserver, config={"/": { "tools.auth_update.on": access_auth,
                                                                 "tools.treat_url.on": True }})
 
@@ -329,7 +329,6 @@ if __name__ == "__main__":
     p.add_argument("-np", "--no-drop-privileges", action="store_const", const=True, default=None, help="disable privilege drop when started as superuser")
     p.add_argument("--hostname", type=str, default=None, metavar="HOSTNAME", help="overrides configured hostname on which to run Tangelo")
     p.add_argument("--port", type=int, default=None, metavar="PORT", help="overrides configured port number on which to run Tangelo")
-    p.add_argument("--vtkweb-ports", type=str, default=None, metavar="PORT RANGE", help="specifies the port range to use for VTK Web processes")
     p.add_argument("-u", "--user", type=str, default=None, metavar="USERNAME", help="specifies the user to run as when root privileges are dropped")
     p.add_argument("-g", "--group", type=str, default=None, metavar="GROUPNAME", help="specifies the group to run as when root privileges are dropped")
     p.add_argument("--logdir", type=str, default=None, metavar="DIR", help="where to place the log file (default: location from which Tangelo was started)")
@@ -466,31 +465,6 @@ if __name__ == "__main__":
     # See if the user is asking for information on a particular PID.
     status_pid = args.pid
     pids = args.pids
-
-    vtkweb_port_list = []
-    if args.vtkweb_ports is not None:
-        try:
-            # This parses expressions of the form "8081-8090,12000,13500-13600".
-            # It will allow spaces around the punctuation, but reject too many
-            # hyphens, and "blank" entries (i.e. two commas next to each other
-            # etc.).
-            vtkweb_port_list = list(itertools.chain.from_iterable(map(lambda y: range(y[0], y[1]) if len(y) == 2 else [y[0]], map(lambda x: map(int, x.split("-", 1)), args.vtkweb_ports.split(",")))))
-        except ValueError:
-            print >>sys.stderr, "error: could not parse VTK Web port range specification '%s'" % (args.vtkweb_ports)
-            sys.exit(1)
-
-        if vtkweb_port_list == []:
-            print >>sys.stderr, "error: VTK Web port specification '%s' produces no ports" % (args.vtkweb_ports)
-            sys.exit(1)
-
-        if port in vtkweb_port_list:
-            print >>sys.stderr, "error: Tangelo server port %d cannot be part of VTK Web port specification ('%s')" % (port, args.vtkweb_ports)
-            sys.exit(1)
-
-    if len(vtkweb_port_list) == 0:
-        verbose.write("No vtkweb ports reserved")
-    else:
-        verbose.write("Ports reserved for vtkweb processes: %s" % (str(vtkweb_port_list)))
 
     # Set the web root directory.
     cherrypy.config.update({"webroot": root})

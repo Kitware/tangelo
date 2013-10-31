@@ -22,7 +22,7 @@ class Tangelo(object):
     # An HTML parser for use in the error_page handler.
     html = HTMLParser.HTMLParser()
 
-    def __init__(self, vtkweb_ports=None, here=None):
+    def __init__(self, here=None):
         # A dict containing information about imported modules.
         self.modules = {}
 
@@ -35,17 +35,8 @@ class Tangelo(object):
         # The vtkpython executable.
         self.vtkpython = os.environ.get("VTKPYTHON")
 
-        # A set containing available ports for running VTK Web processes on, and
-        # a dict mapping keys to such processes.
-        #
-        # TODO(choudhury): use a deque instead, so port numbers can be tried in
-        # order in case one of them goes wrong (like there's another program
-        # sitting on a port, etc.) (Be sure to count how many ports have been
-        # tried, in case all of them are bad ;) ).
-        self.vtkweb_ports = set(vtkweb_ports or [])
+        # A dict mapping keys to vtkweb processes under control of Tangelo.
         self.vtkweb_processes = {}
-
-        tangelo.log("port pool for vtkweb processes: %s" % (str(list(self.vtkweb_ports))))
 
     def cleanup(self):
         # Terminate the VTK web processes.
@@ -380,9 +371,7 @@ class Tangelo(object):
 
                 returncode = rec["process"].poll()
                 if returncode is not None:
-                    # Since the process has ended, reclaim its resources and delete
-                    # the process object.
-                    self.vtkweb_ports.add(rec["port"])
+                    # Since the process has ended, delete the process object.
                     del self.vtkweb_processes[key]
 
                     # Fill out the report response.
@@ -414,37 +403,14 @@ class Tangelo(object):
             # Obtain a filesystem path to the requested program.
             progfile = tangelo.abspath(progpath)
 
-            # Check for an available port.
-            if len(self.vtkweb_ports) == 0:
-                # Try to reclaim any dead processes.
-                #
-                # Collect a list of dead processes by key while reclaiming their
-                # port numbers.
-                good = False
-                delete = []
-                tangelo.log(str(self.vtkweb_processes))
-                for k, v in self.vtkweb_processes.iteritems():
-                    if v["process"].poll() is not None:
-                        good = True
-                        self.vtkweb_ports.add(v["port"])
-                        delete.append(k)
+            # Obtain an available port.
+            port = tangelo.util.get_free_port()
 
-                # Delete the dead entries from the process table.
-                for d in delete:
-                    del self.vtkweb_processes[d]
-
-                # If no process was dead, tell the user the bad news.
-                if not good:
-                    return json.dumps({"status": "failed", "reason": "no available ports"})
-
-            # Get a port and generate a unique key.
-            port = self.vtkweb_ports.pop()
+            # Generate a unique key.
             key = tangelo.util.generate_key(self.vtkweb_processes.keys())
 
             def launch_failure(msg):
-                # On launch failure, replace the port number in the pool, and
-                # report the failure to the user.
-                self.vtkweb_ports.add(port)
+                # On launch failure, report the failure to the user.
                 return json.dumps({"status": "failed", "reason": msg})
 
             # Launch the requested process.
@@ -550,10 +516,7 @@ class Tangelo(object):
             proc["process"].wait()
             tangelo.log("terminated")
 
-            # Reclaim the port number being used by the process, and remove it
-            # from the table.
-            tangelo.log("reclaiming port %d" % (proc["port"]))
-            self.vtkweb_ports.add(proc["port"])
+            # Remove the process entry from the table.
             del self.vtkweb_processes[key]
 
             return json.dumps({"status": "complete"})
