@@ -2,8 +2,22 @@ import errno
 import os
 import os.path
 import md5
+import socket
 import threading
 import Queue
+
+def get_free_port():
+    # Bind a socket to port 0 (which directs the OS to find an unused port).
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(("", 0))
+
+    # Get the port number, and release the resources used in binding the port
+    # (no need to call shutdown() because we never called listen() or accept()
+    # on it).
+    port = s.getsockname()[1]
+    s.close()
+
+    return port
 
 def expandpath(spec):
     return (os.path.expanduser if spec[0] == "~" else os.path.abspath)(spec)
