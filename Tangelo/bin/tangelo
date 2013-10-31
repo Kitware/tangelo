@@ -145,7 +145,7 @@ def start():
     # server and get it going.
     #
     # Create an instance of the main handler object.
-    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(here=invocation_dir), "/")
+    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(here=invocation_dir, vtkpython=args.vtkpython), "/")
     cherrypy.tree.mount(tangelo.server.cpserver, config={"/": { "tools.auth_update.on": access_auth,
                                                                 "tools.treat_url.on": True }})
 
@@ -333,6 +333,7 @@ if __name__ == "__main__":
     p.add_argument("-g", "--group", type=str, default=None, metavar="GROUPNAME", help="specifies the group to run as when root privileges are dropped")
     p.add_argument("--logdir", type=str, default=None, metavar="DIR", help="where to place the log file (default: location from which Tangelo was started)")
     p.add_argument("-r", "--root", type=str, default=None, metavar="DIR", help="the directory from which Tangelo will serve content")
+    p.add_argument("--vtkpython", type=str, default=None, metavar="FILE", help="the vtkpython executable, for use with the vtkweb service (default: \"vtkpython\")")
     p.add_argument("--pid", type=int, default=None, metavar="PID", help="use with 'status' action to get information about a running Tangelo instance")
     p.add_argument("--pids", action="store_true", help="use with 'status' action to get a list of running Tangelo process IDs")
     p.add_argument("--verbose", "-v", action="store_true", help="display extra information as Tangelo starts up")
