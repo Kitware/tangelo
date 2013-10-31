@@ -22,7 +22,7 @@ class Tangelo(object):
     # An HTML parser for use in the error_page handler.
     html = HTMLParser.HTMLParser()
 
-    def __init__(self, here=None):
+    def __init__(self, here=None, vtkpython=None):
         # A dict containing information about imported modules.
         self.modules = {}
 
@@ -32,8 +32,9 @@ class Tangelo(object):
         # The directory containing the tangelo start script.
         self.here = here
 
-        # The vtkpython executable.
-        self.vtkpython = os.environ.get("VTKPYTHON")
+        # The vtkpython executable - default to just "vtkpython" by itself and
+        # hope it's in the user's path.
+        self.vtkpython = vtkpython
 
         # A dict mapping keys to vtkweb processes under control of Tangelo.
         self.vtkweb_processes = {}
@@ -335,7 +336,7 @@ class Tangelo(object):
         # environment, and a value provided for self.here.
         if self.vtkpython is None:
             return json.dumps({ "status": "failed",
-                                "reason": "no VTKPYTHON in environment" })
+                                "reason": "no vtkpython executable was specified at Tangelo startup" })
         if self.here is None:
             return json.dumps({ "status": "failed",
                                 "reason": "no 'here' argument provided to Tangelo object constructor" })
