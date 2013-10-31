@@ -145,7 +145,7 @@ def start():
     # server and get it going.
     #
     # Create an instance of the main handler object.
-    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(here=invocation_dir, vtkpython=args.vtkpython), "/")
+    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(here=invocation_dir, vtkpython=vtkpython), "/")
     cherrypy.tree.mount(tangelo.server.cpserver, config={"/": { "tools.auth_update.on": access_auth,
                                                                 "tools.treat_url.on": True }})
 
@@ -457,6 +457,10 @@ if __name__ == "__main__":
     user = args.user or config.get("user") or "nobody"
     group = args.group or config.get("group") or "nobody"
     logdir = tangelo.util.expandpath(args.logdir or config.get("logdir") or ".")
+
+    vtkpython = args.vtkpython or config.get("vtkpython")
+    if vtkpython is not None:
+        vtkpython = tangelo.util.expandpath(vtkpython)
 
     # If we are starting a Tangelo server, we need a web root - use the
     # installed example web directory as a fallback.
