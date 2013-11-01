@@ -3,9 +3,20 @@
 <link rel=stylesheet href=/css/tangelo.css>
 <script src=/js/lib/d3.v3.min.js></script>
 
-<h1 class=centered>It Works!</h1>
+<style>
+    p {
+        font-size: 14pt;
+        left-margin: auto;
+        right-margin: auto;
+        text-align: center;
+    }
 
-<div class=centered>
+    a.big {
+        font-size: 24pt;
+    }
+</style>
+
+<div class=centered style="margin-top: 0.5in">
     <svg style="width:960px; height:500px">
         <rect id=sky width=960 height=500 style="fill:navy" />
         <g id=stars></g>
@@ -13,6 +24,20 @@
         <rect id=field y=350 width=960 height=150 style="fill:darkgreen" />
         <text x=400 y=310 style="font-family:Lora; font-size:125px; fill:navy">Tangelo</text>
     </svg>
+</div>
+
+<div class=container>
+    <div class=row>
+        <p>Welcome to
+        <a class=big href=http://kitware.github.io/tangelo>Tangelo</a>,
+        your gateway to easy, rich web applications!</p>
+
+        <p>Check out the <a class=big href=/examples>examples</a> to get
+        started,</p>
+
+        <p>or read the <a class=big href=/docs>documentation</a>
+        to learn how to harness the power of the Tangelo!</p>
+    </div>
 </div>
 
 <script>
