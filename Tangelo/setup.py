@@ -15,14 +15,6 @@ def copy_with_dir(files, base):
 # Include the example configuration files.
 data_files_list = [("share/tangelo/conf", ["conf/tangelo.conf.global", "conf/tangelo.conf.local"])]
 
-# If documentation was generated, include all of those files.
-try:
-    doc_files = rcollect("docs")
-except IOError:
-    pass
-else:
-    data_files_list += copy_with_dir(doc_files, "share/tangelo")
-
 # Include the website base files.
 data_files_list += copy_with_dir(rcollect("web"), "share/tangelo")
 
