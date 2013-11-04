@@ -32,7 +32,6 @@
         root.x0 = height / 2;
         root.y0 = 0;
 
-        console.log("hi");
         update();
 
         // Toggle children on click.
@@ -93,8 +92,6 @@
             root = specUpdate.root || root;
             data = specUpdate.data || data;
 
-            console.log("there");
-
             // Compute the new tree layout.
             var nodes = tree.nodes(root).reverse(),
                 links = tree.links(nodes),
@@ -106,9 +103,6 @@
                 link,
                 maxY,
                 visibleLeaves;
-
-            console.log(nodes);
-            console.log(links);
 
             visibleLeaves = 0;
             function setPosition(node, pos) {
