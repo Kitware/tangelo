@@ -52,11 +52,14 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/svgColorLegend.js
     ${CMAKE_SOURCE_DIR}/src/js/util.js
     ${CMAKE_SOURCE_DIR}/src/js/ui/_package.js
+    ${CMAKE_SOURCE_DIR}/src/js/data/_package.js
+    ${CMAKE_SOURCE_DIR}/src/js/data/tree.js
     ${CMAKE_SOURCE_DIR}/src/js/ui/html.js
     ${CMAKE_SOURCE_DIR}/src/js/ui/rangeslider.js
     ${CMAKE_SOURCE_DIR}/src/js/ui/select.js
     ${CMAKE_SOURCE_DIR}/src/js/ui/split.js
     ${CMAKE_SOURCE_DIR}/src/js/vis/_package.js
+    ${CMAKE_SOURCE_DIR}/src/js/vis/dendrogram.js
     ${CMAKE_SOURCE_DIR}/src/js/vis/geodots.js
     ${CMAKE_SOURCE_DIR}/src/js/vis/geonodelink.js
     ${CMAKE_SOURCE_DIR}/src/js/vis/mapdots.js
