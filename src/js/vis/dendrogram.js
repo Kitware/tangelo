@@ -91,6 +91,7 @@
             mode = specUpdate.mode || mode;
             root = specUpdate.root || root;
             data = specUpdate.data || data;
+            distance = specUpdate.distance ? tangelo.accessor(specUpdate.distance, 1) : distance;
 
             // Compute the new tree layout.
             var nodes = tree.nodes(root).reverse(),
