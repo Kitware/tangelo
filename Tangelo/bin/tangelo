@@ -312,6 +312,8 @@ def status(pid, attr=None):
     if attr is not None:
         if attr == "pid":
             print pid
+        elif attr == "file":
+            print status_file
         elif attr == "status":
             print ("running" if running else "dead")
         elif attr == "interface":
@@ -326,6 +328,7 @@ def status(pid, attr=None):
             print >>sys.stderr, "error: illegal attr '%s' - available attrs are %s" % (attr, attrs)
     else:
         print >>sys.stderr, "process id:  %d" % (pid)
+        print >>sys.stderr, "status file: %s" % (status_file)
         print >>sys.stderr, "status:      %s" % ("running" if running else "dead")
         print >>sys.stderr, "interface:   %s:%s" % (status.get("hostname", "<unknown>"), status.get("port", "<unknown>"))
         print >>sys.stderr, "config file: %s" % (status.get("cfg_file", "unknown"))
@@ -335,7 +338,7 @@ def status(pid, attr=None):
     return 0
 
 if __name__ == "__main__":
-    attrs = ", ".join(["pid", "status", "interface", "config", "log", "root"])
+    attrs = ", ".join(["pid", "file", "status", "interface", "config", "log", "root"])
 
     p = argparse.ArgumentParser(description="Control execution of a Tangelo server.")
     p.add_argument("-c", "--config", type=str, default=None, metavar="FILE", help="specifies configuration file to use")
