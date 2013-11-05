@@ -286,7 +286,7 @@ def restart():
     else:
         return stopval
 
-def status(pid, attr=None):
+def status(pid, attr=None, clean=False):
     # See if the process is actually running.
     running = tangelo.util.live_pid(pid)
 
@@ -335,6 +335,13 @@ def status(pid, attr=None):
         print >>sys.stderr, "log file:    %s" % (status.get("logfile", "unknown"))
         print >>sys.stderr, "web root:    %s" % (status.get("webroot", "unknown"))
 
+    if not running and clean:
+        try:
+            os.remove(status_file)
+        except OSError:
+            print >>sys.stderr, "error: could not remove file %s" % (status_file)
+            return 1
+
     return 0
 
 if __name__ == "__main__":
@@ -359,6 +366,7 @@ if __name__ == "__main__":
     p.add_argument("--pid", type=int, default=None, metavar="PID", help="use with 'status' action to get information about a running Tangelo instance")
     p.add_argument("--pids", action="store_true", help="use with 'status' action to get a list of running Tangelo process IDs")
     p.add_argument("--attr", type=str, default=None, help="use with 'status' action to get a single status attribute (available attrs: %s)" % (attrs))
+    p.add_argument("--clean", action="store_true", help="use with 'status' action to remove stale status files for dead processes")
     p.add_argument("--verbose", "-v", action="store_true", help="display extra information as Tangelo starts up")
     p.add_argument("action", metavar="<start|stop|restart|status>", help="perform this action for the current Tangelo instance.")
     args = p.parse_args()
@@ -532,11 +540,11 @@ if __name__ == "__main__":
         if pids:
             report_running()
         elif status_pid is not None:
-            status(status_pid, args.attr)
+            status(status_pid, args.attr, clean=args.clean)
         else:
             running = running_pids()
             for i, pid in enumerate(running):
-                status(pid, args.attr)
+                status(pid, args.attr, clean=args.clean)
                 if i < len(running) - 1:
                     print >>sys.stderr
             code = 0
