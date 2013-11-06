@@ -9,6 +9,7 @@
             id = tangelo.accessor(spec.id, 0),
             that = this,
             margin = {top: 20, right: 120, bottom: 20, left: 120},
+            nodeLimit = spec.nodeLimit,
             width = 1200 - margin.right - margin.left,
             height = 800 - margin.top - margin.bottom,
             duration = 750,
@@ -31,40 +32,6 @@
 
         root.x0 = height / 2;
         root.y0 = 0;
-
-        update();
-
-        // Toggle children on click.
-        function click(d) {
-            if (mode === "hide") {
-                if (d.children) {
-                    d._children = d.children;
-                    d.children = null;
-                } else {
-                    d.children = d._children;
-                    d._children = null;
-                }
-            } else if (mode === "focus") {
-                root = d;
-            } else if (mode === "label") {
-                d.showLabel = d.showLabel ? false : true;
-            }
-            update({source: d});
-        }
-
-        function reset() {
-            function unhideAll(d) {
-                if (!d.children) {
-                    d.children = d._children;
-                    d._children = null;
-                }
-                if (d.children) {
-                    d.children.forEach(unhideAll);
-                }
-            }
-            unhideAll(data);
-            update({root: data});
-        }
 
         function firstChild(d) {
             if (d.children) {
@@ -89,9 +56,13 @@
         function update(specUpdate) {
             specUpdate = specUpdate || {};
             mode = specUpdate.mode || mode;
-            root = specUpdate.root || root;
+            root = specUpdate.root || specUpdate.data || root;
             data = specUpdate.data || data;
+            nodeLimit = specUpdate.nodeLimit || nodeLimit;
             distance = specUpdate.distance ? tangelo.accessor(specUpdate.distance, 1) : distance;
+
+            root.x0 = height / 2;
+            root.y0 = 0;
 
             // Compute the new tree layout.
             var nodes = tree.nodes(root).reverse(),
@@ -103,15 +74,21 @@
                 nodeExit,
                 link,
                 maxY,
-                visibleLeaves;
+                visibleLeaves,
+                filteredNodes,
+                filteredLinks;
 
             visibleLeaves = 0;
             function setPosition(node, pos) {
                 var xSum = 0;
                 node.y = pos;
                 node.x = node.x + node.dx / 2;
+                if (!node.parent) {
+                    node.parent = node;
+                }
                 if (node.children) {
                     node.children.forEach(function (d) {
+                        d.parent = node;
                         setPosition(d, pos + 10 * distance(d));
                         xSum += d.x;
                     });
@@ -127,6 +104,45 @@
             nodes.forEach(function (d) {
                 d.y = d.y / maxY * (width - 150);
             });
+
+            if (nodeLimit) {
+                // Filter out everything beyond parent y-position to keep things interactive
+                nodes.sort(function (a, b) { return d3.ascending(a.parent.y, b.parent.y); });
+                nodes.forEach(function (d, i) { d.index = i; });
+                filteredNodes = nodes.slice(0, nodeLimit);
+                maxY = filteredNodes[filteredNodes.length - 1].parent.y;
+                filteredNodes.forEach(function (d) {
+                    d.y = d.y > maxY ? maxY : d.y;
+                });
+
+                // Filter the links based on visible nodes
+                filteredLinks = [];
+                links.forEach(function (d) {
+                    if (d.source.index < nodeLimit && d.target.index < nodeLimit) {
+                        filteredLinks.push(d);
+                    }
+                });
+                nodes = filteredNodes;
+                links = filteredLinks;
+            }
+
+            // Toggle children on click.
+            function click(d) {
+                if (mode === "hide") {
+                    if (d.children) {
+                        d._children = d.children;
+                        d.children = null;
+                    } else {
+                        d.children = d._children;
+                        d._children = null;
+                    }
+                } else if (mode === "focus") {
+                    root = d;
+                } else if (mode === "label") {
+                    d.showLabel = d.showLabel ? false : true;
+                }
+                update({source: d});
+            }
 
             // Update the nodes…
             node = svg.selectAll("g.node")
@@ -243,6 +259,22 @@
                 window.alert("Unsupported export format type: " + format);
             }
         }
+
+        function reset() {
+            function unhideAll(d) {
+                if (!d.children) {
+                    d.children = d._children;
+                    d._children = null;
+                }
+                if (d.children) {
+                    d.children.forEach(unhideAll);
+                }
+            }
+            unhideAll(data);
+            update({root: data});
+        }
+
+        update();
 
         that.update = update;
         that.reset = reset;
