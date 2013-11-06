@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 2.8)
 # argument.
 project(Tangelo NONE)
 
+mark_as_advanced(CMAKE_INSTALL_PREFIX)
+
 # Extend cmake module path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
