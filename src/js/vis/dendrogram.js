@@ -105,7 +105,7 @@
                 d.y = d.y / maxY * (width - 150);
             });
 
-            if (nodeLimit) {
+            if (nodeLimit && nodes.length > nodeLimit) {
                 // Filter out everything beyond parent y-position to keep things interactive
                 nodes.sort(function (a, b) { return d3.ascending(a.parent.y, b.parent.y); });
                 nodes.forEach(function (d, i) { d.index = i; });
