@@ -177,10 +177,10 @@ function retrieveData(initial) {
                         // Add an SVG group whose contents will change or
                         // disappear based on the active colormap.
                         this.legend = d3.select(svg).append("g").node();
-                        this.draw();
+                        this.trigger("draw");
                     },
 
-                    draw: function (svg, proj) {
+                    draw: function (d) {
                         var data,
                             days,
                             N,
@@ -188,7 +188,12 @@ function retrieveData(initial) {
                             color,
                             radius,
                             opacity,
-                            markers;
+                            markers,
+                            svg = d.svg,
+                            proj = d.projection,
+                            trans = d.translation;
+
+                        this.shift(svg, -trans.x, -trans.y);
 
                         // Process the data by adjoining pixel locations to each
                         // entry.
@@ -410,6 +415,9 @@ function retrieveData(initial) {
                 };
                 div = d3.select("#map").node();
                 flickr.map = new tangelo.GoogleMapSVG(div, options, gmap_cfg);
+                flickr.map.on("draw", gmap_cfg.draw);
+                flickr.map.on("drag", gmap_cfg.draw);
+                flickr.map.on("zoom_changed", gmap_cfg.draw);
             }
         }
     });
@@ -495,7 +503,7 @@ function retrieveDataSynthetic() {
     flickr.map.locations(locs);
 
     // After data is reloaded to the map-overlay object, redraw the map.
-    flickr.map.draw();
+    flickr.map.trigger("draw");
 }
 
 window.onload = function () {
@@ -594,14 +602,14 @@ window.onload = function () {
         // they are clicked.
         buttons = document.getElementsByName("colormap");
         redraw = function () {
-            flickr.map.draw();
+            flickr.map.trigger("draw");
         };
         for (i = 0; i < buttons.length; i += 1) {
             buttons[i].onclick = redraw;
         }
         checkbox = document.getElementById("invert");
         checkbox.onclick = function () {
-            flickr.map.draw();
+            flickr.map.trigger("draw");
         };
 
         // Direct the day filter checkboxes to redraw the map when clicked.
