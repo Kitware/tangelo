@@ -498,16 +498,19 @@ if __name__ == "__main__":
     # installed example web directory as a fallback.  This might be found in a
     # few different places, so try them one by one until we find one that
     # exists.
-    root = None
-    default_paths = map(tangelo.util.expandpath, [sys.prefix + "/share/tangelo/web", invocation_dir + "/share/tangelo/web"])
-    for p in default_paths:
-        if os.path.exists(p):
-            root = p
-            break
+    root = args.root or config.get("root")
+    if root:
+        root = tangelo.util.expandpath(root)
+    else:
+        default_paths = map(tangelo.util.expandpath, [sys.prefix + "/share/tangelo/web", invocation_dir + "/share/tangelo/web"])
+        for p in default_paths:
+            if os.path.exists(p):
+                root = p
+                break
 
-    if not root:
-        print >>sys.stderr, "error: could not find default web root directory (tried %s)" % (", ".join(default_paths))
-        sys.exit(1)
+        if not root:
+            print >>sys.stderr, "error: could not find default web root directory (tried %s)" % (", ".join(default_paths))
+            sys.exit(1)
 
     verbose.write("Serving content from %s" % (root))
 
