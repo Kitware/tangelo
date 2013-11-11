@@ -415,9 +415,7 @@ function retrieveData(initial) {
                 };
                 div = d3.select("#map").node();
                 flickr.map = new tangelo.GoogleMapSVG(div, options, gmap_cfg);
-                flickr.map.on("draw", gmap_cfg.draw);
-                flickr.map.on("drag", gmap_cfg.draw);
-                flickr.map.on("zoom_changed", gmap_cfg.draw);
+                flickr.map.on(["draw", "drag", "zoom_changed"], gmap_cfg.draw);
             }
         }
     });

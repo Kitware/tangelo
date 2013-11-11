@@ -123,6 +123,13 @@
         var that = this;
         var attacher;
 
+        if (Object.prototype.toString.call(eventType) === "[object Array]") {
+            $.each(eventType, function (i, v) {
+                that.attachListener(v, callback, how);
+            });
+            return;
+        }
+
         if (how === "once") {
             attacher = google.maps.event.addListenerOnce;
         } else if (how === "always") {
