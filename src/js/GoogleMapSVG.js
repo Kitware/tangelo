@@ -41,12 +41,6 @@
         // When the map is dragged, resized, or zoomed, emit the appropriate
         // events and/or redraw the SVG layer.
         that = this;
-        google.maps.event.addListener(this.map, "drag", function () {
-            that.draw();
-        });
-        google.maps.event.addListener(this.map, "zoom_changed", function () {
-            that.draw();
-        });
         $(this.mapdiv).resize(function () {
             google.maps.event.trigger(this.map, "resize");
         });
@@ -56,6 +50,9 @@
 
         // If a continuation function was passed, call it with the new object as
         // soon as the map is actually ready.
+        //
+        // TODO(choudhury): eliminate the cont argument and instead attach a
+        // one-time idle listener to the newly created map (in the client code).
         if (cont) {
             google.maps.event.addListenerOnce(this.map, "idle", function () {
                 cont(that);
@@ -75,32 +72,10 @@
         return this.map;
     };
 
-    // This function is part of the overlay interface - it will be called when a
-    // new map element is added to the overlay (as in the constructor function
-    // above).
-    tangelo.GoogleMapSVG.prototype.onAdd = function () {
-        // Put an SVG element in the mouse target overlay.
-        this.svg = d3.select(this.getPanes().overlayMouseTarget)
-            .append("svg")
-            .attr("width", this.size.width)
-            .attr("height", this.size.height);
+    tangelo.GoogleMapSVG.prototype.computeCBArgs = function () {
+        var mattrans;
 
-        // If the user supplied an initialization function, call it now.
-        if (this.cfg.initialize) {
-            this.cfg.initialize.call(this, this.svg.node(), this.getProjection(), this.map.getZoom());
-        }
-
-    };
-
-    // This is called when the Google Map API decides to redraw the map, or when
-    // the GoogleMapSVG interface needs the map redrawn.
-    tangelo.GoogleMapSVG.prototype.draw = function () {
-        var mattrans,
-            xtrans,
-            ytrans,
-            setTimeout;
-
-        // Find the matrix transform for the overlay.
+        // Grab the matrix transform from the map div.
         mattrans = d3.select("#" + this.id + " [style*='webkit-transform: matrix']")
             .style("-webkit-transform")
             .split(" ")
@@ -116,23 +91,108 @@
                 return retval;
             });
 
-        // If the map is in the middle of a zooming transform, abort the draw
-        // operation and try again in a little while.
-        if (mattrans[0] !== "1" || mattrans[3] !== "1") {
-            window.setTimeout(google.maps.event.trigger, 100, this.map, "drag");
+        // Construct the parameters object and return it.
+        return {
+            // The top-level SVG node.
+            svg: this.svg.node(),
+
+            // The Google Map projection object.
+            projection: this.getProjection(),
+
+            // The map zoom level.
+            zoom: this.map.getZoom(),
+
+            // The map translation vector (extracted for convenience from the
+            // transform matrix).
+            translation: {
+                x: mattrans[4],
+                y: mattrans[5]
+            },
+
+            // The transform matrix itself.
+            transform: mattrans,
+
+            // A boolean indicating whether the map is in the middle of a
+            // zooming action.
+            zooming: mattrans[0] !== "1" || mattrans[3] !== "1"
+        };
+    };
+
+    // Attach event listeners to the map.
+    tangelo.GoogleMapSVG.prototype.attachListener = function (eventType, callback, how) {
+        var that = this;
+        var attacher;
+
+        if (Object.prototype.toString.call(eventType) === "[object Array]") {
+            $.each(eventType, function (i, v) {
+                that.attachListener(v, callback, how);
+            });
             return;
         }
 
-        // Extract the translation component.
-        xtrans = mattrans[4];
-        ytrans = mattrans[5];
+        if (how === "once") {
+            attacher = google.maps.event.addListenerOnce;
+        } else if (how === "always") {
+            attacher = google.maps.event.addListener;
+        } else {
+            throw "illegal value for 'once'";
+        }
 
-        // Give the svg element an opposite transform to hold it in place.
-        this.svg.style("-webkit-transform", "translate(" + (-xtrans) + "px," + (-ytrans) + "px)");
+        attacher(this.map, eventType, function () {
+            var args = that.computeCBArgs();
 
-        // Call the user's draw method, if there is one.
-        if (this.cfg.draw) {
-            this.cfg.draw.call(this, this.svg.node(), this.getProjection(), this.map.getZoom());
+            // Some special behavior for the draw callback.
+            if (eventType === "draw") {
+                // If the map is in the middle of a zoom operation, delay the
+                // draw call until a bit later (to give the zoom a chance to
+                // finish).
+                if (args.zooming) {
+                    // TOOD(choudhury): figure out why a "drag" event is
+                    // triggered for the delay case.
+                    //window.setTimeout(google.maps.event.trigger, 100, that.map, "drag");
+                    window.setTimeout(google.maps.event.trigger, 100, that.map, "draw");
+                }
+            }
+
+            // Call the user's specified function with the collected data.
+            callback.call(that, args);
+        });
+    };
+
+    tangelo.GoogleMapSVG.prototype.on = function (eventType, callback) {
+        this.attachListener(eventType, callback, "always");
+    };
+
+    tangelo.GoogleMapSVG.prototype.onceOn = function (eventType, callback) {
+        this.attachListener(eventType, callback, "once");
+    };
+
+    tangelo.GoogleMapSVG.prototype.trigger = function (eventType) {
+        google.maps.event.trigger(this.map, eventType);
+    };
+
+    tangelo.GoogleMapSVG.prototype.shift = function (what, x, y) {
+        d3.select(what)
+            .style("-webkit-transform", "translate(" + x + "px, " + y + "px)");
+    };
+
+    // This function is part of the overlay interface - it will be called when a
+    // new map element is added to the overlay (as in the constructor function
+    // above).
+    tangelo.GoogleMapSVG.prototype.onAdd = function () {
+        // Put an SVG element in the mouse target overlay.
+        this.svg = d3.select(this.getPanes().overlayMouseTarget)
+            .append("svg")
+            .attr("width", this.size.width)
+            .attr("height", this.size.height);
+
+        // If the user supplied an initialization function, call it now.
+        if (this.cfg.initialize) {
+            this.cfg.initialize.call(this, this.svg.node(), this.getProjection(), this.map.getZoom());
         }
     };
+
+    // This function has to be defined, but we wish to defer the actual draw
+    // action to the user, vis the on() and onceOn() methods.
+    tangelo.GoogleMapSVG.prototype.draw = function () {}
 }());
