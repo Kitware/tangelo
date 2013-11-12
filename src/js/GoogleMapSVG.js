@@ -184,9 +184,7 @@
         this.svg = d3.select(this.getPanes().overlayMouseTarget)
             .append("svg")
             .attr("width", this.size.width)
-            .attr("height", this.size.height)
-            .append("g")
-            .attr("id", "transformlayer");
+            .attr("height", this.size.height);
 
         // If the user supplied an initialization function, call it now.
         if (this.cfg.initialize) {
