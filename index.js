@@ -44,4 +44,21 @@ $(function () {
         //pushState: true,
         root: "/"
     });
+
+    function loadExamples() {
+        var list = $("#example-list");
+        $.getJSON("examples.json", function (data) {
+            data.forEach(function (example) {
+                var main = $('<div class="span3 example" />'),
+                    header = $('<p class="heading">' + example.name + '</p><p class="subheading"><small><a href="' + example.code + '">source</a></small></p>'),
+                    img = $('<a href="' + example.site + '"><img class="img-rounded example" src="' + example.thumbnail + '"/></a>');
+                main.append(header);
+                main.append(img);
+                list.append(main);
+            });
+            console.log(data);
+        });
+    }
+
+    loadExamples();
 });

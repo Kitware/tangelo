@@ -17,3 +17,13 @@ h1 {
 .footer {
     margin-bottom: 100px;
 }
+
+.example .heading {
+    margin-top: 25px;
+    margin-bottom: 0px;
+}
+
+.example .subheading {
+    margin-top: 0px;
+    margin-bottom: 5px;
+}
