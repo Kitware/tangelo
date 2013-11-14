@@ -14,20 +14,6 @@ a {
     text-align: center;
 }
 
-/* List styling */
-ul.flush {
-    margin: 0 0 0 1em;
-    padding: 0px;
-}
-
-ul.buttons {
-    list-style-type: none;
-}
-
-ul.legend {
-    list-style-type: none;
-}
-
 /* File inputs are way too big */
 input[type="file"] {
     height: auto;
