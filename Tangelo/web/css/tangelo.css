@@ -14,14 +14,6 @@ a {
     text-align: center;
 }
 
-/* File inputs are way too big */
-input[type="file"] {
-    height: auto;
-    line-height: auto;
-    font-size: 13.2px;
-    font-weight: auto;
-}
-
 .code {
     font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
     font-size: 15px;
