@@ -25,14 +25,6 @@ a {
     margin-top: 3px;
 }
 
-.gmap img {
-    max-width: none;
-}
-
-.gmap label {
-    width: auto; display:inline;
-}
-
 .popover-expand {
     max-width: none;
 }
