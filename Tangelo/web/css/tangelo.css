@@ -20,10 +20,6 @@ a {
     line-height: normal;
 }
 
-.title {
-    color: #004400;
-}
-
 /* A rounded-corner panel for printing information */
 .placard {
     border-radius: 10px 10px 10px 10px;
