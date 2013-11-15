@@ -25,12 +25,6 @@ a {
     margin-top: 3px;
 }
 
-/* This allows for emulating a clickable link without affecting the browser
- * history (use for popovers, etc. */
-.pointer {
-    cursor: pointer;
-}
-
 /* Use this for "drawer handles", to help the user see that clicking on the edge
  * of a div will make it roll out/in. */
 .drawer:hover {

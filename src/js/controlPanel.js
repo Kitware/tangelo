@@ -77,7 +77,7 @@
             .insert("div", ":first-child")
                 .attr("id", "tangelo-drawer-handle")
                 .classed("centered", true)
-                .classed("pointer", true)
+                .style("cursor", "pointer")
                 .classed("drawer", true)
                 .append("i")
                     .attr("id", "tangelo-drawer-icon")
