@@ -47,7 +47,7 @@
         brand = s.attr("data-tangelo-brand") || cfg.brand;
         if (brand !== null) {
             navbar_inner.append("a")
-                .classed("brand", true)
+                .style("margin-left", "auto")
                 .attr("href", s.attr("data-tangelo-brand-href"))
                 .text(brand);
         }

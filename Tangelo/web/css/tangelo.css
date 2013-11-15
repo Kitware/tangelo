@@ -39,12 +39,6 @@ a {
     background: rgba(255, 255, 255, 0.7);
 }
 
-/* This causes the "brand" item in fixed-navbars to not have a negative left
- * margin. */
-.navbar-fixed-top .brand {
-    margin-left: auto;
-}
-
 /* Implement a spinning animation (for use by progress pinwheels, etc.). */
 @-moz-keyframes spin {
     0% { -moz-transform: rotate(0deg); }
