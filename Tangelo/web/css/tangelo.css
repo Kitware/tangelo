@@ -20,14 +20,6 @@ a {
     line-height: normal;
 }
 
-.jumbotron {
-    text-align: center;
-}
-
-.jumbotron > .description {
-    text-align: left;
-}
-
 .title {
     color: #004400;
 }
