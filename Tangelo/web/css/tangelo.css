@@ -16,11 +16,6 @@ a {
     line-height: normal;
 }
 
-.btn [class^="icon-"],
-.btn [class*=" icon-"] {
-    margin-top: 3px;
-}
-
 /* Use this for "drawer handles", to help the user see that clicking on the edge
  * of a div will make it roll out/in. */
 .drawer:hover {
