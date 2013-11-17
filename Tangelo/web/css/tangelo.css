@@ -16,20 +16,6 @@ a {
     line-height: normal;
 }
 
-/* Use this for "drawer handles", to help the user see that clicking on the edge
- * of a div will make it roll out/in. */
-.drawer:hover {
-    background-color: gray;
-}
-
-/* Translucent control panel, fixed at bottom of window. */
-.control-panel {
-    position: fixed;
-    bottom: 0px;
-    width: 100%;
-    background: rgba(255, 255, 255, 0.7);
-}
-
 /* Implement a spinning animation (for use by progress pinwheels, etc.). */
 @-moz-keyframes spin {
     0% { -moz-transform: rotate(0deg); }
