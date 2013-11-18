@@ -12,8 +12,8 @@
             el.append("h4").text(spec.heading);
         }
         main = $(el.append("div").node());
-        low = el.append("div").classed("code", true);
-        high = el.append("div").classed("code", true);
+        low = el.append("code");
+        high = el.append("code");
 
         values = [spec.value.min, spec.value.max];
 
