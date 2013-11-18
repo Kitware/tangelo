@@ -79,7 +79,7 @@
             .style("background", "rgba(255,255,255,0.7)")
             .insert("div", ":first-child")
                 .attr("id", "tangelo-drawer-handle")
-                .classed("centered", true)
+                .style("text-align", "center")
                 .style("cursor", "pointer")
                 .on("mouseenter", function () {
                     console.log("mouseenter");

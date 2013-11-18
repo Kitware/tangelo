@@ -2,12 +2,6 @@ a {
     color: #0088cc;
 }
 
-.centered {
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-}
-
 .code {
     font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
     font-size: 15px;
