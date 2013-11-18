@@ -15,36 +15,3 @@ a {
     font-size: 15px;
     line-height: normal;
 }
-
-/* Implement a spinning animation (for use by progress pinwheels, etc.). */
-@-moz-keyframes spin {
-    0% { -moz-transform: rotate(0deg); }
-    100% { -moz-transform: rotate(359deg); }
-}
-
-@-webkit-keyframes spin {
-    0% { -webkit-transform: rotate(0deg); }
-    100% { -webkit-transform: rotate(359deg); }
-}
-
-@-o-keyframes spin {
-    0% { -o-transform: rotate(0deg); }
-    100% { -o-transform: rotate(359deg); }
-}
-
-@-ms-keyframes spin {
-    0% { -ms-transform: rotate(0deg); }
-    100% { -ms-transform: rotate(359deg); }
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(359deg); }
-}
-
-.spinning {
-    animation: 2s linear 0s normal none infinite spin;
-    -moz-animation: 2s linear 0s normal none infinite spin;
-    -webkit-animation: 2s linear 0s normal none infinite spin;
-    -o-animation: 2s linear 0s normal none infinite spin;
-}
