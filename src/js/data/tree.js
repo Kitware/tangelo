@@ -6,7 +6,7 @@
     tangelo.data.tree = function(spec) {
         var id = tangelo.accessor(spec.id, ""),
             idChild = tangelo.accessor(spec.idChild, ""),
-            children = tangelo.accessor(spec.children, []),
+            children = tangelo.accessor(spec.children),
             data = spec.data,
             nodeMap = {},
             root;

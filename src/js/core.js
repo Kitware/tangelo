@@ -50,6 +50,9 @@ var tangelo = {};
                 var i;
                 for (i = 0; i < parts.length; i += 1) {
                     d = d[parts[i]];
+                    if (d === undefined) {
+                        return defaultValue;
+                    }
                 }
                 return d;
             };
