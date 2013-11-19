@@ -1,32 +1,30 @@
-/*jslint browser: true */
+/*jslint browser: true, nomen: true */
 
-(function (tangelo, d3, $) {
+(function (tangelo, d3) {
     "use strict";
 
-    tangelo.ui.select = function (spec, root, data) {
-        var select = root.append("select"),
-            d = data[spec.data],
-            numeric;
-
-        spec.label = spec.label || d.key;
-
-        numeric = tangelo.isNumber(d.active);
+    tangelo.ui.select = function (spec) {
+        var select = d3.select(spec.el).append("select"),
+            id = tangelo.accessor(spec.id, ""),
+            label = spec.label ? tangelo.accessor(spec.label, "") : id,
+            data = spec.data,
+            value = spec.value;
 
         select.selectAll("option")
-            .data(d.value)
+            .data(data)
             .enter().append("option")
-            .attr("value", function (dd) { return dd[d.key]; })
-            .text(function (dd) { return dd[spec.label]; });
-        $(select.node()).val(d.active);
-        $(select.node()).change(function () {
-            d.active = $(this).val();
-            if (numeric) {
-                d.active = +d.active;
-            }
-            if (spec.app) {
-                spec.app.reset();
-            }
-        });
+            .attr("value", function (d) { return id(d); })
+            .text(function (d) { return label(d); });
+
+        if (value !== undefined) {
+            select.node().value = value;
+        }
+
+        if (spec.on && spec.on.change) {
+            select.on("change", function() {
+                spec.on.change(this.options[this.selectedIndex].__data__);
+            });
+        }
     };
 
-}(window.tangelo, window.d3, window.$));
+}(window.tangelo, window.d3));

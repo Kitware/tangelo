@@ -42,6 +42,9 @@ var tangelo = {};
             return function () { return spec.value; };
         }
         if (spec.field) {
+            if (spec.field === ".") {
+                return tangelo.identity;
+            }
             parts = spec.field.split(".");
             return function (d) {
                 var i;

@@ -106,6 +106,7 @@ tangelo
     :param string spec.field: If this attribute is present, creates a function that returns the specified constant value.
         The `field` may be dot-separated to reference nested attributes.
         For example, ``"foo.bar"`` will return the ``bar`` sub-attribute of the ``foo`` attribute.
+        Passing the string ``"."`` will return the identity function.
     :param default: The default value returned if `spec.field` is not present.
 
     Returns a function which takes an object and returns a value according to the `spec`.
@@ -307,9 +308,14 @@ tangelo.ui
 .. js:function:: tangelo.ui.select(spec)
 
     :param Element spec.el: The parent DOM element.
-    :param array spec.data: An array of strings specifying each option in the HTML ``<select>``.
+    :param array spec.data: An array, one for each option in the drop-down.
+    :param Accessor spec.id: The accessor for a unique identifier for each object.
+    :param Accessor spec.label: The accessor for a label to be shown in the drop-down (default: `spec.id`).
+    :param function spec.on.change: When the drop-down selection changes, ``spec.on.change(value)`` is called
+        with the data element that was selected.
+    :param spec.value: The identifier of the object to initially select.
 
-    Creates an HTML ``<select>`` element with the specified options.
+    Creates a drop-down selection menu (HTML ``<select>`` element) with the specified options.
 
 tangelo.vis
 ===========

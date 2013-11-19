@@ -1,0 +1,21 @@
+<head>
+    <title>tangelo.ui.select</title>
+    <link href="/css/bootstrap-readable.css" rel="stylesheet">
+</head>
+<body>
+    <script src="/js/lib/d3.v3.js"></script>
+    <script src="/js/lib/jquery-1.8.2.js"></script>
+    <script src="/js/tangelo.js"></script>
+<script>
+var data = ["one", "two", "three"];
+
+var select = tangelo.ui.select({
+	data: data,
+	el: d3.select("body").node(),
+    id: {field: "."},
+    label: {field: "."},
+    on: {change: function (d) { console.log(d); }},
+    value: "three"
+});
+</script>
+</body>
