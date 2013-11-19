@@ -1,128 +1,11 @@
 ===================================
-    Tangelo Web Application API
+    Tangelo Javascript API
 ===================================
 
-Core Module
-===========
+jQuery plugins
+==============
 
-.. js:function:: tangelo.namespace(spec)
-
-    Returns the specified namespace, creating it if it doesn't exist.
-
-    ``spec`` is a string consisting of one or more namespace names, separated by
-    periods.  Each namespace is implemented as a Javascript object (their names
-    must therefore be valid Javascript variable names).  These namespaces are
-    added to the global Tangelo namespace, named ``tangelo``.  For example,
-
-    .. code-block:: javascript
-
-        var mod = tangelo.namespace("util.maps");
-
-        mod.getStarMap = function (organization) {
-            .
-            .
-            .
-        };
-
-    will result in the creation of a namespace object ``tangelo.util.maps``
-    containing a function ``getStarMap()`` that can be addressed in client code
-    as ``tangelo.util.maps.getStarMap()``.
-
-    This function is used to create new modules to implement custom behavior,
-    etc.
-
-Date Module
-===========
-
-.. js:function:: tangelo.date.monthNames()
-
-    Returns an array of abbreviated month names (useful for creating
-    month-related labels, etc.).
-
-.. js:function:: tangelo.date.monthNames()
-
-    Returns an array of abbreviated day names (useful for creating day-related
-    labels, etc.).
-
-.. js:function:: tangelo.toShortString(date)
-
-    :param Date date: A date object to format into a string
-
-    Returns a string representing ``date`` in this format: ``Oct 30, 1981
-    (05:31:00)``.
-
-.. js:function:: Date.prototype.getMonthName()
-
-    Returns the abbreviated month name associated with the Date object.
-
-.. js:function:: Date.prototype.getDayName()
-
-    Returns the abbreviated day name associated with the Date object.
-
-.. js:function:: tangelo.date.displayDate(date)
-
-    :param Date date: A date object to format into a string
-
-    Returns a string representing ``date`` in this format: ``Oct 30, 1981``
-
-Util Module
-===========
-
-.. js:function:: drawer_size()
-
-    Returns the height of the drawer handle icon (for use in laying out drawer
-    elements).
-
-    .. todo::
-        This function should simply be a private variable within the module.
-
-.. js:function:: drawer_toggle(container, icon)
-
-    :param string container: CSS selector for the element containing the control panel drawer
-    :param string icon: CSS selector for the element containing the drawer handle icon
-
-    Returns a function that can be used as the open/close callback for a control
-    panel.  The function causes the height of the control panel element to
-    toggle between full height (open) and zero height (closed).
-
-.. js:function:: svgColorLegend(cfg)
-
-    :param string cfg.legend: CSS selector for SVG group element that will contain the legend
-    :param function cfg.cmap_func: A colormapping function to create color patches for the legend entries
-    :param int cfg.xoffset: How far, in pixels, to set the legend from the left edge of the parent SVG element.
-    :param int cfg.yoffset: How far, in pixels, to set the legend from the top edge of the parent SVG element.
-    :param string[] cfg.categories: A list of strings naming the categories represented in the legend.
-    :param int cfg.height_padding: How much space, in pixels, to place between legend entries.
-    :param int cfg.width_padding: How much space, in pixels, to place between a color patch and its associated label
-    :param int cfg.text_spacing: How far, in pixels, to raise text labels (used to vertically center text within the vertical space occupied by a color patch).
-    :param object cfg.legend_margins: An object with (optional) fields ``top``, ``bottom``, ``left``, and ``right``, specifying how much space, in pixels, to leave between the edge of the legend and the entries.
-    :param bool cfg.clear: Whether to clear out the previous contents of the element selected by ``cfg.legend``.
-
-    Constructs an SVG color legend in the ``g`` element specified by
-    ``cfg.legend``, mapping colors from the elements of ``cfg.categories``
-    through the function ``cfg.cmap_func``.
-
-.. js:function:: getMongoRange(host, database, collection, field, callback)
-
-    :param string host: MongoDB hostname
-    :param string database: MongoDB database on ``host``
-    :param string collection: MongoDB collection in ``database``
-    :param string field: Target field within ``collection``
-    :param function callback: Function to call on range results
-
-    Finds the two extreme values in field ``field`` of ``collection``
-    in ``database`` on Mongo server ``host``, then calls ``callback`` passing
-    these two values as arguments.
-
-    This function could be used, for example, to find the earliest and latest
-    events in a Mongo collection, then use that information to set up a date
-    selector element in the webpage.
-
-.. js:function:: allDefined([arg1, ..., argN])
-
-    Returns ``true`` if all arguments are defined, and ``false`` otherwise.
-
-.. js:function:: landingPage(cfg)
+.. js:function:: jQuery.landingPage(cfg)
 
     :param string cfg.specFile: JSON file describing what applications will be listed on the page.
     :param string cfg.leftColumn: CSS selector for left text column
@@ -147,7 +30,119 @@ Util Module
     ``cfg.leftExternalColumn``, and ``cfg.rightExternalColumn``), placing links
     and descriptive text appropriately.
 
-.. js:class:: defaults(inputSpec, callback)
+.. js:function:: jQuery.controlPanel(cfg)
+
+.. js:function:: drawer_size()
+
+    Returns the height of the drawer handle icon (for use in laying out drawer
+    elements).
+
+    .. todo::
+        This function should simply be a private variable within the module.
+
+.. js:function:: drawer_toggle(container, icon)
+
+    :param string container: CSS selector for the element containing the control panel drawer
+    :param string icon: CSS selector for the element containing the drawer handle icon
+
+    Returns a function that can be used as the open/close callback for a control
+    panel.  The function causes the height of the control panel element to
+    toggle between full height (open) and zero height (closed).
+
+.. js:function:: jQuery.svgColorLegend(cfg)
+
+    :param string cfg.legend: CSS selector for SVG group element that will contain the legend
+    :param function cfg.cmap_func: A colormapping function to create color patches for the legend entries
+    :param int cfg.xoffset: How far, in pixels, to set the legend from the left edge of the parent SVG element.
+    :param int cfg.yoffset: How far, in pixels, to set the legend from the top edge of the parent SVG element.
+    :param string[] cfg.categories: A list of strings naming the categories represented in the legend.
+    :param int cfg.height_padding: How much space, in pixels, to place between legend entries.
+    :param int cfg.width_padding: How much space, in pixels, to place between a color patch and its associated label
+    :param int cfg.text_spacing: How far, in pixels, to raise text labels (used to vertically center text within the vertical space occupied by a color patch).
+    :param object cfg.legend_margins: An object with (optional) fields ``top``, ``bottom``, ``left``, and ``right``, specifying how much space, in pixels, to leave between the edge of the legend and the entries.
+    :param bool cfg.clear: Whether to clear out the previous contents of the element selected by ``cfg.legend``.
+
+    Constructs an SVG color legend in the ``g`` element specified by
+    ``cfg.legend``, mapping colors from the elements of ``cfg.categories``
+    through the function ``cfg.cmap_func``.
+
+.. js:function:: jQuery.navbar(cfg)
+
+
+tangelo
+=======
+
+.. js:function:: tangelo.version()
+
+    Returns the version as string of the form ``"x.y.z"``.
+
+.. js:attribute:: tangelo.identity
+
+    The identity function: ``function (d) { return d; }``.
+
+.. js:function:: tangelo.isNumber(x)
+
+    Returns ``true`` if ``x`` if a number.
+
+.. js:function:: tangelo.isBoolean(x)
+
+    Returns ``true`` if ``x`` if a boolean.
+
+.. js:function:: tangelo.isArray(x)
+
+    Returns ``true`` if ``x`` if an array.
+
+.. js:function:: tangelo.isObject(x)
+
+    Returns ``true`` if ``x`` if an object.
+
+.. js:function:: tangelo.isString(x)
+
+    Returns ``true`` if ``x`` if a string.
+
+.. js:function:: tangelo.accessor(spec, default)
+
+    :param spec.value: If this attribute is present, creates a function that returns the specified constant value.
+    :param string spec.field: If this attribute is present, creates a function that returns the specified constant value.
+        The ``field`` may be dot-separated to reference nested attributes.
+        For example, ``"foo.bar"`` will return the ``bar`` sub-attribute of the ``foo`` attribute.
+    :param default: The default value returned if ``spec.field`` is not present.
+
+    Returns a function which takes an object and returns a value according to the ``spec``.
+
+.. js:function:: tangelo.hasNaN(values)
+    
+    Returns ``true`` if any of the elements in the array ``values`` are ``NaN``.
+
+.. js:function:: tangelo.appendFunction(f1, f2)
+
+    Returns a new function which first calls ``f1`` then calls ``f2``. All arguments are passed to each function.
+
+.. js:function:: tangelo.requireCompatibleVersion(reqvstr)
+
+    Returns ``true`` if ``tangelo.version()`` returns a version >= the version specified in ``reqvstr``.
+
+.. js:function:: tangelo.getMongoRange(host, database, collection, field, callback)
+
+    :param string host: MongoDB hostname
+    :param string database: MongoDB database on ``host``
+    :param string collection: MongoDB collection in ``database``
+    :param string field: Target field within ``collection``
+    :param function callback: Function to call on range results
+
+    Finds the two extreme values in field ``field`` of ``collection``
+    in ``database`` on Mongo server ``host``, then calls ``callback`` passing
+    these two values as arguments.
+
+    This function could be used, for example, to find the earliest and latest
+    events in a Mongo collection, then use that information to set up a date
+    selector element in the webpage.
+
+.. js:function:: tangelo.allDefined([arg1, ..., argN])
+
+    Returns ``true`` if all arguments are defined, and ``false`` otherwise.
+
+.. js:class:: tangelo.defaults(inputSpec, callback)
 
     Constructs a key/value store object, initializing it with the information
     found in ``inputSpec``.
@@ -195,3 +190,163 @@ Util Module
     deployed somewhere, and the site maintainer can supply a ``defaults.json``
     file to vary the default values.  If the file is omitted, then the hardcoded
     defaults will kick in.
+
+.. js:function:: tangelo.uniqueID()
+
+    Returns a unique string ID for use as, e.g., ids for dynamically generated html
+    elements, etc.
+
+.. js:class:: tangelo.GoogleMapSVG(elem, mapoptions, cfg, cont)
+
+.. js:function:: tangelo.resolve(spec, done)
+
+
+tangelo.date
+============
+
+.. js:function:: tangelo.date.monthNames()
+
+    Returns an array of abbreviated month names (useful for creating
+    month-related labels, etc.).
+
+.. js:function:: tangelo.date.dayNames()
+
+    Returns an array of abbreviated day names (useful for creating day-related
+    labels, etc.).
+
+.. js:function:: tangelo.toShortString(date)
+
+    :param Date date: A date object to format into a string
+
+    Returns a string representing ``date`` in this format: ``Oct 30, 1981
+    (05:31:00)``.
+
+.. js:function:: Date.prototype.getMonthName(date)
+
+    Returns the abbreviated month name (Jan, Feb, etc.) associated with the Date object ``date``.
+
+.. js:function:: Date.prototype.getDayName(date)
+
+    Returns the abbreviated day name (Mon, Tue, etc.) associated with the Date object ``date``.
+
+.. js:function:: tangelo.date.displayDate(date)
+
+    Returns a string representing the Date object ``date`` in the format: ``"Oct 30, 1981"``.
+
+
+tangelo.data
+============
+
+.. js:function:: tangelo.data.tree(spec)
+
+    :param object spec.data: The array of nodes.
+    :param Accessor spec.id: An accessor for the ID of each node in the tree.
+    :param Accessor spec.idChild: An accessor for the ID of the elements of the children array.
+    :param Accessor spec.children: An accessor to retrieve the array of children for a node.
+
+    Converts an array of nodes with ids and child lists into a nested tree structure.
+    The nested tree format with a standard ``children`` attribute is the required format for other Tangelo
+    functions such as ``tangelo.vis.dendrogram``.
+
+    As an example, evaluating:
+
+    .. code-block:: javascript
+
+        var tree = tangelo.data.tree({
+            data: [
+                {name: "a", childNodes: [{child: "b", child: "c"}]},
+                {name: "b", childNodes: [{child: "d"}]},
+                {name: "c"},
+                {name: "d"}
+            ],
+            id: {field: "name"},
+            idChild: {field: "child"},
+            children: {field: "childNodes"}
+        });
+
+    will return the following nested tree (note that the original ``childNodes`` attributes will also remain intact):
+
+    .. code-block:: javascript
+
+        {
+            name: "a",
+            children: [
+                {
+                    name: "b",
+                    children: [
+                        {
+                            name: "d"
+                        }
+                    ]
+                },
+                {
+                    name: "c"
+                }
+            ]
+        }
+
+tangelo.ui
+==========
+
+.. js:function:: tangelo.ui.html(spec)
+
+    :param Element spec.el: The parent DOM element.
+    :param string spec.html: The HTML content string.
+
+    Appends the specified arbitrary HTML content under the specified element. 
+
+.. js:function:: tangelo.ui.rangeslider(spec)
+
+    :param Element spec.el: The parent DOM element.
+    :param object spec.range: An object of the form ``{min: minValue, max: maxValue}`` containing
+        the full range of the slider. ``minValue`` and ``maxValue`` must be numeric.
+    :param object spec.value: An object of the form ``{min: minValue, max: maxValue}`` containing
+        the initial selected range of the slider. ``minValue`` and ``maxValue`` must be numeric.
+    :param boolean spec.date: If ``true``, display the values as if they were milliseconds
+        since January 1, 1980 (i.e. interpret as the date ``new Date(value)``).
+    :param function spec.on.change: When the slider is dragged, ``spec.on.change(value)`` is called
+        with the current value of the form ``{min: minValue, max: maxValue}``.
+
+    Creates a double-handled range slider control appended to the specified parent element.
+
+.. js:function:: tangelo.ui.select(spec)
+
+    :param Element spec.el: The parent DOM element.
+    :param array spec.data: An array of strings specifying each option in the HTML ``<select>``.
+
+    Creates an HTML ``<select>`` element with the specified options.
+
+tangelo.vis
+===========
+
+.. js:class:: tangelo.vis.dendrogram(spec)
+
+    :param Element spec.el: The parent DOM element.
+    :param object spec.data: A nested tree object where child nodes are stored in the ``children`` attribute.
+    :param Accessor spec.label: The accessor for displaying tree node labels.
+    :param Accessor spec.distance: The accessor for the numeric value of each node to its parent (default: 1).
+    :param Accessor spec.id: The accessor for the node ID.
+    :param int nodeLimit: The maximum number of nodes to display in the dendrogram.
+        If there are more nodes in the current display, the view will hide nodes with the highest
+        distance from the root.
+    :param object spec.root: The root of the subtree in the current display (default: ``spec.data``).
+    :param string spec.mode: The current interaction mode of the tree. The ``"hide"`` mode will alternately
+        collapse or expand clicked subtrees. The ``"focus"`` mode will set the currently displayed root
+        to the clicked node. The ``"label"`` mode will toggle the label visibility for the clicked node.
+
+.. js:function:: dendrogram.update(spec)
+
+    Updates the dendrogram attributes based on the attributes set in ``spec``. The possible content of ``spec``
+    matches the constructor options.
+
+.. js:class:: tangelo.vis.geodots(spec)
+
+.. js:class:: tangelo.vis.geonodelink(spec)
+
+.. js:class:: tangelo.vis.mapdots(spec)
+
+.. js:class:: tangelo.vis.nodelink(spec)
+
+.. js:class:: tangelo.vis.timebar(spec)
+
+.. js:class:: tangelo.vis.timeline(spec)
