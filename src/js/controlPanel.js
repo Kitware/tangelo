@@ -73,12 +73,24 @@
         // first child to act as the drawer handle (and place an appropriate
         // icon in the middle of it).
         s.attr("id", "tangelo-control-panel")
-            .classed("control-panel", true)
+            .style("position", "fixed")
+            .style("bottom", "0px")
+            .style("width", "100%")
+            .style("background", "rgba(255,255,255,0.7)")
             .insert("div", ":first-child")
                 .attr("id", "tangelo-drawer-handle")
-                .classed("centered", true)
-                .classed("pointer", true)
-                .classed("drawer", true)
+                .style("text-align", "center")
+                .style("cursor", "pointer")
+                .on("mouseenter", function () {
+                    console.log("mouseenter");
+                    d3.select(this)
+                        .style("background", "gray");
+                })
+                .on("mouseleave", function () {
+                    console.log("mouseleave");
+                    d3.select(this)
+                        .style("background", null);
+                })
                 .append("i")
                     .attr("id", "tangelo-drawer-icon")
                     .classed("icon-chevron-down", true);

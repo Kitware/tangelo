@@ -17,7 +17,7 @@
 <link href=http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css rel=stylesheet>
 
 <!-- Styling for app -->
-<link href=/css/tangelo.css rel=stylesheet type=text/css>
+<link href=/css/bootstrap-readable.css rel=stylesheet type=text/css>
 
 <link rel="shortcut icon" href=/img/tangelo.ico>
 
@@ -29,6 +29,42 @@
     body {
         padding-top: 60px;
         height: 100%;
+    }
+
+    @-moz-keyframes spin {
+        0% { -moz-transform: rotate(0deg); }
+        100% { -moz-transform: rotate(359deg); }
+    }
+
+    @-webkit-keyframes spin {
+        0% { -webkit-transform: rotate(0deg); }
+        100% { -webkit-transform: rotate(359deg); }
+    }
+
+    @-o-keyframes spin {
+        0% { -o-transform: rotate(0deg); }
+        100% { -o-transform: rotate(359deg); }
+    }
+
+    @-ms-keyframes spin {
+        0% { -ms-transform: rotate(0deg); }
+        100% { -ms-transform: rotate(359deg); }
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(359deg); }
+    }
+
+    .spinning {
+        animation: 2s linear 0s normal none infinite spin;
+        -moz-animation: 2s linear 0s normal none infinite spin;
+        -webkit-animation: 2s linear 0s normal none infinite spin;
+        -o-animation: 2s linear 0s normal none infinite spin;
+    }
+
+    #map img {
+        max-width: none;
     }
 </style>
 
@@ -59,7 +95,7 @@
 </div>
 
 <!-- Create a fullscreen Google map -->
-<div id=map class=gmap style="width:100%;height:100%"></div>
+<div id=map style="width:100%;height:100%"></div>
 
 <!-- Create a drawer panel with the controls in it -->
 <div data-tangelo-type=control-panel>
@@ -68,8 +104,8 @@
             <div class=span3>
                 <h4>Time filter <i id=time-filter-help class=icon-question-sign></i></h4>
                 <div id="time-slider"></div>
-                <div class=code id="low"></div>
-                <div class=code id="high"></div>
+                <code id=low></code>
+                <code id=high></code>
                 <a class="btn btn-small" id=zoom>Zoom to range</a>
                 <a class="btn btn-small disabled" id=unzoom>Unzoom</a>
             </div>

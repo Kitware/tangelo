@@ -47,6 +47,7 @@
         brand = s.attr("data-tangelo-brand") || cfg.brand;
         if (brand !== null) {
             navbar_inner.append("a")
+                .style("margin-left", "auto")
                 .classed("brand", true)
                 .attr("href", s.attr("data-tangelo-brand-href"))
                 .text(brand);
@@ -82,7 +83,7 @@
             if (type === "info") {
                 ul.append("li")
                     .append("a")
-                    .classed("pointer", true)
+                    .style("cursor", "pointer")
                     .attr("data-toggle", "modal")
                     .attr("data-target", "#tangelo-info-panel")
                     .html("<i class=icon-info-sign></i> Info");
@@ -122,7 +123,7 @@
             } else if (type === "config") {
                 ul.append("li")
                     .append("a")
-                    .classed("pointer", true)
+                    .style("cursor", "pointer")
                     .attr("data-toggle", "modal")
                     .attr("data-target", "#tangelo-config-panel")
                     .html("<i class=icon-cog></i> Config");
