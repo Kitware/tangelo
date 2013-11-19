@@ -6,7 +6,7 @@ JavaScript is
 mix of powerful, expressive programming constructs and its poor,
 sometimes broken language features. It is therefore prone to easily
 hidden, difficult to track programming errors. To mitigate this problem,
-the XDATA Web project avoids many of the poor practices by using
+Tangelo avoids many of the poor practices by using
 `JSLint <http://www.jslint.com>`__ to enforce strict coding practices.
 JSLint is a static analysis tool that warns about several such poor
 coding practices, as well as a particular stylistic convention, which is
@@ -15,7 +15,7 @@ documented in this article.
 Though JSLint is used as something of a gold standard, there are other
 conventions that JSLint has no opinion on, such as programming patterns
 for implementing namespaces or constructing objects. The preferred
-practices for XDATA Web are also listed here.
+practices for Tangelo are also listed here.
 
 Code style
 ----------
@@ -193,7 +193,7 @@ working on. The first appears in the following form:
 
     /*jslint browser: true */
 
-and specifies options to JSLint. Because XDATA Web is a web project,
+and specifies options to JSLint. Because Tangelo is a web project,
 every JavaScript file should have the comment that appears above as the
 first line. The other recognized directive in the global name list:
 
@@ -280,8 +280,8 @@ A note on *"eval is evil"*
 
 JSLint claims that ``eval`` is evil. However, it is actually
 *dangerous*, and not evil. Accordingly, ``eval`` should be kept away
-from most JavaScript code. However, to take one example, one of XDATA
-Web's main projects makes use of compiler technology that generates
+from most JavaScript code. However, to take one example, one of 
+Tangelo's main dependencies, Vega, makes use of compiler technology that generates
 JavaScript code. ``eval``\ ing this code is reasonable and necessary in
 this instance.
 
