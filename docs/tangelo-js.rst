@@ -82,23 +82,23 @@ tangelo
 
 .. js:function:: tangelo.isNumber(x)
 
-    Returns ``true`` if ``x`` if a number.
+    Returns ``true`` if *x* is a number.
 
 .. js:function:: tangelo.isBoolean(x)
 
-    Returns ``true`` if ``x`` if a boolean.
+    Returns ``true`` if *x* is a boolean.
 
 .. js:function:: tangelo.isArray(x)
 
-    Returns ``true`` if ``x`` if an array.
+    Returns ``true`` if *x* is an array.
 
 .. js:function:: tangelo.isObject(x)
 
-    Returns ``true`` if ``x`` if an object.
+    Returns ``true`` if *x* is an object.
 
 .. js:function:: tangelo.isString(x)
 
-    Returns ``true`` if ``x`` if a string.
+    Returns ``true`` if *x* is a string.
 
 .. js:function:: tangelo.accessor(spec, default)
 
