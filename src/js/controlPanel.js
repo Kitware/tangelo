@@ -82,12 +82,10 @@
                 .style("text-align", "center")
                 .style("cursor", "pointer")
                 .on("mouseenter", function () {
-                    console.log("mouseenter");
                     d3.select(this)
                         .style("background", "gray");
                 })
                 .on("mouseleave", function () {
-                    console.log("mouseleave");
                     d3.select(this)
                         .style("background", null);
                 })
