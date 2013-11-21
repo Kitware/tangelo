@@ -115,7 +115,7 @@ function retrieveData(initial) {
         .classed("btn-success", false)
         .classed("btn-danger", true)
         .classed("disabled", false)
-        .html("Abort query <i class=\"icon-repeat icon-white spinning\"></i>");
+        .html("Abort query <img src=wait.gif>");
 
     flickr.currentAjax = $.ajax({
         type: 'POST',
