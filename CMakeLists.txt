@@ -52,7 +52,6 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/data/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/data/tree.js
     ${CMAKE_SOURCE_DIR}/src/js/ui/_package.js
-    ${CMAKE_SOURCE_DIR}/src/js/ui/html.js
     ${CMAKE_SOURCE_DIR}/src/js/ui/select.js
     ${CMAKE_SOURCE_DIR}/src/js/vis/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/vis/dendrogram.js
