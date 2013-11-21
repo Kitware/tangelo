@@ -4,7 +4,7 @@
     "use strict";
 
     tangelo.ui.rangeslider = function (spec) {
-        var low, high, main, values, el, that = {}, dateformat = d3.time.format("%b %a, %Y (%H:%M:%S)";
+        var low, high, main, values, el, that = {}, dateformat = d3.time.format("%b %a, %Y (%H:%M:%S)");
 
         el = d3.select(spec.el)
             .style("padding", "0px 20px 10px 20px");

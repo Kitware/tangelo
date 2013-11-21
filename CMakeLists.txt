@@ -47,7 +47,6 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/plugin/controlPanel.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/GoogleMapSVG.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/landingPage.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/resolve.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/svgColorLegend.js
     ${CMAKE_SOURCE_DIR}/src/js/data/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/data/tree.js
