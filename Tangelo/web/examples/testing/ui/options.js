@@ -1,10 +1,10 @@
 /*jslint browser: true, nomen: true */
 
-(function (tangelo, d3) {
+(function ($, tangelo, d3) {
     "use strict";
 
-    tangelo.ui.select = function (spec) {
-        var select = d3.select(spec.el).append("select"),
+    $.fn.options = function (spec) {
+        var select = d3.select(this[0]).append("select"),
             id = tangelo.accessor(spec.id, ""),
             label = spec.label ? tangelo.accessor(spec.label, "") : id,
             data = spec.data,
@@ -27,4 +27,4 @@
         }
     };
 
-}(window.tangelo, window.d3));
+}(jQuery, window.tangelo, window.d3));
