@@ -88,20 +88,20 @@
             .style("width", "100%")
             .style("background", "rgba(255,255,255,0.7)")
             .insert("div", ":first-child")
-                .attr("id", "tangelo-drawer-handle-" + tag)
-                .style("text-align", "center")
-                .style("cursor", "pointer")
-                .on("mouseenter", function () {
-                    d3.select(this)
-                        .style("background", "gray");
-                })
-                .on("mouseleave", function () {
-                    d3.select(this)
-                        .style("background", null);
-                })
-                .append("i")
-                    .attr("id", "tangelo-drawer-icon-" + tag)
-                    .classed("icon-chevron-down", true);
+            .attr("id", "tangelo-drawer-handle-" + tag)
+            .style("text-align", "center")
+            .style("cursor", "pointer")
+            .on("mouseenter", function () {
+                d3.select(this)
+                    .style("background", "gray");
+            })
+            .on("mouseleave", function () {
+                d3.select(this)
+                    .style("background", null);
+            })
+            .append("i")
+            .attr("id", "tangelo-drawer-icon-" + tag)
+            .classed("icon-chevron-down", true);
 
         toggle = drawerToggle("#" + id, "#tangelo-drawer-icon-" + tag);
         d3.select("#tangelo-drawer-handle-" + tag)
