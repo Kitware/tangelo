@@ -201,35 +201,6 @@ tangelo
 
 .. js:function:: tangelo.resolve(spec, done)
 
-
-tangelo.date
-============
-
-.. js:function:: tangelo.date.monthNames()
-
-    Returns an array of abbreviated month names (Jan, Feb, etc.).
-
-.. js:function:: tangelo.date.dayNames()
-
-    Returns an array of abbreviated day names (Mon, Tue, etc.).
-
-.. js:function:: tangelo.toShortString(date)
-
-    Returns a string representing the Date object `date` in the format: ``"Oct 30, 1981 (05:31:00)"``.
-
-.. js:function:: tangelo.date.displayDate(date)
-
-    Returns a string representing the Date object `date` in the format: ``"Oct 30, 1981"``.
-
-.. js:function:: tangelo.date.getMonthName(date)
-
-    Returns the abbreviated month name (Jan, Feb, etc.) associated with the Date object `date`.
-
-.. js:function:: tangelo.date.getDayName(date)
-
-    Returns the abbreviated day name (Mon, Tue, etc.) associated with the Date object `date`.
-
-
 tangelo.data
 ============
 
