@@ -14,13 +14,44 @@
 
 <title>Application Template</title>
 
-<div data-tangelo-type=navbar data-tangelo-brand=MyBrand data-tangelo-brand-href=/app data-tangelo-app=MyApp>
-    <div data-tangelo-type=info>
+<div id=info-panel class="modal hide fade">
+    <div class=modal-header>
+        <h3>Information</h3>
+    </div>
+
+    <div class=modal-body>
         Information about MyApp.
     </div>
 
-    <div data-tangelo-type=config>
+    <div class=modal-footer>
+        <a class=btn data-dismiss=modal>OK</a>
+    </div>
+</div>
+
+<div id=config-panel class="modal hide fade">
+    <div class=modal-header>
+        <h3>Configuration</h3>
+    </div>
+
+    <div class=modal-body>
         Options for MyApp.
+    </div>
+
+    <div class=modal-footer>
+        <a id=config-cancel class="btn" data-dismiss=modal>Cancel</a>
+        <a id=config-defaults class="btn">Defaults</a>
+        <a id=config-submit class="btn btn-primary" data-dismiss=modal>Save changes</a>
+    </div>
+</div>
+
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <a class=brand style="margin-left:auto" href="/examples">Tangelo</a>
+        <ul class=nav>
+            <li class=active> <a>MyApp</a>
+            <li><a style="cursor:pointer" data-toggle=modal data-target=#info-panel><i class=icon-info-sign></i> Info</a>
+            <li><a style="cursor:pointer" data-toggle=modal data-target=#config-panel><i class=icon-cog></i> Config</a>
+        </ul>
     </div>
 </div>
 
