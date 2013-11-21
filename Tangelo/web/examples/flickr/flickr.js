@@ -17,6 +17,31 @@ flickr.dayName = d3.time.format("%a");
 flickr.monthName = d3.time.format("%b");
 flickr.dateformat = d3.time.format("%a %b %e, %Y (%H:%M:%S)");
 
+flickr.monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec"
+];
+
+flickr.dayNames = [
+    "Sun",
+    "Mon",
+    "Tue",
+    "Wed",
+    "Thu",
+    "Fri",
+    "Sat"
+];
+
 flickr.getMongoDBInfo = function () {
     "use strict";
 
@@ -207,7 +232,7 @@ function retrieveData(initial) {
                         });
 
                         // Filter the results by day (if any of the boxes is checked).
-                        days = tangelo.dayNames().filter(function (d) {
+                        days = flickr.dayNames.filter(function (d) {
                             return document.getElementById(d).checked;
                         });
                         if (days.length > 0) {
@@ -245,7 +270,7 @@ function retrieveData(initial) {
                                     cmap_func: flickr.monthColor,
                                     xoffset: $(window).width() - 100,
                                     yoffset: 50,
-                                    categories: tangelo.monthNames(),
+                                    categories: flickr.monthNames,
                                     height_padding: 5,
                                     width_padding: 7,
                                     text_spacing: 19,
@@ -268,7 +293,7 @@ function retrieveData(initial) {
                                     cmap_func: flickr.dayColor,
                                     xoffset: $(window).width() - 100,
                                     yoffset: 50,
-                                    categories: tangelo.dayNames(),
+                                    categories: flickr.dayNames,
                                     height_padding: 5,
                                     width_padding: 7,
                                     text_spacing: 19,
@@ -626,7 +651,7 @@ window.onload = function () {
         };
 
         // Direct the day filter checkboxes to redraw the map when clicked.
-        dayboxes = tangelo.dayNames().map(function (d) {
+        dayboxes = flickr.dayNames.map(function (d) {
             return document.getElementById(d);
         });
 
