@@ -13,7 +13,8 @@ def copy_with_dir(files, base):
 # Build up a list of extra files to install.
 #
 # Include the example configuration files.
-data_files_list = [("share/tangelo/conf", ["conf/tangelo.conf.global", "conf/tangelo.conf.local"])]
+data_files_list = [("share/tangelo/conf", ["conf/tangelo.conf.global", "conf/tangelo.conf.local"]),
+                   ("share/tangelo", ["images/tangelo.ico"])]
 
 # Include the website base files.
 data_files_list += copy_with_dir(rcollect("web"), "share/tangelo")

@@ -52,7 +52,7 @@ class Tangelo(object):
 <h2>%s</h2>
 <p>%s
 <hr>
-<p><em>Powered by Tangelo</em> <img src=/img/tangelo.ico>""" % (status, message)
+<p><em>Powered by Tangelo</em> <img src=/favicon.ico>""" % (status, message)
 
     def invoke_service(self, module, *pargs, **kwargs):
         # TODO(choudhury): This method should attempt to load the named module,

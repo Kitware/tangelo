@@ -147,7 +147,9 @@ def start():
     # Create an instance of the main handler object.
     tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(here=invocation_dir, vtkpython=vtkpython), "/")
     cherrypy.tree.mount(tangelo.server.cpserver, config={"/": { "tools.auth_update.on": access_auth,
-                                                                "tools.treat_url.on": True }})
+                                                                "tools.treat_url.on": True },
+                                                         "/favicon.ico": { "tools.staticfile.on": True,
+                                                                           "tools.staticfile.filename": sys.prefix + "/share/tangelo/tangelo.ico"} })
 
     # Try to drop privileges if requested, since we've bound to whatever port
     # superuser privileges were needed for already.
