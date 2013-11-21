@@ -86,7 +86,6 @@
         s.style("position", "fixed")
             .style("bottom", "0px")
             .style("width", "100%")
-            .style("background", "rgba(255,255,255,0.7)")
             .insert("div", ":first-child")
             .attr("id", "tangelo-drawer-handle-" + tag)
             .style("text-align", "center")
