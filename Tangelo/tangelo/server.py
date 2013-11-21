@@ -234,18 +234,22 @@ class Tangelo(object):
         filespec = []
         for f in files:
             p = dirpath + os.path.sep + f
-            s = os.stat(p)
-            mtime = datetime.datetime.fromtimestamp(s.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
-
-            if os.path.isdir(p):
-                f += "/"
-                t = "dir"
-                s = "-"
+            try:
+                s = os.stat(p)
+            except OSError:
+                pass
             else:
-                t = "file"
-                s = s.st_size
+                mtime = datetime.datetime.fromtimestamp(s.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
 
-            filespec.append([t, "<a href=\"%s/%s\">%s</a>" % (reqpath, f, f), mtime, s])
+                if os.path.isdir(p):
+                    f += "/"
+                    t = "dir"
+                    s = "-"
+                else:
+                    t = "file"
+                    s = s.st_size
+
+                filespec.append([t, "<a href=\"%s/%s\">%s</a>" % (reqpath, f, f), mtime, s])
 
         filespec = "\n".join(map(lambda row: "<tr>" + "".join(map(lambda x: "<td>%s</td>" % x, row)) + "</tr>", filespec))
 
