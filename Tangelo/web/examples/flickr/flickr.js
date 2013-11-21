@@ -13,6 +13,10 @@ flickr.locationData = null;
 flickr.dayColor = d3.scale.category10();
 flickr.monthColor = d3.scale.category20();
 
+flickr.dayName = d3.time.format("%a");
+flickr.monthName = d3.time.format("%b");
+flickr.dateformat = d3.time.format("%a %b %e, %Y (%H:%M:%S)");
+
 flickr.getMongoDBInfo = function () {
     "use strict";
 
@@ -162,8 +166,8 @@ function retrieveData(initial) {
             data = response.result.data.map(function (d) {
                 var date = new Date(d.date.$date);
 
-                d.month = tangelo.date.getMonthName(date);
-                d.day = tangelo.date.getDayName(date);
+                d.month = flickr.monthName(date);
+                d.day = flickr.dayName(date);
                 return d;
             });
 
@@ -354,7 +358,7 @@ function retrieveData(initial) {
                                 date = new Date(d.date.$date);
 
                                 msg = "";
-                                msg += "<b>Date:</b> " + tangelo.date.getDayName(date) + " " + tangelo.date.toShortString(date) + "<br>\n";
+                                msg += "<b>Date:</b> " + flickr.dateformat(date) + "<br>\n";
                                 msg += "<b>Location:</b> (" + d.location[1] + ", " + d.location[0] + ")<br>\n";
                                 msg += "<b>Author:</b> " + d.author + "<br>\n";
                                 msg += "<b>Description:</b> " + d.title + "<br>\n";
@@ -571,8 +575,8 @@ window.onload = function () {
             highdiv = d3.select("#high");
 
             return function (low, high) {
-                lowdiv.html(tangelo.date.toShortString(new Date(low)));
-                highdiv.html(tangelo.date.toShortString(new Date(high)));
+                lowdiv.html(flickr.dateformat(new Date(low)));
+                highdiv.html(flickr.dateformat(new Date(high)));
             };
         }());
 

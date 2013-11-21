@@ -16,18 +16,6 @@ enron.center = null;
 enron.degree = null;
 enron.host = null;
 
-function stringifyDate(d) {
-    "use strict";
-
-    return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
-}
-
-function displayDate(d) {
-    "use strict";
-
-    return tangelo.monthNames()[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
-}
-
 function updateGraph() {
     "use strict";
 
@@ -37,6 +25,7 @@ function updateGraph() {
         hops,
         change_button,
         start_date,
+        stringifyDate,
         update;
 
     update = d3.select("#update");
@@ -58,6 +47,8 @@ function updateGraph() {
     center = enron.center.val();
 
     hops = enron.degree.spinner("value");
+
+    stringifyDate = d3.time.format("%Y-%m-%d");
 
     data = {
         start_time: stringifyDate(start_date),
@@ -233,6 +224,8 @@ window.onload = function () {
     $("#control-panel").controlPanel();
 
     tangelo.defaults("defaults.json", function (defaults) {
+        var displayDate;
+
         enron.host = defaults.host || "mongo";
 
         svg = d3.select("svg");
@@ -254,6 +247,7 @@ window.onload = function () {
         enron.center = $("#center");
         enron.degree = $("#degree");
 
+        displayDate = d3.time.format("%b %e, %Y");
         enron.date.slider({
             min: new Date("January 1, 1998").getTime(),
             max: new Date("December 31, 2002").getTime(),
