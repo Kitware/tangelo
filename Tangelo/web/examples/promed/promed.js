@@ -385,6 +385,9 @@ $(function () {
     var spinnerUpdate,
         graph;
 
+    // Create control panel.
+    $("#control-panel").controlPanel();
+
     // Get the window size.
     promed.width = $(window).width();
     promed.height = $(window).height();

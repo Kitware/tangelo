@@ -461,6 +461,9 @@ window.onload = function () {
 
     tangelo.requireCompatibleVersion("0.2");
 
+    // Create control panel.
+    $("#control-panel").controlPanel();
+
     tangelo.defaults("defaults.json", function (defaults) {
         var popover_cfg;
 

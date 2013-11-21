@@ -407,6 +407,9 @@ window.onload = function () {
 
     tangelo.requireCompatibleVersion("0.2");
 
+    // Create control panel.
+    $("#control-panel").controlPanel();
+
     d3.json("data/animals_data.json", function (data) {
         var i,
             ids,

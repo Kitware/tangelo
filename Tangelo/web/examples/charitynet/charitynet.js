@@ -7,6 +7,9 @@ $(function () {
 
     tangelo.requireCompatibleVersion("0.2");
 
+    // Create control panel.
+    $("#control-panel").controlPanel();
+
     // Make the body element the correct size for no scrolling
     d3.select("body").style("height", $(window).height() - 60);
 
