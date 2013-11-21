@@ -25,13 +25,13 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/stamps)
 
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
-    ${CMAKE_SOURCE_DIR}/src/js/core.js
-    ${CMAKE_SOURCE_DIR}/src/js/controlPanel.js
-    ${CMAKE_SOURCE_DIR}/src/js/date.js
-    ${CMAKE_SOURCE_DIR}/src/js/GoogleMapSVG.js
-    ${CMAKE_SOURCE_DIR}/src/js/svgColorLegend.js
-    ${CMAKE_SOURCE_DIR}/src/js/landingPage.js
-    ${CMAKE_SOURCE_DIR}/src/js/util.js
+    ${CMAKE_SOURCE_DIR}/src/js/core/core.js
+    ${CMAKE_SOURCE_DIR}/src/js/core/date.js
+    ${CMAKE_SOURCE_DIR}/src/js/core/util.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/controlPanel.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/GoogleMapSVG.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/svgColorLegend.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/landingPage.js
     ${CMAKE_SOURCE_DIR}/examples/index.js
     ${CMAKE_SOURCE_DIR}/examples/biofabric/biofabric.js
     ${CMAKE_SOURCE_DIR}/examples/enron/enron.js
@@ -43,17 +43,17 @@ set(JS_LINT_FILES
 
 # These files should be uglified and concatenated.
 set(JS_UGLIFY_FILES
-    ${CMAKE_SOURCE_DIR}/src/js/core.js
-    ${CMAKE_SOURCE_DIR}/src/js/controlPanel.js
-    ${CMAKE_SOURCE_DIR}/src/js/date.js
-    ${CMAKE_SOURCE_DIR}/src/js/GoogleMapSVG.js
-    ${CMAKE_SOURCE_DIR}/src/js/landingPage.js
-    ${CMAKE_SOURCE_DIR}/src/js/resolve.js
-    ${CMAKE_SOURCE_DIR}/src/js/svgColorLegend.js
-    ${CMAKE_SOURCE_DIR}/src/js/util.js
-    ${CMAKE_SOURCE_DIR}/src/js/ui/_package.js
+    ${CMAKE_SOURCE_DIR}/src/js/core/core.js
+    ${CMAKE_SOURCE_DIR}/src/js/core/date.js
+    ${CMAKE_SOURCE_DIR}/src/js/core/util.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/controlPanel.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/GoogleMapSVG.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/landingPage.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/resolve.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/svgColorLegend.js
     ${CMAKE_SOURCE_DIR}/src/js/data/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/data/tree.js
+    ${CMAKE_SOURCE_DIR}/src/js/ui/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/ui/html.js
     ${CMAKE_SOURCE_DIR}/src/js/ui/select.js
     ${CMAKE_SOURCE_DIR}/src/js/vis/_package.js
