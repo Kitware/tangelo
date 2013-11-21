@@ -128,11 +128,4 @@ var tangelo = {};
 
         return compatible;
     };
-
-    // Initialization function that will handle tangelo-specific elements
-    // automatically.
-    $(function () {
-        // Instantiate a control panel if there is an element marked as such.
-        $("[data-tangelo-type=control-panel]").controlPanel();
-    });
 }(window.$));

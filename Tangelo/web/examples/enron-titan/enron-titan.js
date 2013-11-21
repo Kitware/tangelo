@@ -226,6 +226,9 @@ window.onload = function () {
 
     tangelo.requireCompatibleVersion("0.2");
 
+    // Create control panel.
+    $("#control-panel").controlPanel();
+
     tangelo.util.defaults("defaults.json", function (defaults) {
         enron.host = (defaults && defaults.get("host")) || "mongo";
 

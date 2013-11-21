@@ -2,7 +2,7 @@
 
 /*globals jQuery, d3 */
 
-(function ($) {
+(function ($, tangelo) {
     "use strict";
 
     function drawerToggle(divsel, buttonsel) {
@@ -59,7 +59,9 @@
 
     $.fn.controlPanel = function () {
         var toggle,
-            s;
+            s,
+            id,
+            tag;
 
         // Make a d3 selection out of the target element.
         s = d3.select(this[0]);
@@ -69,32 +71,40 @@
             return;
         }
 
+        // Create a unique identifier to use with the various control panel
+        // components.
+        tag = tangelo.uniqueID();
+        id = s.attr("id");
+        if (!id) {
+            id = "tangelo-control-panel-" + tag;
+            s.attr("id", id);
+        }
+
         // Style the control panel div appropriately, then add a div as the
         // first child to act as the drawer handle (and place an appropriate
-        // icon in the middle of it).
-        s.attr("id", "tangelo-control-panel")
-            .style("position", "fixed")
+        // icon in the mtagdle of it).
+        s.style("position", "fixed")
             .style("bottom", "0px")
             .style("width", "100%")
             .style("background", "rgba(255,255,255,0.7)")
             .insert("div", ":first-child")
-                .attr("id", "tangelo-drawer-handle")
-                .style("text-align", "center")
-                .style("cursor", "pointer")
-                .on("mouseenter", function () {
-                    d3.select(this)
-                        .style("background", "gray");
-                })
-                .on("mouseleave", function () {
-                    d3.select(this)
-                        .style("background", null);
-                })
-                .append("i")
-                    .attr("id", "tangelo-drawer-icon")
-                    .classed("icon-chevron-down", true);
+            .attr("id", "tangelo-drawer-handle-" + tag)
+            .style("text-align", "center")
+            .style("cursor", "pointer")
+            .on("mouseenter", function () {
+                d3.select(this)
+                    .style("background", "gray");
+            })
+            .on("mouseleave", function () {
+                d3.select(this)
+                    .style("background", null);
+            })
+            .append("i")
+            .attr("id", "tangelo-drawer-icon-" + tag)
+            .classed("icon-chevron-down", true);
 
-        toggle = drawerToggle("#tangelo-control-panel", "#tangelo-drawer-icon");
-        d3.select("#tangelo-drawer-handle")
+        toggle = drawerToggle("#" + id, "#tangelo-drawer-icon-" + tag);
+        d3.select("#tangelo-drawer-handle-" + tag)
             .on("click", toggle);
     };
-}(jQuery));
+}(jQuery, window.tangelo));

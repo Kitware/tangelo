@@ -517,6 +517,9 @@ window.onload = function () {
     d3.select("#config-defaults")
         .on("click", setConfigDefaults);
 
+    // Create control panel.
+    $("#control-panel").controlPanel();
+
     tangelo.defaults("defaults.json", function (defaults) {
         var buttons,
             i,
