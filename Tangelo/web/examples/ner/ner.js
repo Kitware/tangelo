@@ -502,17 +502,16 @@ window.onload = function () {
             "the name of the entity displayed with text.";
         $("#graph-help").popover(popover_cfg);
 
-        // Initialize the navbar.
-        $("#navbar").navbar({
-            onConfigSave: function () {
+        // Emplace config callbacks.
+        d3.select("#config-submit")
+            .on("click", function () {
                 NER.setMongoDBServer($("#mongodb-server").val());
-            },
-
-            onConfigDefault: function () {
+            });
+        d3.select("#config-defaults")
+            .on("click", function () {
                 localStorage.removeItem("NER:mongodb-server");
                 $("#mongodb-server").val(NER.getMongoDBServer());
-            }
-        });
+            });
 
         // Place the current Mongo DB server in the navbar contents.
         $("#mongodb-server").val(NER.getMongoDBServer());

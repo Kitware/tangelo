@@ -29,7 +29,6 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/src/js/controlPanel.js
     ${CMAKE_SOURCE_DIR}/src/js/date.js
     ${CMAKE_SOURCE_DIR}/src/js/GoogleMapSVG.js
-    ${CMAKE_SOURCE_DIR}/src/js/navbar.js
     ${CMAKE_SOURCE_DIR}/src/js/svgColorLegend.js
     ${CMAKE_SOURCE_DIR}/src/js/landingPage.js
     ${CMAKE_SOURCE_DIR}/src/js/util.js
@@ -49,7 +48,6 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/date.js
     ${CMAKE_SOURCE_DIR}/src/js/GoogleMapSVG.js
     ${CMAKE_SOURCE_DIR}/src/js/landingPage.js
-    ${CMAKE_SOURCE_DIR}/src/js/navbar.js
     ${CMAKE_SOURCE_DIR}/src/js/resolve.js
     ${CMAKE_SOURCE_DIR}/src/js/svgColorLegend.js
     ${CMAKE_SOURCE_DIR}/src/js/util.js

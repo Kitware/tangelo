@@ -40,8 +40,12 @@
     }
 </style>
 
-<div data-tangelo-type=navbar data-tangelo-brand=XDATA@Kitware data-tangelo-brand-href=/app data-tangelo-app=Biofabric>
-    <div data-tangelo-type=info>
+<div id=info-panel class="modal hide fade">
+    <div class=modal-header>
+        <h3>Information</h3>
+    </div>
+
+    <div class=modal-body>
         <p>A demonstration of the <a target=_blank href=http://www.biofabric.org/>BioFabric</a>
         algorithm for graph visualization.  BioFabric was developed for
         visualizing large biological networks, but this app demonstrates its use
@@ -50,6 +54,20 @@
         <p>Each horizontal line segment represents a single node (in this case,
         a character), while each vertical line segment represents an edge,
         connecting the two nodes at either end.  The nodes are sorted by degree.
+    </div>
+
+    <div class=modal-footer>
+        <a class=btn data-dismiss=modal>OK</a>
+    </div>
+</div>
+
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <a class=brand style="margin-left:auto" href="/examples">Tangelo</a>
+        <ul class=nav>
+            <li class=active> <a>BioFabric</a>
+            <li><a style="cursor:pointer" data-toggle=modal data-target=#info-panel><i class=icon-info-sign></i> Info</a>
+        </ul>
     </div>
 </div>
 

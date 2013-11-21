@@ -509,6 +509,14 @@ window.onload = function () {
 
     tangelo.requireCompatibleVersion("0.2");
 
+    // Emplace callbacks for config panel.
+    $("#config-panel")
+        .on("show", showConfig);
+    d3.select("#config-submit")
+        .on("click", updateConfig);
+    d3.select("#config-defaults")
+        .on("click", setConfigDefaults);
+
     tangelo.defaults("defaults.json", function (defaults) {
         var buttons,
             i,
