@@ -1,9 +1,9 @@
 /*jslint browser: true, unparam: true */
 
-(function (tangelo, vg) {
+(function ($, tangelo, vg) {
     "use strict";
 
-    tangelo.vis.timeline = function (spec) {
+    $.fn.timeline = function (spec) {
         var y,
             date = tangelo.accessor(spec.date, undefined),
             data = spec.data,
@@ -11,9 +11,9 @@
             opt = {
                 data: {table: dt},
                 renderer: "svg",
-                el: this
+                el: this[0]
             },
-            that = this;
+            that = this[0];
 
         spec.y = tangelo.isArray(spec.y) ? spec.y : [spec.y];
         y = [];
@@ -31,7 +31,7 @@
                 });
             });
         });
-        vg.parse.spec("/vega/timeline.json", function(chart) {
+        vg.parse.spec("timeline.json", function(chart) {
             chart(opt)
                 .on("mouseover", function (event, d) {
                     if (on.mouseover) {
@@ -59,4 +59,4 @@
         return that;
     };
 
-}(window.tangelo, window.vg));
+}(window.jQuery, window.tangelo, window.vg));

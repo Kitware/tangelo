@@ -16,6 +16,7 @@
     <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
     <script src="http://code.jquery.com/ui/1.9.1/jquery-ui.min.js"></script>
     <script src="/js/tangelo.js"></script>
+    <script src=timebar.js></script>
 <script>
 
 // http://sealevel.colorado.edu/files/2013_rel5/sl_ns_global.txt
@@ -30,8 +31,7 @@ d3.text("sl_ns_global.txt", function (error, text) {
         });
     });
 
-    var vis = tangelo.vis.timebar({
-        el: "body",
+    var vis = $(document.body).timebar({
         data: data,
         date: {field: "year"},
         color: {field: "mm"}
