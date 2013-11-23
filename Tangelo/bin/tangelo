@@ -7,7 +7,7 @@ import os
 import cherrypy
 import platform
 import signal
-import twisted.internet
+from   twisted.internet import reactor
 import sys
 import time
 import ws4py.server
@@ -60,7 +60,7 @@ def shutdown(signum, frame):
     # Perform (1) vtkweb process cleanup, (2) twisted reactor cleanup and quit,
     # (3) CherryPy shutdown, and (4) CherryPy exit.
     tangelo.server.cpserver.root.cleanup()
-    twisted.internet.reactor.stop()
+    reactor.stop()
     cherrypy.engine.stop()
     cherrypy.engine.exit()
 
@@ -240,7 +240,7 @@ def start():
 
     # Start the Twisted reactor in the main thread (it will block but the
     # CherryPy engine has already started in a non-blocking manner).
-    twisted.internet.reactor.run(installSignalHandlers=False)
+    reactor.run(installSignalHandlers=False)
     cherrypy.engine.block()
 
 def stop():
