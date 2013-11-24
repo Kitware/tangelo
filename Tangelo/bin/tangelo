@@ -20,6 +20,7 @@ import tangelo.plugin
 import tangelo.server
 import tangelo.tool
 import tangelo.util
+import tangelo.vtkweb
 import tangelo.websocket
 
 def running_pids():
@@ -145,7 +146,11 @@ def start():
     # server and get it going.
     #
     # Create an instance of the main handler object.
-    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(here=invocation_dir, vtkpython=vtkpython), "/")
+    if vtkpython is not None:
+        vtkweb = tangelo.vtkweb.TangeloVtkweb(vtkpython=vtkpython, weblauncher=invocation_dir+"/bin/vtkweb-launcher.py")
+    else:
+        vtkweb = None
+    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(vtkweb=vtkweb), "/")
     cherrypy.tree.mount(tangelo.server.cpserver, config={"/": { "tools.auth_update.on": access_auth,
                                                                 "tools.treat_url.on": True },
                                                          "/favicon.ico": { "tools.staticfile.on": True,
