@@ -1,6 +1,4 @@
 import json
-import md5
-import os
 import traceback
 
 import cherrypy
@@ -61,15 +59,8 @@ class TangeloStream(object):
         return result
 
     def add(self, stream):
-        # Generate a key corresponding to this object, using 100 random bytes
-        # from the system - ensure the random key is not already in the table
-        # (even though it would be crazy to wind up with a collision).
-        #
-        # TODO(choudhury): replace this with a call to generate_key().
-        # Move the comment above into the generate_key() function.
-        key = md5.md5(os.urandom(100)).hexdigest()
-        while key in self.streams:
-            key = md5.md5(os.urandom(100)).hexdigest()
+        # Generate a key corresponding to this object.
+        key = tangelo.util.generate_key(self.streams)
 
         # Log the object in the streaming table.
         self.streams[key] = stream
