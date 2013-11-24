@@ -10,6 +10,7 @@
             color,
             data,
             vis,
+            vegaspec = spec.vegaspec,
             that = {};
 
         function update(spec) {
@@ -28,7 +29,7 @@
             return that;
         }
 
-        vg.parse.spec("/vega/geonodelink.json", function (chart) {
+        vg.parse.spec(vegaspec, function (chart) {
             vis = chart;
             update(spec);
         });
