@@ -267,10 +267,26 @@ def stop():
     sys.stderr.write("stopping tangelo...")
 
     try:
+        # Try to kill the process, but bail out with a failure message if the
+        # process is not dead in 10 seconds.
+        class Timeout: pass
+        class Exit: pass
         if tangelo.util.live_pid(pid):
             os.kill(pid, signal.SIGTERM)
-            while tangelo.util.live_pid(pid):
-                time.sleep(0.1)
+            sleeptime = 0.1
+            timeout = 10
+            for i in itertools.count():
+                if tangelo.util.live_pid(pid):
+                    time.sleep(sleeptime)
+                    if (i+1)*sleeptime >= timeout:
+                        raise Timeout
+                else:
+                    raise Exit
+    except Timeout:
+        print >>sys.stderr, "failed (timed out)"
+        return 1
+    except Exit:
+        pass
     except OSError as e:
         if e.errno == errno.EPERM:
             print >>sys.stderr, "failed (insufficient permissions)"
