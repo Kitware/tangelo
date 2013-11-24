@@ -11,6 +11,7 @@
             linkColor = tangelo.accessor(spec.linkColor, 0),
             linkSource = tangelo.accessor(spec.linkSource, 0),
             linkTarget = tangelo.accessor(spec.linkTarget, 0),
+            vegaspec = spec.vegaspec,
             data = spec.data,
             that = {};
 
@@ -25,7 +26,7 @@
             d.source = linkSource(d);
             d.target = linkTarget(d);
         });
-        vg.parse.spec("/vega/geonodelink.json", function (chart) {
+        vg.parse.spec(vegaspec, function (chart) {
             chart({el: spec.el, data: {table: data.nodes, links: data.links}}).update();
         });
 
