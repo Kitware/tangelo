@@ -18,6 +18,7 @@ import tangelo
 from   tangelo.minify_json import json_minify
 import tangelo.plugin
 import tangelo.server
+import tangelo.stream
 import tangelo.tool
 import tangelo.util
 import tangelo.vtkweb
@@ -145,12 +146,17 @@ def start():
     # From this point forward, we are the child process, and can now set up the
     # server and get it going.
     #
-    # Create an instance of the main handler object.
+    # Create a streaming API object.
+    stream = tangelo.stream.TangeloStream()
+
+    # Create a VTKWeb API object if requested.
     if vtkpython is not None:
         vtkweb = tangelo.vtkweb.TangeloVtkweb(vtkpython=vtkpython, weblauncher=invocation_dir+"/bin/vtkweb-launcher.py")
     else:
         vtkweb = None
-    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(vtkweb=vtkweb), "/")
+
+    # Create an instance of the main handler object.
+    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(vtkweb=vtkweb, stream=stream), "/")
     cherrypy.tree.mount(tangelo.server.cpserver, config={"/": { "tools.auth_update.on": access_auth,
                                                                 "tools.treat_url.on": True },
                                                          "/favicon.ico": { "tools.staticfile.on": True,
