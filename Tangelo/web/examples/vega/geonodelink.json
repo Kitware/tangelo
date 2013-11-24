@@ -4,7 +4,7 @@
   "data": [
     {
       "name": "countries",
-      "url": "/data/world-110m.json",
+      "url": "/examples/vega/data/world-110m.json",
       "format": {"type": "topojson", "feature": "countries"}
     },
     {
