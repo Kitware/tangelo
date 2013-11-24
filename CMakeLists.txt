@@ -54,8 +54,6 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/vis/geonodelink.js
     ${CMAKE_SOURCE_DIR}/src/js/vis/mapdots.js
     ${CMAKE_SOURCE_DIR}/src/js/vis/nodelink.js
-    ${CMAKE_SOURCE_DIR}/src/js/vis/timebar.js
-    ${CMAKE_SOURCE_DIR}/src/js/vis/timeline.js
 )
 
 # These files should be copied to the build directory.
