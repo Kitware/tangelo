@@ -4,12 +4,12 @@ import HTMLParser
 import os
 import cherrypy
 import json
-from minify_json import json_minify
 import imp
 import traceback
 import types
 
 import tangelo
+from   tangelo.minify_json import json_minify
 import tangelo.util
 
 cpserver = None
