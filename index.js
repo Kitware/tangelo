@@ -20,10 +20,10 @@ $(function () {
     }
 
     function goto(id) {
-        $("#home").hide();
-        $("#examples").hide();
-        $("#support").hide();
-        $("#" + id).fadeIn(400);
+        $("#home-div").hide();
+        $("#examples-div").hide();
+        $("#support-div").hide();
+        $("#" + id + "-div").fadeIn(400);
         $(".nav > li").removeClass("active");
         $("#nav-" + id).addClass("active");
     }
