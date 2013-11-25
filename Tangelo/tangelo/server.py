@@ -7,10 +7,7 @@ import json
 from minify_json import json_minify
 import imp
 import traceback
-import md5
 import types
-import subprocess
-import time
 
 import tangelo
 import tangelo.util
@@ -21,17 +18,22 @@ class Tangelo(object):
     # An HTML parser for use in the error_page handler.
     html = HTMLParser.HTMLParser()
 
-    def __init__(self, vtkweb=None):
+    def __init__(self, vtkweb=None, stream=None):
+        self.vtkweb = vtkweb
+        self.stream = stream
+
         # A dict containing information about imported modules.
         self.modules = {}
 
-        # A dict containing currently running streaming data sources.
-        self.streams = {}
+        # Mount a streaming API if requested.
+        #
+        # TODO(choudhury): make the mounting directory configurable by the user.
+        if self.stream:
+            cherrypy.tree.mount(stream, "/stream")
 
         # Mount a VTKWeb API if requested.
         #
         # TODO(choudhury): make the mounting directory configurable by the user.
-        self.vtkweb = vtkweb
         if self.vtkweb is not None:
             cherrypy.tree.mount(self.vtkweb, "/vtkweb")
 
@@ -186,26 +188,10 @@ class Tangelo(object):
             else:
                 raise cherrypy.HTTPError(result.code)
         elif "next" in dir(result):
-            # Generate a key corresponding to this object, using 100 random
-            # bytes from the system - ensure the random key is not already in
-            # the table (even though it would be crazy to wind up with a
-            # collision).
-            #
-            # TODO(choudhury): replace this with a call to generate_key().
-            # Move the comment above into the generate_key() function.
-            key = md5.md5(os.urandom(100)).hexdigest()
-            while key in self.streams:
-                key = md5.md5(os.urandom(100)).hexdigest()
-
-            # Log the object in the streaming table.
-            self.streams[key] = result
-
-            # Create an object describing the logging of the generator object.
-            result = tangelo.empty_response()
-            result["stream_key"] = key
-
-            # Serialize it to JSON.
-            result = json.dumps(result)
+            if self.stream:
+                return self.stream.add(result)
+            else:
+                return json.dumps({"error": "Streaming is not supported in this instance of Tangelo"})
         elif not isinstance(result, types.StringTypes):
             try:
                 result = json.dumps(result)
@@ -275,52 +261,3 @@ class Tangelo(object):
                 raise cherrypy.lib.static.serve_file(target["path"])
             else:
                 raise RuntimeError("Illegal target type '%s'" % (target["type"]))
-
-    @cherrypy.expose
-    def stream(self, key=None, action="next"):
-        if action != "show":
-            # Check for key parameter.
-            if key is None:
-                raise cherrypy.HTTPError("400 Required Query Parameter Missing", "The streaming API requires a 'key' query parameter")
-
-            # Check that the key actually exists.
-            if key not in self.streams:
-                raise cherrypy.HTTPError("404 Key Not Found", "The key '%s' does not reference any existing stream" % (key))
-
-        # Construct a container object.
-        result = tangelo.empty_response()
-
-        # Perform the requested action.
-        actions = ["next", "delete", "show"]
-        if action == "next":
-            # Grab the stream in preparation for running it.
-            stream = self.streams[key]
-
-            # Attempt to run the stream via its next() method - if this yields a
-            # result, then continue; if the next() method raises StopIteration,
-            # then there are no more results to retrieve; if any other exception
-            # is raised, this is treated as an error.
-            try:
-                result["stream_finished"] = False
-                result["result"] = stream.next()
-            except StopIteration:
-                result["stream_finished"] = True
-                del self.streams[key]
-            except:
-                del self.streams[key]
-                raise cherrypy.HTTPError("501 Error in Python Service", "Caught exception while executing stream service keyed by %s:<br><pre>%s</pre>" % (key, traceback.format_exc()))
-
-        elif action == "delete":
-            del self.streams[key]
-            result["result"] = "OK"
-        elif action == "show":
-            raise cherrypy.HTTPError("501 Unimplemented", "The 'show' action in the Tangelo streaming API has not yet been implemented")
-        else:
-            raise cherrypy.HTTPError("400 Bad Query Parameter", "The 'action' parameter must be one of: %s" % (", ".join(actions)))
-
-        try:
-            result = json.dumps(result)
-        except TypeError:
-            raise cherrypy.HTTPError("501 Bad Response from Python Service", "The stream keyed by %s returned a non JSON-seriazable result: %s" % (key, result["result"]))
-
-        return result
