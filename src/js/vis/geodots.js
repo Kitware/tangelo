@@ -1,42 +1,82 @@
 /*jslint browser: true, unparam: true */
 
-(function (tangelo, vg) {
+(function ($, tangelo, vg) {
     "use strict";
 
-    tangelo.vis.geodots = function (spec) {
-        var latitude,
-            longitude,
-            size,
-            color,
-            data,
-            vis,
-            vegaspec = spec.vegaspec,
-            that = {};
+    $.widget("tangelo.geodots", {
+        options: {
+            latitude: null,
+            longitude: null,
+            size: null,
+            color: null,
+            data: null
+        },
 
-        function update(spec) {
-            latitude = tangelo.accessor(spec.latitude, 0);
-            longitude = tangelo.accessor(spec.longitude, 0);
-            size = tangelo.accessor(spec.size, 20);
-            color = tangelo.accessor(spec.color, 0);
-            data = spec.data;
-            data.forEach(function (d) {
-                d.latitude = latitude(d);
-                d.longitude = longitude(d);
-                d.size = size(d);
-                d.color = color(d);
+        _missing: {
+            latitude: 0,
+            longitude: 0,
+            size: 20,
+            color: 0
+        },
+
+        _create: function () {
+            var that = this;
+            var vegaspec = this.options.vegaspec,
+                options;
+
+            vg.parse.spec(vegaspec, function (chart) {
+                that.vis = chart;
+
+                // Make a copy of the options passed in, but remove the disabled
+                // and create attributes (which can cause trouble at the JQuery
+                // level), and the vegaspec option (which is only needed once
+                // here).
+                options = $.extend(true, {}, that.options);
+                delete options.disabled;
+                delete options.create;
+                delete options.vegaspec;
+
+                that._setOptions(options);
             });
-            vis({el: spec.el, data: {table: data, links: []}}).update();
-            return that;
+        },
+
+        _setOption: function (key, value) {
+            if (key !== "data") {
+                this._super(key, tangelo.accessor(value, this._missing[key]));
+            } else {
+                this._super(key, value);
+            }
+        },
+
+        _setOptions: function (options) {
+            var that = this;
+
+            $.each(options, function (key, value) {
+                that._setOption(key, value);
+            });
+
+            this._update();
+        },
+
+        _update: function () {
+            var that = this;
+
+            if (this.options.data) {
+                this.options.data.forEach(function (d) {
+                    d.latitude = that.options.latitude(d);
+                    d.longitude = that.options.longitude(d);
+                    d.size = that.options.size(d);
+                    d.color = that.options.color(d);
+                });
+
+                this.vis({
+                    el: that.element.get(0),
+                    data: {
+                        table: that.options.data,
+                        links: []
+                    }
+                }).update();
+            }
         }
-
-        vg.parse.spec(vegaspec, function (chart) {
-            vis = chart;
-            update(spec);
-        });
-
-        that.update = update;
-
-        return that;
-    };
-
-}(window.tangelo, window.vg));
+    });
+}(window.jQuery, window.tangelo, window.vg));
