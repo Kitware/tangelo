@@ -35,9 +35,8 @@ var data = [
     {lat: 70, lon: -70, value: 19, group: 'e'}
 ];
 
-var vis = tangelo.vis.mapdots({
+$(document.body).mapdots({
     data: data,
-    el: "body",
     latitude: {field: "lat"},
     longitude: {field: "lon"},
     size: {field: "value"},
