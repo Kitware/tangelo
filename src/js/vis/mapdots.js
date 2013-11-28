@@ -48,51 +48,37 @@
 
             // Add the container when the overlay is added to the map.
             this.overlay.onAdd = function () {
-                var layer, colorScale, sizeScale;
+                var sizeScale;
 
-                layer = d3.select(this.getPanes().overlayMouseTarget).append("div")
+                that.layer = d3.select(this.getPanes().overlayMouseTarget)
+                    .append("div")
                     .style("position", "absolute");
-                //colorScale = d3.scale.linear().domain(d3.extent(data, function (item) { return item[color]; })).range(["white", "red"]);
-                colorScale = d3.scale.category20();
-                sizeScale = d3.scale.sqrt()
-                    .domain(d3.extent(that.options.data, that.options.size))
-                    .range([5, 15]);
+                that.colorScale = d3.scale.category20();
 
-                // Draw each marker as a separate SVG element.
-                // We could use a single SVG, but what size would it have?
+                // Draw each marker as a separate SVG element.  We could use a
+                // single SVG, but what size would it have?
                 this.draw = function () {
-                    var projection = this.getProjection(),
-                        marker,
-                        on = {},
-                        transform;
+                    var marker,
+                        ptransform = that.transform(this.getProjection());
 
-                    transform = function (d) {
-                        var s = sizeScale(that.options.size(d));
-                        d = new google.maps.LatLng(that.options.latitude(d), that.options.longitude(d));
-                        d = projection.fromLatLngToDivPixel(d);
-                        return d3.select(this)
-                            .style("left", (d.x - s - 2) + "px")
-                            .style("top", (d.y - s - 2) + "px")
-                            .style("width", (2 * s + 4) + "px")
-                            .style("height", (2 * s + 4) + "px");
-                    };
-
-                    marker = layer.selectAll("svg")
+                    marker = that.layer.selectAll("svg")
                         .data(that.options.data)
-                        .each(transform) // update existing markers
-                        .enter().append("svg:svg")
-                        .each(transform)
+                        .each(ptransform); // update existing markers
+
+                    marker.enter()
+                        .append("svg")
+                        .each(ptransform)
                         .attr("class", "marker")
                         .style("cursor", "crosshair")
                         .style("position", "absolute")
-                        .on("click", on.click);
+                        .append("circle");
 
-                    // Add a circle.
-                    marker.append("svg:circle")
-                        .attr("r", function (d) { return sizeScale(that.options.size(d)); })
-                        .attr("cx", function (d) { return sizeScale(that.options.size(d)) + 2; })
-                        .attr("cy", function (d) { return sizeScale(that.options.size(d)) + 2; })
-                        .style("fill", function (d) { return colorScale(that.options.color(d)); })
+                    d3.selectAll("svg > circle")
+                        .data(that.options.data)
+                        .attr("r", function (d) { return that.sizeScale(that.options.size(d)); })
+                        .attr("cx", function (d) { return that.sizeScale(that.options.size(d)) + 2; })
+                        .attr("cy", function (d) { return that.sizeScale(that.options.size(d)) + 2; })
+                        .style("fill", function (d) { return that.colorScale(that.options.color(d)); })
                         .style("opacity", function (d) { return that.options.opacity(d); })
                         .each(function (d) {
                             var cfg, content = that.options.hoverContent(d);
@@ -112,6 +98,9 @@
                             };
                             $(this).popover(cfg);
                         });
+
+                    marker.exit()
+                        .remove();
                 };
 
                 this.onRemove = function () {};
@@ -144,8 +133,29 @@
         },
 
         _update: function () {
-            // Bind our overlay to the map…
-            console.log("_update");
+            var that = this;
+
+            this.sizeScale = d3.scale.sqrt()
+                .domain(d3.extent(this.options.data, this.options.size))
+                .range([5, 15]);
+
+            this.transform = function (projection) {
+                return function (d) {
+                    var s = that.sizeScale(that.options.size(d));
+                    d = new google.maps.LatLng(that.options.latitude(d), that.options.longitude(d));
+                    d = projection.fromLatLngToDivPixel(d);
+                    return d3.select(this)
+                        .style("left", (d.x - s - 2) + "px")
+                        .style("top", (d.y - s - 2) + "px")
+                        .style("width", (2 * s + 4) + "px")
+                        .style("height", (2 * s + 4) + "px");
+                };
+            };
+
+            // Redraw the map.
+            if (this.overlay.draw) {
+                this.overlay.draw();
+            }
         }
     });
 }(window.tangelo, window.google, window.d3, window.jQuery));
