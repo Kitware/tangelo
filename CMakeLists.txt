@@ -46,14 +46,13 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/plugin/controlPanel.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/GoogleMapSVG.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/svgColorLegend.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/dendrogram.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/geodots.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/geonodelink.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/mapdots.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/nodelink.js
     ${CMAKE_SOURCE_DIR}/src/js/data/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/data/tree.js
-    ${CMAKE_SOURCE_DIR}/src/js/vis/_package.js
-    ${CMAKE_SOURCE_DIR}/src/js/vis/dendrogram.js
-    ${CMAKE_SOURCE_DIR}/src/js/vis/geodots.js
-    ${CMAKE_SOURCE_DIR}/src/js/vis/geonodelink.js
-    ${CMAKE_SOURCE_DIR}/src/js/vis/mapdots.js
-    ${CMAKE_SOURCE_DIR}/src/js/vis/nodelink.js
 )
 
 # These files should be copied to the build directory.
