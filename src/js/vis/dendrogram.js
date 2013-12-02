@@ -1,73 +1,104 @@
 /*jslint browser: true, unparam: true, nomen: true */
 
-(function (tangelo, d3) {
+(function ($, tangelo, d3) {
     "use strict";
 
-    tangelo.vis.dendrogram = function (spec) {
-        var label = tangelo.accessor(spec.label, ""),
-            distance = tangelo.accessor(spec.distance, 1),
-            id = tangelo.accessor(spec.id, 0),
-            that = this,
-            margin = {top: 20, right: 120, bottom: 20, left: 120},
-            nodeLimit = spec.nodeLimit,
-            width = 1200 - margin.right - margin.left,
-            height = 800 - margin.top - margin.bottom,
-            duration = 750,
-            root = spec.root || spec.data,
-            data = spec.data,
-            mode = spec.mode || "hide",
-            tree = d3.layout.partition()
-                .size([height, width])
+    $.widget("tangelo.dendrogram", {
+        options: {
+            label: null,
+            distance: null,
+            id: null,
+            margin: {
+                top: 20,
+                right: 120,
+                bottom: 20,
+                left: 120
+            },
+            nodeLimit: null,
+            duration: 750,
+            root: null,
+            data: null,
+            mode: "hide"
+        },
+
+        _missing: {
+            label: "",
+            distance: 1,
+            id: 0
+        },
+
+        _create: function () {
+            console.log("hello");
+
+            var options;
+
+            this.tree = d3.layout.partition()
                 .value(function () { return 1; })
-                .sort(d3.ascending),
-            line = d3.svg.line()
+                .sort(d3.ascending);
+
+            this.line = d3.svg.line()
                 .interpolate("step-before")
                 .x(function (d) { return d.y; })
-                .y(function (d) { return d.x; }),
-            svg = d3.select(spec.el).append("svg")
-                .attr("width", width + margin.right + margin.left)
-                .attr("height", height + margin.top + margin.bottom)
-                .append("g")
-                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                .y(function (d) { return d.x; });
 
-        root.x0 = height / 2;
-        root.y0 = 0;
+            this.svg = d3.select(this.element.get(0))
+                .append("svg")
+                .append("g");
 
-        function firstChild(d) {
-            if (d.children) {
-                return firstChild(d.children[0]);
+            options = $.extend(true, {}, this.options);
+            delete options.disabled;
+            delete options.create;
+            this._setOptions(options);
+        },
+
+        _setOption: function (key, value) {
+            var that = this;
+
+            if (key === "label" || key === "distance" || key === "id") {
+                this._super(key, tangelo.accessor(value, this._missing[key]));
+            } else {
+                this._super(key, value);
             }
-            if (d._children) {
-                return firstChild(d._children[0]);
-            }
-            return d;
-        }
+        },
 
-        function lastChild(d) {
-            if (d.children) {
-                return lastChild(d.children[d.children.length - 1]);
-            }
-            if (d._children) {
-                return lastChild(d._children[d._children.length - 1]);
-            }
-            return d;
-        }
+        _setOptions: function (options) {
+            var that = this;
 
-        function update(specUpdate) {
-            specUpdate = specUpdate || {};
-            mode = specUpdate.mode || mode;
-            root = specUpdate.root || specUpdate.data || root;
-            data = specUpdate.data || data;
-            nodeLimit = specUpdate.nodeLimit || nodeLimit;
-            distance = specUpdate.distance ? tangelo.accessor(specUpdate.distance, 1) : distance;
+            $.each(options, function (key, value) {
+                that._setOption(key, value);
+            });
 
-            root.x0 = height / 2;
-            root.y0 = 0;
+            this._update();
+        },
+
+        _update: function () {
+            this.width = 1200 - this.options.margin.right - this.options.margin.left;
+            this.height = 800 - this.options.margin.top - this.options.margin.bottom;
+
+            if (!this.options.root) {
+                this.options.root = this.options.data;
+            }
+
+            if (!this.options.mode) {
+                this.options.mode = "hide";
+            }
+
+            this.tree.size([this.height, this.width]);
+
+            d3.select(this.element.get(0))
+                .select("svg")
+                .attr("width", this.width + this.options.margin.right + this.options.margin.left)
+                .attr("height", this.height + this.options.margin.top + this.options.margin.bottom)
+                .select("g")
+                .attr("transform", "translate(" + this.options.margin.left + "," + this.options.margin.top + ")");
+
+            this.options.root.x0 = this.height / 2;
+            this.options.root.y0 = 0;
 
             // Compute the new tree layout.
-            var nodes = tree.nodes(root).reverse(),
-                links = tree.links(nodes),
-                source = specUpdate.source || root,
+            var nodes = this.tree.nodes(this.options.root).reverse(),
+                links = this.tree.links(nodes),
+                source = this.options.source || this.options.root,
                 node,
                 nodeEnter,
                 nodeUpdate,
@@ -76,7 +107,8 @@
                 maxY,
                 visibleLeaves,
                 filteredNodes,
-                filteredLinks;
+                filteredLinks,
+                that = this;
 
             visibleLeaves = 0;
             function setPosition(node, pos) {
@@ -89,7 +121,7 @@
                 if (node.children) {
                     node.children.forEach(function (d) {
                         d.parent = node;
-                        setPosition(d, pos + 10 * distance(d));
+                        setPosition(d, pos + 10 * that.options.distance(d));
                         xSum += d.x;
                     });
                     node.x = xSum / node.children.length;
@@ -97,19 +129,25 @@
                     visibleLeaves += 1;
                 }
             }
-            setPosition(root, 0);
+            setPosition(this.options.root, 0);
 
             // Normalize Y to fill space
-            maxY = d3.extent(nodes, function (d) { return d.y; })[1];
+            maxY = d3.extent(nodes, function (d) {
+                return d.y;
+            })[1];
             nodes.forEach(function (d) {
-                d.y = d.y / maxY * (width - 150);
+                d.y = d.y / maxY * (that.width - 150);
             });
 
-            if (nodeLimit && nodes.length > nodeLimit) {
+            if (this.options.nodeLimit && nodes.length > this.options.nodeLimit) {
                 // Filter out everything beyond parent y-position to keep things interactive
-                nodes.sort(function (a, b) { return d3.ascending(a.parent.y, b.parent.y); });
-                nodes.forEach(function (d, i) { d.index = i; });
-                filteredNodes = nodes.slice(0, nodeLimit);
+                nodes.sort(function (a, b) {
+                    return d3.ascending(a.parent.y, b.parent.y);
+                });
+                nodes.forEach(function (d, i) {
+                    d.index = i;
+                });
+                filteredNodes = nodes.slice(0, this.options.nodeLimit);
                 maxY = filteredNodes[filteredNodes.length - 1].parent.y;
                 filteredNodes.forEach(function (d) {
                     d.y = d.y > maxY ? maxY : d.y;
@@ -118,7 +156,7 @@
                 // Filter the links based on visible nodes
                 filteredLinks = [];
                 links.forEach(function (d) {
-                    if (d.source.index < nodeLimit && d.target.index < nodeLimit) {
+                    if (d.source.index < this.options.nodeLimit && d.target.index < this.options.nodeLimit) {
                         filteredLinks.push(d);
                     }
                 });
@@ -128,7 +166,7 @@
 
             // Toggle children on click.
             function click(d) {
-                if (mode === "hide") {
+                if (that.options.mode === "hide") {
                     if (d.children) {
                         d._children = d.children;
                         d.children = null;
@@ -136,64 +174,104 @@
                         d.children = d._children;
                         d._children = null;
                     }
-                } else if (mode === "focus") {
-                    root = d;
-                } else if (mode === "label") {
+                } else if (that.options.mode === "focus") {
+                    that.options.root = d;
+                } else if (that.options.mode === "label") {
                     d.showLabel = d.showLabel ? false : true;
                 }
-                update({source: d});
+                //that._update({source: d});
+                that._setOptions({source: d});
+            }
+
+            function firstChild(d) {
+                if (d.children) {
+                    return firstChild(d.children[0]);
+                }
+                if (d._children) {
+                    return firstChild(d._children[0]);
+                }
+                return d;
+            }
+
+            function lastChild(d) {
+                if (d.children) {
+                    return lastChild(d.children[d.children.length - 1]);
+                }
+                if (d._children) {
+                    return lastChild(d._children[d._children.length - 1]);
+                }
+                return d;
             }
 
             // Update the nodes…
-            node = svg.selectAll("g.node")
-                .data(nodes, function(d) { return id(d); });
+            node = this.svg.selectAll("g.node")
+                .data(nodes, function (d) {
+                    return that.options.id(d);
+                });
 
             // Enter any new nodes at the parent's previous position.
-            nodeEnter = node.enter().append("g")
-                .attr("class", "node")
-                .attr("transform", function() { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+            nodeEnter = node.enter()
+                .append("g")
+                .classed("node", true)
+                .attr("transform", function () {
+                    return "translate(" + source.y0 + "," + source.x0 + ")";
+                })
                 .on("click", click);
 
             nodeEnter.append("circle")
                 .attr("r", 1e-6)
                 .style("stroke", "none")
-                .style("opacity", function(d) { return d._children ? 1 : 0; })
-                .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+                .style("opacity", function (d) {
+                    return d._children ? 1 : 0;
+                })
+                .style("fill", function (d) {
+                    return d._children ? "lightsteelblue" : "#fff";
+                });
 
             nodeEnter.append("text")
                 .attr("x", 10)
                 .attr("dy", ".35em")
                 .attr("text-anchor", "start")
                 .style("font-size", "10px")
-                .text(label)
+                .text(this.options.label)
                 .style("fill-opacity", 1e-6);
 
             // Transition nodes to their new position.
             nodeUpdate = node.transition()
-                .duration(duration)
-                .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+                .duration(this.options.duration)
+                .attr("transform", function (d) {
+                    return "translate(" + d.y + "," + d.x + ")";
+                });
 
             nodeUpdate.select("circle")
                 .attr("r", 7.5)
-                .style("opacity", function(d) { return d._children ? 1 : 0; })
-                .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+                .style("opacity", function (d) {
+                    return d._children ? 1 : 0;
+                })
+                .style("fill", function (d) {
+                    return d._children ? "lightsteelblue" : "#fff";
+                });
 
             nodeUpdate.select("text")
                 .text(function (d) {
                     if (d._children || (d.children && d.showLabel)) {
-                        return label(firstChild(d)) + " ... " + label(lastChild(d));
+                        return that.options.label(firstChild(d)) + " ... " + that.options.label(lastChild(d));
                     }
-                    if (visibleLeaves < height / 8) {
-                        return label(d);
+                    if (visibleLeaves < that.height / 8) {
+                        return that.options.label(d);
                     }
                     return "";
                 })
                 .style("fill-opacity", 1);
 
             // Transition exiting nodes to the parent's new position.
-            nodeExit = node.exit().transition()
-                .duration(duration)
-                .attr("transform", function() { return "translate(" + source.y + "," + source.x + ")"; })
+            nodeExit = node
+                .exit()
+                .transition()
+                .duration(this.options.duration)
+                .attr("transform", function () {
+                    return "translate(" + source.y + "," + source.x + ")";
+                })
                 .remove();
 
             nodeExit.select("circle")
@@ -203,64 +281,78 @@
                 .style("fill-opacity", 1e-6);
 
             // Update the links…
-            link = svg.selectAll("path.link")
-                .data(links, function(d) { return id(d.target); });
+            link = this.svg.selectAll("path.link")
+                .data(links, function (d) {
+                    return that.options.id(d.target);
+                });
 
             // Enter any new links at the parent's previous position.
-            link.enter().insert("path", "g")
-                .attr("class", "link")
+            link.enter()
+                .insert("path", "g")
+                .classed("link", true)
                 .style("stroke", "black")
                 .style("stroke-width", "1px")
                 .style("fill", "none")
-                .attr("d", function() {
+                .attr("d", function () {
                     var o = {x: source.x0, y: source.y0};
                     //return diagonal({source: o, target: o});
-                    return line([o, o]);
+                    return that.line([o, o]);
                 });
 
             // Transition links to their new position.
             link.transition()
-                .duration(duration)
+                .duration(this.options.duration)
                 .attr("d", function (d) {
-                    return line([d.source, d.target]);
+                    return that.line([d.source, d.target]);
                 });
 
             // Transition exiting nodes to the parent's new position.
-            link.exit().transition()
-                .duration(duration)
-                .attr("d", function() {
+            link.exit()
+                .transition()
+                .duration(this.options.duration)
+                .attr("d", function () {
                     var o = {x: source.x, y: source.y};
-                    return line([o, o]);
+                    return that.line([o, o]);
                 })
                 .remove();
 
             // Stash the old positions for transition.
-            nodes.forEach(function(d) {
+            nodes.forEach(function (d) {
                 d.x0 = d.x;
                 d.y0 = d.y;
             });
-        }
+        },
 
-        function download(format) {
+        download: function (format) {
+            var node,
+                s,
+                d,
+                str;
+
             if (format === "pdf") {
-                var node = svg.selectAll("g.node").select("circle")
-                    .attr("r", function (d) { return d._children ? 7.5 : 0; }),
-                    s = new window.XMLSerializer(),
-                    d = d3.select("svg").node(),
-                    str = s.serializeToString(d);
+                node = this.svg
+                    .selectAll("g.node")
+                    .select("circle")
+                    .attr("r", function (d) {
+                        return d._children ? 7.5 : 0;
+                    });
+                s = new window.XMLSerializer();
+                d = d3.select("svg").node();
+                str = s.serializeToString(d);
 
                 // Change back to normal
                 node.attr("r", 7.5);
 
-                d3.json("/service/svg2pdf").send("POST", str, function (error, data) {
-                    window.location = "/service/svg2pdf?id=" + data.result;
-                });
+                d3.json("/service/svg2pdf")
+                    .send("POST", str, function (error, data) {
+                        window.location = "/service/svg2pdf?id=" + data.result;
+                    });
             } else {
                 window.alert("Unsupported export format type: " + format);
             }
-        }
+        },
 
-        function reset() {
+        reset: function () {
             function unhideAll(d) {
                 if (!d.children) {
                     d.children = d._children;
@@ -270,17 +362,10 @@
                     d.children.forEach(unhideAll);
                 }
             }
-            unhideAll(data);
-            update({root: data});
+            unhideAll(this.options.data);
+            this._setOptions({
+                root: this.options.data
+            });
         }
-
-        update();
-
-        that.update = update;
-        that.reset = reset;
-        that.download = download;
-
-        return that;
-    };
-
-}(window.tangelo, window.d3));
+    });
+}(window.jQuery, window.tangelo, window.d3));
