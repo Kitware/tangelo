@@ -1,0 +1,56 @@
+<!doctype html>
+<style>
+    html, body {
+        height: 100%;
+    }
+</style>
+
+<link href="http://code.jquery.com/ui/1.9.1/themes/smoothness/jquery-ui.css" rel=stylesheet>
+<link href=http://bootswatch.com/2/readable/bootstrap.min.css rel=stylesheet type=text/css>
+
+<body>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+<script src="http://code.jquery.com/ui/1.9.1/jquery-ui.js"></script>
+<script src="/js/tangelo.js"></script>
+
+<script>
+var data = {
+    name: "Picard",
+    children: [{
+        name: "Riker",
+        children: [{
+            name: "LaForge",
+            children: [
+                { name: "Crusher, W.", children: [] },
+                { name: "Gomez", children: [] },
+                { name: "Barclay", children: [] }
+            ]
+        },
+
+        {
+            name: "Worf",
+            children: [
+                { name: "Sito", children: [] },
+                { name: "Rhodes", children: [] },
+                { name: "D'Sora", children: [] }
+            ]
+        },
+
+        {
+            name: "Crusher, B.",
+            children: [
+                { name: "Ogawa", children: [] },
+                { name: "Selar", children: [] }
+            ]
+        }]
+    }]
+};
+
+$(document.body).dendrogram({
+    data: data,
+    id: {field: "name"},
+    label: {field: "name"}
+});
+</script>
+</body>

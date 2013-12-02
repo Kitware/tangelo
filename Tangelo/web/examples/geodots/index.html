@@ -35,9 +35,8 @@ var data = [
     {lat: 70, lon: -70, value: 19, group: 'e'}
 ];
 
-var vis = tangelo.vis.geodots({
+$(document.body).geodots({
     data: data,
-    el: "body",
     vegaspec: "../vega/geonodelink.json",
     latitude: {field: "lat"},
     longitude: {field: "lon"},

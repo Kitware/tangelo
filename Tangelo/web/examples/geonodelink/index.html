@@ -38,9 +38,8 @@ var data = {
     ]
 };
 
-var vis = tangelo.vis.geonodelink({
+$(document.body).geonodelink({
     data: data,
-    el: "body",
     vegaspec: "../vega/geonodelink.json",
     linkSource: {field: "s"},
     linkTarget: {field: "t"},
