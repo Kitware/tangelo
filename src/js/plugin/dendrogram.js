@@ -28,8 +28,6 @@
         },
 
         _create: function () {
-            console.log("hello");
-
             var options;
 
             this.tree = d3.layout.partition()
@@ -52,8 +50,6 @@
         },
 
         _setOption: function (key, value) {
-            var that = this;
-
             if (key === "label" || key === "distance" || key === "id") {
                 this._super(key, tangelo.accessor(value, this._missing[key]));
             } else {
@@ -203,6 +199,25 @@
                 return d;
             }
 
+            function leafCount(d) {
+                var children = d.children,
+                    sum = 0;
+                if (!children) {
+                    children = d._children;
+                }
+
+                // I am an internal node, so total the leaves of the children
+                if (children) {
+                    children.forEach(function (child) {
+                        sum += leafCount(child);
+                    });
+                    return sum;
+                }
+
+                // I am a leaf
+                return 1;
+            }
+
             // Update the nodes…
             node = this.svg.selectAll("g.node")
                 .data(nodes, function (d) {
@@ -254,11 +269,15 @@
 
             nodeUpdate.select("text")
                 .text(function (d) {
+                    var label = that.options.label(d);
                     if (d._children || (d.children && d.showLabel)) {
-                        return that.options.label(firstChild(d)) + " ... " + that.options.label(lastChild(d));
+                        if (label === "") {
+                            label = that.options.label(firstChild(d)) + " ... " + that.options.label(lastChild(d));
+                        }
+                        return label + " (" + leafCount(d) + ")";
                     }
                     if (visibleLeaves < that.height / 8) {
-                        return that.options.label(d);
+                        return label;
                     }
                     return "";
                 })
