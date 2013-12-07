@@ -58,23 +58,6 @@ set(JS_UGLIFY_FILES
 # These files should be copied to the build directory.
 glob_recurse_ungit(TANGELO_SOURCES Tangelo/*)
 
-# Configure load-tangelo.js and load-tangelo.min.js.
-#
-# Start by reading the contents of loader-preamble.js into a variable.
-file(READ src/js/loader/loader-preamble.js LOADER_PREAMBLE)
-configure_file(src/js/loader/load-tangelo.js.in ${CMAKE_BINARY_DIR}/Tangelo/web/js/loader/load-tangelo.js)
-configure_file(src/js/loader/load-tangelo.min.js.in ${CMAKE_BINARY_DIR}/Tangelo/web/js/loader/load-tangelo.min.js)
-
-# Now copy the loader helper files directly to the output location.
-set(LOADER_HELPERS
-    js/loader/load-d3.js
-    js/loader/load-d3.min.js
-    js/loader/load-jquery.js
-    js/loader/load-jquery.min.js)
-foreach(f ${LOADER_HELPERS})
-    copy_file(src/${f} ${CMAKE_BINARY_DIR}/Tangelo/web/${f})
-endforeach()
-
 # Copy package files to build directory.
 foreach(m ${TANGELO_SOURCES})
     set(outfile ${CMAKE_BINARY_DIR}/${m})
