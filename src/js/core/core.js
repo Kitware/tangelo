@@ -3,7 +3,7 @@
 // Export a global module.
 var tangelo = {};
 
-(function ($) {
+(function () {
     "use strict";
 
     // Tangelo version number.
@@ -21,16 +21,6 @@ var tangelo = {};
             throw "JavaScript include error: " + plugin + " requires " + required;
         };
     };
-
-    // Check for JQuery having been loaded - if it's not, call the unavailable
-    // function.
-    if (!$) {
-        tangelo.unavailable({
-            plugin: "Tangelo",
-            required: "JQuery"
-        })();
-        return;
-    }
 
     tangelo.identity = function (d) { return d; };
 
@@ -81,20 +71,7 @@ var tangelo = {};
         window.console.log("error: unknown accessor spec");
     };
 
-    function hasNaN(values) {
-        var hasnan = false;
-
-        $.each(values, function (i, v) {
-            if (isNaN(v)) {
-                hasnan = true;
-                return;
-            }
-        });
-
-        return hasnan;
-    }
-
-    tangelo.appendFunction = function(f1, f2) {
+    tangelo.appendFunction = function (f1, f2) {
         var that = this;
         if (!f1) {
             return f2;
@@ -113,7 +90,18 @@ var tangelo = {};
         var i,
             tanv,
             reqv,
-            compatible;
+            compatible,
+            hasNaN = function (values) {
+                var i;
+
+                for (i = 0; i < values.length; i += 1) {
+                    if (isNaN(values[i])) {
+                        return true;
+                    }
+                }
+
+                return false;
+            };
 
         // Split the argument out into major, minor, and patch version numbers.
         reqv = reqvstr.split(".").map(function (x) { return +x; });
