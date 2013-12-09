@@ -3,6 +3,14 @@
 (function ($, tangelo, vg) {
     "use strict";
 
+    if (!$.widget) {
+        $.fn.geodots = tangelo.unavailable({
+            plugin: "geodots",
+            required: "JQuery UI"
+        });
+        return;
+    }
+
     $.widget("tangelo.geodots", {
         options: {
             latitude: null,

@@ -3,6 +3,14 @@
 (function ($, tangelo, d3) {
     "use strict";
 
+    if (!$.widget) {
+        $.fn.widget = tangelo.unavailable({
+            plugin: "dendrogram",
+            required: "JQuery UI"
+        });
+        return;
+    }
+
     $.widget("tangelo.dendrogram", {
         options: {
             label: null,

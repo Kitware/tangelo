@@ -128,4 +128,15 @@ var tangelo = {};
 
         return compatible;
     };
+
+    // A function that generates an error-generating function, to be used for
+    // missing dependencies (Google Maps API, JQuery UI, etc.).
+    tangelo.unavailable = function(cfg) {
+        var plugin = cfg.plugin,
+            required = cfg.required;
+
+        return function () {
+            throw "JavaScript include error: " + plugin + " requires " + required;
+        };
+    };
 }(window.$));

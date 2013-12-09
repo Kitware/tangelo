@@ -3,6 +3,14 @@
 (function ($, tangelo, vg) {
     "use strict";
 
+    if (!$.widget) {
+        $.fn.geonodelink = tangelo.unavailable({
+            plugin: "geonodelink",
+            required: "JQuery UI"
+        });
+        return;
+    }
+
     $.widget("tangelo.geonodelink", {
         options: {
             nodeLatitude: null,

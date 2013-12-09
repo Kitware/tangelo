@@ -6,9 +6,10 @@
     "use strict";
 
     if (!window.google) {
-        tangelo.GoogleMapSVG = function () {
-            throw "Use of the GoogleMapSVG class requires loading the Google Map API *before* loading Tangelo.";
-        };
+        tangelo.GoogleMapSVG = tangelo.unavailable({
+            plugin: "GoogleMapSVG",
+            required: "Google Maps API"
+        });
         return;
     }
 

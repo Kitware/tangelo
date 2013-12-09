@@ -3,6 +3,14 @@
 (function ($, tangelo, d3) {
     "use strict";
 
+    if (!$.widget) {
+        $.fn.nodelink = tangelo.unavailable({
+            plugin: "nodelink",
+            required: "JQuery UI"
+        });
+        return;
+    }
+
     $.widget("tangelo.nodelink", {
         options: {
             nodeColor: null,
