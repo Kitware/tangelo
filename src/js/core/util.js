@@ -1,8 +1,6 @@
-/*jslint */
+/*jslint browser: true */
 
-/*global tangelo, d3, console, $ */
-
-(function () {
+(function (tangelo, $) {
     "use strict";
 
     tangelo.getMongoRange = function (host, db, coll, field, callback) {
@@ -81,12 +79,17 @@
     // Returns a key-value store containing the configuration options encoded in
     // the inputfile.
     tangelo.defaults = function (inputfile, callback) {
-        // If there is a problem with the file, it may be that it is not
-        // expected to be there at all, so silently supply an empty defaults
-        // table.  The err argument is passed in case the client WAS expecting
-        // the defaults file to be read in, and wants to examine the error.
-        d3.json(inputfile, function (err, json) {
-            callback(json || {}, err);
+        $.ajax({
+            url: inputfile,
+            dataType: "json",
+            error: function (jqxhr) {
+                // Call user's callback with an empty object as the data, to
+                // cover the case where there is no defaults file, but this is
+                // not to be seen as an error.  The second argument is the XHR
+                // object, in case the client wishes to examine it.
+                callback({}, jqxhr);
+            },
+            success: callback
         });
     };
 
@@ -114,4 +117,4 @@
             return id;
         };
     }());
-}());
+}(window.tangelo, window.jQuery));

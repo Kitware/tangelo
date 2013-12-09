@@ -1,4 +1,4 @@
-/*jslint browser: true, unparam: true */
+/*jslint browser: true */
 
 // Export a global module.
 var tangelo = {};
@@ -10,6 +10,27 @@ var tangelo = {};
     tangelo.version = function () {
         return "0.2.0";
     };
+
+    // A function that generates an error-generating function, to be used for
+    // missing dependencies (Google Maps API, JQuery UI, etc.).
+    tangelo.unavailable = function (cfg) {
+        var plugin = cfg.plugin,
+            required = cfg.required;
+
+        return function () {
+            throw "JavaScript include error: " + plugin + " requires " + required;
+        };
+    };
+
+    // Check for JQuery having been loaded - if it's not, call the unavailable
+    // function.
+    if (!$) {
+        tangelo.unavailable({
+            plugin: "Tangelo",
+            required: "JQuery"
+        })();
+        return;
+    }
 
     tangelo.identity = function (d) { return d; };
 
@@ -129,14 +150,4 @@ var tangelo = {};
         return compatible;
     };
 
-    // A function that generates an error-generating function, to be used for
-    // missing dependencies (Google Maps API, JQuery UI, etc.).
-    tangelo.unavailable = function(cfg) {
-        var plugin = cfg.plugin,
-            required = cfg.required;
-
-        return function () {
-            throw "JavaScript include error: " + plugin + " requires " + required;
-        };
-    };
 }(window.$));
