@@ -77,7 +77,7 @@ function updateGraph() {
                     .text("Update");
             }
 
-            if (resp.error !== null) {
+            if (resp.error) {
                 console.log("error: " + resp.error);
                 return;
             }

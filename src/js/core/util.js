@@ -25,10 +25,10 @@
             success: function (response) {
                 // If the value could not be retrieved, set it to null and print
                 // an error message on the console.
-                if (response.error !== null || response.result.data.length === 0) {
+                if (response.error || response.result.data.length === 0) {
                     max = null;
 
-                    if (response.error !== null) {
+                    if (response.error) {
                         throw "[tangelo.getMongoRange()] error: could not retrieve max value from " + host + ":/" + db + "/" + coll + ":" + field;
                     }
                 } else {
@@ -47,10 +47,10 @@
                     success: function (response) {
                         // As before, set the min value to null if it could not
                         // be retrieved.
-                        if (response.error !== null || response.result.data.length === 0) {
+                        if (response.error || response.result.data.length === 0) {
                             min = null;
 
-                            if (response.error !== null) {
+                            if (response.error) {
                                 throw "[tangelo.getMongoRange()] error: could not retrieve min value from " + host + ":/" + db + "/" + coll + ":" + field;
                             }
                         } else {
