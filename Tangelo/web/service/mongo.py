@@ -12,7 +12,7 @@ def decode(s, argname, resp):
 
 def run(server, db, coll, method='find', query=None, limit=1000, skip=0, fields=None, sort=None, fill=None):
     # Create an empty response object.
-    response = tangelo.empty_response()
+    response = {}
 
     # Check the requested method.
     if method not in ['find', 'insert']:

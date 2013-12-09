@@ -4,16 +4,6 @@ import os.path
 import sys
 import types
 
-# This function defines the structure of a service response.  Each service
-# module should import this function from this package.
-#
-# The payload is contained in the 'result' field, while the 'error' field can
-# indicate that something went wrong.  Posibly more fields could be added in the
-# future.
-def empty_response():
-    return {'result' : None,
-            'error' : None}
-
 def content_type(t=None):
     r = cherrypy.response.headers['Content-type']
 

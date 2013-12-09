@@ -166,7 +166,7 @@ function retrieveData(initial) {
             flickr.currentAjax = null;
 
             // Error check.
-            if (response.error !== null) {
+            if (response.error) {
                 console.log("fatal error: " + response.error);
                 d3.select("#abort")
                     .classed("btn-success", false)

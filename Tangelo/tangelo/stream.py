@@ -20,8 +20,8 @@ class TangeloStream(object):
             if key not in self.streams:
                 raise cherrypy.HTTPError("404 Key Not Found", "The key '%s' does not reference any existing stream" % (key))
 
-        # Construct a container object.
-        result = tangelo.empty_response()
+        # Construct an empty response object.
+        result = {}
 
         # Perform the requested action.
         actions = ["next", "delete", "show"]
@@ -66,8 +66,7 @@ class TangeloStream(object):
         self.streams[key] = stream
 
         # Create an object describing the logging of the generator object.
-        result = tangelo.empty_response()
-        result["stream_key"] = key
+        result = {"stream_key": key}
 
         # Serialize it to JSON.
         return json.dumps(result)

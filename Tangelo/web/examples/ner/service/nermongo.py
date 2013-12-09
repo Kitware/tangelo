@@ -6,7 +6,7 @@ import tangelo
 
 def run(servername, dbname, collname, file_hash=None, data=None):
     # Construct an empty response object.
-    response = tangelo.empty_response();
+    response = {}
 
     # If no schema was passed in, give an error.
     #

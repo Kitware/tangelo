@@ -7,7 +7,7 @@ import tangelo
 
 def run(servername, dbname, datatype, by = None, datemin = None, datemax = None, charity = None):
     # Construct an empty response object.
-    response = tangelo.empty_response();
+    response = {}
 
     # Establish a connection to the MongoDB server.
     try:

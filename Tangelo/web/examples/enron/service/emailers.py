@@ -4,7 +4,7 @@ import pymongo
 import tangelo
 
 def run(host, database, collection, start_time=None, end_time=None, center=None, degree=None):
-    response = tangelo.empty_response()
+    response = {}
 
     # Bail with error if any of the required arguments is missing.
     missing = map(lambda x: x[0], filter(lambda x: x[1] is None, zip(["start_time", "end_time", "center", "degree"], [start_time, end_time, center, degree])))
@@ -39,9 +39,16 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
         return response
 
     # Get a handle to the database collection.
+    ex = None
     try:
         c = pymongo.Connection(host)[database][collection]
     except pymongo.errors.AutoReconnect as e:
+        ex = e
+    except pymongo.errors.ConnectionFailure as e:
+        ex = e
+
+    # Bail out with an error message if there was an exception.
+    if ex is not None:
         response["error"] = "database error: %s" % (e.message)
         return response
 

@@ -94,7 +94,7 @@ function processFileContents(filename, id, file_hash) {
         // Check the error code in the AJAX response.  If there is an error,
         // write the error message in the information window and abort the
         // operation.
-        if (response.error !== null) {
+        if (response.error) {
             appendInfo(response.error);
             return;
         }
@@ -122,7 +122,7 @@ function processFileContents(filename, id, file_hash) {
                     // If there was an error, continue anyway, as the failure
                     // would be in writing an entry to the database, and we
                     // already have the data in hand.
-                    if (resp.error !== null) {
+                    if (resp.error) {
                         console.log("error: " + resp.error);
                     }
                 }
@@ -239,7 +239,7 @@ function processFile(filename, id) {
                 var li;
 
                 // Error checking.
-                if (response.error !== null) {
+                if (response.error) {
                     appendInfo(response.error);
                 }
 
@@ -249,7 +249,7 @@ function processFile(filename, id) {
                 // Check the response - if it is an empty list, or there was a
                 // database error, launch the second AJAX call to directly
                 // compute the NER set, and store it in the database.
-                if (response.error !== null || response.result.length === 0) {
+                if (response.error || response.result.length === 0) {
                     $.ajax({
                         type: 'POST',
                         url: 'service/ner',
