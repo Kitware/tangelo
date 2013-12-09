@@ -1,12 +1,12 @@
 /*jslint browser: true, unparam: true */
 
-(function ($, tangelo, vg) {
+(function (tangelo, $, vg) {
     "use strict";
 
-    if (!$.widget) {
+    if (!($ && $.widget && vg)) {
         $.fn.geodots = tangelo.unavailable({
             plugin: "geodots",
-            required: "JQuery UI"
+            required: ["JQuery", "JQuery UI", "Vega"]
         });
         return;
     }
@@ -87,4 +87,4 @@
             }
         }
     });
-}(window.jQuery, window.tangelo, window.vg));
+}(window.tangelo, window.jQuery, window.vg));

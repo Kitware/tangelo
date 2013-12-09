@@ -1,12 +1,12 @@
 /*jslint browser: true, unparam: true, nomen: true */
 
-(function ($, tangelo, d3) {
+(function (tangelo, $, d3) {
     "use strict";
 
-    if (!$.widget) {
-        $.fn.widget = tangelo.unavailable({
+    if (!($ && $.widget && d3)) {
+        $.fn.dendrogram = tangelo.unavailable({
             plugin: "dendrogram",
-            required: "JQuery UI"
+            required: ["JQuery", "JQuery UI", "d3"]
         });
         return;
     }
@@ -395,4 +395,4 @@
             });
         }
     });
-}(window.jQuery, window.tangelo, window.d3));
+}(window.tangelo, window.jQuery, window.d3));

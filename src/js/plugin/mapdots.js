@@ -3,10 +3,10 @@
 (function (tangelo, google, d3, $) {
     "use strict";
 
-    if (!$.widget) {
+    if (!(google && $ && $.widget && d3)) {
         $.fn.mapdots = tangelo.unavailable({
             plugin: "mapdots",
-            required: "JQuery UI"
+            required: ["Google Maps API", "JQuery", "JQuery UI", "d3"]
         });
         return;
     }

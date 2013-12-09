@@ -15,7 +15,25 @@ var tangelo = {};
     // missing dependencies (Google Maps API, JQuery UI, etc.).
     tangelo.unavailable = function (cfg) {
         var plugin = cfg.plugin,
-            required = cfg.required;
+            required = cfg.required,
+            i,
+            t;
+
+        if (tangelo.isArray(required)) {
+            if (required.length === 1) {
+                required = required[0];
+            } else if (required.length === 2) {
+                required = required[0] + " and " + required[1];
+            } else {
+                t = "";
+                for (i = 0; i < required.length - 1; i += 1) {
+                    t += required[i] + ", ";
+                }
+                t += "and " + required[required.length - 1];
+
+                required = t;
+            }
+        }
 
         return function () {
             throw "JavaScript include error: " + plugin + " requires " + required;

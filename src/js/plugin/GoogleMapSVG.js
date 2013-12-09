@@ -1,14 +1,12 @@
 /*jslint browser: true */
 
-/*global tangelo, google, d3, $ */
-
-(function () {
+(function (tangelo, $, google, d3) {
     "use strict";
 
-    if (!window.google) {
+    if (!($ && google && d3)) {
         tangelo.GoogleMapSVG = tangelo.unavailable({
             plugin: "GoogleMapSVG",
-            required: "Google Maps API"
+            required: ["JQuery", "Google Maps API", "d3"]
         });
         return;
     }
@@ -121,8 +119,8 @@
 
     // Attach event listeners to the map.
     tangelo.GoogleMapSVG.prototype.attachListener = function (eventType, callback, how) {
-        var that = this;
-        var attacher;
+        var that = this,
+            attacher;
 
         if (Object.prototype.toString.call(eventType) === "[object Array]") {
             $.each(eventType, function (i, v) {
@@ -195,5 +193,5 @@
 
     // This function has to be defined, but we wish to defer the actual draw
     // action to the user, vis the on() and onceOn() methods.
-    tangelo.GoogleMapSVG.prototype.draw = function () {}
-}());
+    tangelo.GoogleMapSVG.prototype.draw = function () {};
+}(window.tangelo, window.jQuery, window.google, window.d3));
