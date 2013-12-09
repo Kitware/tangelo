@@ -33,7 +33,7 @@ def convert_results(results, fields=False):
   return converted
 
 def run(database, table, start_time, end_time, center, degree, host="mongo", port="21000", fields="true"):
-        response = tangelo.empty_response()
+        response = {}
 
         try:
           degree = int(degree)

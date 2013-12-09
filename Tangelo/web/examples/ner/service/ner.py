@@ -2,13 +2,10 @@ import cherrypy
 import nltk
 import nltk.chunk.named_entity
 
-from tangelo import empty_response
-
 # This service performs named entity recognition on input text.
 def run(text=""):
     # Create an empty result container.
-    response = empty_response();
-    response['result'] = [];
+    response = {"result": []}
 
     # If nothing passed in, return an empty result.
     if text == "":

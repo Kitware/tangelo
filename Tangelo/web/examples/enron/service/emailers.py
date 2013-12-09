@@ -4,7 +4,7 @@ import pymongo
 import tangelo
 
 def run(host, database, collection, start_time=None, end_time=None, center=None, degree=None):
-    response = tangelo.empty_response()
+    response = {}
 
     # Bail with error if any of the required arguments is missing.
     missing = map(lambda x: x[0], filter(lambda x: x[1] is None, zip(["start_time", "end_time", "center", "degree"], [start_time, end_time, center, degree])))

@@ -7,7 +7,7 @@ from bulbs.titan import Graph
 
 #def run(host, port, graph, start_time=None, end_time=None, center=None, degree=None):
 def run(host, port, graph, start_time=None, days=1, center=None, degree=None):
-    response = tangelo.empty_response()
+    response = {}
 
     # Bail with error if any of the required arguments is missing.
     missing = map(lambda x: x[0], filter(lambda x: x[1] is None, zip(["start_time", "days", "center", "degree"], [start_time, days, center, degree])))

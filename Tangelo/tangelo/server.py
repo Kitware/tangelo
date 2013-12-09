@@ -64,10 +64,10 @@ class Tangelo(object):
         # be restored afterwards.
         origpath = list(sys.path)
 
-        # By default, the result should be a bare response that we will place an
-        # error message in if something goes wrong; if nothing goes wrong this
-        # will be replaced with some other object.
-        result = tangelo.empty_response()
+        # By default, the result should be an object with error message in if
+        # something goes wrong; if nothing goes wrong this will be replaced with
+        # some other object.
+        result = {}
 
         # Store the modpath in the thread-local storage (tangelo.paths() makes
         # use of this per-thread data, so this is the way to get the data across
