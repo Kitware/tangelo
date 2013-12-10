@@ -1,14 +1,43 @@
-/*jslint browser: true, unparam: true */
+/*jslint browser: true */
 
 // Export a global module.
 var tangelo = {};
 
-(function ($) {
+(function () {
     "use strict";
 
     // Tangelo version number.
     tangelo.version = function () {
         return "0.2.0";
+    };
+
+    // A function that generates an error-generating function, to be used for
+    // missing dependencies (Google Maps API, JQuery UI, etc.).
+    tangelo.unavailable = function (cfg) {
+        var plugin = cfg.plugin,
+            required = cfg.required,
+            i,
+            t;
+
+        if (tangelo.isArray(required)) {
+            if (required.length === 1) {
+                required = required[0];
+            } else if (required.length === 2) {
+                required = required[0] + " and " + required[1];
+            } else {
+                t = "";
+                for (i = 0; i < required.length - 1; i += 1) {
+                    t += required[i] + ", ";
+                }
+                t += "and " + required[required.length - 1];
+
+                required = t;
+            }
+        }
+
+        return function () {
+            throw "JavaScript include error: " + plugin + " requires " + required;
+        };
     };
 
     tangelo.identity = function (d) { return d; };
@@ -60,20 +89,7 @@ var tangelo = {};
         window.console.log("error: unknown accessor spec");
     };
 
-    function hasNaN(values) {
-        var hasnan = false;
-
-        $.each(values, function (i, v) {
-            if (isNaN(v)) {
-                hasnan = true;
-                return;
-            }
-        });
-
-        return hasnan;
-    }
-
-    tangelo.appendFunction = function(f1, f2) {
+    tangelo.appendFunction = function (f1, f2) {
         var that = this;
         if (!f1) {
             return f2;
@@ -92,7 +108,18 @@ var tangelo = {};
         var i,
             tanv,
             reqv,
-            compatible;
+            compatible,
+            hasNaN = function (values) {
+                var i;
+
+                for (i = 0; i < values.length; i += 1) {
+                    if (isNaN(values[i])) {
+                        return true;
+                    }
+                }
+
+                return false;
+            };
 
         // Split the argument out into major, minor, and patch version numbers.
         reqv = reqvstr.split(".").map(function (x) { return +x; });
@@ -128,4 +155,5 @@ var tangelo = {};
 
         return compatible;
     };
+
 }(window.$));

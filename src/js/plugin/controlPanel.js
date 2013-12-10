@@ -1,9 +1,15 @@
 /*jslint browser: true */
 
-/*globals jQuery, d3 */
-
-(function ($, tangelo) {
+(function (tangelo, $, d3) {
     "use strict";
+
+    if (!($ && d3)) {
+        tangelo.unavailable({
+            plugin: "controlPanel",
+            required: ["JQuery", "d3"]
+        });
+        return;
+    }
 
     function drawerToggle(divsel, buttonsel) {
         var div,
@@ -106,4 +112,4 @@
         d3.select("#tangelo-drawer-handle-" + tag)
             .on("click", toggle);
     };
-}(jQuery, window.tangelo));
+}(window.tangelo, window.jQuery, window.d3));

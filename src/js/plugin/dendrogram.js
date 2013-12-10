@@ -1,7 +1,15 @@
 /*jslint browser: true, unparam: true, nomen: true */
 
-(function ($, tangelo, d3) {
+(function (tangelo, $, d3) {
     "use strict";
+
+    if (!($ && $.widget && d3)) {
+        $.fn.dendrogram = tangelo.unavailable({
+            plugin: "dendrogram",
+            required: ["JQuery", "JQuery UI", "d3"]
+        });
+        return;
+    }
 
     $.widget("tangelo.dendrogram", {
         options: {
@@ -387,4 +395,4 @@
             });
         }
     });
-}(window.jQuery, window.tangelo, window.d3));
+}(window.tangelo, window.jQuery, window.d3));

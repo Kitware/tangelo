@@ -1,7 +1,15 @@
 /*jslint browser: true, unparam: true */
 
-(function ($, tangelo, vg) {
+(function (tangelo, $, vg) {
     "use strict";
+
+    if (!($ && $.widget && vg)) {
+        $.fn.geonodelink = tangelo.unavailable({
+            plugin: "geonodelink",
+            required: ["JQuery", "JQuery UI", "Vega"]
+        });
+        return;
+    }
 
     $.widget("tangelo.geonodelink", {
         options: {
@@ -92,4 +100,4 @@
             }).update();
         }
     });
-}(window.jQuery, window.tangelo, window.vg));
+}(window.tangelo, window.jQuery, window.vg));

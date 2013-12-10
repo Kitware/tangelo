@@ -3,6 +3,14 @@
 (function (tangelo, google, d3, $) {
     "use strict";
 
+    if (!(google && $ && $.widget && d3)) {
+        $.fn.mapdots = tangelo.unavailable({
+            plugin: "mapdots",
+            required: ["Google Maps API", "JQuery", "JQuery UI", "d3"]
+        });
+        return;
+    }
+
     $.widget("tangelo.mapdots", {
         options: {
             hoverContent: null,

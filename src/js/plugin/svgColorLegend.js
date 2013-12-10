@@ -1,7 +1,15 @@
-/*globals jQuery, d3 */
+/*jslint browser: true */
 
-(function ($) {
+(function (tangelo, $, d3) {
     "use strict";
+
+    if (!($ && d3)) {
+        $.fn.svgColorLegend = tangelo.unavailable({
+            plugin: "svgColorLegend",
+            required: ["JQuery", "d3"]
+        });
+        return;
+    }
 
     $.fn.svgColorLegend = function (cfg) {
         var bbox,
@@ -121,4 +129,4 @@
                 return text_spacing + heightfunc(d, i);
             });
     };
-}(jQuery));
+}(window.tangelo, window.jQuery, window.d3));
