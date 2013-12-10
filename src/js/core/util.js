@@ -18,18 +18,42 @@
 
     // Returns a key-value store containing the configuration options encoded in
     // the inputfile.
+    if (!$) {
+        tangelo.defaults = tangelo.unavailable({
+            plugin: "tangelo.defaults",
+            required: "JQuery"
+        });
+    }
+
     tangelo.defaults = function (inputfile, callback) {
+        if (inputfile.length > 0) {
+            if (inputfile[0] !== "/" && inputfile[0] !== "~") {
+                inputfile = window.location.pathname + "/" + inputfile;
+            }
+        }
+
         $.ajax({
-            url: inputfile,
+            url: "/service/defaults",
+            data: {
+                path: inputfile
+            },
             dataType: "json",
             error: function (jqxhr) {
-                // Call user's callback with an empty object as the data, to
-                // cover the case where there is no defaults file, but this is
-                // not to be seen as an error.  The second argument is the XHR
-                // object, in case the client wishes to examine it.
-                callback({}, jqxhr);
+                // If the ajax call fails, pass the request object to the
+                // function so the client can examine it.
+                callback(undefined, undefined, jqxhr);
             },
-            success: callback
+            success: function (data) {
+                // If successful, check for errors in the execution of the
+                // service itself, passing that error to the callback if
+                // necessary.  Otherwise, pass the status and data along to the
+                // callback.
+                if (data.error) {
+                    callback(undefined, undefined, data.error);
+                } else {
+                    callback(data.result, data.status);
+                }
+            }
         });
     };
 
