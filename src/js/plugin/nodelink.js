@@ -36,7 +36,7 @@
         _create: function () {
             var options;
 
-            this.colorScale = d3.scale.category20();
+            this.colorScale = d3.scale.category10();
 
             this.options.width = this.options.width || 1000;
             this.options.height = this.options.height || 1000;

@@ -61,7 +61,7 @@
                 that.layer = d3.select(this.getPanes().overlayMouseTarget)
                     .append("div")
                     .style("position", "absolute");
-                that.colorScale = d3.scale.category20();
+                that.colorScale = d3.scale.category10();
 
                 // Draw each marker as a separate SVG element.  We could use a
                 // single SVG, but what size would it have?

@@ -41,7 +41,7 @@
     {
       "name": "color",
       "type": "ordinal",
-      "range": "category20"
+      "range": "category10"
     },
     {
       "name": "size",
