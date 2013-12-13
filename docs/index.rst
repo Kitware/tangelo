@@ -35,7 +35,7 @@ Please visit the `Tangelo homepage`_ or the `GitHub repository`_ for more
 information.  Happy hacking!
 
 .. _CherryPy: http://www.cherrypy.org
-.. _Tangelo homepage: http://tangelo.kitware.com
+.. _Tangelo homepage: http://kitware.github.io/tangelo/
 .. _GitHub repository: https://github.com/Kitware/tangelo
 .. _Hadoop: http://hadoop.apache.org/
 
