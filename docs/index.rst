@@ -52,7 +52,7 @@ Quick Start
     cd build
     cmake ..
     make
-    sudo pip install dist/Tangelo-[version].tar.gz
+    pip install dist/Tangelo-[version].tar.gz    # May require sudo
     tangelo start
 
 4. Visit your Tangelo instance at http://localhost:8000.
