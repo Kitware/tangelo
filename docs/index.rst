@@ -42,17 +42,22 @@ information.  Happy hacking!
 Quick Start
 ===========
 
-1. Install VirtualBox_.
-2. Install Vagrant_.
-3. Install Git_.
-4. Open a shell (or Git Bash shell) and run the following: ::
+1. Install Git_.
+2. Install CMake_.
+3. Open a shell (or Git Bash shell) and run the following: ::
 
     git clone https://github.com/Kitware/tangelo.git
     cd tangelo
-    vagrant up
+    mkdir build
+    cd build
+    cmake ..
+    make
+    sudo pip install dist/Tangelo-[version].tar.gz
+    tangelo start
 
-5. Visit your Tangelo instance at http://localhost:9000.
+4. Visit your Tangelo instance at http://localhost:8000.
 
+.. _CMake: http://www.cmake.org
 .. _VirtualBox: http://www.virtualbox.org
 .. _Vagrant: http://www.vagrantup.com
 .. _Git: http://gitscm.com
