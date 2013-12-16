@@ -28,7 +28,8 @@
             data: null,
             mode: "hide",
             nodesize: 7.5,
-            textsize: 10
+            textsize: 10,
+            orientation: "horizontal"
         },
 
         _missing: {
@@ -37,8 +38,27 @@
             id: 0
         },
 
+        orientation: {
+            abscissa: "y",
+            ordinate: "x",
+            heightvar: "height",
+            widthvar: "width"
+        },
+
         _create: function () {
-            var options;
+            var options,
+                that = this;
+
+            if (this.options.orientation === "vertical") {
+                this.orientation = {
+                    abscissa: "x",
+                    ordinate: "y",
+                    heightvar: "width",
+                    widthvar: "height"
+                };
+            } else if (this.options.orientation !== "horizontal") {
+                throw "illegal option for 'orientation': " + this.options.orientation;
+            }
 
             this.tree = d3.layout.partition()
                 .value(function () { return 1; })
@@ -46,8 +66,14 @@
 
             this.line = d3.svg.line()
                 .interpolate("step-before")
-                .x(function (d) { return d.y; })
-                .y(function (d) { return d.x; });
+                .x(function (d) {
+                    //return d.y;
+                    return d[that.orientation.ordinate];
+                })
+                .y(function (d) {
+                    //return d.x;
+                    return d[that.orientation.abscissa];
+                });
 
             this.svg = d3.select(this.element.get(0))
                 .append("svg")
