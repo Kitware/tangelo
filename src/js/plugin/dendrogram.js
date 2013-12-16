@@ -42,7 +42,10 @@
             abscissa: "y",
             ordinate: "x",
             heightvar: "height",
-            widthvar: "width"
+            widthvar: "width",
+            xfunc: function (_, v) {
+                return v;
+            }
         },
 
         _create: function () {
@@ -54,7 +57,10 @@
                     abscissa: "x",
                     ordinate: "y",
                     heightvar: "width",
-                    widthvar: "height"
+                    widthvar: "height",
+                    xfunc: function (that, v) {
+                        return that.width - v;
+                    }
                 };
             } else if (this.options.orientation !== "horizontal") {
                 throw "illegal option for 'orientation': " + this.options.orientation;
@@ -67,12 +73,10 @@
             this.line = d3.svg.line()
                 .interpolate("step-before")
                 .x(function (d) {
-                    //return d.y;
-                    return d[that.orientation.ordinate];
+                    return this.orientation.xfunc(that, d[that.orientation.abscissa]);
                 })
                 .y(function (d) {
-                    //return d.x;
-                    return d[that.orientation.abscissa];
+                    return d[that.orientation.ordinate];
                 });
 
             this.svg = d3.select(this.element.get(0))
@@ -124,7 +128,8 @@
                 .select("g")
                 .attr("transform", "translate(" + this.options.margin.left + "," + this.options.margin.top + ")");
 
-            this.options.root.x0 = this.height / 2;
+            //this.options.root.x0 = this.height / 2;
+            this.options.root.x0 = this[this.orientation.heightvar] / 2;
             this.options.root.y0 = 0;
 
             // Compute the new tree layout.
@@ -277,7 +282,27 @@
                 })
                 .style("fill", function (d) {
                     return d._children ? "lightsteelblue" : "#fff";
+                })
+                .on("mouseenter", function () {
+                    var me = d3.select(this);
+                    this.saved_opacity = me.style("opacity");
+                    this.saved_fill = me.style("fill");
+                    me.style("opacity", 1)
+                        .style("fill", "black");
+                })
+                .on("mouseleave", function () {
+                    if (this.saved_opacity) {
+                        d3.select(this)
+                            .style("opacity", this.saved_opacity);
+                        this.saved_opacity = undefined;
+                    }
+                    if (this.saved_fill) {
+                        d3.select(this)
+                            .style("fill", this.saved_fill);
+                        this.saved_fill = undefined;
+                    }
                 });
+
 
             nodeEnter.append("text")
                 .attr("x", 10)
@@ -291,7 +316,7 @@
             nodeUpdate = node.transition()
                 .duration(this.options.duration)
                 .attr("transform", function (d) {
-                    return "translate(" + d.y + "," + d.x + ")";
+                    return "translate(" + that.orientation.xfunc(that, d[that.orientation.abscissa]) + "," + d[that.orientation.ordinate] + ")";
                 });
 
             nodeUpdate.select("circle")
