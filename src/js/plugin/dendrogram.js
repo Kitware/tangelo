@@ -26,7 +26,9 @@
             duration: 750,
             root: null,
             data: null,
-            mode: "hide"
+            mode: "hide",
+            nodesize: 7.5,
+            textsize: 10
         },
 
         _missing: {
@@ -255,7 +257,7 @@
                 .attr("x", 10)
                 .attr("dy", ".35em")
                 .attr("text-anchor", "start")
-                .style("font-size", "10px")
+                .style("font-size", this.options.textsize + "px")
                 .text(this.options.label)
                 .style("fill-opacity", 1e-6);
 
@@ -267,7 +269,7 @@
                 });
 
             nodeUpdate.select("circle")
-                .attr("r", 7.5)
+                .attr("r", this.options.nodesize)
                 .style("opacity", function (d) {
                     return d._children ? 1 : 0;
                 })
@@ -284,7 +286,7 @@
                         }
                         return label + " (" + leafCount(d) + ")";
                     }
-                    if (visibleLeaves < that.height / 8) {
+                    if (visibleLeaves < that.height / (0.8 * that.options.textsize)) {
                         return label;
                     }
                     return "";
@@ -361,14 +363,14 @@
                     .selectAll("g.node")
                     .select("circle")
                     .attr("r", function (d) {
-                        return d._children ? 7.5 : 0;
+                        return d._children ? this.options.nodesize : 0;
                     });
                 s = new window.XMLSerializer();
                 d = d3.select("svg").node();
                 str = s.serializeToString(d);
 
                 // Change back to normal
-                node.attr("r", 7.5);
+                node.attr("r", this.options.nodesize);
 
                 d3.json("/service/svg2pdf")
                     .send("POST", str, function (error, data) {
