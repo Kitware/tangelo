@@ -286,7 +286,7 @@
                         }
                         return label + " (" + leafCount(d) + ")";
                     }
-                    if (visibleLeaves < that.height / 8) {
+                    if (visibleLeaves < that.height / (0.8 * that.options.textsize)) {
                         return label;
                     }
                     return "";
