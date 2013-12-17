@@ -273,7 +273,7 @@
                 .attr("transform", function () {
                     return "translate(" + source.y0 + "," + source.x0 + ")";
                 })
-                .on("click", click);
+                .on("dblclick", click);
 
             nodeEnter.append("circle")
                 .attr("r", 1e-6)
