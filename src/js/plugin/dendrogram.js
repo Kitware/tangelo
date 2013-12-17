@@ -29,7 +29,8 @@
             mode: "hide",
             nodesize: 7.5,
             textsize: 10,
-            orientation: "horizontal"
+            orientation: "horizontal",
+            initialize: null
         },
 
         _missing: {
@@ -401,6 +402,10 @@
                 d.x0 = d.x;
                 d.y0 = d.y;
             });
+
+            if (this.options.initialize) {
+                this.options.initialize(nodeEnter, node, nodeExit);
+            }
         },
 
         download: function (format) {
