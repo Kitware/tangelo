@@ -30,6 +30,7 @@
             nodesize: 7.5,
             textsize: 10,
             orientation: "horizontal",
+            lineStyle: "curved",
             initialize: null
         },
 
@@ -47,6 +48,13 @@
             xfunc: function (_, v) {
                 return v;
             }
+        },
+
+        _lineStyle: function (line, s, t) {
+            return line({
+                source: s,
+                target: t
+            });
         },
 
         _create: function () {
@@ -74,10 +82,30 @@
                 .value(function () { return 1; })
                 .sort(d3.ascending);
 
-            this.line = d3.svg.diagonal()
-                .projection(function (d) {
-                    return [that.orientation.xfunc(that, d[that.orientation.abscissa]), d[that.orientation.ordinate]];
-                });
+            // Create a d3 line drawer, including an abstracted method that can
+            // call the specific line function the right way.
+            this.line = null;
+            if (this.options.lineStyle === "curved") {
+                this.line = d3.svg.diagonal()
+                    .projection(function (d) {
+                        return [that.orientation.xfunc(that, d[that.orientation.abscissa]), d[that.orientation.ordinate]];
+                    });
+            } else if (this.options.lineStyle === "axisAligned") {
+                this.line = d3.svg.line()
+                    .interpolate("step-before")
+                    .x(function (d) {
+                        return that.orientation.xfunc(that, d[that.orientation.abscissa]);
+                    })
+                    .y(function (d) {
+                        return d[that.orientation.ordinate];
+                    });
+
+                this._lineStyle = function (line, s, t) {
+                    return line([s, t]);
+                };
+            } else {
+                throw "illegal option for 'lineStyle': " + this.options.lineStyle;
+            }
 
             this.svg = d3.select(this.element.get(0))
                 .append("svg")
@@ -377,14 +405,14 @@
                 .style("fill", "none")
                 .attr("d", function () {
                     var o = {x: source.x0, y: source.y0};
-                    return that.line({source: o, target: o});
+                    return that._lineStyle(that.line, o, o);
                 });
 
             // Transition links to their new position.
             link.transition()
                 .duration(this.options.duration)
                 .attr("d", function (d) {
-                    return that.line({source: d.source, target: d.target});
+                    return that._lineStyle(that.line, d.source, d.target);
                 });
 
             // Transition exiting nodes to the parent's new position.
@@ -393,7 +421,7 @@
                 .duration(this.options.duration)
                 .attr("d", function () {
                     var o = {x: source.x, y: source.y};
-                    return that.line({source: o, target: o});
+                    return that._lineStyle(that.line, o, o);
                 })
                 .remove();
 
