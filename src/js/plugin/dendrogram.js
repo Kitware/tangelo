@@ -120,8 +120,8 @@
 
             d3.select(this.element.get(0))
                 .select("svg")
-                .attr("width", this.width + this.options.margin.right + this.options.margin.left)
-                .attr("height", this.height + this.options.margin.top + this.options.margin.bottom)
+                .attr("width", this[this.orientation.widthvar] + this.options.margin.right + this.options.margin.left)
+                .attr("height", this[this.orientation.heightvar] + this.options.margin.top + this.options.margin.bottom)
                 .select("g")
                 .attr("transform", "translate(" + this.options.margin.left + "," + this.options.margin.top + ")");
 
