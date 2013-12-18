@@ -361,12 +361,6 @@
             nodeUpdate.select("text")
                 .text(function (d) {
                     var label = that.options.label(d);
-                    if (d._children || (d.children && d.showLabel)) {
-                        if (label === "") {
-                            label = that.options.label(firstChild(d)) + " ... " + that.options.label(lastChild(d));
-                        }
-                        return label + " (" + leafCount(d) + ")";
-                    }
                     if (visibleLeaves < that.height / (0.8 * that.options.textsize)) {
                         return label;
                     }
