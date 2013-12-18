@@ -71,13 +71,9 @@
                 .value(function () { return 1; })
                 .sort(d3.ascending);
 
-            this.line = d3.svg.line()
-                .interpolate("step-before")
-                .x(function (d) {
-                    return this.orientation.xfunc(that, d[that.orientation.abscissa]);
-                })
-                .y(function (d) {
-                    return d[that.orientation.ordinate];
+            this.line = d3.svg.diagonal()
+                .projection(function (d) {
+                    return [that.orientation.xfunc(that, d[that.orientation.abscissa]), d[that.orientation.ordinate]];
                 });
 
             this.svg = d3.select(this.element.get(0))
@@ -271,39 +267,21 @@
                 .append("g")
                 .classed("node", true)
                 .attr("transform", function () {
-                    return "translate(" + source.y0 + "," + source.x0 + ")";
+                    return "translate(" + that.orientation.xfunc(that, source[that.orientation.abscissa + "0"]) + "," + source[that.orientation.ordinate + "0"] + ")";
                 })
                 .on("dblclick", click);
 
             nodeEnter.append("circle")
                 .attr("r", 1e-6)
-                .style("stroke", "none")
-                .style("opacity", function (d) {
-                    return d._children ? 1 : 0;
-                })
-                .style("fill", function (d) {
-                    return d._children ? "lightsteelblue" : "#fff";
-                })
+                .classed("node", true)
                 .on("mouseenter", function () {
-                    var me = d3.select(this);
-                    this.saved_opacity = me.style("opacity");
-                    this.saved_fill = me.style("fill");
-                    me.style("opacity", 1)
-                        .style("fill", "black");
+                    d3.select(this)
+                        .classed("hovering", true);
                 })
                 .on("mouseleave", function () {
-                    if (this.saved_opacity) {
-                        d3.select(this)
-                            .style("opacity", this.saved_opacity);
-                        this.saved_opacity = undefined;
-                    }
-                    if (this.saved_fill) {
-                        d3.select(this)
-                            .style("fill", this.saved_fill);
-                        this.saved_fill = undefined;
-                    }
+                    d3.select(this)
+                        .classed("hovering", false);
                 });
-
 
             nodeEnter.append("text")
                 .attr("x", 10)
@@ -322,12 +300,6 @@
 
             nodeUpdate.select("circle")
                 .attr("r", this.options.nodesize)
-                .style("opacity", function (d) {
-                    return d._children ? 1 : 0;
-                })
-                .style("fill", function (d) {
-                    return d._children ? "lightsteelblue" : "#fff";
-                });
 
             nodeUpdate.select("text")
                 .text(function (d) {
@@ -351,7 +323,7 @@
                 .transition()
                 .duration(this.options.duration)
                 .attr("transform", function () {
-                    return "translate(" + source.y + "," + source.x + ")";
+                    return "translate(" + that.orientation.xfunc(that, source[that.orientation.abscissa]) + "," + source[that.orientation.ordinate] + ")";
                 })
                 .remove();
 
@@ -376,15 +348,14 @@
                 .style("fill", "none")
                 .attr("d", function () {
                     var o = {x: source.x0, y: source.y0};
-                    //return diagonal({source: o, target: o});
-                    return that.line([o, o]);
+                    return that.line({source: o, target: o});
                 });
 
             // Transition links to their new position.
             link.transition()
                 .duration(this.options.duration)
                 .attr("d", function (d) {
-                    return that.line([d.source, d.target]);
+                    return that.line({source: d.source, target: d.target});
                 });
 
             // Transition exiting nodes to the parent's new position.
@@ -393,7 +364,7 @@
                 .duration(this.options.duration)
                 .attr("d", function () {
                     var o = {x: source.x, y: source.y};
-                    return that.line([o, o]);
+                    return that.line({source: o, target: o});
                 })
                 .remove();
 
