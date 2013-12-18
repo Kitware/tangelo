@@ -60,7 +60,10 @@
                     heightvar: "width",
                     widthvar: "height",
                     xfunc: function (that, v) {
-                        return that.width - v;
+                        // This function flips a vertical tree about its
+                        // midline.
+                        var center = (that.xminmax[0] + that.xminmax[1]) / 2;
+                        return 2 * center - v;
                     }
                 };
             } else if (this.options.orientation !== "horizontal") {
@@ -164,6 +167,26 @@
                 }
             }
             setPosition(this.options.root, 0);
+
+            // Compute the leftmost and rightmost positions in the tree.
+            function minmax(node) {
+                var leftmost,
+                    rightmost,
+                    p;
+
+                leftmost = node;
+                while (leftmost.children && leftmost.children[0]) {
+                    leftmost = leftmost.children[0];
+                }
+
+                rightmost = node;
+                while (rightmost.children && rightmost.children[1]) {
+                    rightmost = rightmost.children[1];
+                }
+
+                return [leftmost.x, rightmost.x];
+            }
+            this.xminmax = minmax(this.options.root);
 
             // Normalize Y to fill space
             maxY = d3.extent(nodes, function (d) {
