@@ -50,8 +50,8 @@
             }
         },
 
-        _lineStyle: function (line, s, t) {
-            return line({
+        _lineStyle: function (s, t) {
+            return this.line({
                 source: s,
                 target: t
             });
@@ -100,8 +100,8 @@
                         return d[that.orientation.ordinate];
                     });
 
-                this._lineStyle = function (line, s, t) {
-                    return line([s, t]);
+                this._lineStyle = function (s, t) {
+                    return that.line([s, t]);
                 };
             } else {
                 throw "illegal option for 'lineStyle': " + this.options.lineStyle;
@@ -405,14 +405,14 @@
                 .style("fill", "none")
                 .attr("d", function () {
                     var o = {x: source.x0, y: source.y0};
-                    return that._lineStyle(that.line, o, o);
+                    return that._lineStyle(o, o);
                 });
 
             // Transition links to their new position.
             link.transition()
                 .duration(this.options.duration)
                 .attr("d", function (d) {
-                    return that._lineStyle(that.line, d.source, d.target);
+                    return that._lineStyle(d.source, d.target);
                 });
 
             // Transition exiting nodes to the parent's new position.
@@ -421,7 +421,7 @@
                 .duration(this.options.duration)
                 .attr("d", function () {
                     var o = {x: source.x, y: source.y};
-                    return that._lineStyle(that.line, o, o);
+                    return that._lineStyle(o, o);
                 })
                 .remove();
 
