@@ -204,9 +204,15 @@
                     if (d.children) {
                         d._children = d.children;
                         d.children = null;
+                        d3.select(this)
+                            .select("circle")
+                            .classed("children-hidden", true);
                     } else {
                         d.children = d._children;
                         d._children = null;
+                        d3.select(this)
+                            .select("circle")
+                            .classed("children-hidden", false);
                     }
                 } else if (that.options.mode === "focus") {
                     that.options.root = d;
