@@ -305,7 +305,7 @@
                 });
 
             nodeUpdate.select("circle")
-                .attr("r", this.options.nodesize)
+                .attr("r", this.options.nodesize);
 
             nodeUpdate.select("text")
                 .text(function (d) {
