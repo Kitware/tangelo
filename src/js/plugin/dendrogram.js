@@ -354,11 +354,6 @@
                 .classed("node", true)
                 .attr("transform", function () {
                     return "translate(" + that.orientation.xfunc(that, source[that.orientation.abscissa + "0"]) + "," + source[that.orientation.ordinate + "0"] + ")";
-                })
-                .on("click.tangelo", function () {
-                    if (d3.event.ctrlKey) {
-                        that._actions.collapse.apply(this, arguments);
-                    }
                 });
 
             nodeEnter.append("circle")
@@ -470,10 +465,16 @@
         },
 
         on: function (evttype, callback) {
-            d3.select(this.svg)
-                .selectAll("g.node")
+            var that = this;
+
+            that.svg.selectAll("g.node")
                 .selectAll("circle")
-                .on(evttype, callback);
+                .on(evttype, function (d, i) {
+                    // Call the callback with the dendrogram as the "this"
+                    // context, passing in the datum and index, but also the
+                    // current DOM element expclitly as well.
+                    callback.call(that, d, i, this);
+                });
         },
 
         download: function (format) {
