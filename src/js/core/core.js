@@ -67,7 +67,7 @@ var tangelo = {};
         if (!spec) {
             return function () { return defaultValue; };
         }
-        if (spec.value) {
+        if (spec.value !== undefined) {
             return function () { return spec.value; };
         }
         if (spec.field) {

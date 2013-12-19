@@ -31,13 +31,29 @@
             textsize: 10,
             orientation: "horizontal",
             lineStyle: "curved",
+            nodeColor: null,
+            nodeOpacity: null,
+            hoverNodeColor: null,
+            hoverNodeOpacity: null,
+            selectedNodeColor: null,
+            selectedNodeOpacity: null,
+            collapsedNodeColor: null,
+            collapsedNodeOpacity: null,
             initialize: null
         },
 
         _missing: {
             label: "",
             distance: 1,
-            id: 0
+            id: 0,
+            nodeColor: "lightsteelblue",
+            nodeOpacity: 1,
+            hoverNodeColor: "green",
+            hoverNodeOpacity: 1,
+            selectedNodeColor: "firebrick",
+            selectedNodeOpacity: 1,
+            collapsedNodeColor: "blue",
+            collapsedNodeOpacity: 1,
         },
 
         orientation: {
@@ -118,7 +134,7 @@
         },
 
         _setOption: function (key, value) {
-            if (key === "label" || key === "distance" || key === "id") {
+            if (this._missing.hasOwnProperty(key)) {
                 this._super(key, tangelo.accessor(value, this._missing[key]));
             } else {
                 this._super(key, value);
@@ -255,14 +271,20 @@
                     if (d.children) {
                         d._children = d.children;
                         d.children = null;
+                        d.collapsed = true;
                         d3.select(this)
                             .select("circle")
+                            .style("fill", that.options.collapsedNodeColor)
+                            .style("opacity", that.options.collapsedNodeOpacity)
                             .classed("children-hidden", true);
                     } else {
                         d.children = d._children;
                         d._children = null;
+                        d.collapsed = false;
                         d3.select(this)
                             .select("circle")
+                            .style("fill", that.options.nodeColor)
+                            .style("opacity", that.options.nodeOpacity)
                             .classed("children-hidden", false);
                     }
                 } else if (that.options.mode === "focus") {
@@ -331,13 +353,19 @@
             nodeEnter.append("circle")
                 .attr("r", 1e-6)
                 .classed("node", true)
-                .on("mouseenter", function () {
+                .style("fill", this.options.nodeColor)
+                .style("opacity", this.options.nodeOpacity)
+                .style("stroke", "black")
+                .style("stroke-width", "1px")
+                .on("mouseenter.tangelo", function () {
                     d3.select(this)
-                        .classed("hovering", true);
+                        .style("fill", that.options.hoverNodeColor)
+                        .style("opacity", that.options.hoverNodeOpacity);
                 })
-                .on("mouseleave", function () {
+                .on("mouseleave.tangelo", function (d) {
                     d3.select(this)
-                        .classed("hovering", false);
+                        .style("fill", d.collapsed ? that.options.collapsedNodeColor : that.options.nodeColor)
+                        .style("opacity", d.collapsed ? that.options.collapsedNodeOpacity : that.options.nodeOpacity);
                 });
 
             nodeEnter.append("text")
