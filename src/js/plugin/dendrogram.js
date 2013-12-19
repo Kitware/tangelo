@@ -39,7 +39,7 @@
             selectedNodeOpacity: null,
             collapsedNodeColor: null,
             collapsedNodeOpacity: null,
-            initialize: null
+            newNodes: null
         },
 
         _missing: {
@@ -453,8 +453,8 @@
                 d.y0 = d.y;
             });
 
-            if (this.options.initialize) {
-                this.options.initialize(nodeEnter, node, nodeExit);
+            if (this.options.newNodes) {
+                nodeEnter.each(this.options.newNodes);
             }
         },
 
