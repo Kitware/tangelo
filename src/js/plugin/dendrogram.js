@@ -56,6 +56,14 @@
             collapsedNodeOpacity: 1,
         },
 
+        _actions: {
+            collapse: null
+        },
+
+        action: function (which) {
+            return this._actions[which];
+        },
+
         orientation: {
             abscissa: "y",
             ordinate: "x",
@@ -76,6 +84,36 @@
         _create: function () {
             var options,
                 that = this;
+
+            this._actions.collapse = function (d) {
+                if (that.options.mode === "hide") {
+                    if (d.children) {
+                        d._children = d.children;
+                        d.children = null;
+                        d.collapsed = true;
+                        d3.select(this)
+                            .select("circle")
+                            .style("fill", that.options.collapsedNodeColor)
+                            .style("opacity", that.options.collapsedNodeOpacity)
+                            .classed("children-hidden", true);
+                    } else {
+                        d.children = d._children;
+                        d._children = null;
+                        d.collapsed = false;
+                        d3.select(this)
+                            .select("circle")
+                            .style("fill", that.options.nodeColor)
+                            .style("opacity", that.options.nodeOpacity)
+                            .classed("children-hidden", false);
+                    }
+                } else if (that.options.mode === "focus") {
+                    that.options.root = d;
+                } else if (that.options.mode === "label") {
+                    d.showLabel = d.showLabel ? false : true;
+                }
+                //that._update({source: d});
+                that._setOptions({source: d});
+            };
 
             if (this.options.orientation === "vertical") {
                 this.orientation = {
@@ -265,37 +303,6 @@
                 links = filteredLinks;
             }
 
-            // Toggle children on click.
-            function click(d) {
-                if (that.options.mode === "hide") {
-                    if (d.children) {
-                        d._children = d.children;
-                        d.children = null;
-                        d.collapsed = true;
-                        d3.select(this)
-                            .select("circle")
-                            .style("fill", that.options.collapsedNodeColor)
-                            .style("opacity", that.options.collapsedNodeOpacity)
-                            .classed("children-hidden", true);
-                    } else {
-                        d.children = d._children;
-                        d._children = null;
-                        d.collapsed = false;
-                        d3.select(this)
-                            .select("circle")
-                            .style("fill", that.options.nodeColor)
-                            .style("opacity", that.options.nodeOpacity)
-                            .classed("children-hidden", false);
-                    }
-                } else if (that.options.mode === "focus") {
-                    that.options.root = d;
-                } else if (that.options.mode === "label") {
-                    d.showLabel = d.showLabel ? false : true;
-                }
-                //that._update({source: d});
-                that._setOptions({source: d});
-            }
-
             function firstChild(d) {
                 if (d.children) {
                     return firstChild(d.children[0]);
@@ -348,7 +355,11 @@
                 .attr("transform", function () {
                     return "translate(" + that.orientation.xfunc(that, source[that.orientation.abscissa + "0"]) + "," + source[that.orientation.ordinate + "0"] + ")";
                 })
-                .on("dblclick", click);
+                .on("click.tangelo", function () {
+                    if (d3.event.ctrlKey) {
+                        that._actions.collapse.apply(this, arguments);
+                    }
+                });
 
             nodeEnter.append("circle")
                 .attr("r", 1e-6)
@@ -456,6 +467,13 @@
             if (this.options.newNodes) {
                 nodeEnter.each(this.options.newNodes);
             }
+        },
+
+        on: function (evttype, callback) {
+            d3.select(this.svg)
+                .selectAll("g.node")
+                .selectAll("circle")
+                .on(evttype, callback);
         },
 
         download: function (format) {
