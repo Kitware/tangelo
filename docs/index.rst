@@ -66,7 +66,7 @@ Windows machines are "special". Take these steps to get things going.
 2. Install CMake_.
 3. Install Python_ 2.7 Windows X86-64 installer.
 4. Install pip, pymongo, twisted `Windows Python packages`_ ending in -amd64-py2.7.exe.
-4. Open the Git Bash shell and run the following: ::
+5. Open the Git Bash shell and run the following: ::
 
     git clone https://github.com/Kitware/tangelo.git
     cd tangelo
@@ -79,7 +79,7 @@ Windows machines are "special". Take these steps to get things going.
     /c/Python27/Scripts/pip install dist/Tangelo-[version].tar.gz
     /c/Python27/Scripts/tangelo start
 
-5. Visit your Tangelo instance at http://localhost:8000.
+6. Visit your Tangelo instance at http://localhost:8000.
 
 .. _CMake: http://www.cmake.org
 .. _VirtualBox: http://www.virtualbox.org
