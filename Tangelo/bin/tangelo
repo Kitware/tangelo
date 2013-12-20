@@ -236,7 +236,8 @@ def start():
         signal.signal(sig, shutdown)
 
     # Send SIGQUIT to an immediate, ungraceful shutdown instead.
-    signal.signal(signal.SIGQUIT, die)
+    if platform.system() != "Windows":
+        signal.signal(signal.SIGQUIT, die)
 
     # Install the "treat_url" tool, which performs redirections and analyzes the
     # request path to see what kind of resource is being requested, and the

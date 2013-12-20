@@ -77,11 +77,7 @@ copy_file(
 # Uglify and concatenate the library js files.
 #
 # Set up options to create an unminified file.
-if(WIN32)
-    set(concatenator type)
-else()
-    set(concatenator cat)
-endif()
+set(concatenator cat)
 set(output_operator ">")
 
 # Use UglifyJS to create a minified file, falling back on an unminified file if

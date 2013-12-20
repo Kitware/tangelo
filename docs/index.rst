@@ -44,7 +44,7 @@ Quick Start
 
 1. Install Git_.
 2. Install CMake_.
-3. Open a shell (or Git Bash shell) and run the following: ::
+3. Open a shell and run the following: ::
 
     git clone https://github.com/Kitware/tangelo.git
     cd tangelo
@@ -57,10 +57,36 @@ Quick Start
 
 4. Visit your Tangelo instance at http://localhost:8000.
 
+Quick Start for Windows
+=======================
+
+Windows machines are "special". Take these steps to get things going.
+
+1. Install Git_.
+2. Install CMake_.
+3. Install Python_ 2.7 Windows X86-64 installer.
+4. Install pip, pymongo, twisted `Windows Python packages`_ ending in -amd64-py2.7.exe.
+4. Open the Git Bash shell and run the following: ::
+
+    git clone https://github.com/Kitware/tangelo.git
+    cd tangelo
+    mkdir build
+    cd build
+    curl -OL https://github.com/martine/ninja/releases/download/v1.4.0/ninja-win.zip
+    unzip ninja-win.zip
+    cmake -G Ninja ..
+    ninja
+    /c/Python27/Scripts/pip install dist/Tangelo-[version].tar.gz
+    /c/Python27/Scripts/tangelo start
+
+5. Visit your Tangelo instance at http://localhost:8000.
+
 .. _CMake: http://www.cmake.org
 .. _VirtualBox: http://www.virtualbox.org
 .. _Vagrant: http://www.vagrantup.com
 .. _Git: http://gitscm.com
+.. _Python: http://www.python.org/download/releases/2.7/
+.. _Windows Python packages: http://www.lfd.uci.edu/~gohlke/pythonlibs/
 
 Using Tangelo
 =============
