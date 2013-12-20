@@ -16,8 +16,11 @@
             nodeColor: null,
             nodeSize: null,
             nodeLabel: null,
+            nodeOpacity: null,
             linkSource: null,
             linkTarget: null,
+            linkDistance: null,
+            linkOpacity: null,
             width: 1000,
             height: 1000,
             data: null
@@ -27,10 +30,13 @@
             nodeColor: "steelblue",
             nodeSize: 10,
             nodeLabel: undefined,
+            nodeOpacity: 1,
             linkSource: 0,
             linkTarget: 0,
+            linkDistance: 30,
+            linkOpacity: 1,
             width: 1000,
-            height: 1000,
+            height: 1000
         },
 
         _create: function () {
@@ -52,6 +58,7 @@
                 .attr("height", this.options.height);
 
             options = $.extend(true, {}, this.options);
+            options.data = this.options.data;
             delete options.disabled;
             delete options.create;
             this._setOptions(options);
@@ -82,6 +89,8 @@
                 node,
                 link;
 
+            this.force.linkDistance(this.options.linkDistance);
+
             this.options.data.links.forEach(function (d) {
                 d.source = that.options.linkSource(d);
                 d.target = that.options.linkTarget(d);
@@ -104,6 +113,7 @@
             link.enter()
                 .append("line")
                 .classed("link", true)
+                .style("opacity", this.options.linkOpacity)
                 .style("stroke", "black")
                 .style("stroke-width", 1);
 
@@ -116,17 +126,17 @@
                 .call(this.force.drag)
                 .append("title");
 
-            node.attr("r", function (d) {
+            node
+                .attr("r", function (d) {
                     return that.sizeScale(that.options.nodeSize(d));
                 })
                 .style("fill", function (d) {
                     return that.colorScale(that.options.nodeColor(d));
-                });
+                })
+                .style("opacity", this.options.nodeOpacity);
 
             node.selectAll("title")
-                .text(function (d) {
-                    return that.options.nodeLabel(d);
-                });
+                .text(this.options.nodeLabel);
 
             this.force.on("tick", function () {
                 link.attr("x1", function (d) { return d.source.x; })
