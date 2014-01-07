@@ -125,12 +125,13 @@ Tutorials
 
     building-an-app
 
-Other
-=====
+Information for Developers
+==========================
 
 .. toctree::
     coding-style-guide
     architecture
+    developing-visualizations
 
 Indices and tables
 ==================

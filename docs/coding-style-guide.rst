@@ -71,6 +71,11 @@ decremented indentation:
     }
     ^
 
+Naming
+~~~~~~
+
+Use ``camelCase`` for visualization, property, method, and local variable names.
+
 Curly brackets
 ~~~~~~~~~~~~~~
 

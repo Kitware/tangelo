@@ -126,6 +126,7 @@ if(${BUILD_DOCUMENTATION})
         ${CMAKE_SOURCE_DIR}/docs/basic-usage.rst
         ${CMAKE_SOURCE_DIR}/docs/building-an-app.rst
         ${CMAKE_SOURCE_DIR}/docs/coding-style-guide.rst
+        ${CMAKE_SOURCE_DIR}/docs/developing-visualizations.rst
         ${CMAKE_SOURCE_DIR}/docs/index.rst
         ${CMAKE_SOURCE_DIR}/docs/installation.rst
         ${CMAKE_SOURCE_DIR}/docs/integration.rst
