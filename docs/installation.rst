@@ -40,28 +40,26 @@ Run ``cmake`` or ``ccmake`` to configure, supplying the source code directory as
 its argument. ::
 
     cd build
-    ccmake ..
+    cmake ..
 
-``ccmake`` will present you with a curses-based configuration interface that
-will allow you to edit the configuration options (some operating systems
-provide ``ccmake`` and ``cmake`` in different packages - check your local
-documentation).  The following options can be set if you wish, but the default
-values should be fine as well:
-
-.. TODO: Update these CMake options
-
-* ``BUILD_TESTING`` - Generates a ``ctest`` suite for validating the JavaScript
-  code with ``jslint``, running unit tests, etc.
-* ``DEPLOY_TEST_SERVICES`` - Includes the "testing" web services in the deployed
-  server.
-* ``BUILD_DOCUMENTATION`` - Generates Tangelo documentation (the very document
-  you are reading!) during build.
-* ``MANGLE`` and ``MINIFY`` - Options to the JavaScript minifier: ``MANGLE``
-  replaces non-public variable names with shorter strings, while ``MINIFY``
-  removes all unnecessary whitespace, resulting in smaller code to transmit over
-  the network.
-* ``SERVER_HOSTNAME`` and ``SERVER_PORT`` - The name of the host that will run
-  the server, and the port number on which it will run.
+..  TODO: Verify these CMake options and uncomment
+    ``ccmake`` will present you with a curses-based configuration interface that
+    will allow you to edit the configuration options (some operating systems
+    provide ``ccmake`` and ``cmake`` in different packages - check your local
+    documentation).  The following options can be set if you wish, but the default
+    values should be fine as well:
+    * ``BUILD_TESTING`` - Generates a ``ctest`` suite for validating the JavaScript
+      code with ``jslint``, running unit tests, etc.
+    * ``DEPLOY_TEST_SERVICES`` - Includes the "testing" web services in the deployed
+      server.
+    * ``BUILD_DOCUMENTATION`` - Generates Tangelo documentation (the very document
+      you are reading!) during build.
+    * ``MANGLE`` and ``MINIFY`` - Options to the JavaScript minifier: ``MANGLE``
+      replaces non-public variable names with shorter strings, while ``MINIFY``
+      removes all unnecessary whitespace, resulting in smaller code to transmit over
+      the network.
+    * ``SERVER_HOSTNAME`` and ``SERVER_PORT`` - The name of the host that will run
+      the server, and the port number on which it will run.
 
 **4. Build the server**
 
@@ -70,7 +68,7 @@ Run the ``make`` command: ::
     make
 
 This will create a Python package ``Tangelo-[version].tar.gz`` in the
-``build\dist`` directory.
+``dist`` directory.
 
 **5. Install the package**
 
@@ -121,7 +119,7 @@ Download and install the latest version of `CMake
 Download and install `Python 2.7 <http://www.python.org/download/releases/2.7>`_. Use the
 link marked *Windows X86-64 MSI Installer*.
 
-**4. Install Python Packages**
+**4. Install Python packages**
 
 Download and install the `Windows Python packages <http://www.lfd.uci.edu/~gohlke/pythonlibs/>`_ for ``pip``, ``pymongo``, and ``twisted``.
 Choose the package links ending in ``amd64-py2.7.exe``.
@@ -138,7 +136,7 @@ containing the Tangelo sources.
 
 **6. Install Ninja**
 
-Create a build directory and move into it::
+Create a build directory::
 
     cd tangelo
     mkdir build
@@ -152,7 +150,7 @@ directory. You can do this all from the Git Bash shell::
     curl -OL https://github.com/martine/ninja/releases/download/v1.4.0/ninja-win.zip
     unzip ninja-win.zip
 
-**7. Configure and Build**
+**7. Configure and build**
 
 From the build directory, configure the Tangelo build using CMake::
 
