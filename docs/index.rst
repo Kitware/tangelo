@@ -32,7 +32,7 @@ rules for creating flexible and powerful web services.  This document describes
 all the pieces that fit together to make Tangelo work.
 
 Please visit the `Tangelo homepage`_ or the `GitHub repository`_ for more
-information.  Happy hacking!
+information.
 
 .. _CherryPy: http://www.cherrypy.org
 .. _Tangelo homepage: http://kitware.github.io/tangelo/
@@ -65,8 +65,9 @@ Windows machines are "special". Take these steps to get things going.
 1. Install Git_.
 2. Install CMake_.
 3. Install Python_ 2.7 Windows X86-64 installer.
-4. Install pip, pymongo, twisted `Windows Python packages`_ ending in -amd64-py2.7.exe.
-5. Open the Git Bash shell and run the following: ::
+4. Install `Windows Python packages`_ for ``pip``, ``pymongo``, and ``twisted``.
+   Choose the package links ending in ``amd64-py2.7.exe``.
+5. Open the Git Bash shell and run the following::
 
     git clone https://github.com/Kitware/tangelo.git
     cd tangelo
@@ -129,6 +130,8 @@ Information for Developers
 ==========================
 
 .. toctree::
+    :maxdepth: 2
+
     coding-style-guide
     architecture
     developing-visualizations
