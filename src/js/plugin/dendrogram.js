@@ -28,26 +28,138 @@
             data: null,
             mode: "hide",
             nodesize: 7.5,
-            textsize: 10
+            textsize: 10,
+            orientation: "horizontal",
+            lineStyle: "curved",
+            nodeColor: null,
+            nodeOpacity: null,
+            hoverNodeColor: null,
+            hoverNodeOpacity: null,
+            selectedNodeColor: null,
+            selectedNodeOpacity: null,
+            collapsedNodeColor: null,
+            collapsedNodeOpacity: null,
+            newNodes: null
         },
 
         _missing: {
             label: "",
             distance: 1,
-            id: 0
+            id: 0,
+            nodeColor: "lightsteelblue",
+            nodeOpacity: 1,
+            hoverNodeColor: "green",
+            hoverNodeOpacity: 1,
+            selectedNodeColor: "firebrick",
+            selectedNodeOpacity: 1,
+            collapsedNodeColor: "blue",
+            collapsedNodeOpacity: 1,
+        },
+
+        _actions: {
+            collapse: null
+        },
+
+        action: function (which) {
+            return this._actions[which];
+        },
+
+        orientation: {
+            abscissa: "y",
+            ordinate: "x",
+            heightvar: "height",
+            widthvar: "width",
+            xfunc: function (_, v) {
+                return v;
+            }
+        },
+
+        _lineStyle: function (s, t) {
+            return this.line({
+                source: s,
+                target: t
+            });
         },
 
         _create: function () {
-            var options;
+            var options,
+                that = this;
+
+            this._actions.collapse = function (d) {
+                if (that.options.mode === "hide") {
+                    if (d.children) {
+                        d._children = d.children;
+                        d.children = null;
+                        d.collapsed = true;
+                        d3.select(this)
+                            .select("circle")
+                            .style("fill", that.options.collapsedNodeColor)
+                            .style("opacity", that.options.collapsedNodeOpacity)
+                            .classed("children-hidden", true);
+                    } else {
+                        d.children = d._children;
+                        d._children = null;
+                        d.collapsed = false;
+                        d3.select(this)
+                            .select("circle")
+                            .style("fill", that.options.nodeColor)
+                            .style("opacity", that.options.nodeOpacity)
+                            .classed("children-hidden", false);
+                    }
+                } else if (that.options.mode === "focus") {
+                    that.options.root = d;
+                } else if (that.options.mode === "label") {
+                    d.showLabel = d.showLabel ? false : true;
+                }
+                //that._update({source: d});
+                that._setOptions({source: d});
+            };
+
+            if (this.options.orientation === "vertical") {
+                this.orientation = {
+                    abscissa: "x",
+                    ordinate: "y",
+                    heightvar: "width",
+                    widthvar: "height",
+                    xfunc: function (that, v) {
+                        // This function flips a vertical tree about its
+                        // midline.
+                        var center = (that.xminmax[0] + that.xminmax[1]) / 2;
+                        return 2 * center - v;
+                    }
+                };
+            } else if (this.options.orientation !== "horizontal") {
+                throw "illegal option for 'orientation': " + this.options.orientation;
+            }
 
             this.tree = d3.layout.partition()
                 .value(function () { return 1; })
                 .sort(d3.ascending);
 
-            this.line = d3.svg.line()
-                .interpolate("step-before")
-                .x(function (d) { return d.y; })
-                .y(function (d) { return d.x; });
+            // Create a d3 line drawer, including an abstracted method that can
+            // call the specific line function the right way.
+            this.line = null;
+            if (this.options.lineStyle === "curved") {
+                this.line = d3.svg.diagonal()
+                    .projection(function (d) {
+                        return [that.orientation.xfunc(that, d[that.orientation.abscissa]), d[that.orientation.ordinate]];
+                    });
+            } else if (this.options.lineStyle === "axisAligned") {
+                this.line = d3.svg.line()
+                    .interpolate("step-before")
+                    .x(function (d) {
+                        return that.orientation.xfunc(that, d[that.orientation.abscissa]);
+                    })
+                    .y(function (d) {
+                        return d[that.orientation.ordinate];
+                    });
+
+                this._lineStyle = function (s, t) {
+                    return that.line([s, t]);
+                };
+            } else {
+                throw "illegal option for 'lineStyle': " + this.options.lineStyle;
+            }
 
             this.svg = d3.select(this.element.get(0))
                 .append("svg")
@@ -60,7 +172,7 @@
         },
 
         _setOption: function (key, value) {
-            if (key === "label" || key === "distance" || key === "id") {
+            if (this._missing.hasOwnProperty(key)) {
                 this._super(key, tangelo.accessor(value, this._missing[key]));
             } else {
                 this._super(key, value);
@@ -93,12 +205,13 @@
 
             d3.select(this.element.get(0))
                 .select("svg")
-                .attr("width", this.width + this.options.margin.right + this.options.margin.left)
-                .attr("height", this.height + this.options.margin.top + this.options.margin.bottom)
+                .attr("width", this[this.orientation.widthvar] + this.options.margin.right + this.options.margin.left)
+                .attr("height", this[this.orientation.heightvar] + this.options.margin.top + this.options.margin.bottom)
                 .select("g")
                 .attr("transform", "translate(" + this.options.margin.left + "," + this.options.margin.top + ")");
 
-            this.options.root.x0 = this.height / 2;
+            //this.options.root.x0 = this.height / 2;
+            this.options.root.x0 = this[this.orientation.heightvar] / 2;
             this.options.root.y0 = 0;
 
             // Compute the new tree layout.
@@ -137,6 +250,26 @@
             }
             setPosition(this.options.root, 0);
 
+            // Compute the leftmost and rightmost positions in the tree.
+            function minmax(node) {
+                var leftmost,
+                    rightmost,
+                    p;
+
+                leftmost = node;
+                while (leftmost.children && leftmost.children[0]) {
+                    leftmost = leftmost.children[0];
+                }
+
+                rightmost = node;
+                while (rightmost.children && rightmost.children[1]) {
+                    rightmost = rightmost.children[1];
+                }
+
+                return [leftmost.x, rightmost.x];
+            }
+            this.xminmax = minmax(this.options.root);
+
             // Normalize Y to fill space
             maxY = d3.extent(nodes, function (d) {
                 return d.y;
@@ -168,25 +301,6 @@
                 });
                 nodes = filteredNodes;
                 links = filteredLinks;
-            }
-
-            // Toggle children on click.
-            function click(d) {
-                if (that.options.mode === "hide") {
-                    if (d.children) {
-                        d._children = d.children;
-                        d.children = null;
-                    } else {
-                        d.children = d._children;
-                        d._children = null;
-                    }
-                } else if (that.options.mode === "focus") {
-                    that.options.root = d;
-                } else if (that.options.mode === "label") {
-                    d.showLabel = d.showLabel ? false : true;
-                }
-                //that._update({source: d});
-                that._setOptions({source: d});
             }
 
             function firstChild(d) {
@@ -239,18 +353,25 @@
                 .append("g")
                 .classed("node", true)
                 .attr("transform", function () {
-                    return "translate(" + source.y0 + "," + source.x0 + ")";
-                })
-                .on("click", click);
+                    return "translate(" + that.orientation.xfunc(that, source[that.orientation.abscissa + "0"]) + "," + source[that.orientation.ordinate + "0"] + ")";
+                });
 
             nodeEnter.append("circle")
                 .attr("r", 1e-6)
-                .style("stroke", "none")
-                .style("opacity", function (d) {
-                    return d._children ? 1 : 0;
+                .classed("node", true)
+                .style("fill", this.options.nodeColor)
+                .style("opacity", this.options.nodeOpacity)
+                .style("stroke", "black")
+                .style("stroke-width", "1px")
+                .on("mouseenter.tangelo", function () {
+                    d3.select(this)
+                        .style("fill", that.options.hoverNodeColor)
+                        .style("opacity", that.options.hoverNodeOpacity);
                 })
-                .style("fill", function (d) {
-                    return d._children ? "lightsteelblue" : "#fff";
+                .on("mouseleave.tangelo", function (d) {
+                    d3.select(this)
+                        .style("fill", d.collapsed ? that.options.collapsedNodeColor : that.options.nodeColor)
+                        .style("opacity", d.collapsed ? that.options.collapsedNodeOpacity : that.options.nodeOpacity);
                 });
 
             nodeEnter.append("text")
@@ -265,27 +386,15 @@
             nodeUpdate = node.transition()
                 .duration(this.options.duration)
                 .attr("transform", function (d) {
-                    return "translate(" + d.y + "," + d.x + ")";
+                    return "translate(" + that.orientation.xfunc(that, d[that.orientation.abscissa]) + "," + d[that.orientation.ordinate] + ")";
                 });
 
             nodeUpdate.select("circle")
-                .attr("r", this.options.nodesize)
-                .style("opacity", function (d) {
-                    return d._children ? 1 : 0;
-                })
-                .style("fill", function (d) {
-                    return d._children ? "lightsteelblue" : "#fff";
-                });
+                .attr("r", this.options.nodesize);
 
             nodeUpdate.select("text")
                 .text(function (d) {
                     var label = that.options.label(d);
-                    if (d._children || (d.children && d.showLabel)) {
-                        if (label === "") {
-                            label = that.options.label(firstChild(d)) + " ... " + that.options.label(lastChild(d));
-                        }
-                        return label + " (" + leafCount(d) + ")";
-                    }
                     if (visibleLeaves < that.height / (0.8 * that.options.textsize)) {
                         return label;
                     }
@@ -299,7 +408,7 @@
                 .transition()
                 .duration(this.options.duration)
                 .attr("transform", function () {
-                    return "translate(" + source.y + "," + source.x + ")";
+                    return "translate(" + that.orientation.xfunc(that, source[that.orientation.abscissa]) + "," + source[that.orientation.ordinate] + ")";
                 })
                 .remove();
 
@@ -324,15 +433,14 @@
                 .style("fill", "none")
                 .attr("d", function () {
                     var o = {x: source.x0, y: source.y0};
-                    //return diagonal({source: o, target: o});
-                    return that.line([o, o]);
+                    return that._lineStyle(o, o);
                 });
 
             // Transition links to their new position.
             link.transition()
                 .duration(this.options.duration)
                 .attr("d", function (d) {
-                    return that.line([d.source, d.target]);
+                    return that._lineStyle(d.source, d.target);
                 });
 
             // Transition exiting nodes to the parent's new position.
@@ -341,7 +449,7 @@
                 .duration(this.options.duration)
                 .attr("d", function () {
                     var o = {x: source.x, y: source.y};
-                    return that.line([o, o]);
+                    return that._lineStyle(o, o);
                 })
                 .remove();
 
@@ -350,6 +458,23 @@
                 d.x0 = d.x;
                 d.y0 = d.y;
             });
+
+            if (this.options.newNodes) {
+                nodeEnter.each(this.options.newNodes);
+            }
+        },
+
+        on: function (evttype, callback) {
+            var that = this;
+
+            that.svg.selectAll("g.node")
+                .selectAll("circle")
+                .on(evttype, function (d, i) {
+                    // Call the callback with the dendrogram as the "this"
+                    // context, passing in the datum and index, but also the
+                    // current DOM element expclitly as well.
+                    callback.call(that, d, i, this);
+                });
         },
 
         download: function (format) {
