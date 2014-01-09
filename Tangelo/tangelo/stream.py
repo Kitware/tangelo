@@ -51,6 +51,10 @@ class TangeloStream(object):
                 del self.streams[key]
                 result["data"] = "OK"
 
+        else:
+            # All other methods are illegal.
+            raise cherrypy.HTTPError(405)
+
         # JSON-serialize the result and return it.
         try:
             return json.dumps(result)
