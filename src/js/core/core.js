@@ -62,6 +62,20 @@ var tangelo = {};
         return Object.prototype.toString.call(value) === '[object String]';
     };
 
+    tangelo.isFunction = function (value) {
+        return Object.prototype.toString.call(value) === '[object Function]';
+    };
+
+    tangelo.absoluteUrl = function (path) {
+        if (path.length > 0) {
+            if (path[0] !== "/" && path[0] !== "~") {
+                path = window.location.pathname + "/" + path;
+            }
+        }
+
+        return path;
+    };
+
     tangelo.accessor = function (spec, defaultValue) {
         var parts;
         if (!spec) {
