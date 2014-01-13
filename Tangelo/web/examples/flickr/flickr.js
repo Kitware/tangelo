@@ -109,7 +109,7 @@ flickr.getMongoRange = function (host, db, coll, field, callback) {
                 max = null;
 
                 if (response.error) {
-                    throw "[flickr.getMongoRange()] error: could not retrieve max value from " + host + ":/" + db + "/" + coll + ":" + field;
+                    tangelo.fatalError("flickr.getMongoRange()", "error: could not retrieve max value from " + host + ":/" + db + "/" + coll + ":" + field);
                 }
             } else {
                 max = response.result.data[0][field];
@@ -131,7 +131,7 @@ flickr.getMongoRange = function (host, db, coll, field, callback) {
                         min = null;
 
                         if (response.error) {
-                            throw "[flickr.getMongoRange()] error: could not retrieve min value from " + host + ":/" + db + "/" + coll + ":" + field;
+                            tangelo.fatalError("flickr.getMongoRange()", "could not retrieve min value from " + host + ":/" + db + "/" + coll + ":" + field);
                         }
                     } else {
                         min = response.result.data[0][field];
@@ -787,24 +787,26 @@ window.onload = function () {
                 unzoomer: function (slider) {
                     var bounds;
 
-                    // Make sure this function is not being called when there are no
-                    // entries in the stack.
-                    if (stack.length === 0) {
-                        throw "Logic error: Unzoom button was clicked even though there is nothing to unzoom to.";
-                    }
+                    if (!d3.select("#unzoom").classed("disabled")) {
+                        // Make sure this function is not being called when
+                        // there are no entries in the stack.
+                        if (stack.length === 0) {
+                            tangelo.fatalError("unzoom button was clicked even though there is nothing to unzoom to.");
+                        }
 
-                    // Pop a bounds value from the stack, and set it as the bounds
-                    // for the slider.
-                    bounds = stack.pop();
-                    //slider.setMin(bounds[0]);
-                    slider.slider("option", "min", bounds[0]);
-                    //slider.setMax(bounds[1]);
-                    slider.slider("option", "max", bounds[1]);
+                        // Pop a bounds value from the stack, and set it as the bounds
+                        // for the slider.
+                        bounds = stack.pop();
+                        //slider.setMin(bounds[0]);
+                        slider.slider("option", "min", bounds[0]);
+                        //slider.setMax(bounds[1]);
+                        slider.slider("option", "max", bounds[1]);
 
-                    // If the stack now contains no entries, disable the unzoom
-                    // button.
-                    if (stack.length === 0) {
-                        unzoom.classed("disabled", true);
+                        // If the stack now contains no entries, disable the unzoom
+                        // button.
+                        if (stack.length === 0) {
+                            unzoom.classed("disabled", true);
+                        }
                     }
                 }
             };

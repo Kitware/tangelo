@@ -1,6 +1,6 @@
 /*jslint browser: true */
 
-/*globals d3, vtkWeb, $ */
+/*globals d3, vtkWeb, $, tangelo */
 
 var app = {};
 app.key = null;
@@ -48,7 +48,7 @@ function startProcess(pathUrl, name) {
         var connection;
 
         if (resp.status !== "complete") {
-            throw "could not start vtkweb_cone.py: " + resp.reason;
+            tangelo.fatalError("could not start vtkweb_cone.py: " + resp.reason);
         }
 
         // Save the application key so it can be shut down later.
@@ -74,7 +74,7 @@ function startProcess(pathUrl, name) {
                 }
             }).trigger("resize");
         }, function (code, reason) {
-            throw reason;
+            tangelo.fatalError("could not connect to VTKWeb server: " + reason);
         });
     });
 }

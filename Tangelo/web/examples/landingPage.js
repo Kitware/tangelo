@@ -46,7 +46,7 @@
 
             if (apps !== undefined) {
                 if (!tangelo.allDefined(appLeftSelector, appRightSelector)) {
-                    throw "Required config argument property appLeftSelector or appRightSelector missing!";
+                    tangelo.fatalError("landingPage", "required config argument property 'appLeftSelector' or 'appRightSelector' missing");
                 }
 
                 // Grab a reference to each of the two index columns.
@@ -71,7 +71,7 @@
 
             if (external !== undefined) {
                 if (!tangelo.allDefined(extLeftSelector, extRightSelector)) {
-                    throw "Required config argument property extLeftSelector or extRightSelector missing!";
+                    tangelo.fatalError("landingPage", "required config argument property 'extLeftSelector' or 'extRightSelector' missing!";
                 }
 
                 // List out the external links in the two columns, as above.

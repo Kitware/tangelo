@@ -11,6 +11,15 @@ var tangelo = {};
         return "0.2.0";
     };
 
+    tangelo.fatalError = function (module, msg) {
+        if (msg === undefined) {
+            msg = module;
+            throw new Error(msg);
+        }
+
+        throw new Error("[" + module + "] " + msg);
+    };
+
     // A function that generates an error-generating function, to be used for
     // missing dependencies (Google Maps API, JQuery UI, etc.).
     tangelo.unavailable = function (cfg) {
@@ -36,7 +45,7 @@ var tangelo = {};
         }
 
         return function () {
-            throw "JavaScript include error: " + plugin + " requires " + required;
+            tangelo.fatalError("JavaScript include error: " + plugin + " requires " + required);
         };
     };
 
@@ -141,7 +150,7 @@ var tangelo = {};
         // Check for: blank argument, too long argument, non-version-number
         // argument.
         if (reqv.length === 0 || reqv.length > 3 || hasNaN(reqv)) {
-            throw "[tangelo.requireCompatibleVersion()] Illegal argument '" + reqvstr +  "'";
+            tangelo.fatalError("tangelo.requireCompatibleVersion()", "illegal argument '" + reqvstr +  "'");
         }
 
         // Fill in any missing trailing values (i.e., "1.0" -> "1.0.0").
