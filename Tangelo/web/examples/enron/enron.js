@@ -58,7 +58,7 @@ function updateGraph() {
     };
 
     $.ajax({
-        url: "service/emailers/" + enron.host + "/xdata/enron",
+        url: "emailers/" + enron.host + "/xdata/enron",
         data: data,
         dataType: "json",
         success: function (resp) {
