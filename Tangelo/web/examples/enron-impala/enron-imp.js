@@ -69,7 +69,7 @@ function updateGraph() {
     };
 
     $.ajax({
-        url: "service/emailers-impala/xdata/enron",
+        url: "emailers-impala/xdata/enron",
         data: data,
         dataType: "json",
         success: function (resp) {

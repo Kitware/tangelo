@@ -58,7 +58,7 @@ $(function () {
                 next.month = 1;
             }
             maxDate = next.year + "-" + numFormat(next.month) + "-01";
-            url = "service/charitynet/" + host + "/xdata/transactions?datemin=" + minDate + "&datemax=" + maxDate;
+            url = "charitynet/" + host + "/xdata/transactions?datemin=" + minDate + "&datemax=" + maxDate;
             if (charity !== null) {
                 url += "&charity=" + charity[0];
             }
@@ -144,7 +144,7 @@ $(function () {
         d3.select("#charity").on("change", function () {
             var url;
             charity = data.charities[this.selectedIndex];
-            url = "service/charitynet/" + host + "/xdata/transactions?by=month&charity=" + charity[0];
+            url = "charitynet/" + host + "/xdata/transactions?by=month&charity=" + charity[0];
             d3.json(url, function (error, months) {
                 console.log(months);
                 charityMaxMonth = d3.max(months, function (d) { return d[1]; }) / 100;
@@ -198,8 +198,8 @@ $(function () {
 
         d3.json("us-counties.json", function (error, counties) {
             d3.json("us-states.json", function (error, states) {
-                d3.json("service/charitynet/" + host + "/xdata/population", function (error, population) {
-                    d3.json("service/charitynet/" + host + "/xdata/charities", function (error, charities) {
+                d3.json("charitynet/" + host + "/xdata/population", function (error, population) {
+                    d3.json("charitynet/" + host + "/xdata/charities", function (error, charities) {
                         var i, d, data = {};
 
                         // Generate data object

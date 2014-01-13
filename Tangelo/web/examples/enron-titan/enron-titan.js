@@ -59,7 +59,7 @@ function updateGraph() {
     };
 
     $.ajax({
-        url: "service/emailers-titan/" + enron.host + "/8182/enron",
+        url: "emailers-titan/" + enron.host + "/8182/enron",
         data: data,
         dataType: "json",
         success: function (resp) {
