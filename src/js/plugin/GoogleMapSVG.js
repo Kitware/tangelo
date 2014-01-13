@@ -134,7 +134,7 @@
         } else if (how === "always") {
             attacher = google.maps.event.addListener;
         } else {
-            throw "illegal value for 'once'";
+            tangelo.fatalError("GoogleMapSVG.attachListener()", "illegal value for argument 'how'");
         }
 
         attacher(this.map, eventType, function () {

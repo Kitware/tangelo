@@ -646,7 +646,7 @@ window.onload = function () {
                     var fixup;
 
                     if (nodecount_threshold === undefined) {
-                        throw "recompute must be called with a threshold!";
+                        tangelo.fatalError("ner", "recompute() must be called with a threshold";
                     }
 
                     // Copy the thresholded nodes over to the local array, and

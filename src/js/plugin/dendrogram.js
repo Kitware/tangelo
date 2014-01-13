@@ -129,7 +129,7 @@
                     }
                 };
             } else if (this.options.orientation !== "horizontal") {
-                throw "illegal option for 'orientation': " + this.options.orientation;
+                tangelo.fatalError("$.dendrogram()", "illegal option for 'orientation': " + this.options.orientation);
             }
 
             this.tree = d3.layout.partition()
@@ -158,7 +158,7 @@
                     return that.line([s, t]);
                 };
             } else {
-                throw "illegal option for 'lineStyle': " + this.options.lineStyle;
+                tangelo.fatalError("$.dendrogram()", "illegal option for 'lineStyle': " + this.options.lineStyle);
             }
 
             this.svg = d3.select(this.element.get(0))

@@ -58,7 +58,7 @@
 
                 state = 'uncollapsed';
             } else {
-                throw "Illegal state: " + state;
+                tangelo.fatalError("drawerToggle()", "illegal state: " + state);
             }
         };
     }
