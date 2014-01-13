@@ -1,0 +1,70 @@
+/*jslint browser: true */
+
+$(function () {
+    "use strict";
+
+    var primes_key,
+        values = [];
+
+    tangelo.startStream("primes", function (primes_key) {
+        var offset = 0;
+
+        function totalWidth(el) {
+            return $(el).width() + +$(el).css("marginLeft").slice(0,-2) + +$(el).css("marginRight").slice(0,-2);
+        }
+
+        tangelo.runStream(primes_key, function (results) {
+            var sel,
+                shift;
+
+            values.push(results.data);
+            if (values.length > 5) {
+                values = values.slice(1);
+            }
+
+            sel = d3.select("#primes")
+                .selectAll("div")
+                .data(values, function (d) {
+                    return d;
+                });
+
+            sel.exit()
+                .each(function() {
+                    shift = totalWidth(this);
+                });
+
+            if (shift === undefined) {
+                shift = 0;
+            }
+            console.log(shift);
+
+            sel.enter()
+                .append("div")
+                .classed("card", true)
+                .style("left", offset + "px")
+                .text(results.data)
+                .each(function () {
+                    offset += totalWidth(this);
+                });
+
+            sel.transition()
+                .duration(500)
+                .style("left", function () {
+                    var val = (+d3.select(this).style("left").slice(0,-2) - shift) + "px";
+                    //console.log(val);
+                    return val;
+                });
+
+            sel.exit()
+                .transition()
+                .duration(500)
+                .style("left", function () {
+                    return (+d3.select(this).style("left").slice(0,-2) - shift) + "px";
+                })
+                .remove();
+
+            offset -= shift;
+        },
+        1500);
+    });
+});

@@ -16,6 +16,23 @@
         });
     };
 
+    tangelo.startStream = function (url, callback) {
+        // Form an absolute url from the input.
+        url = tangelo.absoluteUrl(url);
+
+        // Send an ajax request to get the stream started.
+        $.ajax({
+            url: url,
+            dataType: "json",
+            error: function (jqxhr) {
+                callback(undefined, jqxhr);
+            },
+            success: function (data) {
+                callback(data.stream_key);
+            }
+        });
+    };
+
     tangelo.queryStream = function (key, callback) {
         $.ajax({
             url: "/stream/" + key,
