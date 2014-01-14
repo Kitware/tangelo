@@ -1,4 +1,4 @@
-/*jslint browser: true */
+/*jslint browser: true, nomen: true */
 
 (function (tangelo, $, d3) {
     "use strict";

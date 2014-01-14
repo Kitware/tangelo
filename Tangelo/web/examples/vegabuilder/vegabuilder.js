@@ -1,6 +1,6 @@
 /*jslint browser: true */
 
-/*globals $, d3, vg, console */
+/*globals tangelo, $, d3, vg */
 
 $(function () {
 	"use strict";

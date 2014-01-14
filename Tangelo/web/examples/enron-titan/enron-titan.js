@@ -44,7 +44,7 @@ function updateGraph() {
 
     // Take the number of days we want to search over
     numDays = enron.range.slider("value");
-    
+
     center = enron.center.val();
 
     hops = enron.degree.spinner("value");
@@ -103,8 +103,8 @@ function updateGraph() {
             tau = 2 * Math.PI;
             angle = tau / newidx.length;
             $.each(newidx, function (i, v) {
-                graph.nodes[v].x = (width/4) * Math.cos(i * angle) + (width/2);
-                graph.nodes[v].y = (height/4) * Math.sin(i * angle) + (height/2);
+                graph.nodes[v].x = (width / 4) * Math.cos(i * angle) + (width / 2);
+                graph.nodes[v].y = (height / 4) * Math.sin(i * angle) + (height / 2);
             });
 
             transition_time = 1000;
@@ -139,7 +139,7 @@ function updateGraph() {
                 .classed("node", true)
                 .attr("r", 10)
                 .style("opacity", 0.0)
-                .style("fill", "red")
+                .style("fill", "red");
             enter.transition()
                 .duration(transition_time)
                 .attr("r", 5)
@@ -192,6 +192,11 @@ function advanceTimer() {
 
 var timeout = null;
 function toggleAnimation() {
+    "use strict";
+
+    var anim,
+        update;
+
     anim = d3.select("#animate");
     update = d3.select("#update");
 

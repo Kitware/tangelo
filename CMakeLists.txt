@@ -31,13 +31,23 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/src/js/plugin/controlPanel.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/GoogleMapSVG.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/svgColorLegend.js
-    ${CMAKE_SOURCE_DIR}/examples/index.js
-    ${CMAKE_SOURCE_DIR}/examples/biofabric/biofabric.js
-    ${CMAKE_SOURCE_DIR}/examples/enron/enron.js
-    ${CMAKE_SOURCE_DIR}/examples/enron-impala/enron-imp.js
-    ${CMAKE_SOURCE_DIR}/examples/ner/ner.js
-    ${CMAKE_SOURCE_DIR}/examples/ssci/ssci.js
-    ${CMAKE_SOURCE_DIR}/examples/flickr/flickr.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/dendrogram.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/geodots.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/geonodelink.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/mapdots.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/nodelink.js
+    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/index.js
+    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/landingPage.js
+    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/app-template/myapp.js
+    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/charitynet/charitynet.js
+    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/enron/enron.js
+    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/enron-impala/enron-imp.js
+    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/enron-titan/enron-titan.js
+    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/flickr/flickr.js
+    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/ner/ner.js
+    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/options/options.js
+    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/primes/primes.js
+    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/vegabuilder/vegabuilder.js
 )
 
 # These files should be uglified and concatenated.
