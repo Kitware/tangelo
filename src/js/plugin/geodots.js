@@ -1,4 +1,4 @@
-/*jslint browser: true, unparam: true */
+/*jslint browser: true, unparam: true, nomen: true */
 
 (function (tangelo, $, vg) {
     "use strict";
@@ -28,8 +28,8 @@
         },
 
         _create: function () {
-            var that = this;
-            var vegaspec = this.options.vegaspec,
+            var that = this,
+                vegaspec = this.options.vegaspec,
                 options;
 
             vg.parse.spec(vegaspec, function (chart) {

@@ -1,4 +1,4 @@
-/*jslint browser: true */
+/*jslint browser: true, nomen: true */
 
 /*globals $, tangelo, d3, vg, console */
 
@@ -194,7 +194,7 @@ $(function () {
     tangelo.defaults("defaults.json", function (defaults) {
         var host;
 
-        host = defaults["host"] || "mongo";
+        host = defaults.host || "mongo";
 
         d3.json("us-counties.json", function (error, counties) {
             d3.json("us-states.json", function (error, states) {

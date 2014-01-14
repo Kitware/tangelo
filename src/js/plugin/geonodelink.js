@@ -1,4 +1,4 @@
-/*jslint browser: true, unparam: true */
+/*jslint browser: true, unparam: true, nomen: true */
 
 (function (tangelo, $, vg) {
     "use strict";

@@ -71,7 +71,7 @@
 
             if (external !== undefined) {
                 if (!tangelo.allDefined(extLeftSelector, extRightSelector)) {
-                    tangelo.fatalError("landingPage", "required config argument property 'extLeftSelector' or 'extRightSelector' missing!";
+                    tangelo.fatalError("landingPage", "required config argument property 'extLeftSelector' or 'extRightSelector' missing!");
                 }
 
                 // List out the external links in the two columns, as above.

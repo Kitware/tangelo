@@ -21,10 +21,10 @@
         }
 
         if (spec.on && spec.on.change) {
-            select.on("change", function() {
+            select.on("change", function () {
                 spec.on.change(this.options[this.selectedIndex].__data__);
             });
         }
     };
 
-}(jQuery, window.tangelo, window.d3));
+}(window.jQuery, window.tangelo, window.d3));

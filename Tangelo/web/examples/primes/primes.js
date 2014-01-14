@@ -1,5 +1,7 @@
 /*jslint browser: true */
 
+/*globals $, tangelo, d3 */
+
 $(function () {
     "use strict";
 
@@ -10,7 +12,7 @@ $(function () {
         var offset = 0;
 
         function totalWidth(el) {
-            return $(el).width() + +$(el).css("marginLeft").slice(0,-2) + +$(el).css("marginRight").slice(0,-2);
+            return $(el).width() + (+$(el).css("marginLeft").slice(0, -2)) + (+$(el).css("marginRight").slice(0, -2));
         }
 
         tangelo.runStream(primes_key, function (results) {
@@ -29,7 +31,7 @@ $(function () {
                 });
 
             sel.exit()
-                .each(function() {
+                .each(function () {
                     shift = totalWidth(this);
                 });
 
@@ -50,7 +52,7 @@ $(function () {
             sel.transition()
                 .duration(500)
                 .style("left", function () {
-                    var val = (+d3.select(this).style("left").slice(0,-2) - shift) + "px";
+                    var val = (+d3.select(this).style("left").slice(0, -2) - shift) + "px";
                     //console.log(val);
                     return val;
                 });
@@ -59,12 +61,11 @@ $(function () {
                 .transition()
                 .duration(500)
                 .style("left", function () {
-                    return (+d3.select(this).style("left").slice(0,-2) - shift) + "px";
+                    return (+d3.select(this).style("left").slice(0, -2) - shift) + "px";
                 })
                 .remove();
 
             offset -= shift;
-        },
-        1500);
+        }, 1500);
     });
 });
