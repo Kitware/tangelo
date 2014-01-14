@@ -87,13 +87,19 @@ var tangelo = {};
 
     tangelo.accessor = function (spec, defaultValue) {
         var parts;
+        if (tangelo.isFunction(spec)) {
+            return spec;
+        }
         if (!spec) {
             return function () { return defaultValue; };
         }
-        if (spec.value !== undefined) {
+        if (spec.hasOwnProperty("value")) {
             return function () { return spec.value; };
         }
-        if (spec.field) {
+        if (spec.hasOwnProperty("index")) {
+            return function (d, i) { return i; };
+        }
+        if (spec.hasOwnProperty("field")) {
             if (spec.field === ".") {
                 return tangelo.identity;
             }
