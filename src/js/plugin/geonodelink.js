@@ -36,7 +36,9 @@
 
         _create: function () {
             var that = this,
-                vegaspec = this.options.vegaspec;
+                vegaspec = $.extend(true, {}, tangelo.vegaspec.geonodelink);
+
+            vegaspec.data[0].url = that.options.worldGeometry;
 
             vg.parse.spec(vegaspec, function (chart) {
                 var options;
@@ -46,7 +48,7 @@
                 options = $.extend(true, {}, that.options);
                 delete options.disabled;
                 delete options.create;
-                delete options.vegaspec;
+                delete options.worldGeometry;
 
                 that._setOptions(options);
             });
