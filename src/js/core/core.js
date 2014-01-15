@@ -115,7 +115,7 @@ var tangelo = {};
                 return d;
             };
         }
-        window.console.log("error: unknown accessor spec");
+        tangelo.fatalError("tangelo.accessor()", "unknown accessor spec " + spec);
     };
 
     tangelo.appendFunction = function (f1, f2) {
