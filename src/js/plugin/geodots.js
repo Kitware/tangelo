@@ -29,7 +29,7 @@
 
         _create: function () {
             var that = this,
-                vegaspec = tangelo.vegaspec.geonodelink(that.options.worldGeometry);
+                vegaspec = tangelo.vegaspec.geovis(that.options.worldGeometry);
 
             vg.parse.spec(vegaspec, function (chart) {
                 var options;

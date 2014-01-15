@@ -1,4 +1,4 @@
-tangelo.vegaspec.geonodelink = function (worldGeometryFile) {
+tangelo.vegaspec.geovis = function (worldGeometryFile) {
     var spec = {
         "width": 800,
         "height": 800,

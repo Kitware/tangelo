@@ -55,8 +55,8 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/core/core.js
     ${CMAKE_SOURCE_DIR}/src/js/core/streaming.js
     ${CMAKE_SOURCE_DIR}/src/js/core/util.js
-    ${CMAKE_SOURCE_DIR}/src/js/vegaspec/_package.js
-    ${CMAKE_SOURCE_DIR}/src/js/vegaspec/geonodelink.js
+    ${CMAKE_SOURCE_DIR}/src/js/vega/_package.js
+    ${CMAKE_SOURCE_DIR}/src/js/vega/geovis.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/controlPanel.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/GoogleMapSVG.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/svgColorLegend.js
