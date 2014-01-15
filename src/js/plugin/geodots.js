@@ -29,10 +29,13 @@
 
         _create: function () {
             var that = this,
-                vegaspec = this.options.vegaspec,
-                options;
+                vegaspec = $.extend(true, {}, tangelo.vegaspec.geonodelink);
+
+            vegaspec.data[0].url = that.options.worldGeometry;
 
             vg.parse.spec(vegaspec, function (chart) {
+                var options;
+
                 that.vis = chart;
 
                 // Make a copy of the options passed in, but remove the disabled
@@ -42,7 +45,7 @@
                 options = $.extend(true, {}, that.options);
                 delete options.disabled;
                 delete options.create;
-                delete options.vegaspec;
+                delete options.worldGeometry;
 
                 that._setOptions(options);
             });
