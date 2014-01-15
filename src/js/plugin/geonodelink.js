@@ -36,9 +36,7 @@
 
         _create: function () {
             var that = this,
-                vegaspec = $.extend(true, {}, tangelo.vegaspec.geonodelink);
-
-            vegaspec.data[0].url = that.options.worldGeometry;
+                vegaspec = tangelo.vegaspec.geonodelink(that.options.worldGeometry);
 
             vg.parse.spec(vegaspec, function (chart) {
                 var options;
