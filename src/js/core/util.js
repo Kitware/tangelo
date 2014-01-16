@@ -82,4 +82,22 @@
             return id;
         };
     }());
+
+    // Returns an object representing the query arguments (code taken from
+    // https://developer.mozilla.org/en-US/docs/Web/API/window.location).
+    tangelo.queryArguments = function () {
+        var oGetVars = {},
+            aItKey,
+            nKeyId,
+            aCouples;
+
+        if (window.location.search.length > 1) {
+            for (nKeyId = 0, aCouples = window.location.search.substr(1).split("&"); nKeyId < aCouples.length; nKeyId += 1) {
+                aItKey = aCouples[nKeyId].split("=");
+                oGetVars[decodeURI(aItKey[0])] = aItKey.length > 1 ? decodeURI(aItKey[1]) : "";
+            }
+        }
+
+        return oGetVars;
+    };
 }(window.tangelo, window.jQuery));
