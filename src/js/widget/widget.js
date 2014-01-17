@@ -1,6 +1,14 @@
 /*jslint browser: true */
 
 (function (tangelo, $) {
+    if (!($ && $.widget)) {
+        $.fn.widget = tangelo.unavailable({
+            plugin: "tangelo.widget",
+            required: ["JQuery", "JQuery UI"]
+        });
+        return;
+    }
+
     $.widget("tangelo.widget", {
         _setOption: function (key, value) {
             if (this._notAccessors.indexOf(key) === -1) {
