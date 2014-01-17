@@ -11,7 +11,7 @@
         return;
     }
 
-    $.widget("tangelo.dendrogram", {
+    $.widget("tangelo.dendrogram", $.tangelo.widget, {
         options: {
             label: tangelo.accessor({value: ""}),
             distance: tangelo.accessor({value: 1}),
@@ -173,14 +173,6 @@
             delete options.disabled;
             delete options.create;
             this._setOptions(options);
-        },
-
-        _setOption: function () {
-            tangelo.widget.setOptionMethod.apply(this, arguments);
-        },
-
-        _setOptions: function () {
-            tangelo.widget.setOptionsMethod.apply(this, arguments);
         },
 
         _update: function () {

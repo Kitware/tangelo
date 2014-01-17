@@ -11,7 +11,7 @@
         return;
     }
 
-    $.widget("tangelo.nodelink", {
+    $.widget("tangelo.nodelink", $.tangelo.widget, {
         options: {
             nodeCharge:     tangelo.accessor({value: -130}),
             nodeColor:      tangelo.accessor({value: "steelblue"}),
@@ -51,14 +51,6 @@
             delete options.disabled;
             delete options.create;
             this._setOptions(options);
-        },
-
-        _setOption: function () {
-            tangelo.widget.setOptionMethod.apply(this, arguments);
-        },
-
-        _setOptions: function () {
-            tangelo.widget.setOptionsMethod.apply(this, arguments);
         },
 
         _update: function () {

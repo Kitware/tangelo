@@ -11,7 +11,7 @@
         return;
     }
 
-    $.widget("tangelo.geonodelink", {
+    $.widget("tangelo.geonodelink", $.tangelo.widget, {
         options: {
             nodeLatitude: tangelo.accessor({value: 0}),
             nodeLongitude: tangelo.accessor({value: 0}),
@@ -43,14 +43,6 @@
 
                 that._setOptions(options);
             });
-        },
-
-        _setOption: function () {
-            tangelo.widget.setOptionMethod.apply(this, arguments);
-        },
-
-        _setOptions: function () {
-            tangelo.widget.setOptionsMethod.apply(this, arguments);
         },
 
         _update: function () {

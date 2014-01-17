@@ -11,7 +11,7 @@
         return;
     }
 
-    $.widget("tangelo.mapdots", {
+    $.widget("tangelo.mapdots", $.tangelo.widget, {
         options: {
             hoverContent: tangelo.accessor({value: ""}),
             size: tangelo.accessor({value: 1}),
@@ -115,14 +115,6 @@
             this._setOptions(options);
 
             this.overlay.setMap(this.map);
-        },
-
-        _setOption: function () {
-            tangelo.widget.setOptionMethod.apply(this, arguments);
-        },
-
-        _setOptions: function () {
-            tangelo.widget.setOptionsMethod.apply(this, arguments);
         },
 
         _update: function () {

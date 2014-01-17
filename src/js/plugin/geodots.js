@@ -11,7 +11,7 @@
         return;
     }
 
-    $.widget("tangelo.geodots", {
+    $.widget("tangelo.geodots", $.tangelo.widget, {
         options: {
             latitude: tangelo.accessor({value: 0}),
             longitude: tangelo.accessor({value: 0}),
@@ -46,14 +46,6 @@
 
                 that._setOptions(options);
             });
-        },
-
-        _setOption: function () {
-            tangelo.widget.setOptionMethod.apply(this, arguments);
-        },
-
-        _setOptions: function () {
-            tangelo.widget.setOptionsMethod.apply(this, arguments);
         },
 
         _update: function () {
