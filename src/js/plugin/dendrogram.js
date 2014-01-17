@@ -175,22 +175,12 @@
             this._setOptions(options);
         },
 
-        _setOption: function (key, value) {
-            if (this._notAccessors.indexOf(key) === -1) {
-                this._super(key, tangelo.accessor(value));
-            } else {
-                this._super(key, value);
-            }
+        _setOption: function () {
+            tangelo.widget.setOptionMethod.apply(this, arguments);
         },
 
-        _setOptions: function (options) {
-            var that = this;
-
-            $.each(options, function (key, value) {
-                that._setOption(key, value);
-            });
-
-            this._update();
+        _setOptions: function () {
+            tangelo.widget.setOptionsMethod.apply(this, arguments);
         },
 
         _update: function () {
