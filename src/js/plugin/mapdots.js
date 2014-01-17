@@ -11,25 +11,20 @@
         return;
     }
 
-    $.widget("tangelo.mapdots", {
+    $.widget("tangelo.mapdots", $.tangelo.widget, {
         options: {
-            hoverContent: null,
-            size: null,
-            color: null,
-            latitude: null,
-            longitude: null,
-            opacity: null,
+            hoverContent: tangelo.accessor({value: ""}),
+            size: tangelo.accessor({value: 1}),
+            color: tangelo.accessor({value: ""}),
+            latitude: tangelo.accessor({value: 0}),
+            longitude: tangelo.accessor({value: 0}),
+            opacity: tangelo.accessor({value: 1}),
             data: null
         },
 
-        _missing: {
-            hoverContent: "",
-            size: 1,
-            color: "",
-            latitude: 0,
-            longitude: 0,
-            opacity: 1
-        },
+        _notAccessors: [
+            "data"
+        ],
 
         _create: function () {
             var el = this.element.get(0),
@@ -120,24 +115,6 @@
             this._setOptions(options);
 
             this.overlay.setMap(this.map);
-        },
-
-        _setOption: function (key, value) {
-            if (key !== "data") {
-                this._super(key, tangelo.accessor(value, this._missing[key]));
-            } else {
-                this._super(key, value);
-            }
-        },
-
-        _setOptions: function (options) {
-            var that = this;
-
-            $.each(options, function (key, value) {
-                that._setOption(key, value);
-            });
-
-            this._update();
         },
 
         _update: function () {

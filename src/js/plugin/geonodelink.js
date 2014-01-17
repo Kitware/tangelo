@@ -11,28 +11,21 @@
         return;
     }
 
-    $.widget("tangelo.geonodelink", {
+    $.widget("tangelo.geonodelink", $.tangelo.widget, {
         options: {
-            nodeLatitude: null,
-            nodeLongitude: null,
-            nodeSize: null,
-            nodeColor: null,
-            linkColor: null,
-            linkSource: null,
-            linkTarget: null,
+            nodeLatitude: tangelo.accessor({value: 0}),
+            nodeLongitude: tangelo.accessor({value: 0}),
+            nodeSize: tangelo.accessor({value: 20}),
+            nodeColor: tangelo.accessor({value: 0}),
+            linkColor: tangelo.accessor({value: 0}),
+            linkSource: tangelo.accessor({value: 0}),
+            linkTarget: tangelo.accessor({value: 0}),
             data: null
         },
 
-        _missing: {
-            nodeLatitude: 0,
-            nodeLongitude: 0,
-            nodeSize: 20,
-            nodeColor: 0,
-            linkColor: 0,
-            linkSource: 0,
-            linkTarget: 0,
-            data: null
-        },
+        _notAccessors: [
+            "data"
+        ],
 
         _create: function () {
             var that = this,
@@ -50,25 +43,6 @@
 
                 that._setOptions(options);
             });
-        },
-
-        _setOption: function (key, value) {
-            if (key !== "data") {
-                this._super(key, tangelo.accessor(value, this._missing[key]));
-            } else {
-                this._super(key, value);
-            }
-        },
-
-        _setOptions: function (options) {
-            var that = this,
-                doUpdate = false;
-
-            $.each(options, function (key, value) {
-                that._setOption(key, value);
-            });
-
-            this._update();
         },
 
         _update: function () {

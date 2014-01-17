@@ -11,11 +11,11 @@
         return;
     }
 
-    $.widget("tangelo.dendrogram", {
+    $.widget("tangelo.dendrogram", $.tangelo.widget, {
         options: {
-            label: null,
-            distance: null,
-            id: null,
+            label: tangelo.accessor({value: ""}),
+            distance: tangelo.accessor({value: 1}),
+            id: tangelo.accessor({value: 0}),
             margin: {
                 top: 20,
                 right: 120,
@@ -25,36 +25,40 @@
             nodeLimit: null,
             duration: 750,
             root: null,
+            source: null,
             data: null,
             mode: "hide",
             nodesize: 7.5,
             textsize: 10,
             orientation: "horizontal",
             lineStyle: "curved",
-            nodeColor: null,
-            nodeOpacity: null,
-            hoverNodeColor: null,
-            hoverNodeOpacity: null,
-            selectedNodeColor: null,
-            selectedNodeOpacity: null,
-            collapsedNodeColor: null,
-            collapsedNodeOpacity: null,
-            newNodes: null
+            nodeColor: tangelo.accessor({value: "lightsteelblue"}),
+            nodeOpacity: tangelo.accessor({value: 1}),
+            hoverNodeColor: tangelo.accessor({value: "green"}),
+            hoverNodeOpacity: tangelo.accessor({value: 1}),
+            selectedNodeColor: tangelo.accessor({value: "firebrick"}),
+            selectedNodeOpacity: tangelo.accessor({value: 1}),
+            collapsedNodeColor: tangelo.accessor({value: "blue"}),
+            collapsedNodeOpacity: tangelo.accessor({value: 1}),
+            onNodeCreate: null,
+            onNodeDestroy: null
         },
 
-        _missing: {
-            label: "",
-            distance: 1,
-            id: 0,
-            nodeColor: "lightsteelblue",
-            nodeOpacity: 1,
-            hoverNodeColor: "green",
-            hoverNodeOpacity: 1,
-            selectedNodeColor: "firebrick",
-            selectedNodeOpacity: 1,
-            collapsedNodeColor: "blue",
-            collapsedNodeOpacity: 1,
-        },
+        _notAccessors: [
+            "margin",
+            "nodeLimit",
+            "duration",
+            "root",
+            "source",
+            "data",
+            "mode",
+            "nodesize",
+            "textsize",
+            "orientation",
+            "lineStyle",
+            "onNodeCreate",
+            "onNodeDestroy"
+        ],
 
         _actions: {
             collapse: null
@@ -171,24 +175,6 @@
             this._setOptions(options);
         },
 
-        _setOption: function (key, value) {
-            if (this._missing.hasOwnProperty(key)) {
-                this._super(key, tangelo.accessor(value, this._missing[key]));
-            } else {
-                this._super(key, value);
-            }
-        },
-
-        _setOptions: function (options) {
-            var that = this;
-
-            $.each(options, function (key, value) {
-                that._setOption(key, value);
-            });
-
-            this._update();
-        },
-
         _update: function () {
             this.width = 1200 - this.options.margin.right - this.options.margin.left;
             this.height = 800 - this.options.margin.top - this.options.margin.bottom;
@@ -227,6 +213,7 @@
                 visibleLeaves,
                 filteredNodes,
                 filteredLinks,
+                evttype,
                 that = this;
 
             visibleLeaves = 0;
@@ -459,23 +446,45 @@
                 d.y0 = d.y;
             });
 
-            if (this.options.newNodes) {
-                nodeEnter.each(this.options.newNodes);
+            if (this.options.onNodeDestroy) {
+                nodeExit.each(this.options.onNodeDestroy);
+            }
+
+            if (this.options.onNodeCreate) {
+                nodeEnter.each(this.options.onNodeCreate);
+            }
+
+            // If there are event handlers installed, replicate them onto the
+            // new nodes.
+            for (evttype in this._eventHandlers) {
+                if (this._eventHandlers.hasOwnProperty(evttype)) {
+                    this.on(evttype, this._eventHandlers[evttype]);
+                }
             }
         },
 
         on: function (evttype, callback) {
             var that = this;
 
+            // Install/remove a handler.
             that.svg.selectAll("g.node")
                 .selectAll("circle")
-                .on(evttype, function (d, i) {
+                .on(evttype, callback ? function (d, i) {
                     // Call the callback with the dendrogram as the "this"
                     // context, passing in the datum and index, but also the
                     // current DOM element expclitly as well.
                     callback.call(that, d, i, this);
-                });
+                } : null);
+
+            // Record/erase a record about this event type.
+            if (callback !== null) {
+                this._eventHandlers[evttype] = callback;
+            } else {
+                delete this._eventHandlers[evttype];
+            }
         },
+
+        _eventHandlers: {},
 
         download: function (format) {
             var node,

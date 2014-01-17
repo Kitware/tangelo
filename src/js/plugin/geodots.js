@@ -11,21 +11,20 @@
         return;
     }
 
-    $.widget("tangelo.geodots", {
+    $.widget("tangelo.geodots", $.tangelo.widget, {
         options: {
-            latitude: null,
-            longitude: null,
-            size: null,
-            color: null,
+            latitude: tangelo.accessor({value: 0}),
+            longitude: tangelo.accessor({value: 0}),
+            size: tangelo.accessor({value: 20}),
+            color: tangelo.accessor({value: 0}),
+            worldGeometry: null,
             data: null
         },
 
-        _missing: {
-            latitude: 0,
-            longitude: 0,
-            size: 20,
-            color: 0
-        },
+        _notAccessors: [
+            "worldGeometry",
+            "data"
+        ],
 
         _create: function () {
             var that = this,
@@ -47,24 +46,6 @@
 
                 that._setOptions(options);
             });
-        },
-
-        _setOption: function (key, value) {
-            if (key !== "data") {
-                this._super(key, tangelo.accessor(value, this._missing[key]));
-            } else {
-                this._super(key, value);
-            }
-        },
-
-        _setOptions: function (options) {
-            var that = this;
-
-            $.each(options, function (key, value) {
-                that._setOption(key, value);
-            });
-
-            this._update();
         },
 
         _update: function () {
