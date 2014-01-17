@@ -13,23 +13,18 @@
 
     $.widget("tangelo.mapdots", {
         options: {
-            hoverContent: null,
-            size: null,
-            color: null,
-            latitude: null,
-            longitude: null,
-            opacity: null,
+            hoverContent: tangelo.accessor({value: ""}),
+            size: tangelo.accessor({value: 1}),
+            color: tangelo.accessor({value: ""}),
+            latitude: tangelo.accessor({value: 0}),
+            longitude: tangelo.accessor({value: 0}),
+            opacity: tangelo.accessor({value: 1}),
             data: null
         },
 
-        _missing: {
-            hoverContent: "",
-            size: 1,
-            color: "",
-            latitude: 0,
-            longitude: 0,
-            opacity: 1
-        },
+        _notAccessors: [
+            "data"
+        ],
 
         _create: function () {
             var el = this.element.get(0),
@@ -123,8 +118,8 @@
         },
 
         _setOption: function (key, value) {
-            if (key !== "data") {
-                this._super(key, tangelo.accessor(value, this._missing[key]));
+            if (this._notAccessors.indexOf(key) === -1) {
+                this._super(key, tangelo.accessor(value));
             } else {
                 this._super(key, value);
             }
