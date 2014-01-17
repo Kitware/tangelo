@@ -13,19 +13,18 @@
 
     $.widget("tangelo.geodots", {
         options: {
-            latitude: null,
-            longitude: null,
-            size: null,
-            color: null,
+            latitude: tangelo.accessor({value: 0}),
+            longitude: tangelo.accessor({value: 0}),
+            size: tangelo.accessor({value: 20}),
+            color: tangelo.accessor({value: 0}),
+            worldGeometry: null,
             data: null
         },
 
-        _missing: {
-            latitude: 0,
-            longitude: 0,
-            size: 20,
-            color: 0
-        },
+        _notAccessors: [
+            "worldGeometry",
+            "data"
+        ],
 
         _create: function () {
             var that = this,
@@ -50,8 +49,8 @@
         },
 
         _setOption: function (key, value) {
-            if (key !== "data") {
-                this._super(key, tangelo.accessor(value, this._missing[key]));
+            if (this._notAccessors.indexOf(key) === -1) {
+                this._super(key, tangelo.accessor(value));
             } else {
                 this._super(key, value);
             }
