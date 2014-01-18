@@ -56,10 +56,7 @@ function startProcess(pathUrl, name) {
 
         // Perform the vtkweb connection.
         connection = {
-            sessionURL: resp.url,
-            name: name,
-            description: "VTKWeb demo: " + name,
-            application: name
+            sessionURL: resp.url
         };
 
         vtkWeb.connect(connection, function (serverConnection) {
