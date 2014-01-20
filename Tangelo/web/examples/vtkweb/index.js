@@ -41,13 +41,15 @@ function startProcess(pathUrl, argstring) {
 function startCone() {
     "use strict";
 
-    startProcess("/examples/vtkweb/vtkweb_cone.py");
+    startProcess("vtkweb_cone.py");
 }
 
 function startPhylo() {
     "use strict";
 
-    startProcess("/examples/vtkweb/vtkweb_tree.py", "--tree /home/roni/work/ArborWebApps/vtk-phylo-app/data/anolis.phy --table /home/roni/work/ArborWebApps/vtk-phylo-app/data/anolisDataAppended.csv");
+    startProcess("vtkweb_tree.py",
+                 "--tree /home/roni/work/ArborWebApps/vtk-phylo-app/data/anolis.phy " +
+                 "--table /home/roni/work/ArborWebApps/vtk-phylo-app/data/anolisDataAppended.csv");
 }
 
 // When the page is closed, make sure to close any processes that were running.

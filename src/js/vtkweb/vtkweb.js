@@ -42,7 +42,7 @@
 
         tangelo.vtkweb.launch = function (cfg) {
             var data,
-                url = cfg.url,
+                url = tangelo.absoluteUrl(cfg.url),
                 callback = cfg.callback,
                 argstring = cfg.argstring,
                 timeout = cfg.timeout,
