@@ -25,10 +25,11 @@ distutils.core.setup(name="Tangelo",
                      author="Kitware, Inc.",
                      author_email="tangelo-users@public.kitware.com",
                      url="http://tangelo.kitware.com",
-                     packages=["tangelo"],
+                     packages=["tangelo",
+                               "tangelo.autobahn"],
                      scripts=["bin/tangelo", "bin/tangelo-passwd", "bin/vtkweb-launcher.py"],
                      data_files=data_files_list,
                      description="Tangelo Web Framework",
                      install_requires=["cherrypy >= 3.2",
                                        "ws4py >= 0.3.2",
-                                       "autobahn >= 0.5.14"])
+                                       "Twisted >= 13.2"])

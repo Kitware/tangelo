@@ -2,8 +2,8 @@ import threading
 import cherrypy
 import ws4py.server.cherrypyserver
 import ws4py.websocket
-import autobahn.websocket
-import autobahn.wamp
+import tangelo.autobahn.websocket as ab_websocket
+import tangelo.autobahn.wamp as wamp
 import twisted.internet
 
 import tangelo
@@ -32,11 +32,11 @@ class WebSocketHandler(object):
         pass
 
 def VTKWebSocketAB(url, relay):
-    class RegisteringWebSocketClientFactory(autobahn.wamp.WampClientFactory):
+    class RegisteringWebSocketClientFactory(wamp.WampClientFactory):
         def register(self, client):
             self.client = client
 
-    class Protocol(autobahn.wamp.WampClientProtocol):
+    class Protocol(wamp.WampClientProtocol):
         def onOpen(self):
             self.factory.register(self)
 
@@ -47,7 +47,7 @@ def VTKWebSocketAB(url, relay):
         def run(self):
             self.factory = RegisteringWebSocketClientFactory(url)
             self.factory.protocol = Protocol
-            twisted.internet.reactor.callFromThread(autobahn.websocket.connectWS, self.factory)
+            twisted.internet.reactor.callFromThread(ab_websocket.connectWS, self.factory)
 
         def send(self, data):
             twisted.internet.reactor.callFromThread(Protocol.sendMessage, self.factory.client, data)

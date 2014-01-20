@@ -76,9 +76,11 @@ var tangelo = {};
     };
 
     tangelo.absoluteUrl = function (path) {
+        var trailing_slash = window.location.pathname[window.location.pathname.length - 1] === "/";
+
         if (path.length > 0) {
             if (path[0] !== "/" && path[0] !== "~") {
-                path = window.location.pathname + "/" + path;
+                path = window.location.pathname + (trailing_slash ? "" : "/") + path;
             }
         }
 
