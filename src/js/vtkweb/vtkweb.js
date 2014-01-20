@@ -71,14 +71,14 @@
                 data: data,
                 dataType: "json",
                 error: function (jqxhr) {
-                    callback(undefined, undefined, jqxhr);
+                    callback(undefined, jqxhr);
                 },
                 success: function (report) {
                     var connection,
                         vp;
 
                     if (report.status === "failed" || report.status === "incomplete") {
-                        callback(undefined, undefined, report.reason);
+                        callback(undefined, report.reason);
                     } else if (report.status === "complete") {
 
                         connection = {

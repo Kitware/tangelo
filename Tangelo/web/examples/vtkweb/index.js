@@ -4,7 +4,6 @@
 
 var app = {};
 app.key = null;
-app.viewport = null;
 
 // This will end whatever process is currently running, if any, and clear the UI
 // elements.
@@ -17,7 +16,7 @@ function endProcess() {
     }
 }
 
-function startProcess(pathUrl) {
+function startProcess(pathUrl, argstring) {
     "use strict";
 
     // Clear out any existing process.
@@ -25,6 +24,7 @@ function startProcess(pathUrl) {
 
     tangelo.vtkweb.launch({
         url: pathUrl,
+        argstring: argstring || "",
         viewport: "#viewport",
         callback: function (key, error) {
             if (error) {
@@ -47,7 +47,7 @@ function startCone() {
 function startPhylo() {
     "use strict";
 
-    startProcess("/examples/vtkweb/vtkweb_tree.py?progargs=" + encodeURIComponent("--tree /home/roni/work/ArborWebApps/vtk-phylo-app/data/anolis.phy --table /home/roni/work/ArborWebApps/vtk-phylo-app/data/anolisDataAppended.csv"));
+    startProcess("/examples/vtkweb/vtkweb_tree.py", "--tree /home/roni/work/ArborWebApps/vtk-phylo-app/data/anolis.phy --table /home/roni/work/ArborWebApps/vtk-phylo-app/data/anolisDataAppended.csv");
 }
 
 // When the page is closed, make sure to close any processes that were running.
@@ -68,9 +68,5 @@ $(function () {
 
     // If a vtk web process has been launched, then shut it down.
     d3.select("#close")
-        .on("click", function () {
-            if (app.key !== null) {
-                endProcess(app.key);
-            }
-        });
+        .on("click", endProcess);
 });
