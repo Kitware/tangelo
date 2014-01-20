@@ -31,7 +31,8 @@ class TangeloVtkweb(object):
     @cherrypy.expose
     def default(self, *pargs, **kwargs):
         # Get keyword arguments.
-        progargs = kwargs.get("progargs", "")
+        progpath = kwargs.get("program", None)
+        progargs = kwargs.get("args", "")
         timeout = kwargs.get("timeout", 0)
 
         # Convert the positional args to a list.
@@ -71,22 +72,25 @@ class TangeloVtkweb(object):
             # Make a report to the user.
             return json.dumps(response)
         elif method == "POST":
-            if len(pargs) == 0:
-                return json.dumps({"status": "incomplete", "reason": "missing path to vtkweb script"})
-
-            # Form the web path from the pargs components
-            progpath = os.path.sep.join(pargs)
-
-            # Verify that all required arguments are present.
-            if len(pargs) == 0:
-                return json.dumps({"status": "incomplete", "reason": "Missing program URL"})
+            #if len(pargs) == 0:
+            if progpath is None or len(progpath) == 0:
+                return json.dumps({"status": "incomplete", "reason": "missing 'program' argument (path to vtkweb script)"})
 
             # Check the user arguments.
             userargs = progargs.split()
             if "--port" in userargs:
                 return json.dumps({"status": "incomplete", "reason": "You may not specify --port in this interface"})
 
-            # Verify that the program path is legal.
+            # The program path must begin with a slash (it needs to be an
+            # absolute path because we can't evaluate relative paths on the
+            # serverside, since we don't know the user's current location).
+            if progpath[0] != "/":
+                return json.dumps({"status": "incomplete", "reason": "Program path must be an absolute web path"})
+
+            # Verify that the program path is legal (first stripping off the
+            # leading slash, since from now on we are considering *disk* paths,
+            # while all relative paths are now relative to the web root).
+            progpath = progpath[1:]
             if not tangelo.legal_path(progpath)[0]:
                 return json.dumps({"status": "incomplete", "reason": "Illegal program URL"})
 

@@ -62,11 +62,16 @@
             }
 
             // Construct data object for POST request.
-            data = argstring ? {progargs: argstring} : {};
+            data = {
+                program: url
+            };
+            if (argstring) {
+                data.args = argstring
+            }
 
             // Fire off POST request to vtkweb service.
             $.ajax({
-                url: "/vtkweb/" + url,
+                url: "/vtkweb",
                 type: "POST",
                 data: data,
                 dataType: "json",
