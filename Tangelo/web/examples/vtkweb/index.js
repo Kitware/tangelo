@@ -7,24 +7,29 @@ app.key = null;
 
 // This will end whatever process is currently running, if any, and clear the UI
 // elements.
-function endProcess() {
+function terminate() {
     "use strict";
 
     if (app.key) {
         tangelo.vtkweb.terminate(app.key);
         app.key = null;
     }
+
+    d3.select("#launch")
+        .classed("disabled", false);
+
+    d3.select("#terminate")
+        .classed("disabled", true);
 }
 
-function startProcess(pathUrl, argstring) {
+function launch() {
     "use strict";
 
     // Clear out any existing process.
-    endProcess();
+    terminate();
 
     tangelo.vtkweb.launch({
-        url: pathUrl,
-        argstring: argstring || "",
+        url: "vtkweb_cone.py",
         viewport: "#viewport",
         callback: function (key, error) {
             if (error) {
@@ -34,41 +39,28 @@ function startProcess(pathUrl, argstring) {
             }
 
             app.key = key;
+
+            d3.select("#launch")
+                .classed("disabled", true);
+
+            d3.select("#terminate")
+                .classed("disabled", false);
         }
     });
 }
 
-function startCone() {
-    "use strict";
-
-    startProcess("vtkweb_cone.py");
-}
-
-function startPhylo() {
-    "use strict";
-
-    startProcess("vtkweb_tree.py",
-                 "--tree /home/roni/work/ArborWebApps/vtk-phylo-app/data/anolis.phy " +
-                 "--table /home/roni/work/ArborWebApps/vtk-phylo-app/data/anolisDataAppended.csv");
-}
-
-// When the page is closed, make sure to close any processes that were running.
-window.onbeforeunload = window.onunload = endProcess;
-
 $(function () {
     "use strict";
 
-    // Install actions on the buttons.
-    //
-    // Launch the cone example.
-    d3.select("#cone")
-        .on("click", startCone);
+    // When the page is closed, make sure to close any processes that were running.
+    window.onbeforeunload = window.onunload = terminate;
 
-    // Launch the phyologenetic tree example.
-    d3.select("#phylo")
-        .on("click", startPhylo);
+    // Install actions on the buttons.
+    d3.select("#launch")
+        .on("click", launch);
 
     // If a vtk web process has been launched, then shut it down.
-    d3.select("#close")
-        .on("click", endProcess);
+    d3.select("#terminate")
+        .classed("disabled", true)
+        .on("click", terminate);
 });
