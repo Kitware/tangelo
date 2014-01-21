@@ -3,7 +3,7 @@
 (function (tangelo, $) {
     "use strict";
 
-    tangelo.getStreams = function (callback) {
+    tangelo.stream.streams = function (callback) {
         $.ajax({
             url: "/stream",
             dataType: "json",
@@ -16,7 +16,7 @@
         });
     };
 
-    tangelo.startStream = function (url, callback) {
+    tangelo.stream.start = function (url, callback) {
         // Form an absolute url from the input.
         url = tangelo.absoluteUrl(url);
 
@@ -33,7 +33,7 @@
         });
     };
 
-    tangelo.queryStream = function (key, callback) {
+    tangelo.stream.query = function (key, callback) {
         $.ajax({
             url: "/stream/" + key,
             dataType: "json",
@@ -42,7 +42,7 @@
             },
             success: function (data) {
                 if (data.error) {
-                    console.warn("[tangelo.queryStream] error: " + data.error);
+                    console.warn("[tangelo.stream.query()] error: " + data.error);
                     return;
                 }
 
@@ -51,7 +51,7 @@
         });
     };
 
-    tangelo.runStream = function (key, callback, delay) {
+    tangelo.stream.run = function (key, callback, delay) {
         // NOTE: we can't "shortcut" this (e.g. "delay = delay || 100") because
         // this will prevent the user from passing "0" in as the delay argument.
         if (delay === undefined) {
@@ -64,7 +64,7 @@
             url: "/stream/" + key,
             dataType: "json",
             error: function (jqxhr) {
-                console.warn("[tangelo.runStream] error: ajax call failed; aborting runStream operation");
+                console.warn("[tangelo.stream.run()] error: ajax call failed; aborting stream run");
                 callback(undefined, jqxhr);
             },
             success: function (data) {
@@ -72,7 +72,7 @@
                     keepgoing = true;
 
                 if (data.error) {
-                    console.warn("[tangelo.runStream] error: " + data.error + "; aborting runStream operation");
+                    console.warn("[tangelo.stream.run()] error: " + data.error + "; aborting stream run");
                     return;
                 }
 
@@ -99,13 +99,13 @@
                 // If we are meant to keep going, schedule this function to
                 // run again after the specified delay.
                 if (keepgoing) {
-                    window.setTimeout(tangelo.runStream, delay, key, callback, delay);
+                    window.setTimeout(tangelo.stream.run, delay, key, callback, delay);
                 }
             }
         });
     };
 
-    tangelo.deleteStream = function (key, callback) {
+    tangelo.stream.delete = function (key, callback) {
         $.ajax({
             url: "/stream/" + key,
             dataType: "json",
