@@ -26,7 +26,6 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/stamps)
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/src/js/core/core.js
-    ${CMAKE_SOURCE_DIR}/src/js/core/streaming.js
     ${CMAKE_SOURCE_DIR}/src/js/core/util.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/controlPanel.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/GoogleMapSVG.js
@@ -36,6 +35,8 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/src/js/plugin/geonodelink.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/mapdots.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/nodelink.js
+    ${CMAKE_SOURCE_DIR}/src/js/streaming/_package.js
+    ${CMAKE_SOURCE_DIR}/src/js/streaming/streaming.js
     ${CMAKE_SOURCE_DIR}/src/js/vtkweb/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/vtkweb/vtkweb.js
     ${CMAKE_SOURCE_DIR}/src/js/widget/_package.js
@@ -57,7 +58,6 @@ set(JS_LINT_FILES
 # These files should be uglified and concatenated.
 set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/core/core.js
-    ${CMAKE_SOURCE_DIR}/src/js/core/streaming.js
     ${CMAKE_SOURCE_DIR}/src/js/core/util.js
     ${CMAKE_SOURCE_DIR}/src/js/widget/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/widget/widget.js
@@ -73,6 +73,8 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/plugin/geonodelink.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/mapdots.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/nodelink.js
+    ${CMAKE_SOURCE_DIR}/src/js/streaming/_package.js
+    ${CMAKE_SOURCE_DIR}/src/js/streaming/streaming.js
     ${CMAKE_SOURCE_DIR}/src/js/data/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/data/tree.js
 )
