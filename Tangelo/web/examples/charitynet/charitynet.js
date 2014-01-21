@@ -112,7 +112,7 @@ $(function () {
 
         d3.select("#time").on("change", function () {
             playing = false;
-            d3.select("#play i").classed("icon-play", true).classed("icon-pause", false);
+            d3.select("#play span").classed("glyphicon-play", true).classed("glyphicon-pause", false);
             clearTimeout(timerId);
             var time = d3.select("#time").node();
             date = dates[time.selectedIndex];
@@ -121,7 +121,7 @@ $(function () {
 
         d3.select("#play").on("click", function () {
             playing = !playing;
-            d3.select("#play i").classed("icon-pause", playing).classed("icon-play", !playing);
+            d3.select("#play span").classed("glyphicon-pause", playing).classed("glyphicon-play", !playing);
             if (playing) {
                 timerId = setInterval(updater, 5000);
             } else {
