@@ -38,8 +38,6 @@
     (function () {
         var table = {};
 
-        tangelo.table = table;
-
         tangelo.vtkweb.launch = function (cfg) {
             var data,
                 url = tangelo.absoluteUrl(cfg.url),
