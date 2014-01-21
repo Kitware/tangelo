@@ -35,8 +35,8 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/src/js/plugin/geonodelink.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/mapdots.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/nodelink.js
-    ${CMAKE_SOURCE_DIR}/src/js/streaming/_package.js
-    ${CMAKE_SOURCE_DIR}/src/js/streaming/streaming.js
+    ${CMAKE_SOURCE_DIR}/src/js/stream/_package.js
+    ${CMAKE_SOURCE_DIR}/src/js/stream/stream.js
     ${CMAKE_SOURCE_DIR}/src/js/vtkweb/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/vtkweb/vtkweb.js
     ${CMAKE_SOURCE_DIR}/src/js/widget/_package.js
@@ -73,8 +73,8 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/plugin/geonodelink.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/mapdots.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/nodelink.js
-    ${CMAKE_SOURCE_DIR}/src/js/streaming/_package.js
-    ${CMAKE_SOURCE_DIR}/src/js/streaming/streaming.js
+    ${CMAKE_SOURCE_DIR}/src/js/stream/_package.js
+    ${CMAKE_SOURCE_DIR}/src/js/stream/stream.js
     ${CMAKE_SOURCE_DIR}/src/js/data/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/data/tree.js
 )
