@@ -8,14 +8,14 @@ $(function () {
     var primes_key,
         values = [];
 
-    tangelo.startStream("primes", function (primes_key) {
+    tangelo.stream.start("primes", function (primes_key) {
         var offset = 0;
 
         function totalWidth(el) {
             return $(el).width() + (+$(el).css("marginLeft").slice(0, -2)) + (+$(el).css("marginRight").slice(0, -2));
         }
 
-        tangelo.runStream(primes_key, function (results) {
+        tangelo.stream.run(primes_key, function (results) {
             var sel,
                 shift;
 
@@ -38,7 +38,6 @@ $(function () {
             if (shift === undefined) {
                 shift = 0;
             }
-            console.log(shift);
 
             sel.enter()
                 .append("div")
