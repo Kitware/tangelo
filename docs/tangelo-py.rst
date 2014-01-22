@@ -2,38 +2,6 @@
     Python Web Service API
 ==============================
 
-.. py:function:: tangelo.empty_response()
-
-    Returns a Python dict object representing a standard response from a Python
-    service, initialized to an empty state.  The dict has fields named
-    ``result``  and ``error``, both initialized to ``None``.  These can be used
-    as their names suggest:  place the response data in the ``result`` field to
-    indicate success, or place a message (or other error-related data) in the
-    ``error`` field if something goes wrong.  An example usage might look like
-    the following:
-
-    .. code-block:: python
-
-        import lcars
-        import tangelo
-
-        def run(spec):
-            response = tangelo.empty_response()
-
-            lookup = lcars.find(spec)
-            if lookup is None:
-                response.error = "Could not find '%s' in LCARS" % (spec)
-            else:
-                response.result = lookup
-
-            return response
-
-    Note that use of this function is not mandated anywhere, it is simply a
-    convenient way to construct a standard container object.  Note also that
-    returning an :py:class:`HTTPStatusCode` object may be a better way to signal
-    an error.
-
-
 .. py:function:: tangelo.content_type([type])
 
     Returns the content type for the current request, as a string.  If ``type``
