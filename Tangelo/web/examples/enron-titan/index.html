@@ -14,7 +14,8 @@
 <script src=enron-titan.js></script>
 
 <!-- Tangelo styling -->
-<link href=http://bootswatch.com/2/readable/bootstrap.min.css rel=stylesheet type=text/css>
+<link href=http://bootswatch.com/readable/bootstrap.min.css rel=stylesheet type=text/css>
+<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css" rel="stylesheet">
 <script src=http://netdna.bootstrapcdn.com/bootstrap/2.3.0/js/bootstrap.min.js></script>
 
 <style>
@@ -46,54 +47,62 @@
 <title>Enron Email Network</title>
 
 <!-- Create a navbar -->
-<div id=info-panel class="modal hide fade">
-    <div class=modal-header>
-        <h3>Information</h3>
-    </div>
+<div id=info-panel class="modal fade">
+    <div class=modal-dialog>
+        <div class=modal-content>
+            <div class=modal-header>
+                <h3>Information</h3>
+            </div>
 
-    <div class=modal-body>
-        <p>Explore the Enron email correspondence network.
+            <div class=modal-body>
+                <p>Explore the Enron email correspondence network.
 
-        <p>In this app, you can select an email address, a date range, and a
-        degree of separation, and see the resulting network of email
-        correspondence.  For example, selecting
-        <tt>phillip.allen@enron.com</tt>, December 13, 2000, 1 day, and a degree
-        of 2 will show everyone Phillip Allen emailed on that day, and everyone
-        THEY emailed, as a graph.
-    </div>
+                <p>In this app, you can select an email address, a date range, and a
+                degree of separation, and see the resulting network of email
+                correspondence.  For example, selecting
+                <tt>phillip.allen@enron.com</tt>, December 13, 2000, 1 day, and a degree
+                of 2 will show everyone Phillip Allen emailed on that day, and everyone
+                THEY emailed, as a graph.
+            </div>
 
-    <div class=modal-footer>
-        <a class=btn data-dismiss=modal>OK</a>
-    </div>
-</div>
-
-<div id=config-panel class="modal hide fade">
-    <div class=modal-header>
-        <h3>Configuration</h3>
-    </div>
-
-    <div class=modal-body>
-        <div class="alert alert-danger">
-            WARNING: hostnames in this configuration are relative to the <b>server</b>
-            (e.g., "localhost" refers to the <b>webserver</b> itself, <b>not</b> your local machine).
+            <div class=modal-footer>
+                <a class="btn btn-default" data-dismiss=modal>OK</a>
+            </div>
         </div>
-        MongoDB host <input id="mongodb-server" type=text>
-    </div>
-
-    <div class=modal-footer>
-        <a id=config-cancel class="btn" data-dismiss=modal>Cancel</a>
-        <a id=config-defaults class="btn">Defaults</a>
-        <a id=config-submit class="btn btn-primary" data-dismiss=modal>Save changes</a>
     </div>
 </div>
 
-<div class="navbar navbar-fixed-top">
-    <div class="navbar-inner">
-        <a class=brand style="margin-left:auto" href="/examples">Tangelo</a>
-        <ul class=nav>
+<div id=config-panel class="modal fade">
+    <div class=modal-dialog>
+        <div class=modal-content>
+            <div class=modal-header>
+                <h3>Configuration</h3>
+            </div>
+
+            <div class=modal-body>
+                <div class="alert alert-danger">
+                    WARNING: hostnames in this configuration are relative to the <b>server</b>
+                    (e.g., "localhost" refers to the <b>webserver</b> itself, <b>not</b> your local machine).
+                </div>
+                MongoDB host <input id="mongodb-server" type=text>
+            </div>
+
+            <div class=modal-footer>
+                <a id=config-cancel class="btn btn-default" data-dismiss=modal>Cancel</a>
+                <a id=config-defaults class="btn btn-default">Defaults</a>
+                <a id=config-submit class="btn btn-primary" data-dismiss=modal>Save changes</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class=navbar-header>
+        <a class=navbar-brand href=/examples>Tangelo</a>
+        <ul class="nav navbar-nav">
             <li class=active> <a>Enron Email Network (Titan)</a>
-            <li><a style="cursor:pointer" data-toggle=modal data-target=#info-panel><i class=icon-info-sign></i> Info</a>
-            <li><a style="cursor:pointer" data-toggle=modal data-target=#config-panel><i class=icon-cog></i> Config</a>
+            <li><a style="cursor:pointer" data-toggle=modal data-target=#info-panel><span class="glyphicon glyphicon-info-sign"></span> Info</a>
+            <li><a style="cursor:pointer" data-toggle=modal data-target=#config-panel><span class="glyphicon glyphicon-cog"></span> Config</a>
         </ul>
     </div>
 </div>
@@ -112,26 +121,26 @@
 <div id=control-panel style="background-color:rgb(246,246,246)">
     <div class=container>
         <div class=row>
-            <div class=span3>
+            <div class=col-md-3>
                 <!-- JQuery slider -->
                 <h4>Date</h4>
                 <div id=date></div>
                 <code id=date-label></code>
             </div>
 
-            <div class=span3>
+            <div class=col-md-3>
                 <!-- JQuery slider -->
                 <h4>Date range</h4>
                 <div id=range></div>
                 <code id=range-label></code>
             </div>
 
-            <div class=span3>
+            <div class=col-md-3>
                 <h4>Central emailer</h4>
                 <input id=center>
             </div>
 
-            <div class=span3>
+            <div class=col-md-3>
                 <!-- JQuery spinner -->
                 <h4>Degree of separation</h4>
                 <input id=degree>
@@ -139,8 +148,8 @@
         </div>
 
         <div class=row>
-            <div id=update class="btn btn-success span5 offset1">Update</div>
-            <div id=animate class="btn btn-success span5">Animate</div>
+            <div id=update class="btn btn-success col-md-offset-1 col-md-4">Update</div>
+            <div id=animate class="btn btn-success col-md-offset-2 col-md-4">Animate</div>
         </div>
     </div>
 </div>
