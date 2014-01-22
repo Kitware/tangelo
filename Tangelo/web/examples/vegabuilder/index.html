@@ -20,19 +20,17 @@ html, body {
     height: 100%;
 }
 
-.axis path, .axis line {
-  fill: none;
-  stroke: black;
-  stroke-width: 1px;
-  shape-rendering: crispEdges;
-}
-.axis text {
-  font-family: sans-serif;
-  font-size: 11px;
+#vis {
+    background-color: white;
+    height: 405px;
 }
 
-.header {
-    background-color: rgba(255,255,255);
+#editor-container {
+    height: calc(100% - 427px);
+    margin-top: 10px;
+    margin-bottom: 10px;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .vega {
@@ -55,11 +53,9 @@ html, body {
 
 <title>Vega Builder</title>
 
-<div class="header">
-    <div id=vis style="background-color:white;height:405px"></div>
-</div>
+<div id=vis></div>
 
-<div class="container" style="overflow-y:scroll; overflow-x:hidden; height:calc(100% - 427px); margin-top:10px; margin-bottom:10px;">
+<div id=editor-container class="container">
 	<div class="row">
 		<div id="editor" class="col-md-12"></div>
 	</div>
