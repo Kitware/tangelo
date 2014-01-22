@@ -17,6 +17,21 @@ enron.center = null;
 enron.degree = null;
 enron.host = null;
 
+enron.monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec"
+];
+
 function stringifyDate(d) {
     "use strict";
 
@@ -27,7 +42,7 @@ function stringifyDate(d) {
 function displayDate(d) {
     "use strict";
 
-    return tangelo.monthNames()[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
+    return enron.monthNames[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear();
 }
 
 function updateGraph() {
