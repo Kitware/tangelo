@@ -13,9 +13,13 @@
 <script src="vegabuilder.js"></script>
 
 <!-- Styling for app -->
-<link href=http://bootswatch.com/2/readable/bootstrap.min.css rel=stylesheet type=text/css>
+<link href=http://bootswatch.com/readable/bootstrap.min.css rel=stylesheet type=text/css>
 
 <style>
+html, body {
+    height: 100%;
+}
+
 .axis path, .axis line {
   fill: none;
   stroke: black;
@@ -28,14 +32,23 @@
 }
 
 .header {
-    position: fixed;
-    top: 0px;
-    width: 100%;
-    background-color: rgba(255,255,255,0.5);
+    background-color: rgba(255,255,255);
 }
 
-body {
-	padding-top: 400px;
+.vega {
+    width: 400px;
+    margin: 0 auto;
+    border: 1px solid black;
+}
+
+.row {
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+*[class^="col-md-"],*[class*=" col-md-"] {
+    padding-left: 0px;
+    padding-right: 0px;
 }
 
 </style>
@@ -43,13 +56,11 @@ body {
 <title>Vega Builder</title>
 
 <div class="header">
-	<div class="row-fluid">
-		<div class="span6 offset3" id="vis"></div>
-	</div>
+    <div id=vis style="background-color:white;height:405px"></div>
 </div>
 
-<div class="container-fluid">
-	<div class="row-fluid">
-		<div class="span12" id="editor"></div>
+<div class="container" style="overflow-y:scroll; overflow-x:hidden; height:calc(100% - 427px); margin-top:10px; margin-bottom:10px;">
+	<div class="row">
+		<div id="editor" class="col-md-12"></div>
 	</div>
 </div>
