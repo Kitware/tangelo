@@ -19,17 +19,19 @@ $(function () {
 		spec = spec || {};
 		arr = [];
 
-		main = d3.select(spec.parent).append("div").style("background-color", "rgba(150,150,150,0.1)").attr("class", "row-fluid");
+		main = d3.select(spec.parent).append("div").style("background-color", "rgba(150,150,150,0.1)").attr("class", "row");
 		elements = main.append("div");
 		controls = main.append("div").attr("class", "btn-group");
 		addButton = controls.append("button")
-			.attr("class", "btn")
+			.classed("btn", true)
+			.classed("btn-default", true)
 			.text("Add")
 			.on("click", function () {
 				arr.push(spec.element.editor(spec.element));
 			});
 		removeButton = controls.append("button")
-			.attr("class", "btn")
+			.classed("btn", true)
+			.classed("btn-default", true)
 			.text("Remove")
 			.on("click", function () {
 				var element = arr.pop();
@@ -73,7 +75,12 @@ $(function () {
 		fields = spec.fields || {};
 		obj = {};
 
-		main = d3.select(spec.parent).append("div").style("background-color", "rgba(150,150,150,0.1)").attr("class", "row-fluid").append("div").attr("class", "span12");
+		main = d3.select(spec.parent)
+            .append("div")
+            .style("background-color", "rgba(150,150,150,0.1)")
+            .classed("row", true)
+            .append("div")
+            .classed("col-md-12", true);
 
 		function changeActive() {
 			var check = d3.select(this),
@@ -89,17 +96,28 @@ $(function () {
 		for (d in fields) {
 			if (fields.hasOwnProperty(d)) {
 				isContainer = fields[d].editor === objectEditor || fields[d].editor === arrayEditor;
-				fieldDiv = main.append("div").attr("class", "row-fluid").append("div").attr("class", "span12");
+				fieldDiv = main.append("div")
+                    .classed("row", true)
+                    .append("div")
+                    .classed("col-md-12", true);
 				if (isContainer) {
-					fieldPre = fieldDiv.append("div").attr("class", "span11 offset1");
+					fieldPre = fieldDiv.append("div")
+                        .classed("col-md-11", true)
+                        .classed("col-md-offset-1", true);
 				} else {
-					fieldPre = fieldDiv.append("span").attr("class", "span2 offset1");
+					fieldPre = fieldDiv.append("span")
+                        .classed("col-md-2", true)
+                        .classed("col-md-offset-1", true);
 				}
 				fieldCheck = fieldPre.append("input").attr("type", "checkbox").attr("data-field", d).on("click", changeActive);
 				fieldPre.append("span").text(" " + d);
 
 				if (isContainer) {
-					fieldContent = fieldDiv.append("div").attr("class", "row-fluid").append("div").attr("class", "span11 offset1");
+					fieldContent = fieldDiv.append("div")
+                        .attr("class", "row")
+                        .append("div")
+                        .classed("col-md-11", true)
+                        .classed("col-md-offset-1", true);
 				} else {
 					fieldContent = fieldDiv.append("span");
 				}
@@ -425,10 +443,10 @@ $(function () {
 
 	d3.json("arc.json", function (error, spec) {
 		editor.value(spec);
-	});
 
-	window.setInterval(function () {
+	//window.setInterval(function () {
 		var spec = editor.value();
 		vg.parse.spec(spec, function (chart) { chart({el: "#vis"}).update(); });
-	}, 1000);
+	//}, 1000);
+	});
 });

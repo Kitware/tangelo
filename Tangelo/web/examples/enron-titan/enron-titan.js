@@ -225,10 +225,10 @@ window.onload = function () {
     // Create control panel.
     $("#control-panel").controlPanel();
 
-    tangelo.util.defaults("defaults.json", function (defaults) {
+    tangelo.defaults("defaults.json", function (defaults) {
         var displayDate;
 
-        enron.host = (defaults && defaults.get("host")) || "mongo";
+        enron.host = (defaults && defaults.host) || "mongo";
 
         svg = d3.select("svg");
 

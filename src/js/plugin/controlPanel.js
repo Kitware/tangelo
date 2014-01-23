@@ -44,8 +44,8 @@
                     .duration(500)
                     .style("height", iconheight);
 
-                button.classed("icon-chevron-down", false)
-                    .classed("icon-chevron-up", true);
+                button.classed("glyphicon-chevron-down", false)
+                    .classed("glyphicon-chevron-up", true);
 
                 state = 'collapsed';
             } else if (state === 'collapsed') {
@@ -53,8 +53,8 @@
                     .duration(500)
                     .style("height", divheight);
 
-                button.classed("icon-chevron-down", true)
-                    .classed("icon-chevron-up", false);
+                button.classed("glyphicon-chevron-down", true)
+                    .classed("glyphicon-chevron-up", false);
 
                 state = 'uncollapsed';
             } else {
@@ -104,9 +104,10 @@
                 d3.select(this)
                     .style("background", null);
             })
-            .append("i")
+            .append("span")
             .attr("id", "tangelo-drawer-icon-" + tag)
-            .classed("icon-chevron-down", true);
+            .classed("glyphicon", true)
+            .classed("glyphicon-chevron-down", true);
 
         toggle = drawerToggle("#" + id, "#tangelo-drawer-icon-" + tag);
         d3.select("#tangelo-drawer-handle-" + tag)
