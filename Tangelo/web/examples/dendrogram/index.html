@@ -3,6 +3,10 @@
     html, body {
         height: 100%;
     }
+
+    body {
+        padding-top: 50px;
+    }
 </style>
 
 <link href="http://code.jquery.com/ui/1.9.1/themes/smoothness/jquery-ui.css" rel=stylesheet>
@@ -16,45 +20,7 @@
 <script src=http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js></script>
 <script src="/js/tangelo.js"></script>
 
-<script>
-var data = {
-    name: "Picard",
-    children: [{
-        name: "Riker",
-        children: [{
-            name: "LaForge",
-            children: [
-                { name: "Crusher, W.", children: [] },
-                { name: "Gomez", children: [] },
-                { name: "Barclay", children: [] }
-            ]
-        },
-
-        {
-            name: "Worf",
-            children: [
-                { name: "Sito", children: [] },
-                { name: "Rhodes", children: [] },
-                { name: "D'Sora", children: [] }
-            ]
-        },
-
-        {
-            name: "Crusher, B.",
-            children: [
-                { name: "Ogawa", children: [] },
-                { name: "Selar", children: [] }
-            ]
-        }]
-    }]
-};
-
-$(document.body).dendrogram({
-    data: data,
-    id: {field: "name"},
-    label: {field: "name"}
-});
-</script>
+<script src=dendrogram.js></script>
 
 <div id=info-panel class="modal fade">
     <div class=modal-dialog>
@@ -85,5 +51,7 @@ $(document.body).dendrogram({
         <li><a style="cursor:pointer" data-toggle=modal data-target=#info-panel><span class="glyphicon glyphicon-info-sign"></span> Info</a>
     </ul>
 </div>
+
+<div id=content></div>
 
 </body>
