@@ -48,7 +48,7 @@ def run(server, db, coll, method='find', query=None, limit=1000, skip=0, fields=
     # Create database connection.
     try:
         c = pymongo.Connection(server)[db][coll]
-    except (pymongo.errors.AutoReconnect, pymongo.errors.ConnectionFailure)
+    except (pymongo.errors.AutoReconnect, pymongo.errors.ConnectionFailure):
         response['error'] = "Could not connect to MongoDB server '%s'" % (server)
         return bson.json_util.dumps(response)
 
