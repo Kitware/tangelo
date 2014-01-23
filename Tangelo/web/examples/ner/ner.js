@@ -450,8 +450,14 @@ window.onload = function () {
     // Create control panel.
     $("#control-panel").controlPanel();
 
-    tangelo.defaults("config.json", function (config) {
+    tangelo.defaults("config.json", function (config, status, error) {
         var popover_cfg;
+
+        if (status !== "OK") {
+            tangelo.fatalError("ner.js", "config.json file is required");
+        } else if (!config.host) {
+            tangelo.fatalError("ner.js", "config.json must have 'mongo_server' field");
+        }
 
         NER.mongo_server = config["mongodb-server"];
 

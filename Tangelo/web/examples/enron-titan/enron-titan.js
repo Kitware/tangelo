@@ -225,8 +225,14 @@ window.onload = function () {
     // Create control panel.
     $("#control-panel").controlPanel();
 
-    tangelo.defaults("config.json", function (config) {
+    tangelo.defaults("config.json", function (config, status, error) {
         var displayDate;
+
+        if (status !== "OK") {
+            tangelo.fatalError("enron-titan.js", "config.json file is required");
+        } else if (!config.host) {
+            tangelo.fatalError("enron-titan.js", "config.json must have 'host' field");
+        }
 
         enron.host = config.host;
 

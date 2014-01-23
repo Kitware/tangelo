@@ -566,6 +566,12 @@ window.onload = function () {
             zoomfunc,
             redraw;
 
+        if (status !== "OK") {
+            tangelo.fatalError("flickr.js", "config.json file is required");
+        } else if (!config["mongodb-server"] || !config.["mongodb-db"] || !config["mongodb-coll"]) {
+            tangelo.fatalError("flickr.js", "config.json must have 'mongodb-server', 'mongodb-db', and 'mongodb-coll' fields");
+        }
+
         flickr.config = {};
         flickr.config.server = config["mongodb-server"];
         flickr.config.db = config["mongodb-db"];
