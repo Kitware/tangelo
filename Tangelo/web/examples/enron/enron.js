@@ -223,10 +223,10 @@ window.onload = function () {
     // Create control panel.
     $("#control-panel").controlPanel();
 
-    tangelo.defaults("defaults.json", function (defaults) {
+    tangelo.defaults("config.json", function (config) {
         var displayDate;
 
-        enron.host = defaults.host || "mongo";
+        enron.host = config.host;
 
         svg = d3.select("svg");
 
