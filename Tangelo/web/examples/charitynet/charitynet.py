@@ -12,7 +12,7 @@ def run(servername, dbname, datatype, by = None, datemin = None, datemax = None,
     # Establish a connection to the MongoDB server.
     try:
         conn = pymongo.Connection(servername)
-    except pymongo.errors.AutoReconnect as e:
+    except (pymongo.errors.AutoReconnect, pymongo.errors.ConnectionFailure) as e:
         response['error'] = "error: %s" % (e.message)
         return bson.json_util.dumps(response)
 

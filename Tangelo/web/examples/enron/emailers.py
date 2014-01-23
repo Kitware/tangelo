@@ -42,9 +42,7 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
     ex = None
     try:
         c = pymongo.Connection(host)[database][collection]
-    except pymongo.errors.AutoReconnect as e:
-        ex = e
-    except pymongo.errors.ConnectionFailure as e:
+    except (pymongo.errors.AutoReconnect, pymongo.errors.ConnectionFailure) as e:
         ex = e
 
     # Bail out with an error message if there was an exception.
