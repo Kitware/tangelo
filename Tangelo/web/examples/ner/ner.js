@@ -9,21 +9,7 @@ var graph = null;
 // Top-level container object for this js file.
 var NER = {};
 
-NER.cfgDefaults = null;
-
-// Get the mongo server to use from the configuration.
-NER.getMongoDBServer = function () {
-    "use strict";
-
-    return localStorage.getItem('NER:mongodb-server') || NER.cfgDefaults["mongodb-server"] || 'localhost';
-};
-
-// Save the mongo server to use to the configuration.
-NER.setMongoDBServer = function (val) {
-    "use strict";
-
-    return localStorage.setItem('NER:mongodb-server', val);
-};
+NER.mongo_server = null;
 
 // "nodes" is a table of entity names, mapping to an array position generated
 // uniquely by the "counter" variable.  Once the table is complete, the nodes
@@ -112,7 +98,7 @@ function processFileContents(filename, id, file_hash) {
             ok = true;
             $.ajax({
                 type: 'POST',
-                url: 'nermongo/' + NER.getMongoDBServer() + '/xdata/ner-cache',
+                url: 'nermongo/' + NER.mongo_server + '/xdata/ner-cache',
                 data: {
                     file_hash: file_hash,
                     data: JSON.stringify(entities)
@@ -230,7 +216,7 @@ function processFile(filename, id) {
         // when it finishes!).
         $.ajax({
             type: 'POST',
-            url: 'nermongo/' + NER.getMongoDBServer() + '/xdata/ner-cache',
+            url: 'nermongo/' + NER.mongo_server + '/xdata/ner-cache',
             data: {
                 file_hash: file_hash
             },
@@ -464,10 +450,10 @@ window.onload = function () {
     // Create control panel.
     $("#control-panel").controlPanel();
 
-    tangelo.defaults("defaults.json", function (defaults) {
+    tangelo.defaults("config.json", function (config) {
         var popover_cfg;
 
-        NER.cfgDefaults = defaults;
+        NER.mongo_server = config["mongodb-server"];
 
         // Capture the console element.
         NER.con = d3.select("#console");
@@ -504,20 +490,6 @@ window.onload = function () {
             "<b>Render text labels</b>.  Instead of circles to represent entities, use a text placard with " +
             "the name of the entity displayed with text.";
         $("#graph-help").popover(popover_cfg);
-
-        // Emplace config callbacks.
-        d3.select("#config-submit")
-            .on("click", function () {
-                NER.setMongoDBServer($("#mongodb-server").val());
-            });
-        d3.select("#config-defaults")
-            .on("click", function () {
-                localStorage.removeItem("NER:mongodb-server");
-                $("#mongodb-server").val(NER.getMongoDBServer());
-            });
-
-        // Place the current Mongo DB server in the navbar contents.
-        $("#mongodb-server").val(NER.getMongoDBServer());
 
         // Activate the dataset select tag, and fill it with entries.
         d3.select("#dataset")
