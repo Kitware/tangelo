@@ -37,6 +37,34 @@ class Tangelo(object):
         if self.vtkweb is not None:
             cherrypy.tree.mount(self.vtkweb, "/vtkweb")
 
+        # Mount Girder API if available.
+        try:
+            from girder.api import api_main
+
+            cherrypy.config.update({
+                "sessions": {"cookie_lifetime": 180},
+                "server": {"mode": "development"},
+                "database": {
+                    "host": "localhost",
+                    "port": 27017,
+                    "user": "",
+                    "password": "",
+                    "database": "girder"
+                }
+            })
+
+            class Dummy(object):
+                pass
+
+            cherrypy.tree.mount(api_main.addApiToNode(Dummy()), "/girder", {
+                '/': {
+                    'request.dispatch': cherrypy.dispatch.MethodDispatcher()
+                }
+            })
+        except ImportError:
+            # Ok, just don't mount it.
+            pass
+
     def cleanup(self):
         if self.vtkweb:
             self.vtkweb.shutdown_all()
