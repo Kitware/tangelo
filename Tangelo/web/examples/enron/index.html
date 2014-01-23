@@ -23,6 +23,14 @@
         width: 100%;
         height: 100%;
     }
+
+    body {
+        padding-top: 50px;
+    }
+
+    #control-panel {
+        background-color: lightgray;
+    }
     
     #graph {
         position: fixed;
@@ -81,7 +89,7 @@
 
 <!-- Create a fullscreen SVG element -->
 <svg id=graph>
-    <rect width=100% height=100% style="fill:silver;" />
+    <rect width=100% height=100% style="fill:white;" />
     <g id="links"></g>
     <g id="nodes"></g>
 </svg>
@@ -90,7 +98,7 @@
 <svg id=legend height=100% style="position:fixed; top:100px; right:0px; pointer-events:none;"></svg>
 
 <!-- Create a drawer with the control panel in it -->
-<div id=control-panel style="background-color:rgb(246,246,246)">
+<div id=control-panel>
     <div class=container>
         <div class=row>
             <div class=col-md-3>
