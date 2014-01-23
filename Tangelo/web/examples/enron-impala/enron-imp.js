@@ -249,8 +249,8 @@ window.onload = function () {
     // Create control panel.
     $("#control-panel").controlPanel();
 
-    tangelo.defaults("defaults.json", function (defaults) {
-        enron.host = defaults.host || "mongo";
+    tangelo.defaults("config.json", function (config) {
+        enron.host = config.host;
 
         svg = d3.select("svg");
 
