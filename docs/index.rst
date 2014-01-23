@@ -39,7 +39,7 @@ information.
 .. _Tangelo homepage: http://kitware.github.io/tangelo/
 .. _GitHub repository: https://github.com/Kitware/tangelo
 .. _Hadoop: http://hadoop.apache.org/
-.. _Vega: http://trifaca.github.io/vega/
+.. _Vega: http://trifacta.github.io/vega/
 
 Quick Start
 ===========
