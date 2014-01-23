@@ -25,8 +25,8 @@
         // Initially, the panel is open.
         state = 'uncollapsed';
 
-        // The glyphicon halfings are around 22.875 pixels tall.
-        iconheight = "23px";
+        // The glyphicon halfings are around 20 pixels tall.
+        iconheight = "20px";
 
         // Save the original height of the panel.
         // This requires a DOM update to do this correctly, so we wait a second.
