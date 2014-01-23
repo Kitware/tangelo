@@ -223,10 +223,16 @@ window.onload = function () {
     // Create control panel.
     $("#control-panel").controlPanel();
 
-    tangelo.defaults("defaults.json", function (defaults) {
+    tangelo.defaults("config.json", function (config, status, error) {
         var displayDate;
 
-        enron.host = defaults.host || "mongo";
+        if (status !== "OK") {
+            tangelo.fatalError("enron.js", "config.json file is required");
+        } else if (!config.host) {
+            tangelo.fatalError("enron.js", "config.json must have 'host' field");
+        }
+
+        enron.host = config.host;
 
         svg = d3.select("svg");
 

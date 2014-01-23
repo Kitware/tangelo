@@ -1,0 +1,5 @@
+{
+    "mongodb-server": "localhost",
+    "mongodb-db": "xdata",
+    "mongodb-coll": "flickr_paris"
+}
