@@ -455,8 +455,8 @@ window.onload = function () {
 
         if (status !== "OK") {
             tangelo.fatalError("ner.js", "config.json file is required");
-        } else if (!config.host) {
-            tangelo.fatalError("ner.js", "config.json must have 'mongo_server' field");
+        } else if (!config["mongodb-server"]) {
+            tangelo.fatalError("ner.js", "config.json must have 'mongodb-server' field");
         }
 
         NER.mongo_server = config["mongodb-server"];
