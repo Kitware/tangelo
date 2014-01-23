@@ -443,10 +443,10 @@ $(function () {
 
 	d3.json("arc.json", function (error, spec) {
 		editor.value(spec);
-
-	//window.setInterval(function () {
-		var spec = editor.value();
-		vg.parse.spec(spec, function (chart) { chart({el: "#vis"}).update(); });
-	//}, 1000);
 	});
+
+    window.setInterval(function () {
+        var spec = editor.value();
+        vg.parse.spec(spec, function (chart) { chart({el: "#vis"}).update(); });
+    }, 1000);
 });
