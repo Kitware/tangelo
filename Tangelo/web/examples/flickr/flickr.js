@@ -6,7 +6,7 @@ var flickr = {};
 flickr.map = null;
 flickr.timeslider = null;
 
-flickr.cfgDefaults = null;
+flickr.config = null;
 
 flickr.locationData = null;
 
@@ -41,47 +41,6 @@ flickr.dayNames = [
     "Fri",
     "Sat"
 ];
-
-flickr.getMongoDBInfo = function () {
-    "use strict";
-
-    // Read in the config options regarding which MongoDB
-    // server/database/collection to use.
-    return {
-        server: localStorage.getItem('flickr:mongodb-server') || flickr.cfgDefaults["mongodb-server"] || 'localhost',
-        db: localStorage.getItem('flickr:mongodb-db') || flickr.cfgDefaults["mongodb-db"] || 'xdata',
-        coll: localStorage.getItem('flickr:mongodb-coll') || flickr.cfgDefaults["mongodb-coll"] || 'flickr_paris'
-    };
-};
-
-function showConfig() {
-    "use strict";
-
-    var cfg;
-
-    cfg = flickr.getMongoDBInfo();
-    d3.select("#mongodb-server").property("value", cfg.server);
-    d3.select("#mongodb-db").property("value", cfg.db);
-    d3.select("#mongodb-coll").property("value", cfg.coll);
-}
-
-function updateConfig() {
-    "use strict";
-
-    var server,
-        db,
-        coll;
-
-    // Grab the elements.
-    server = document.getElementById("mongodb-server");
-    db = document.getElementById("mongodb-db");
-    coll = document.getElementById("mongodb-coll");
-
-    // Write the options into DOM storage.
-    localStorage.setItem('flickr:mongodb-server', server.value);
-    localStorage.setItem('flickr:mongodb-db', db.value);
-    localStorage.setItem('flickr:mongodb-coll', coll.value);
-}
 
 flickr.getMongoRange = function (host, db, coll, field, callback) {
     "use strict";
@@ -201,7 +160,6 @@ function retrieveData(initial) {
     query = {$and : [timequery, hashtagquery]};
 
     // Enable the abort button and issue the query to the mongo module.
-    mongo = flickr.getMongoDBInfo();
     d3.select("#abort")
         .classed("btn-success", false)
         .classed("btn-danger", true)
@@ -210,7 +168,7 @@ function retrieveData(initial) {
 
     flickr.currentAjax = $.ajax({
         type: 'POST',
-        url: '/service/mongo/' + mongo.server + '/' + mongo.db + '/' + mongo.coll,
+        url: '/service/mongo/' + flickr.config.server + '/' + flickr.config.db + '/' + flickr.config.coll,
         data: {
             query: JSON.stringify(query),
             limit: d3.select("#record-limit").node().value,
@@ -515,13 +473,9 @@ function retrieveData(initial) {
 function getMinMaxDates(zoom) {
     "use strict";
 
-    var mongo;
-
-    mongo = flickr.getMongoDBInfo();
-
     // Get the earliest and latest times in the collection, and set the slider
     // range/handles appropriately.
-    flickr.getMongoRange(mongo.server, mongo.db, mongo.coll, "date", function (min, max) {
+    flickr.getMongoRange(flickr.config.server, flickr.config.db, flickr.config.coll, "date", function (min, max) {
         var gmap_cfg,
             options,
             div;
@@ -600,18 +554,10 @@ window.onload = function () {
 
     tangelo.requireCompatibleVersion("0.2");
 
-    // Emplace callbacks for config panel.
-    $("#config-panel")
-        .on("show", showConfig);
-    d3.select("#config-submit")
-        .on("click", updateConfig);
-    d3.select("#config-defaults")
-        .on("click", setConfigDefaults);
-
     // Create control panel.
     $("#control-panel").controlPanel();
 
-    tangelo.defaults("defaults.json", function (defaults) {
+    tangelo.defaults("config.json", function (config, status, error) {
         var buttons,
             i,
             checkbox,
@@ -620,7 +566,10 @@ window.onload = function () {
             zoomfunc,
             redraw;
 
-        flickr.cfgDefaults = defaults;
+        flickr.config = {};
+        flickr.config.server = config["mongodb-server"];
+        flickr.config.db = config["mongodb-db"];
+        flickr.config.coll = config["mongodb-coll"];
 
         flickr.timeslider = $("#time-slider");
 
