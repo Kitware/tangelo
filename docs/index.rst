@@ -18,6 +18,7 @@ HTML5, CSS, JavaScript, and other web technologies such as
 * Bootstrap
 * WebGL
 * Canvas
+* Vega_
 
 to create rich web applications - from traditional, static pages, to
 cutting-edge, visual, dynamic displays.  **Tangelo also lets you include Python
@@ -38,6 +39,7 @@ information.
 .. _Tangelo homepage: http://kitware.github.io/tangelo/
 .. _GitHub repository: https://github.com/Kitware/tangelo
 .. _Hadoop: http://hadoop.apache.org/
+.. _Vega: http://trifaca.github.io/vega/
 
 Quick Start
 ===========
