@@ -30,7 +30,7 @@
     {
       "name": "color",
       "domain": [0.01, 1000000],
-      "range": ["#f5f5f5","#00b"],
+      "range": ["#fff","#00b"],
       "clamp": true
     }
   ],
