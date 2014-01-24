@@ -88,36 +88,71 @@ var tangelo = {};
     };
 
     tangelo.accessor = function (spec, defaultValue) {
-        var parts;
-        if (tangelo.isFunction(spec)) {
-            return spec;
-        }
-        if (!spec) {
-            return function () { return defaultValue; };
-        }
-        if (spec.hasOwnProperty("value")) {
-            return function () { return spec.value; };
-        }
-        if (spec.hasOwnProperty("index")) {
-            return function (d, i) { return i; };
-        }
-        if (spec.hasOwnProperty("field")) {
-            if (spec.field === ".") {
-                return tangelo.identity;
+        var parts,
+            func,
+            key;
+
+        // Need a way to "clone" a function, so we can put properties on the
+        // clone without affecting the original.  Code adapted from
+        // http://stackoverflow.com/a/11230005/1886928).
+        Function.prototype.clone = function () {
+            var cloneObj = this,
+                temp;
+
+            if (this.__isClone) {
+                cloneObj = this.__clonedFrom;
             }
-            parts = spec.field.split(".");
-            return function (d) {
-                var i;
-                for (i = 0; i < parts.length; i += 1) {
-                    d = d[parts[i]];
-                    if (d === undefined) {
-                        return defaultValue;
-                    }
-                }
-                return d;
+
+            temp = function () {
+                return cloneObj.apply(this, arguments);
             };
+
+            for (key in this) {
+                temp[key] = this[key];
+            }
+
+            temp.__isClone = true;
+            temp.__clonedFrom = cloneObj;
+
+            return temp;
+        };
+
+        if (spec === undefined || spec === {}) {
+            func = function () {
+                tangelo.fatalError("tangelo.accessor()", "I am an undefined accessor - you shouldn't be calling me!");
+            };
+            func.undefined = true;
+        } else if (tangelo.isFunction(spec)) {
+            func = spec.clone();
+        } else if (!spec) {
+            func = function () { return defaultValue; };
+        } else if (spec.hasOwnProperty("value")) {
+            func = function () { return spec.value; };
+        } else if (spec.hasOwnProperty("index")) {
+            func = function (d, i) { return i; };
+        } else if (spec.hasOwnProperty("field")) {
+            if (spec.field === ".") {
+                func = function (d) { return d; };
+                //return tangelo.identity;
+            } else {
+                parts = spec.field.split(".");
+                func = function (d) {
+                    var i;
+                    for (i = 0; i < parts.length; i += 1) {
+                        d = d[parts[i]];
+                        if (d === undefined) {
+                            return defaultValue;
+                        }
+                    }
+                    return d;
+                };
+            }
+        } else {
+            tangelo.fatalError("tangelo.accessor()", "unknown accessor spec " + spec);
         }
-        tangelo.fatalError("tangelo.accessor()", "unknown accessor spec " + spec);
+
+        func.accessor = true;
+        return func;
     };
 
     tangelo.appendFunction = function (f1, f2) {

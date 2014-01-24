@@ -23,6 +23,8 @@
             linkTarget:     tangelo.accessor({field: "target"}),
             linkDistance:   tangelo.accessor({value: 30}),
             linkOpacity:    tangelo.accessor({value: 0.2}),
+            nodeX:          tangelo.accessor(),
+            nodeY:          tangelo.accessor(),
             width:          1000,
             height:         1000,
             dynamicLabels:  false,
@@ -57,13 +59,13 @@
             var that = this,
                 nodeIdMap = {};
 
-            if (this.options.nodeX) {
+            if (!this.options.nodeX.undefined) {
                 this.xScale = d3.scale.linear()
                     .domain(d3.extent(this.options.data.nodes, this.options.nodeX))
                     .range([50, this.options.width - 100]);
             }
 
-            if (this.options.nodeY) {
+            if (!this.options.nodeY.undefined) {
                 this.yScale = d3.scale.linear()
                     .domain(d3.extent(this.options.data.nodes, this.options.nodeY))
                     .range([this.options.height - 100, 50]);
@@ -150,13 +152,13 @@
             var that = this,
                 nodeLabels;
 
-            if (that.options.nodeX) {
+            if (!that.options.nodeX.undefined) {
                 that.options.data.nodes.forEach(function (d, i) {
                     d.x = that.xScale(that.options.nodeX(d, i));
                 });
             }
 
-            if (that.options.nodeY) {
+            if (!that.options.nodeY.undefined) {
                 that.options.data.nodes.forEach(function (d, i) {
                     d.y = that.yScale(that.options.nodeY(d, i));
                 });
