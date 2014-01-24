@@ -12,7 +12,7 @@
     }
 
     $.widget("tangelo.geodots", $.tangelo.widget, {
-        options: {
+        _defaults: {
             latitude: tangelo.accessor({value: 0}),
             longitude: tangelo.accessor({value: 0}),
             size: tangelo.accessor({value: 20}),
@@ -21,30 +21,16 @@
             data: null
         },
 
-        _notAccessors: [
-            "worldGeometry",
-            "data"
-        ],
-
         _create: function () {
             var that = this,
                 vegaspec = tangelo.vegaspec.geovis(that.options.worldGeometry);
 
-            vg.parse.spec(vegaspec, function (chart) {
-                var options;
+            this.options = $.extend(true, {}, this._defaults, this.options);
 
+            vg.parse.spec(vegaspec, function (chart) {
                 that.vis = chart;
 
-                // Make a copy of the options passed in, but remove the disabled
-                // and create attributes (which can cause trouble at the JQuery
-                // level), and the vegaspec option (which is only needed once
-                // here).
-                options = $.extend(true, {}, that.options);
-                delete options.disabled;
-                delete options.create;
-                delete options.worldGeometry;
-
-                that._setOptions(options);
+                that._setOptions(that.options);
             });
         },
 

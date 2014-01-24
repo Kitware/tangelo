@@ -12,7 +12,7 @@
     }
 
     $.widget("tangelo.mapdots", $.tangelo.widget, {
-        options: {
+        _defaults: {
             hoverContent: tangelo.accessor({value: ""}),
             size: tangelo.accessor({value: 1}),
             color: tangelo.accessor({value: ""}),
@@ -22,15 +22,13 @@
             data: null
         },
 
-        _notAccessors: [
-            "data"
-        ],
-
         _create: function () {
             var el = this.element.get(0),
                 that = this,
                 overlay,
                 options;
+
+            this.options = $.extend({}, this._defaults, this.options);
 
             this.map = new google.maps.Map(el, {
                 zoom: 2,
@@ -109,12 +107,9 @@
                 this.onRemove = function () {};
             };
 
-            options = $.extend(true, {}, this.options);
-            delete options.disabled;
-            delete options.create;
-            this._setOptions(options);
-
             this.overlay.setMap(this.map);
+
+            this._setOptions(this.options);
         },
 
         _update: function () {

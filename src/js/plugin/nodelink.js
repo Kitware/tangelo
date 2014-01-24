@@ -12,7 +12,7 @@
     }
 
     $.widget("tangelo.nodelink", $.tangelo.widget, {
-        options: {
+        _defaults: {
             nodeCharge:     tangelo.accessor({value: -130}),
             nodeColor:      tangelo.accessor({value: "steelblue"}),
             nodeSize:       tangelo.accessor({value: 10}),
@@ -31,15 +31,8 @@
             data:           null
         },
 
-        _notAccessors: [
-            "data",
-            "width",
-            "height",
-            "dynamicLabels"
-        ],
-
         _create: function () {
-            var options;
+            this.options = $.extend({}, this._defaults, this.options);
 
             this.colorScale = d3.scale.category10();
 
@@ -48,24 +41,20 @@
             this.svg = d3.select(this.element.get(0))
                 .append("svg");
 
-            options = $.extend(true, {}, this.options);
-            options.data = this.options.data;
-            delete options.disabled;
-            delete options.create;
-            this._setOptions(options);
+            this._setOptions(this.options);
         },
 
         _update: function () {
             var that = this,
                 nodeIdMap = {};
 
-            if (!this.options.nodeX.undefined) {
+            if (this.options.nodeX && !this.options.nodeX.undefined) {
                 this.xScale = d3.scale.linear()
                     .domain(d3.extent(this.options.data.nodes, this.options.nodeX))
                     .range([50, this.options.width - 100]);
             }
 
-            if (!this.options.nodeY.undefined) {
+            if (this.options.nodeY && !this.options.nodeY.undefined) {
                 this.yScale = d3.scale.linear()
                     .domain(d3.extent(this.options.data.nodes, this.options.nodeY))
                     .range([this.options.height - 100, 50]);
@@ -152,13 +141,13 @@
             var that = this,
                 nodeLabels;
 
-            if (!that.options.nodeX.undefined) {
+            if (this.options.nodeX && !that.options.nodeX.undefined) {
                 that.options.data.nodes.forEach(function (d, i) {
                     d.x = that.xScale(that.options.nodeX(d, i));
                 });
             }
 
-            if (!that.options.nodeY.undefined) {
+            if (this.options.nodeY && !that.options.nodeY.undefined) {
                 that.options.data.nodes.forEach(function (d, i) {
                     d.y = that.yScale(that.options.nodeY(d, i));
                 });

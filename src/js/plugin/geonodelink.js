@@ -12,7 +12,7 @@
     }
 
     $.widget("tangelo.geonodelink", $.tangelo.widget, {
-        options: {
+        _defaults: {
             nodeLatitude: tangelo.accessor({value: 0}),
             nodeLongitude: tangelo.accessor({value: 0}),
             nodeSize: tangelo.accessor({value: 20}),
@@ -23,25 +23,16 @@
             data: null
         },
 
-        _notAccessors: [
-            "data"
-        ],
-
         _create: function () {
             var that = this,
                 vegaspec = tangelo.vegaspec.geovis(that.options.worldGeometry);
 
-            vg.parse.spec(vegaspec, function (chart) {
-                var options;
+            this.options = $.extend({}, this._defaults, this.options);
 
+            vg.parse.spec(vegaspec, function (chart) {
                 that.vis = chart;
 
-                options = $.extend(true, {}, that.options);
-                delete options.disabled;
-                delete options.create;
-                delete options.worldGeometry;
-
-                that._setOptions(options);
+                that._setOptions(that.options);
             });
         },
 

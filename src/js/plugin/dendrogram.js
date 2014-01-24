@@ -12,7 +12,7 @@
     }
 
     $.widget("tangelo.dendrogram", $.tangelo.widget, {
-        options: {
+        _defaults: {
             label: tangelo.accessor({value: ""}),
             distance: tangelo.accessor({value: 1}),
             id: tangelo.accessor({value: 0}),
@@ -44,22 +44,6 @@
             onNodeDestroy: null
         },
 
-        _notAccessors: [
-            "margin",
-            "nodeLimit",
-            "duration",
-            "root",
-            "source",
-            "data",
-            "mode",
-            "nodesize",
-            "textsize",
-            "orientation",
-            "lineStyle",
-            "onNodeCreate",
-            "onNodeDestroy"
-        ],
-
         _actions: {
             collapse: null
         },
@@ -86,8 +70,9 @@
         },
 
         _create: function () {
-            var options,
-                that = this;
+            var that = this;
+
+            this.options = $.extend(true, {}, this._defaults, this.options),
 
             this._actions.collapse = function (d) {
                 if (that.options.mode === "hide") {
@@ -169,10 +154,7 @@
                 .append("svg")
                 .append("g");
 
-            options = $.extend(true, {}, this.options);
-            delete options.disabled;
-            delete options.create;
-            this._setOptions(options);
+            this._setOptions(this.options);
         },
 
         _update: function () {

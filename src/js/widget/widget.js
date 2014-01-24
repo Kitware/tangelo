@@ -1,6 +1,8 @@
 /*jslint browser: true */
 
 (function (tangelo, $) {
+    "use strict";
+
     if (!($ && $.widget)) {
         $.fn.widget = tangelo.unavailable({
             plugin: "tangelo.widget",
@@ -11,7 +13,7 @@
 
     $.widget("tangelo.widget", {
         _setOption: function (key, value) {
-            if (this._notAccessors.indexOf(key) === -1) {
+            if (this._defaults[key] && this._defaults[key].accessor) {
                 this._super(key, tangelo.accessor(value));
             } else {
                 this._super(key, value);
