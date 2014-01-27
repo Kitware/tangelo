@@ -35,7 +35,7 @@
                 text;
 
             if (err !== null) {
-                console.log("fatal error: could not load app list from " + specFile);
+                tangelo.fatalError("landingPage", "could not load app list from " + specFile);
                 return;
             }
 
@@ -79,9 +79,7 @@
                 right = container.select(extRightSelector);
                 cols = [left, right];
                 text = function (d) {
-                    return "<a href=\"" + d.link + "\">" + "<strong>" + d.name + "</strong>" + "</a>" +
-                        " (<a href=\"" + d.institution_link + "\">" + d.institution + "</a>) - " +
-                        d.description;
+                    return "<h5><a href=\"" + d.link + "\">" + "<strong>" + d.name + "</strong>" + "</a>" + "</h5>" + d.description;
                 };
                 for (i = 0; i < external.length; i = i + 1) {
                     col = cols[i % 2];
