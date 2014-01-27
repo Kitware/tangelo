@@ -39,7 +39,6 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/src/js/stream/stream.js
     ${CMAKE_SOURCE_DIR}/src/js/vtkweb/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/vtkweb/vtkweb.js
-    #${CMAKE_SOURCE_DIR}/src/js/widget/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/widget/widget.js
     ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/index.js
     ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/landingPage.js
@@ -59,7 +58,6 @@ set(JS_LINT_FILES
 set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/core/core.js
     ${CMAKE_SOURCE_DIR}/src/js/core/util.js
-    #${CMAKE_SOURCE_DIR}/src/js/widget/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/widget/widget.js
     ${CMAKE_SOURCE_DIR}/src/js/vega/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/vega/geovis.js
