@@ -1,6 +1,66 @@
 {
     "apps": [
         {
+            "name": "Application Template",
+            "path": "app-template",
+            "description": "A barebones application template, from which the others were created."
+        },
+
+        {
+            "name": "CharityNet",
+            "path": "charitynet",
+            "description": "3 million charitable donations, visualized on a county choropleth map."
+        },
+
+        {
+            "name": "Dendrogram",
+            "path": "dendrogram",
+            "description": "The Tangelo <b>dendrogram</b> plugin, illustrating the organizational structure on board the starship Enterprise"
+        },
+
+        {
+            "name": "Geo Dots",
+            "path": "geodots",
+            "description": "The Tangelo <b>geodots</b> plugin, demonstrating the placement of colored dots on a GeoJSON world map."
+        },
+
+        {
+            "name": "Geo Node-Link Diagram",
+            "path": "geonodelink",
+            "description": "The Tangelo <b>geonodelink</b> plugin, demonstrating a colored node-link diagram on a GeoJSON world map."
+        },
+
+        {
+            "name": "Map Dots",
+            "path": "mapdots",
+            "description": "The Tangelo <b>mapdots</b> plugin, demonstrating the placement of colored dots on a Google Map."
+        },
+
+        {
+            "name": "Node Link Diagram",
+            "path": "nodelink",
+            "description": "The Tangelo <b>nodelink</b> plugin, demonstrating how to create an interactive node link diagram."
+        },
+
+        {
+            "name": "Prime Number Stream",
+            "path": "primes",
+            "description": "A demonstration Tangelo's data streaming feature, computing an endless stream of prime numbers."
+        },
+
+        {
+            "name": "Vega Builder",
+            "path": "vegabuilder",
+            "description": "A live, HTML-based Vega specification editor, with immediate feedback."
+        },
+
+        {
+            "name": "VTKWeb Integration",
+            "path": "vtkweb",
+            "description": "A demonstration of Tangelo's VTKWeb capabilities: launch a VTKWeb process, interact with it, and shut it down via HTML controls."
+        },
+
+        {
             "name": "Document Entity Relationships",
             "path": "ner",
             "description": "Discover the network of <em>named entities</em> hidden within text documents"
