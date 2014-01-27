@@ -83,9 +83,25 @@
         {
             "name": "Vega",
             "link": "http://trifacta.github.com/vega",
-            "institution": "Trifacta, Inc.",
-            "institution_link": "http://trifacta.com",
-            "description": "A visualization grammar, based on JSON, for specifying and representing visualizations"
+            "description": "A visualization grammar developed by <a href=http://trifacta.com>Trifacta, Inc.</a>, based on JSON, for specifying and representing visualizations.  Tangelo makes use of Vega in some jQuery plugins to create rich, data-driven visualization widgets."
+        },
+
+        {
+            "name": "VTK",
+            "link": "http://www.vtk.org",
+            "description": "The Visualization Toolkit, developed by <a href=http://www.kitware.com>Kitware, Inc.</a>, is a well known library for creating rich visualization applications.  Tangelo integrates with VTKWeb, a technology that can run VTK over web sockets, allowing Tangelo applications to include VTK programs."
+        },
+
+        {
+            "name": "D3",
+            "link": "http://d3js.org/",
+            "description": "An extensive Javascript library enabling the binding of data to DOM elements, and subsequent, data-driven manipulation of the DOM.  Tangelo bases some of its clientside library on D3, allowing for the creation of rich interactive data plugins and visualizations."
+        },
+
+        {
+            "name": "jQuery",
+            "link": "http://jquery.com/",
+            "description": "A de facto staple for web development, standardizing website behavior over different web browsers, and offering an extensible plugin system that allows for easy creation of new, encapsulated behaviors for use in your web applications.  Tangelo makes use of the jQuery library and offers several jQuery plugins to supercharge your visualization applications."
         }
     ]
 }
