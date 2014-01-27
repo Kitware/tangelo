@@ -11,8 +11,8 @@
         return;
     }
 
-    $.widget("tangelo.geodots", $.tangelo.widget, {
-        _defaults: {
+    tangelo.widget("tangelo.geodots", {
+        options: {
             latitude: tangelo.accessor({value: 0}),
             longitude: tangelo.accessor({value: 0}),
             size: tangelo.accessor({value: 20}),
@@ -30,7 +30,7 @@
             vg.parse.spec(vegaspec, function (chart) {
                 that.vis = chart;
 
-                that._setOptions(that.options);
+                that._update();
             });
         },
 
@@ -45,13 +45,15 @@
                     d.color = that.options.color(d);
                 });
 
-                this.vis({
-                    el: that.element.get(0),
-                    data: {
-                        table: that.options.data,
-                        links: []
-                    }
-                }).update();
+                if (this.vis) {
+                    this.vis({
+                        el: that.element.get(0),
+                        data: {
+                            table: that.options.data,
+                            links: []
+                        }
+                    }).update();
+                }
             }
         }
     });

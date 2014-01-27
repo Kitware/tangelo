@@ -1,4 +1,4 @@
-/*jslint browser: true */
+/*jslint browser: true, nomen: true */
 
 (function (tangelo, $) {
     "use strict";
@@ -36,5 +36,37 @@
             // supply an _update() method for some reason.
         }
     });
+
+    tangelo.widget = function (name, spec) {
+        var key,
+            ptype = {
+                _defaults: spec.options || {},
+
+                _create: function () {
+                    this.options = $.extend({}, this._defaults, this.options);
+
+                    if (spec._create) {
+                        spec._create.apply(this, arguments);
+                    }
+
+                    // TODO: reduce _defaults down to a map to bool, then rename it
+                    // to _accessor.
+
+                    this._setOptions(this.options);
+                }
+            };
+
+        for (key in spec) {
+            if (spec.hasOwnProperty(key)) {
+                if (key === "_defaults") {
+                    tangelo.fatalError("tangelo.widget(\"" + name + "\")", "You cannot use '_defaults' as a field name in your Tangelo widget");
+                } else if (key !== "_create") {
+                    ptype[key] = spec[key];
+                }
+            }
+        }
+
+        $.widget(name, $.tangelo.widget, ptype);
+    };
 
 }(window.tangelo, window.jQuery));
