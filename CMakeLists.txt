@@ -175,10 +175,10 @@ if(${BUILD_DOCUMENTATION})
 endif()
 
 # A target to build the package.
-set(DIST_STAMP ${CMAKE_BINARY_DIR}/stamps/dist)
+set(DIST_STAMP ${CMAKE_BINARY_DIR}/stamps/sdist)
 add_custom_command(
     OUTPUT ${DIST_STAMP}
-    COMMAND ${PYTHON_EXECUTABLE} setup.py sdist --dist-dir ../dist >../dist.log && ${CMAKE_COMMAND} -E touch ${DIST_STAMP}
+    COMMAND ${PYTHON_EXECUTABLE} setup.py sdist --dist-dir ../sdist >../sdist.log && ${CMAKE_COMMAND} -E touch ${DIST_STAMP}
     DEPENDS ${TANGELO_BUILD_FILES}
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/Tangelo
     COMMENT "Generating Python package"
