@@ -11,8 +11,8 @@
         return;
     }
 
-    $.widget("tangelo.mapdots", $.tangelo.widget, {
-        _defaults: {
+    tangelo.widget("tangelo.mapdots", {
+        options: {
             hoverContent: tangelo.accessor({value: ""}),
             size: tangelo.accessor({value: 1}),
             color: tangelo.accessor({value: ""}),
@@ -27,8 +27,6 @@
                 that = this,
                 overlay,
                 options;
-
-            this.options = $.extend({}, this._defaults, this.options);
 
             this.map = new google.maps.Map(el, {
                 zoom: 2,
@@ -108,8 +106,6 @@
             };
 
             this.overlay.setMap(this.map);
-
-            this._setOptions(this.options);
         },
 
         _update: function () {
