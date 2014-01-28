@@ -24,12 +24,17 @@ distutils.core.setup(name="Tangelo",
                      version="0.4",
                      author="Kitware, Inc.",
                      author_email="tangelo-users@public.kitware.com",
-                     url="http://tangelo.kitware.com",
+                     url="http://kitware.github.io/tangelo",
                      packages=["tangelo",
                                "tangelo.autobahn"],
                      scripts=["bin/tangelo", "bin/tangelo-passwd", "bin/vtkweb-launcher.py"],
                      data_files=data_files_list,
                      description="Tangelo Web Framework",
+                     long_description="Tangelo is a Python-based web server framework bundled with"
+                     " clientside tools to help you supercharge your web applications"
+                     " with the power of Python",
+                     license="Apache License, Version 2.0",
+                     platforms=["Linux", "OS X", "Windows"],
                      install_requires=["cherrypy >= 3.2",
                                        "ws4py >= 0.3.2",
                                        "Twisted >= 13.2"])
