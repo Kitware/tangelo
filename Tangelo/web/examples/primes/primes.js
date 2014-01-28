@@ -65,6 +65,6 @@ $(function () {
                 .remove();
 
             offset -= shift;
-        }, 1500);
+        }, 1000);
     });
 });
