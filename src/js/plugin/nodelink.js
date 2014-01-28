@@ -11,8 +11,8 @@
         return;
     }
 
-    $.widget("tangelo.nodelink", $.tangelo.widget, {
-        _defaults: {
+    tangelo.widget("tangelo.nodelink", {
+        options: {
             nodeCharge:     tangelo.accessor({value: -130}),
             nodeColor:      tangelo.accessor({value: "steelblue"}),
             nodeSize:       tangelo.accessor({value: 10}),
@@ -32,16 +32,12 @@
         },
 
         _create: function () {
-            this.options = $.extend({}, this._defaults, this.options);
-
             this.colorScale = d3.scale.category10();
 
             this.force = d3.layout.force();
 
             this.svg = d3.select(this.element.get(0))
                 .append("svg");
-
-            this._setOptions(this.options);
         },
 
         _update: function () {
