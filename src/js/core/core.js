@@ -8,7 +8,7 @@ var tangelo = {};
 
     // Tangelo version number.
     tangelo.version = function () {
-        return "0.2.0";
+        return "0.4.0";
     };
 
     tangelo.fatalError = function (module, msg) {
