@@ -11,8 +11,8 @@
         return;
     }
 
-    $.widget("tangelo.dendrogram", $.tangelo.widget, {
-        _defaults: {
+    tangelo.widget("tangelo.dendrogram", {
+        options: {
             label: tangelo.accessor({value: ""}),
             distance: tangelo.accessor({value: 1}),
             id: tangelo.accessor({value: 0}),
@@ -71,8 +71,6 @@
 
         _create: function () {
             var that = this;
-
-            this.options = $.extend(true, {}, this._defaults, this.options),
 
             this._actions.collapse = function (d) {
                 if (that.options.mode === "hide") {
@@ -153,8 +151,6 @@
             this.svg = d3.select(this.element.get(0))
                 .append("svg")
                 .append("g");
-
-            this._setOptions(this.options);
         },
 
         _update: function () {
