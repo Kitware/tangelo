@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <meta charset=utf-8>
-<html>
-    <head>
-        <title>CharityNet</title/>
-        <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
-        <script src="http://code.jquery.com/ui/1.8.2/jquery-ui.js"></script>
-        <script src="http://trifacta.github.io/vega/lib/d3.v3.min.js"></script>
-        <script src="http://trifacta.github.io/vega/releases/v1.3.3/vega.min.js"></script>
-        <script src="/js/tangelo.min.js"></script>
-        <link href=http://bootswatch.com/cosmo/bootstrap.min.css rel=stylesheet type=text/css>
-        <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css" rel="stylesheet">
-        <script src=http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js></script>
-        <script src="charitynet.js"></script>
-        <style>
+<title>CharityNet</title/>
+
+<script src=http://code.jquery.com/jquery-1.8.2.min.js></script>
+<script src=http://code.jquery.com/ui/1.8.2/jquery-ui.js></script>
+<script src=http://trifacta.github.io/vega/lib/d3.v3.min.js></script>
+<script src=http://trifacta.github.io/vega/releases/v1.3.3/vega.min.js></script>
+<script src=/js/tangelo.min.js></script>
+<link href=http://bootswatch.com/cosmo/bootstrap.min.css rel=stylesheet>
+<link href=//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css rel=stylesheet>
+<script src=http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js></script>
+<script src=charitynet.js></script>
+
+<style>
     html {
         height: 100%;
     }
@@ -25,30 +25,28 @@
     #control-panel {
         background-color: lightgray;
     }
-        </style>
-    </head>
-    <body>
+</style>
 
-    <div id=info-panel class="modal fade">
-        <div class=modal-dialog>
-            <div class=modal-content>
-                <div class=modal-header>
-                    <h3>Information</h3>
-                </div>
+<div id=info-panel class="modal fade">
+    <div class=modal-dialog>
+        <div class=modal-content>
+            <div class=modal-header>
+                <h3>Information</h3>
+            </div>
 
-                <div class=modal-body>
-                    <p>Examining ~3 million charitable contributions.</p>
+            <div class=modal-body>
+                <p>Examining ~3 million charitable contributions.</p>
 
-                    <p>The map displays charitable contributions split at the county level across the US at
-                    a particular month.</p>
-                </div>
+                <p>The map displays charitable contributions split at the county level across the US at
+                a particular month.</p>
+            </div>
 
-                <div class=modal-footer>
-                    <a class="btn btn-default" data-dismiss=modal>OK</a>
-                </div>
+            <div class=modal-footer>
+                <a class="btn btn-default" data-dismiss=modal>OK</a>
             </div>
         </div>
     </div>
+</div>
 
 <div class="navbar navbar-default navbar-fixed-top">
     <div class=navbar-header>
@@ -57,28 +55,27 @@
 
     <ul class="nav navbar-nav">
         <li class=active> <a>CharityNet</a>
-        <li><a style="cursor:pointer" data-toggle=modal data-target=#info-panel><span class="glyphicon glyphicon-info-sign"></span> Info</a>
+        <li><a style=cursor:pointer data-toggle=modal data-target=#info-panel><span class="glyphicon glyphicon-info-sign"></span> Info</a>
     </ul>
 </div>
 
-        <div id="vis"></div>
-<div id="control-panel">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-2">
-                <select id="time" class=form-control></select>
+<div id=control-panel>
+    <div class=container>
+        <div class=row>
+            <div class=col-md-2>
+                <select id=time class=form-control></select>
             </div>
-            <div class="col-md-1">
-                <a id="play" class="btn btn-default btn-success"><span class="glyphicon glyphicon-pause glyphicon-white"></i></a>
+            <div class=col-md-1>
+                <a id=play class="btn btn-default btn-success"><span class="glyphicon glyphicon-pause glyphicon-white"></i></a>
             </div>
-            <div class="col-md-5">
-                <select id="charity" class=form-control></select>
+            <div class=col-md-5>
+                <select id=charity class=form-control></select>
             </div>
-            <div class="col-md-2">
-                <input id="popnorm" type="checkbox"> Normalize by population
+            <div class=col-md-2>
+                <input id=popnorm type=checkbox> Normalize by population
             </div>
         </div>
     </div>
 </div>
-    </body>
-</html>
+
+<div id=vis></div>

@@ -1,26 +1,16 @@
 <!doctype html>
 <meta charset=utf-8>
 
-<!-- Google Maps API -->
 <script src=https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false></script>
-
-<!-- Tangelo -->
-<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
-<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-<script src="/js/tangelo.min.js"></script>
-
-<!-- JQuery UI -->
+<script src=http://code.jquery.com/jquery-1.9.1.min.js></script>
 <script src=http://code.jquery.com/ui/1.9.1/jquery-ui.min.js></script>
-
-<!-- Driver script for this app -->
+<script src=http://d3js.org/d3.v3.min.js charset=utf-8></script>
+<script src=/js/tangelo.min.js></script>
 <script src=flickr.js></script>
 
-<!-- Styling for UI elements -->
-<link href=http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css rel=stylesheet>
-
-<!-- Styling for app -->
 <link href=http://bootswatch.com/cosmo/bootstrap.min.css rel=stylesheet type=text/css>
-<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css" rel="stylesheet">
+<link href=http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css rel=stylesheet>
+<link href=//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css rel=stylesheet>
 <script src=http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js></script>
 
 <style>
@@ -43,7 +33,6 @@
 
 <title>Flickr Metadata Maps</title>
 
-<!--<div id=info-panel class="modal hide fade">-->
 <div id=info-panel class="modal fade">
     <div class=modal-dialog>
         <div class=modal-content>
@@ -71,25 +60,24 @@
 
 <div class="navbar navbar-default navbar-fixed-top">
     <div class=navbar-header>
-        <a class=navbar-brand href="/examples">Tangelo</a>
+        <a class=navbar-brand href=/examples>Tangelo</a>
     </div>
 
     <ul class="nav navbar-nav">
         <li class=active> <a>Flickr Maps</a>
-        <li><a style="cursor:pointer" data-toggle=modal data-target=#info-panel><span class="glyphicon glyphicon-info-sign"></span> Info</a>
+        <li><a style=cursor:pointer data-toggle=modal data-target=#info-panel><span class="glyphicon glyphicon-info-sign"></span> Info</a>
     </ul>
 </div>
 
 <!-- Create a fullscreen Google map -->
-<div id=map style="width:100%;height:100%"></div>
+<div id=map style="width:100%; height:100%"></div>
 
-<!-- Create a drawer panel with the controls in it -->
 <div id=control-panel>
     <div class=container>
         <div class=row>
             <div class=col-md-3>
                 <h4>Time filter <span id=time-filter-help class="glyphicon glyphicon-question-sign"></span></h4>
-                <div id="time-slider"></div>
+                <div id=time-slider></div>
                 <code id=low></code>
                 <code id=high></code>
                 <a class="btn btn-default btn-xs" id=zoom>Zoom to range</a>
@@ -115,31 +103,31 @@
         <div class=row>
             <div class=col-md-3>
                 <h4>Day filter</h4>
-                <label class="checkbox">
+                <label class=checkbox>
                     <input type=checkbox id=Sun> Sunday
                 </label>
 
-                <label class="checkbox">
+                <label class=checkbox>
                     <input type=checkbox id=Mon> Monday
                 </label>
 
-                <label class="checkbox">
+                <label class=checkbox>
                     <input type=checkbox id=Tue> Tuesday
                 </label>
 
-                <label class="checkbox">
+                <label class=checkbox>
                     <input type=checkbox id=Wed> Wednesday
                 </label>
 
-                <label class="checkbox">
+                <label class=checkbox>
                     <input type=checkbox id=Thu> Thursday
                 </label>
 
-                <label class="checkbox">
+                <label class=checkbox>
                     <input type=checkbox id=Fri> Friday
                 </label>
 
-                <label class="checkbox">
+                <label class=checkbox>
                     <input type=checkbox id=Sat> Saturday
                 </label>
             </ul>
