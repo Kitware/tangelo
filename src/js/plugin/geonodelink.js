@@ -11,8 +11,8 @@
         return;
     }
 
-    $.widget("tangelo.geonodelink", $.tangelo.widget, {
-        _defaults: {
+    tangelo.widget("tangelo.geonodelink", {
+        options: {
             nodeLatitude: tangelo.accessor({value: 0}),
             nodeLongitude: tangelo.accessor({value: 0}),
             nodeSize: tangelo.accessor({value: 20}),
@@ -27,12 +27,10 @@
             var that = this,
                 vegaspec = tangelo.vegaspec.geovis(that.options.worldGeometry);
 
-            this.options = $.extend({}, this._defaults, this.options);
-
             vg.parse.spec(vegaspec, function (chart) {
                 that.vis = chart;
 
-                that._setOptions(that.options);
+                that._update();
             });
         },
 
@@ -56,13 +54,15 @@
                 d.target = that.options.linkTarget(d);
             });
 
-            that.vis({
-                el: this.element.get(0),
-                data: {
-                    table: that.options.data.nodes,
-                    links: that.options.data.links
-                }
-            }).update();
+            if (that.vis) {
+                that.vis({
+                    el: this.element.get(0),
+                    data: {
+                        table: that.options.data.nodes,
+                        links: that.options.data.links
+                    }
+                }).update();
+            }
         }
     });
 }(window.tangelo, window.jQuery, window.vg));
