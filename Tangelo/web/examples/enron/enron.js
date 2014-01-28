@@ -218,8 +218,6 @@ function toggleAnimation() {
 window.onload = function () {
     "use strict";
 
-    tangelo.requireCompatibleVersion("0.2");
-
     // Create control panel.
     $("#control-panel").controlPanel();
 

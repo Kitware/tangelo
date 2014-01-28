@@ -5,8 +5,6 @@
 $(function () {
 	"use strict";
 
-    tangelo.requireCompatibleVersion("0.2");
-
 	function arrayEditor(spec) {
 		var that,
 			arr,
