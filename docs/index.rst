@@ -46,15 +46,18 @@ Quick Start
 
 1. Make sure you have Python 2.7 and Pip installed (on Linux and OS X systems,
    your local package manager should do the trick; for Windows, see here_).
-2. Open a shell (e.g. Terminal on OS X; Bash on Linux; or PowerShell on Windows)
-   and issue this command to install the Tangelo package: ::
+
+2. Open a shell (e.g. Terminal on OS X; Bash on Linux; or Command Prompt on
+   Windows) and issue this command to install the Tangelo package: ::
 
     pip install tangelo
 
-   (On UNIX systems you may need to do this as root, or with *sudo*.)
+   (On UNIX systems you may need to do this as root, or with ``sudo``.)
+
 3. Issue this command to start up a Tangelo server: ::
 
     tangelo start
+
 4. Visit your Tangelo instance at http://localhost:8080.
 
 .. _here: http://docs.python-guide.org/en/latest/starting/install/win/
