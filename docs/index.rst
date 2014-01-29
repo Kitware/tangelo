@@ -72,6 +72,7 @@ Using Tangelo
     setup
     basic-usage
     python-services
+    advanced-usage
     integration
 
 Command Line Utilities

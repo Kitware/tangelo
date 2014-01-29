@@ -143,7 +143,7 @@ returned value from a Python service:
 
 #. If the return value is a **Python object containing a** ``next()``
    **method**, Tangelo stores the object in the streaming table, and its
-   contents can be retrieved via the streaming API (see :ref:`below <streaming>`).
+   contents can be retrieved via the :ref:`streaming API <streaming>`.
 
 #.  Otherwise, if the return value is a **JSON-serializable Python object**,
     Tangelo calls ``json.dumps()`` on it to convert it into a string, and then
@@ -250,8 +250,3 @@ cause the module to be reloaded the next time it is invoked.  The
 prevent an errant service from updating the configuration in a persistent way.
 For this reason, it is advisable to only call this function once, capturing the
 result in a variable, and retrieving values from it as needed.
-
-.. _streaming:
-
-Streaming
-=========
