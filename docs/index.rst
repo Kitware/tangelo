@@ -69,6 +69,7 @@ Using Tangelo
     :maxdepth: 2
 
     installation
+    setup
     basic-usage
     python-services
     integration
