@@ -21,20 +21,23 @@ directory.  On a Linux system, this might be the directory
 
 **Web root directory.** Visiting other URLs (that do not begin with a tilde)
 will cause Tangelo to serve content out of the *web root directory*, which is
-the ``web`` subdirectory of the directory where Tangelo is deployed (see
-:doc:`installation`).  For example, if Tangelo has been deployed to
-``/opt/tangelo``, the web root directory would be ``/opt/tangelo/web``, visiting
-http://localhost:8080/ would serve content from ``/opt/tangelo/web``, and
-visiting http://localhost:8080/app would serve content from
-``/opt/tangelo/web/app``, etc.
+set in the Tangelo configuration file, or by the ``-r`` (or ``--root``) flag
+when Tangelo is launched (see :doc:`setup`).  For example, if the web root
+directory is set to ``/srv/tangelo/root``, visiting http://localhost:8080/ would
+serve content from that directory, and visiting http://localhost:8080/foobar
+would serve content from ``/srv/tangelo/root/foobar``, etc.
 
-**The streaming API.** The URL http://localhost:8080/stream is **reserved**; it
-is the interface to the Streaming API.  If there is a file or directory in the
-web root directory named ``stream``, *it will not be served by Tangelo*.
+.. todo::
+    Link to documentation for streaming and VTKWeb
+
+**The streaming and VTKWeb APIs.** The URLs http://localhost:8080/stream and
+http://localhost:8080/stream are **reserved**; they are the interfaces to the
+Streaming and VTKWeb APIs, respectively.  Files in the web root directory named
+``stream`` and ``vtkweb`` *will not be served by Tangelo*.
 
 The foregoing examples demonstrate how Tangelo associates URLs to directories
 and files in the filesystem.  URLs referencing particular files will cause
-Tangelo to serve that file immediately.  URLs reference a directory behave
+Tangelo to serve that file immediately.  URLs referencing a directory behave
 according to the following cascade of rules:
 
 #. If the directory contains a file named ``index.html``, that file will be
@@ -47,14 +50,26 @@ according to the following cascade of rules:
    serve that.  This listing will include hyperlinks to the files contained
    therein.
 
-As mentioned already, the URL http://localhost:8080/stream is special and does
-not serve any static content from disk.  Similarly, a URL referring to a Python
-script, but lacking the final ``.py``, names a *web service*; such URLs do not
-serve static content, but rather run the referred Python script and serve the
-results (see :doc:`python-services`).
+As mentioned already, the URLs http://localhost:8080/stream and
+http://localhost:8080/vtkweb are special and does not serve any static content
+from disk.  Similarly, a URL referring to a Python script, but lacking the final
+``.py``, names a *web service*; such URLs do not serve static content, but
+rather run the referred Python script and serve the results (see
+:doc:`python-services`).
 
-.. todo::
-    Summarize the URL types in a table.
+The following table summarizes Tangelo's URL types:
+
+=================== =========================================== ================================================================================
+ URL type                             Example                                     Behavior
+=================== =========================================== ================================================================================
+Home directory      http://localhost:8080/~troi/schedule.html   serve ``/home/troi/tangelo_html/schedule.html``
+Web root            http://localhost:8080/holodeck3/status.html serve ``/srv/tangelo/root/holodeck3/status.html``
+Indexed directory   http://localhost:8080/tenforward            serve ``/srv/tangelo/root/tenforward/index.html``
+Unindexed directory http://localhost:8080/warpdrive             serve directory listing for ``/srv/tangelo/root/warpdrive``
+Web service         http://localhost:8080/lcars/lookup          serve result of executing ``run()`` function of ``/srv/tangelo/lcars/lookup.py``
+Streaming           http://localhost:8080/stream/id12345        serve result of running stream ``id12345`` for one step
+VTKWeb              http://localhost:8080/vtkweb/id23456        serve readouts of ``stdout`` and ``stderr`` from VTK process ``id23456``
+=================== =========================================== ================================================================================
 
 HTTP Authentication
 ===================
