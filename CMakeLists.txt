@@ -152,7 +152,6 @@ if(${BUILD_DOCUMENTATION})
         ${CMAKE_SOURCE_DIR}/docs/developing-visualizations.rst
         ${CMAKE_SOURCE_DIR}/docs/index.rst
         ${CMAKE_SOURCE_DIR}/docs/installation.rst
-        ${CMAKE_SOURCE_DIR}/docs/integration.rst
         ${CMAKE_SOURCE_DIR}/docs/python-services.rst
         ${CMAKE_SOURCE_DIR}/docs/tangelo-js.rst
         ${CMAKE_SOURCE_DIR}/docs/tangelo-manpage.rst

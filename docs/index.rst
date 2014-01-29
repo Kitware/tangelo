@@ -73,7 +73,6 @@ Using Tangelo
     basic-usage
     python-services
     advanced-usage
-    integration
 
 Command Line Utilities
 ======================
