@@ -40,18 +40,18 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/src/js/vtkweb/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/vtkweb/vtkweb.js
     ${CMAKE_SOURCE_DIR}/src/js/widget/widget.js
-    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/index.js
-    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/landingPage.js
-    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/app-template/myapp.js
-    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/charitynet/charitynet.js
-    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/enron/enron.js
-    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/enron-impala/enron-imp.js
-    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/enron-titan/enron-titan.js
-    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/flickr/flickr.js
-    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/ner/ner.js
-    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/options/options.js
-    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/primes/primes.js
-    ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/vegabuilder/vegabuilder.js
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/index.js
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/landingPage.js
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/app-template/myapp.js
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/charitynet/charitynet.js
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/enron/enron.js
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/enron-impala/enron-imp.js
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/enron-titan/enron-titan.js
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/flickr/flickr.js
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/ner/ner.js
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/options/options.js
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/primes/primes.js
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/vegabuilder/vegabuilder.js
 )
 
 # These files should be uglified and concatenated.
@@ -78,7 +78,7 @@ set(JS_UGLIFY_FILES
 )
 
 # These files should be copied to the build directory.
-glob_recurse_ungit(TANGELO_SOURCES Tangelo/*)
+glob_recurse_ungit(TANGELO_SOURCES tangelo/*)
 
 # Copy package files to build directory.
 foreach(m ${TANGELO_SOURCES})
@@ -88,7 +88,7 @@ foreach(m ${TANGELO_SOURCES})
 endforeach()
 
 # Also copy the README file.
-copy_file(README.rst ${CMAKE_BINARY_DIR}/Tangelo/README)
+copy_file(README.rst ${CMAKE_BINARY_DIR}/tangelo/README)
 
 # And the server testing framework script.
 copy_file(
@@ -117,12 +117,12 @@ else()
     unset(min_mangle_flag)
 endif()
 
-set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/Tangelo/web/js/tangelo.min.js)
-set(JS_FILE ${CMAKE_BINARY_DIR}/Tangelo/web/js/tangelo.js)
+set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/tangelo/web/js/tangelo.min.js)
+set(JS_FILE ${CMAKE_BINARY_DIR}/tangelo/web/js/tangelo.js)
 
 add_custom_command(
     OUTPUT ${MIN_JS_FILE}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/Tangelo/web/js
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/tangelo/web/js
     COMMAND ${min_concatenator} ${JS_UGLIFY_FILES} ${min_mangle_flag} ${min_output_operator} ${MIN_JS_FILE}
     DEPENDS ${JS_UGLIFY_FILES}
     COMMENT "Creating minified javascript library"
@@ -168,7 +168,7 @@ if(${BUILD_DOCUMENTATION})
     # A command to generate the documentation.
     add_custom_command(
         OUTPUT ${DOCUMENTATION_STAMP}
-        COMMAND ${Sphinx_EXECUTABLE} -b html ${CMAKE_SOURCE_DIR}/docs ${CMAKE_BINARY_DIR}/Tangelo/web/docs && ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_STAMP}
+        COMMAND ${Sphinx_EXECUTABLE} -b html ${CMAKE_SOURCE_DIR}/docs ${CMAKE_BINARY_DIR}/tangelo/web/docs && ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_STAMP}
         DEPENDS ${DOCUMENTATION_SOURCES} ${DOCUMENTATION_CONTROL_FILE}
         COMMENT "Generating documentation"
     )
@@ -180,7 +180,7 @@ add_custom_command(
     OUTPUT ${DIST_STAMP}
     COMMAND ${PYTHON_EXECUTABLE} setup.py sdist --dist-dir ../sdist >../sdist.log && ${CMAKE_COMMAND} -E touch ${DIST_STAMP}
     DEPENDS ${TANGELO_BUILD_FILES}
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/Tangelo
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tangelo
     COMMENT "Generating Python package"
 )
 
@@ -242,7 +242,7 @@ if(NOT "${WIN32}")
     )
 
     add_test(resolve ${tester}
-        "python ${CMAKE_SOURCE_DIR}/Tangelo/web/examples/testing/resolve/test.py"
+        "python ${CMAKE_SOURCE_DIR}/tangelo/web/examples/testing/resolve/test.py"
         "success"
     )
 

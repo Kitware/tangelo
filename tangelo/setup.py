@@ -20,7 +20,7 @@ data_files_list = [("share/tangelo/conf", ["conf/tangelo.conf.global", "conf/tan
 data_files_list += copy_with_dir(rcollect("web"), "share/tangelo")
 
 # Create the package.
-distutils.core.setup(name="Tangelo",
+distutils.core.setup(name="tangelo",
                      version="0.4",
                      author="Kitware, Inc.",
                      author_email="tangelo-users@public.kitware.com",
