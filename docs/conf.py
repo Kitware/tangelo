@@ -167,7 +167,8 @@ html_static_path = ['static']
 #html_use_opensearch = ''
 
 # Show "todo" notes.
-todo_include_todos = False
+#todo_include_todos = False
+todo_include_todos = True
 
 # This is the file name suffix for HTML files (e.g. ".xhtml").
 #html_file_suffix = None
