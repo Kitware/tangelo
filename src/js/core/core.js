@@ -155,20 +155,6 @@ var tangelo = {};
         return func;
     };
 
-    tangelo.appendFunction = function (f1, f2) {
-        var that = this;
-        if (!f1) {
-            return f2;
-        }
-        if (!f2) {
-            return f1;
-        }
-        return function () {
-            f1.apply(that, arguments);
-            f2.apply(that, arguments);
-        };
-    };
-
     // Check for the required version number.
     tangelo.requireCompatibleVersion = function (reqvstr) {
         var reqv,
