@@ -25,35 +25,30 @@
     This can be useful, e.g., for retrieving data submitted in the body for a
     POST request.
 
-.. py:function:: tangelo.legal_path(path)
+.. py:function:: tangelo.abspath(webpath)
 
-    Returns a pair indicating whether ``path``, a string naming a web path
-    (without the leading slash), refers to a file or directory within Tangelo's
-    web space.  The first element of the pair is a boolean indicating whether
-    the path is legal; the second element is a string giving further information
-    about the path.
+    Takes a "web path" and computes a disk path to the referenced file, *if* it
+    references a location within Tangelo's legal web space.
 
-    If the path begins with a slash, it is not considered legal; the description
-    will read "absolute" in this case.
+    The path, passed into argument `webpath`, must be an absolute web path;
+    i.e., it must begin with a slash.  If the second character of the path is a
+    tilde, it will be converted to a user home directory path, while non-tilde
+    paths will resolve to a location within Tangelo's web root directory.
 
-    If the path begins with a tilde, the path is legal if it resolves to a
-    location within the named user's ``tangelo_html`` directory; the description
-    will read "home directory" in this case.
+    Path components such as ``.`` and ``..`` are resolved to yield a possible
+    absolute disk path; if this path lies outside of the legal web space, then
+    the function returns ``None``; otherwise, it returns this path.
 
-    For paths not starting with a tilde, the path is legal if it resolves to a
-    location within the web root directory; the description reads "web root" in
-    that case.
+    This function is useful for preventing errant paths from allowing a Tangelo
+    service to manipulate files that it shouldn't, while yielding access to
+    files that are allowed.
 
-    This function is used mainly to reject file paths containing ``..`` or
-    similar, that may start in a legal location and move outside of Tangelo's
-    web space.  This ensures that services do not unwittingly manipulate files
-    they should not.
-
-    For example, ``~troi/libs`` would be pass, as would ``section31/common/``
-    because both paths refer to subdirectories of an allowed directory - one in
-    a user's home directory, and the other under the web root.  However,
-    ``/~picard/../../libs`` would be illegal, since it does not refer to any
-    file accessible via Tangelo.
+    For example, `/~troi/libs` would yield something like
+    `/home/troi/tangelo_html/lib`, and `/section31/common/` would yield
+    something like `/srv/tangelo/section31/common` because both paths refer to
+    subdirectories of an allowed directory - one in a user's home directory, and
+    the other under the web root.  However, `/~picard/../../libs` would yield
+    ``None``, since it does not refer to any file accessible via Tangelo.
 
 .. py:function:: tangelo.paths(paths)
 
