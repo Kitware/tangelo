@@ -3,19 +3,6 @@
 (function (tangelo, $) {
     "use strict";
 
-    // Returns true if all arguments are defined; false otherwise.
-    tangelo.allDefined = function () {
-        var i;
-
-        for (i = 0; i < arguments.length; i += 1) {
-            if (arguments[i] === undefined) {
-                return false;
-            }
-        }
-
-        return true;
-    };
-
     // Returns a key-value store containing the configuration options encoded in
     // the inputfile.
     if (!$) {

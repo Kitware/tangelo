@@ -45,7 +45,7 @@
             external = spec.external;
 
             if (apps !== undefined) {
-                if (!tangelo.allDefined(appLeftSelector, appRightSelector)) {
+                if (!appLeftSelector || !appRightSelector) {
                     tangelo.fatalError("landingPage", "required config argument property 'appLeftSelector' or 'appRightSelector' missing");
                 }
 
@@ -70,7 +70,7 @@
             }
 
             if (external !== undefined) {
-                if (!tangelo.allDefined(extLeftSelector, extRightSelector)) {
+                if (!extLeftSelector || !extRightSelector) {
                     tangelo.fatalError("landingPage", "required config argument property 'extLeftSelector' or 'extRightSelector' missing!");
                 }
 
