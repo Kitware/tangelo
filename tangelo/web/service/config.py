@@ -6,10 +6,9 @@ def run(path=""):
     if len(path) == 0:
         return {"error": "missing required argument 'path'"}
 
-    if path[0] not in ["/", "~"]:
-        return {"error": "path must refer to an absolute web path"}
-
     path = tangelo.abspath(path)
+    if path is None:
+        return {"error": "illegal web path"}
 
     try:
         with open(path) as f:

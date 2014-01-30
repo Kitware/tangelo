@@ -90,12 +90,11 @@ class TangeloVtkweb(object):
             # Verify that the program path is legal (first stripping off the
             # leading slash, since from now on we are considering *disk* paths,
             # while all relative paths are now relative to the web root).
-            progpath = progpath[1:]
-            if not tangelo.legal_path(progpath)[0]:
-                return json.dumps({"status": "incomplete", "reason": "Illegal program URL"})
 
             # Obtain a filesystem path to the requested program.
             progfile = tangelo.abspath(progpath)
+            if progfile is None:
+                return json.dumps({"status": "incomplete", "reason": "Illegal program URL"})
 
             # Obtain an available port.
             port = tangelo.util.get_free_port()
