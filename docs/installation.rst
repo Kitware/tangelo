@@ -5,8 +5,45 @@
 Tangelo currently runs on Linux, OS X, and Windows.  It may run on other
 UNIXlike operating systems as well, but these are the three supported platforms.
 
+There are two ways to install Tangelo: from the Python Package Index, or from
+source.
+
+Install from the Python Package Index with Pip
+==============================================
+
+The latest release version of Tangelo can always be found in the `Python Package
+Index <http://pypi.python.org/pypi>`_.  The easiest way to install Tangelo is
+via Pip, a package manager for Python.
+
+**1. Install software dependencies**
+
+Install the following software:
+
+* Python 2.7
+* Pip
+
+On Linux and OS X computers, your local package manager should be sufficient for
+installing these.  On Windows, please consult this `guide
+<http://docs.python-guide.org/en/latest/starting/install/win/>`_ for advice
+about Python and Pip.
+
+**2. Install the Tangelo Python package**
+
+Use this command in a shell to install the Tangelo package and its dependencies: ::
+
+    pip install tangelo
+
+You may need to run this command as the superuser, using ``sudo`` or similar.
+
+Build and Install from Source
+=============================
+
+Tangelo is developed on `GitHub <https://github.com/Kitware/tangelo>`_.  If you
+wish to contribute code, or simply want the very latest development version, you
+can download, build, and install from there.
+
 Linux and OS X
-==============
+--------------
 
 **1. Install software dependencies**
 
@@ -42,7 +79,8 @@ its argument. ::
     cd build
     cmake ..
 
-..  TODO: Verify these CMake options and uncomment
+.. todo::
+    Verify these CMake options and uncomment
     ``ccmake`` will present you with a curses-based configuration interface that
     will allow you to edit the configuration options (some operating systems
     provide ``ccmake`` and ``cmake`` in different packages - check your local
@@ -101,7 +139,7 @@ Point your browser there and you should see a collection of demo applications
 to get you started.
 
 Windows
-=======
+-------
 
 **1. Install Git**
 
@@ -187,11 +225,15 @@ to launch the server (on `localhost:8000 <http://localhost:8000>`_ by default).
 Point your browser there and you should see a collection of demo applications
 to get you started.
 
-Example App Setup
-=================
+Data Prep for Example Applications
+==================================
+
+Some of the `example applications <http://localhost:8080/examples>`_ require you
+to set up a Mongo database to store the requisite visualization data.  Follow
+these instructions to enable the applications.
 
 Named Entities
-~~~~~~~~~~~~~~
+--------------
 
 In order to run the named entities example at http://localhost:8000/examples/ner/,
 you need to install NLTK and download some datasets.
@@ -216,18 +258,31 @@ clicking on each and pressing the download button. Similarly download the
 *words* dataset from the *Corpora* tab.  After closing the download window,
 ``quit()`` will exit the Python shell.
 
+CharityNet
+----------
+
+.. todo::
+    Fill in CharityNet data prep section
+
+Flickr Metadata Maps
+--------------------
+
+.. todo::
+    Fill in CharityNet data prep section
+
+Enron Email
+-----------
+
+.. todo::
+    Fill in CharityNet data prep section
+
 Testing
 =======
 
-First, install Selenium and the Python Imaging Library with::
+.. todo::
+    Explain in more detail what the tests are, how to run them and interpret the
+    results, and how to create a new test (if submitting a pull request, etc.).
 
-    pip install selenium PIL
-
-Next, install the Chrome Selenium driver for your platform by
-`downloading the binary <https://code.google.com/p/chromedriver/downloads/list>`_
-and copying it to a directory in your system path, e.g. on Mac/Linux::
-
-    mv /path/to/chromedriver /usr/local/bin/
-
-In order to test Tangelo, build your project by running ``make`` or ``ninja``,
-then execute ``ctest`` in the Tangelo build directory.
+To run the Tangelo test suite, build your project by running ``make`` or
+``ninja`` as described above, then run the ``ctest`` in the Tangelo build
+directory.

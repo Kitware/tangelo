@@ -14,13 +14,10 @@ In other words, **Tangelo web services** mean that **Python code** can become
 a comprehensive standard library and a galaxy of third-party modules providing
 access to all kinds of APIs and software libraries.
 
-Tangelo web services are exactly as powerful as the Python code that drives
-them, **so Tangelo web services are very powerful**.
-
 General Services
 ================
 
-Let's begin with a really simple example.  Suppose
+Here is a simple example of a web service.  Suppose
 ``/home/riker/tangelo_html/calc.py`` reads as follows:
 
 .. code-block:: python
@@ -135,7 +132,7 @@ Return Types
 ------------
 
 The type of the value returned from the ``run()`` function determines how Tangelo creates
-content for the associated web end point.  In the example above, the function
+content for the associated web endpoint.  In the example above, the function
 returns a number; Tangelo receives this number and turns it into a string (which
 is then delivered to the ``success`` callback in the Javascript code above).  In
 general, Tangelo follows this set of steps to determine what to do with the
@@ -146,7 +143,7 @@ returned value from a Python service:
 
 #. If the return value is a **Python object containing a** ``next()``
    **method**, Tangelo stores the object in the streaming table, and its
-   contents can be retrieved via the streaming API (see :ref:`below <streaming>`).
+   contents can be retrieved via the :ref:`streaming API <streaming>`.
 
 #.  Otherwise, if the return value is a **JSON-serializable Python object**,
     Tangelo calls ``json.dumps()`` on it to convert it into a string, and then
@@ -156,7 +153,7 @@ returned value from a Python service:
     ``None``.  Lists and tuples of serializable items are converted into JSON
     lists, while dictionaries with serializable keys and values are converted
     into JSON objects.  Finally, any Python object *can be made*
-    JSON-serializable by making them extend ``json.JSONEncoder`` (see the
+    JSON-serializable by extending ``json.JSONEncoder`` (see the
     `Python documentation
     <http://docs.python.org/2/library/json.html#json.JSONEncoder>`_ for more
     information).
@@ -168,7 +165,7 @@ returned value from a Python service:
    return value as the final result; i.e., it delivers the return value without
    changing it.
 
-#. Finally, if the return value **somehow does not fit into any of the above
+#. Finally, if the return value **does not fit into any of the above
    steps**, Tangelo will report a server error.
 
 RESTful Services
@@ -192,11 +189,23 @@ databases might look like the following:
         else:
             return db.find(query)
 
+    @tangelo.restful
+    def put(dbname):
+        connection = lcarsdb.connect("enterprise.starfleet.mil")
+        if not connection:
+            return "FAIL"
+        else:
+            success = connection.createDB(dbname)
+            if success:
+                return "OK"
+            else:
+                return "FAIL"
+
 Configuration
 =============
 
 You can optionally include a configuration file alongside the service itself.
-For instance, suppose we have the following service in `autodestruct.py`:
+For instance, suppose the following service is implemented in `autodestruct.py`:
 
 .. code-block:: python
 
@@ -237,12 +246,7 @@ The two files must have the same base name (`autodestruct` in this case) and be
 in the same location. Any time the module for a service is loaded, the
 configuration file will be parsed and loaded as well.  Changing either file will
 cause the module to be reloaded the next time it is invoked.  The
-`tangelo.config()` function returns a copy of the configuration dictionary, to
+``tangelo.config()`` function returns a copy of the configuration dictionary, to
 prevent an errant service from updating the configuration in a persistent way.
 For this reason, it is advisable to only call this function once, capturing the
 result in a variable, and retrieving values from it as needed.
-
-.. _streaming:
-
-Streaming
-=========

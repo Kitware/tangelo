@@ -44,52 +44,23 @@ information.
 Quick Start
 ===========
 
-1. Install Git_.
-2. Install CMake_.
-3. Open a shell and run the following: ::
+1. Make sure you have Python 2.7 and Pip installed (on Linux and OS X systems,
+   your local package manager should do the trick; for Windows, see here_).
 
-    git clone https://github.com/Kitware/tangelo.git
-    cd tangelo
-    mkdir build
-    cd build
-    cmake ..
-    make
-    pip install dist/Tangelo-[version].tar.gz    # May require sudo
+2. Open a shell (e.g. Terminal on OS X; Bash on Linux; or Command Prompt on
+   Windows) and issue this command to install the Tangelo package: ::
+
+    pip install tangelo
+
+   (On UNIX systems you may need to do this as root, or with ``sudo``.)
+
+3. Issue this command to start up a Tangelo server: ::
+
     tangelo start
 
-4. Visit your Tangelo instance at http://localhost:8000.
+4. Visit your Tangelo instance at http://localhost:8080.
 
-Quick Start for Windows
-=======================
-
-Windows machines are "special". Take these steps to get things going.
-
-1. Install Git_.
-2. Install CMake_.
-3. Install Python_ 2.7 Windows X86-64 installer.
-4. Install `Windows Python packages`_ for ``pip``, ``pymongo``, and ``twisted``.
-   Choose the package links ending in ``amd64-py2.7.exe``.
-5. Open the Git Bash shell and run the following::
-
-    git clone https://github.com/Kitware/tangelo.git
-    cd tangelo
-    mkdir build
-    cd build
-    curl -OL https://github.com/martine/ninja/releases/download/v1.4.0/ninja-win.zip
-    unzip ninja-win.zip
-    cmake -G Ninja ..
-    ninja
-    /c/Python27/Scripts/pip install dist/Tangelo-[version].tar.gz
-    /c/Python27/Scripts/tangelo start
-
-6. Visit your Tangelo instance at http://localhost:8000.
-
-.. _CMake: http://www.cmake.org
-.. _VirtualBox: http://www.virtualbox.org
-.. _Vagrant: http://www.vagrantup.com
-.. _Git: http://gitscm.com
-.. _Python: http://www.python.org/download/releases/2.7/
-.. _Windows Python packages: http://www.lfd.uci.edu/~gohlke/pythonlibs/
+.. _here: http://docs.python-guide.org/en/latest/starting/install/win/
 
 Using Tangelo
 =============
@@ -98,9 +69,10 @@ Using Tangelo
     :maxdepth: 2
 
     installation
+    setup
     basic-usage
     python-services
-    integration
+    advanced-usage
 
 Command Line Utilities
 ======================
