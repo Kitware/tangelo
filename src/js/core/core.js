@@ -49,8 +49,6 @@ var tangelo = {};
         };
     };
 
-    tangelo.identity = function (d) { return d; };
-
     tangelo.isNumber = function (value) {
         return typeof value === 'number';
     };
@@ -133,7 +131,6 @@ var tangelo = {};
         } else if (spec.hasOwnProperty("field")) {
             if (spec.field === ".") {
                 func = function (d) { return d; };
-                //return tangelo.identity;
             } else {
                 parts = spec.field.split(".");
                 func = function (d) {
