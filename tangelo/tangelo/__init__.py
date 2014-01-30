@@ -46,36 +46,23 @@ def request_body():
 
     return RequestBody(cherrypy.request.body, cherrypy.request.process_request_body)
 
-def legal_path(path):
-    #orig = path
-    if os.path.isabs(path):
-        return (False, "absolute")
-
-    # Extract the web root directory from the global config.
-    webroot = cherrypy.config.get("webroot")
-
-    if path[0] != "~":
-        path = os.path.abspath(webroot + os.path.sep + path)
-        if len(path) >= len(webroot) and path[:len(webroot)] == webroot:
-            return (True, "web root")
-    else:
-        home = os.path.expanduser("~").split(os.path.sep)[:-1]
-        path = os.path.abspath(os.path.expanduser(path))
-        comp = path.split(os.path.sep)
-        if len(comp) >= len(home) + 2 and comp[:len(home)] == home and comp[len(home)+1] == "tangelo_html":
-            return (True, "home directory")
-
-    return (False, "illegal")
-
 def abspath(path):
-    if path[0] == "~":
+    if len(path) >= 2 and path[0] == "/" and path[1] == "~":
+        path = path[1:]
         comp = path.split(os.path.sep)
-        comp = [os.path.expanduser(comp[0])] + ["tangelo_html"] + comp[1:]
-        path = os.path.sep.join(comp)
-    else:
-        path = cherrypy.config.get("webroot") + os.path.sep + path
+        user = os.path.expanduser(comp[0])
+        homeroot = os.path.sep.join([user, "tangelo_html"]) + os.path.sep
+        path = os.path.abspath(homeroot + os.path.sep.join(comp[1:]))
+        if path.find(homeroot) == 0:
+            return path
+    elif len(path) > 0 and path[0] == "/":
+        webroot = cherrypy.config.get("webroot") + os.path.sep
+        path = os.path.abspath(webroot + path)
+        if path.find(webroot) == 0:
+            log("here")
+            return path
 
-    return os.path.abspath(path)
+    return None
 
 def paths(runtimepaths):
     # If a single string is passed in, wrap it into a singleton list (this is
