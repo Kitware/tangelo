@@ -448,7 +448,7 @@ window.onload = function () {
     // Create control panel.
     $("#control-panel").controlPanel();
 
-    tangelo.defaults("config.json", function (config, status, error) {
+    tangelo.config("config.json", function (config, status, error) {
         var popover_cfg;
 
         if (status !== "OK") {

@@ -6,12 +6,12 @@
     // Returns a key-value store containing the configuration options encoded in
     // the inputfile.
     if (!$) {
-        tangelo.defaults = tangelo.unavailable({
-            plugin: "tangelo.defaults",
+        tangelo.config = tangelo.unavailable({
+            plugin: "tangelo.config",
             required: "JQuery"
         });
     } else {
-        tangelo.defaults = function (inputfile, callback) {
+        tangelo.config = function (inputfile, callback) {
             if (inputfile.length > 0) {
                 if (inputfile[0] !== "/" && inputfile[0] !== "~") {
                     inputfile = window.location.pathname + "/" + inputfile;
@@ -19,7 +19,7 @@
             }
 
             $.ajax({
-                url: "/service/defaults",
+                url: "/service/config",
                 data: {
                     path: inputfile
                 },

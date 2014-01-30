@@ -189,10 +189,10 @@ $(function () {
 
     // Load in the default configuration values, county, state, and initial
     // contribution data
-    tangelo.defaults("defaults.json", function (defaults) {
+    tangelo.config("config.json", function (config) {
         var host;
 
-        host = defaults.host || "mongo";
+        host = config.host || "mongo";
 
         d3.json("us-counties.json", function (error, counties) {
             d3.json("us-states.json", function (error, states) {
