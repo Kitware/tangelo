@@ -8,7 +8,7 @@ var tangelo = {};
 
     // Tangelo version number.
     tangelo.version = function () {
-        return "0.5.dev1";
+        return "0.5-dev1";
     };
 
     tangelo.fatalError = function (module, msg) {
@@ -117,7 +117,7 @@ var tangelo = {};
             return temp;
         };
 
-        if (spec === undefined || spec === {}) {
+        if (spec === undefined || Object.keys(spec).length === 0) {
             func = function () {
                 tangelo.fatalError("tangelo.accessor()", "I am an undefined accessor - you shouldn't be calling me!");
             };
@@ -171,111 +171,110 @@ var tangelo = {};
 
     // Check for the required version number.
     tangelo.requireCompatibleVersion = function (reqvstr) {
-        var i,
+        var reqv,
             tanv,
-            reqv,
             compatible,
-            dev,
-            parse,
-            components,
-            hasNaN = function (values) {
-                var i;
+            parse;
 
-                for (i = 0; i < values.length; i += 1) {
-                    if (isNaN(values[i])) {
-                        return true;
-                    }
+        // This function parses out the structure of a version string.
+        //
+        // Major version 0 version numbers contain only two parts: 0.MINOR
+        //
+        // Major version 1 version numbers contain three parts:
+        // MAJOR.MINOR.PATCH
+        //
+        // Any version number may also have a trailing hyphen followed by one or
+        // more non-space, non-hyphen characters: 0.MINOR-TAG, or
+        // MAJOR.MINOR.PATCH-TAG
+        //
+        // The minor and patch numbers may be omitted; they will be filled in
+        // with 0s as appropriate.
+        //
+        // Negative numbers and non-number strings are not allowed in the
+        // version number components.
+        tangelo.parse = function (s) {
+            var parts,
+                ver,
+                tag,
+                i,
+                components;
+
+            parts = s.split("-");
+            if (parts.length > 1) {
+                ver = parts.slice(0, -1).join("-");
+                tag = parts.slice(-1)[0];
+            } else {
+                ver = parts[0];
+                tag = parts[1];
+            }
+
+            if (!ver) {
+                return null;
+            }
+
+            if (tag !== undefined && (tag.length === 0 || tag.indexOf(" ") !== -1)) {
+                return null;
+            }
+
+            ver = ver.split(".").map(function (x) {
+                return +x;
+            });
+
+            if (ver.length === 0) {
+                return null;
+            }
+
+            for (i = 0; i < ver.length; i += 1) {
+                if (isNaN(ver[i]) || ver[i] < 0) {
+                    return null;
                 }
+            }
 
-                return false;
-            };
+            components = ver[0] === 0 ? 2 : 3;
+            if (ver.length > components) {
+                return null;
+            }
 
-        // A function to parse the version number out.
-        parse = function () {
-            var isDev = false;
+            for (i = ver.length; i < components; i += 1) {
+                ver[i] = 0;
+            }
 
-            return function (x) {
-                var bad = false,
-                    retval,
-                    dev;
-
-                if (isDev) {
-                    bad = true;
-                } else if (isNaN(+x)) {
-                    if (x.slice(0, 3) === "dev") {
-                        isDev = true;
-
-                        dev = +x.slice(3);
-                        if (isNaN(dev)) {
-                            bad = true;
-                        }
-
-                        retval = -dev;
-                    }
-                } else {
-                    retval = +x;
-                }
-
-                if (bad) {
-                    tangelo.fatalError("tangelo.requireCompatibleVersion()", "illegal argument '" + reqvstr + "'");
-                }
-
-                return retval;
+            return {
+                version: ver,
+                tag: tag
             };
         };
 
-        // Split the argument out into major, minor, and patch version numbers.
-        reqv = reqvstr.split(".").map(parse());
+        // Parse out the structures of the required version string, and the
+        // current Tangelo version string.
+        reqv = tangelo.parse(reqvstr);
+        tanv = tangelo.parse(tangelo.version());
 
-        // Check for: blank argument, too long argument, non-version-number
-        // argument.
-        if (reqv.length === 0 || reqv.length > 3 || hasNaN(reqv)) {
-            tangelo.fatalError("tangelo.requireCompatibleVersion()", "illegal argument '" + reqvstr +  "'");
+        // If either of them fails to parse, raise a fatal error.
+        if (!tanv) {
+            tangelo.fatalError("tangelo.requireCompatibleVersion()", "tangelo version number is invalid: " + tangelo.version());
+        } else if (!reqv) {
+            tangelo.fatalError("tangelo.requireCompatibleVersion()", "invalid version string: " + reqvstr);
         }
 
-        // Fill in any missing trailing values (i.e., "1.0" -> "1.0.0", but
-        // "1.dev3" -> "1.0.0.dev3").
-        dev = reqv.slice(-1)[0];
-        if (dev < 0) {
-            reqv = reqv.slice(0, -1);
-        }
-        if (reqv[0] === 0) {
-            components = 2;
+        // Run the compatibility rules.
+        if (reqv.tag || tanv.tag || reqv.version[0] === 0 || tanv.version[0] === 0) {
+            // If either version has a tag, or if the major version is 0, then
+            // the versions must match exactly.
+            compatible = reqv.tag === tanv.tag &&
+                         reqv.version[0] === tanv.version[0] &&
+                         reqv.version[1] === tanv.version[1] &&
+                         reqv.version[2] === tanv.version[2];
         } else {
-            components = 3;
-        }
-        for (i = reqv.length; i < components; i += 1) {
-            reqv[i] = 0;
-        }
-        if (dev < 0) {
-            reqv.push(dev);
-        }
-
-        // Split the Tangelo version number into major, minor, and patch level
-        // as well.
-        tanv = tangelo.version().split(".").map(parse());
-
-        // Compatibility between versions is defined as follows:
-        //
-        // If the either version is a development version, then all components
-        // MUST MATCH.
-        //
-        // For non-development versions, In order to be compatible above major
-        // version 0: (1) the major versions MUST MATCH; (2) the required minor
-        // version MUST BE AT MOST the Tangelo minor version number; and (3) the
-        // required patch level MUST BE AT MOST the Tangelo patch level.
-        //
-        // For major version 0, in order to be compatible: (1) the major
-        // versions MUST BOTH BE 0; (2) and the minor versions MUST MATCH.
-        if (dev < 0 || tanv.slice(-1)[0] < 0) {
-            compatible = reqv[0] === tanv[0] && reqv[1] === tanv[1] && reqv[2] === tanv[2] && reqv[3] === tanv[3];
-        } else if (reqv[0] === 0) {
-            compatible = tanv[0] === 0 && reqv[1] === tanv[1];
-        } else {
-            compatible = reqv[0] === tanv[0] && reqv[1] <= tanv[1] && reqv[2] <= tanv[2];
+            // If there are no tags, and the major version is greater than 0,
+            // then the major versions MUST match, and the required minor
+            // version MUST be at most the Tangelo minor version.  If the minor
+            // versions are equal, then the required patch level MUST be at most
+            // the Tangelo patch level.
+            compatible = reqv.version[0] === tanv.version[0] &&
+                         (reqv.version[1] < tanv.version[1] || (reqv.version[1] === tanv.version[1] && reqv.version[2] <= tanv.version[2]));
         }
 
         return compatible;
     };
-
 }(window.$));
