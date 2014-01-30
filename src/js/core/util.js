@@ -10,39 +10,39 @@
             plugin: "tangelo.defaults",
             required: "JQuery"
         });
-    }
-
-    tangelo.defaults = function (inputfile, callback) {
-        if (inputfile.length > 0) {
-            if (inputfile[0] !== "/" && inputfile[0] !== "~") {
-                inputfile = window.location.pathname + "/" + inputfile;
-            }
-        }
-
-        $.ajax({
-            url: "/service/defaults",
-            data: {
-                path: inputfile
-            },
-            dataType: "json",
-            error: function (jqxhr) {
-                // If the ajax call fails, pass the request object to the
-                // function so the client can examine it.
-                callback(undefined, undefined, jqxhr);
-            },
-            success: function (data) {
-                // If successful, check for errors in the execution of the
-                // service itself, passing that error to the callback if
-                // necessary.  Otherwise, pass the status and data along to the
-                // callback.
-                if (data.error) {
-                    callback(undefined, undefined, data.error);
-                } else {
-                    callback(data.result, data.status);
+    } else {
+        tangelo.defaults = function (inputfile, callback) {
+            if (inputfile.length > 0) {
+                if (inputfile[0] !== "/" && inputfile[0] !== "~") {
+                    inputfile = window.location.pathname + "/" + inputfile;
                 }
             }
-        });
-    };
+
+            $.ajax({
+                url: "/service/defaults",
+                data: {
+                    path: inputfile
+                },
+                dataType: "json",
+                error: function (jqxhr) {
+                    // If the ajax call fails, pass the request object to the
+                    // function so the client can examine it.
+                    callback(undefined, undefined, jqxhr);
+                },
+                success: function (data) {
+                    // If successful, check for errors in the execution of the
+                    // service itself, passing that error to the callback if
+                    // necessary.  Otherwise, pass the status and data along to the
+                    // callback.
+                    if (data.error) {
+                        callback(undefined, undefined, data.error);
+                    } else {
+                        callback(data.result, data.status);
+                    }
+                }
+            });
+        };
+    }
 
     // Returns a unique ID for use as, e.g., ids for dynamically generated html
     // elements, etc.
