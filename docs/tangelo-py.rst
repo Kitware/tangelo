@@ -19,20 +19,58 @@
     Returns the path of the current request.  This is generally the sequence of
     path components following the domain and port number in a URL.
 
+.. py:function:: tangelo.request_body()
+
+    Returns a filelike object that streams out the body of the current request.
+    This can be useful, e.g., for retrieving data submitted in the body for a
+    POST request.
+
+.. py:function:: tangelo.legal_path(path)
+
+    Returns a pair indicating whether ``path``, a string naming a web path
+    (without the leading slash), refers to a file or directory within Tangelo's
+    web space.  The first element of the pair is a boolean indicating whether
+    the path is legal; the second element is a string giving further information
+    about the path.
+
+    If the path begins with a slash, it is not considered legal; the description
+    will read "absolute" in this case.
+
+    If the path begins with a tilde, the path is legal if it resolves to a
+    location within the named user's ``tangelo_html`` directory; the description
+    will read "home directory" in this case.
+
+    For paths not starting with a tilde, the path is legal if it resolves to a
+    location within the web root directory; the description reads "web root" in
+    that case.
+
+    This function is used mainly to reject file paths containing ``..`` or
+    similar, that may start in a legal location and move outside of Tangelo's
+    web space.  This ensures that services do not unwittingly manipulate files
+    they should not.
+
+    For example, ``~troi/libs`` would be pass, as would ``section31/common/``
+    because both paths refer to subdirectories of an allowed directory - one in
+    a user's home directory, and the other under the web root.  However,
+    ``/~picard/../../libs`` would be illegal, since it does not refer to any
+    file accessible via Tangelo.
+
 .. py:function:: tangelo.paths(paths)
 
     Augments the Python system path with the list of web directories specified
     in ``paths``.  Each path must be **within the web root directory** or
-    **within a user's web home directory**.  For example, ``/~troi/libs`` would
-    be allowed, as would ``/section31/common/`` because both directories are
-    subdirectories of a top-level web directory - one in a user's home
-    directory, and the other under the web root.  However,
-    ``/~picard/../../libs`` would be illegal, since it does not refer to any
-    file accessible via Tangelo.
+    **within a user's web home directory** (i.e., the paths must be legal with
+    respect to ``tangelo.legal_path()``).
 
     This function can be used to let web services access commonly used functions
     that are implemented in their own Python modules somewhere in the web
     filesystem.
+
+    After a service calling this function returns, the system path will be
+    restored to its original state.  This requires calling ``tangelo.paths()``
+    in every function wishing to change the path, but prevents shadowing of
+    expected locations by modules with the same name in other directories, and
+    the uncontrolled growth of the ``sys.path`` variable.
 
 .. py:decorator:: tangelo.restful
 
@@ -55,16 +93,13 @@
         def normalize():
             pass
 
-    The decorator also has the effect of preventing accidental exposure of
-    support functions in a RESTful service.
-
     Note that Tangelo automatically converts the verb used by the web client to
     all lowercase letters before searching the Python module for a matching
     function to call.
 
 .. py:class:: tangelo.HTTPStatusCode(code[, description])
 
-    Construct an HTTP status object signalling the status code given by ``code``
+    Constructs an HTTP status object signalling the status code given by ``code``
     and a custom description of the status given by ``description``.  If
     ``description`` is not specified, then a standard description will appear
     based on the code (e.g., "Not Found" for code 404, etc.).
