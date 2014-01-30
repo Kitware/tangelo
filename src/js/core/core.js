@@ -8,7 +8,7 @@ var tangelo = {};
 
     // Tangelo version number.
     tangelo.version = function () {
-        return "0.4.0";
+        return "0.5.dev1";
     };
 
     tangelo.fatalError = function (module, msg) {
@@ -175,6 +175,9 @@ var tangelo = {};
             tanv,
             reqv,
             compatible,
+            dev,
+            parse,
+            components,
             hasNaN = function (values) {
                 var i;
 
@@ -187,8 +190,42 @@ var tangelo = {};
                 return false;
             };
 
+        // A function to parse the version number out.
+        parse = function () {
+            var isDev = false;
+
+            return function (x) {
+                var bad = false,
+                    retval,
+                    dev;
+
+                if (isDev) {
+                    bad = true;
+                } else if (isNaN(+x)) {
+                    if (x.slice(0, 3) === "dev") {
+                        isDev = true;
+
+                        dev = +x.slice(3);
+                        if (isNaN(dev)) {
+                            bad = true;
+                        }
+
+                        retval = -dev;
+                    }
+                } else {
+                    retval = +x;
+                }
+
+                if (bad) {
+                    tangelo.fatalError("tangelo.requireCompatibleVersion()", "illegal argument '" + reqvstr + "'");
+                }
+
+                return retval;
+            };
+        };
+
         // Split the argument out into major, minor, and patch version numbers.
-        reqv = reqvstr.split(".").map(function (x) { return +x; });
+        reqv = reqvstr.split(".").map(parse());
 
         // Check for: blank argument, too long argument, non-version-number
         // argument.
@@ -196,25 +233,44 @@ var tangelo = {};
             tangelo.fatalError("tangelo.requireCompatibleVersion()", "illegal argument '" + reqvstr +  "'");
         }
 
-        // Fill in any missing trailing values (i.e., "1.0" -> "1.0.0").
-        for (i = reqv.length; i < 3; i += 1) {
+        // Fill in any missing trailing values (i.e., "1.0" -> "1.0.0", but
+        // "1.dev3" -> "1.0.0.dev3").
+        dev = reqv.slice(-1)[0];
+        if (dev < 0) {
+            reqv = reqv.slice(0, -1);
+        }
+        if (reqv[0] === 0) {
+            components = 2;
+        } else {
+            components = 3;
+        }
+        for (i = reqv.length; i < components; i += 1) {
             reqv[i] = 0;
+        }
+        if (dev < 0) {
+            reqv.push(dev);
         }
 
         // Split the Tangelo version number into major, minor, and patch level
         // as well.
-        tanv = tangelo.version().split(".").map(function (x) { return +x; });
+        tanv = tangelo.version().split(".").map(parse());
 
-        // In order to be compatible above major version 0: (1) the major
-        // versions MUST MATCH; (2) the required minor version MUST BE AT MOST
-        // the Tangelo minor version number; and (3) the required patch level
-        // MUST BE AT MOST the Tangelo patch level.
+        // Compatibility between versions is defined as follows:
+        //
+        // If the either version is a development version, then all components
+        // MUST MATCH.
+        //
+        // For non-development versions, In order to be compatible above major
+        // version 0: (1) the major versions MUST MATCH; (2) the required minor
+        // version MUST BE AT MOST the Tangelo minor version number; and (3) the
+        // required patch level MUST BE AT MOST the Tangelo patch level.
         //
         // For major version 0, in order to be compatible: (1) the major
-        // versions MUST BOTH BE 0; (2) the minor versions MUST MATCH; (3) the
-        // required patch level MUST BE AT MOST the Tangelo patch level.
-        if (reqv[0] === 0) {
-            compatible = tanv[0] === 0 && reqv[1] === tanv[1] && reqv[2] <= tanv[2];
+        // versions MUST BOTH BE 0; (2) and the minor versions MUST MATCH.
+        if (dev < 0 || tanv.slice(-1)[0] < 0) {
+            compatible = reqv[0] === tanv[0] && reqv[1] === tanv[1] && reqv[2] === tanv[2] && reqv[3] === tanv[3];
+        } else if (reqv[0] === 0) {
+            compatible = tanv[0] === 0 && reqv[1] === tanv[1];
         } else {
             compatible = reqv[0] === tanv[0] && reqv[1] <= tanv[1] && reqv[2] <= tanv[2];
         }
