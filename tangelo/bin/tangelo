@@ -518,7 +518,22 @@ if __name__ == "__main__":
     port = args.port or config.get("port") or 8080
     user = args.user or config.get("user") or "nobody"
     group = args.group or config.get("group") or "nobody"
+
     logdir = tangelo.util.expandpath(args.logdir or config.get("logdir") or ".")
+    if not os.path.exists(logdir):
+        try:
+            os.makedirs(logdir)
+        except OSError as e:
+            if e.errno == errno.EACCES:
+                print >>sys.stderr, "error: insufficient permissions to create logfile directory %s" % (logdir)
+            elif e.errno in [errno.ENOTDIR, errno.EEXIST]:
+                print >>sys.stderr, "error: could not create logfile directory %s" % (logdir)
+            else:
+                print >>sys.stderr, "error: could not create logfile directory %s - %s" (logdir, e.strerror)
+            sys.exit(1)
+    elif not os.path.isdir(logdir):
+        print >>sys.stderr, "error: requested logfile location %s is not a directory" % (logdir)
+        sys.exit(1)
 
     vtkpython = args.vtkpython or config.get("vtkpython")
     if vtkpython is not None:
