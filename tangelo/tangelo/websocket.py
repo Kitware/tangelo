@@ -1,16 +1,16 @@
 import threading
 import cherrypy
-import ws4py.server.cherrypyserver
-import ws4py.websocket
+import tangelo.ws4py.server.cherrypyserver
+import tangelo.ws4py.websocket
 import tangelo.autobahn.websocket as ab_websocket
 import tangelo.autobahn.wamp as wamp
 import twisted.internet
 
 import tangelo
 
-class WebSocketLowPriorityPlugin(ws4py.server.cherrypyserver.WebSocketPlugin):
+class WebSocketLowPriorityPlugin(tangelo.ws4py.server.cherrypyserver.WebSocketPlugin):
     def __init__(self, *pargs, **kwargs):
-        ws4py.server.cherrypyserver.WebSocketPlugin.__init__(self, *pargs, **kwargs)
+        tangelo.ws4py.server.cherrypyserver.WebSocketPlugin.__init__(self, *pargs, **kwargs)
 
     # This version of start() differs only in that it has an assigned priority.
     # The default priority is 50, which is what the actual WebSocketPlugin's
@@ -19,7 +19,7 @@ class WebSocketLowPriorityPlugin(ws4py.server.cherrypyserver.WebSocketPlugin):
     # itself).  For some reason if this runs before the priv drop, things get
     # screwed up.
     def start(self):
-        ws4py.server.cherrypyserver.WebSocketPlugin.start(self)
+        tangelo.ws4py.server.cherrypyserver.WebSocketPlugin.start(self)
     start.priority = 80
 
 class WebSocketHandler(object):
@@ -57,9 +57,9 @@ def VTKWebSocketAB(url, relay):
     return c
 
 def WebSocketRelay(hostname, port, key):
-    class Class(ws4py.websocket.WebSocket):
+    class Class(tangelo.ws4py.websocket.WebSocket):
         def __init__(self, *pargs, **kwargs):
-            ws4py.websocket.WebSocket.__init__(self, *pargs, **kwargs)
+            tangelo.ws4py.websocket.WebSocket.__init__(self, *pargs, **kwargs)
 
             url = "ws://%s:%d/ws" % (hostname, port)
 
