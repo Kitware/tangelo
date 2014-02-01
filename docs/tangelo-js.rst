@@ -492,10 +492,119 @@ provide convenient behaviors or to implement common visualization methods.  See
 
 .. js:function:: $.geodots(spec)
 
+    Constructs a map from a `GeoJSON <http://geojson.org/>`_ specification, and
+    plots colored SVG dots on it according to `spec.data`.
+
+    .. todo::
+        Include an example image of geodots in action.
+
+    `spec.worldGeometry` is a web path referencing a GeoJSON file.  `spec.data`
+    is an array of Javascript objects which may encode geodata attributes such
+    as longitude and latitude, and visualization parameters such as size and
+    color, while `spec.latitude`, `spec.longitude`, and `spec.size` are accessor
+    specifications describing how to derive the respective values from the data
+    objects.  `spec.color` is an accessor deriving categorical values to put
+    through a color mapping function.
+
+    :param string spec.worldGeometry: A web path to a GeoJSON file
+    :param accessor spec.latitude: An accessor for the latitude component
+    :param accessor spec.longitude: An accessor for the longitude component
+    :param accessor spec.size: An accessor for the size of each plotted circle
+    :param accessor spec.color: An accessor for the colormap category for each
+        plotted circle
+
 .. js:function:: $.geonodelink(spec)
+
+    Constructs a map from a `GeoJSON <http://geojson.org/>`_ specification, and
+    plots a node-link diagram on it according to `spec.data`.  This plugin
+    produces similar images as :js:func:`$.geodots` does.
+
+    .. todo::
+        Include an example image of geonodelink in action.
+
+    `spec.worldGeometry` is a web path referencing a GeoJSON file.
+
+    `spec.data` is an object containing two fields: ``nodes`` and ``links``.
+    The ``nodes`` field contains an array of Javascript objects of the exact
+    same structure as the `spec.data` array passed to :js:func:`$.geodots`,
+    encoding each node's location and visual properties.
+
+    The ``links`` field contains a list of objects, each encoding a single link
+    by specifying its source and target node as an index into the ``nodes``
+    array.  `spec.linkSource` and `spec.linkTarget` are accessors describing how
+    to derive the source and target values from each of these objects.
+
+    The plugin draws a map with nodes plotted at their specified locations, with
+    the specified links drawn as black lines between the appropriate nodes.
+
+    .. todo::
+        Include an example of geonodelink in action
+
+    .. todo::
+        Is there a way to link to examples from here?  The link would have to
+        show up differently in the docs built for readthedocs compared to those
+        built from source or installed via pip.
+
+    :param object spec.data: The encoded node-link diagram to plot
+    :param string spec.worldGeometry: A web path to a GeoJSON file
+    :param accessor spec.nodeLatitude: An accessor for the latitude component of
+        the nodes
+    :param accessor spec.nodeLongitude: An accessor for the longitude component
+        of the nodes
+    :param accessor spec.nodeSize: An accessor for the size of each plotted circle
+    :param accessor spec.nodeColor: An accessor for the colormap category for each
+        plotted circle
+    :param accessor spec.linkSource: An accessor to derive the source node of
+        each link
+    :param accessor spec.linkTarget: An accessor to derive the target node of
+        each link
 
 .. js:function:: $.mapdots(spec)
 
+    This plugin performs the same job as :js:func:`$.geodots`, but plots the dots
+    on an interactive Google Map rather than a GeoJSON map.  To this end, there
+    is no need for a "worldGeometry" argument, but the data format and other
+    arguments remain the same.
+
+    .. todo::
+        Include an example image of mapdots in action.
+
+    :param object[] spec.data: The list of dots to plot
+    :param accessor spec.latitude: An accessor for the latitude component
+    :param accessor spec.longitude: An accessor for the longitude component
+    :param accessor spec.size: An accessor for the size of each plotted circle
+    :param accessor spec.color: An accessor for the colormap category for each
+        plotted circle
+
 .. js:function:: $.nodelink(spec)
+
+    Constructs an interactive node-link diagram.  `spec.data` is an object with
+    ``nodes`` and ``links`` fields, each of which is a list of objects.  The
+    ``nodes`` list objects specify the nodes' visual properties, while the
+    ``links`` list simply specifies the nodes at the end of each link, as
+    indices into the ``nodes`` list.
+
+    The accessors `spec.linkSource` and `spec.linkTarget` specify how to extract
+    the source and target information from each link object, while
+    `spec.nodeSize` and `spec.nodeColor` specify how to extract these visual
+    properties from the node objects, much as in the :js:func:`$.geonodelink`
+    plugin.  `spec.nodeCharge` specifies the simulated electrostatic
+    charge on the nodes, for purposes of running the interactive node placement
+    algorithm (see the `D3 documentation
+    <https://github.com/mbostock/d3/wiki/Force-Layout#wiki-charge>`_ for more
+    information).  Finally, `spec.nodeLabel` is an accessor describing what, if
+    any, text label should be attached to each node.
+
+    :param object spec.data: The node-link diagram data
+    :param accessor spec.nodeSize: An accessor for the size of each node
+    :param accessor spec.nodeColor: An accessor for the colormap category for
+        each node
+    :param accessor spec.nodeLabel: An accessor for each node's text label
+    :param accessor spec.nodeCharge: An access for each node's simulated
+        electrostatic charge
+    :param accessor spec.linkSource: An accessor to derive the source node of
+        each link
+    :param accessor spec.linkTarget: An accessor to derive the target node of
+        each link
 
 .. js:class:: tangelo.GoogleMapSVG(elem, mapoptions, cfg, cont)
