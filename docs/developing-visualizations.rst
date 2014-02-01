@@ -1,19 +1,21 @@
-=========================
-Developing Visualizations
-=========================
+=================================
+    Developing Visualizations
+=================================
 
-Extend jQuery Widget
---------------------
+.. _jquery-widgets:
+
+Creating jQuery Widgets
+=======================
 
 Tangelo visualizations are implemented as jQuery widgets. They extend the
 base jQuery UI widget class, but otherwise do not need to depend on anything
 else from jQuery UI.
 
 Visualization Options
----------------------
+=====================
 
 Basic Options
-~~~~~~~~~~~~~
+-------------
 
 *   `data` - The data associated with the visualization, normally
     an array.
@@ -21,7 +23,7 @@ Basic Options
     If omitted, the visualization should resize to fit the DOM element.
 
 Visualization Mapping Options
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------
 
 The following options are optional, but if your visualization is able to map
 data element properties to visual attributes like size, color, and label, you
@@ -43,10 +45,10 @@ appropriate (e.g. `nodeSize`, `nodeStrokeWidth`).
 *   `opacity` - The opacity of the entire visual element, as a number between 0 to 1.
 
 Accessor Specifications
------------------------
+=======================
 
 AccessorSpec
-~~~~~~~~~~~~
+------------
 
 Each visual mapping should take an `AccessorSpec` for a value.
 Accessor specifications work much like `DataRef` specs do in Vega,
@@ -69,7 +71,7 @@ accessors and scales.
     a field directly as the visual property.
 
 ScaleSpec
-~~~~~~~~~
+---------
 
 A scale specification defines how to map data properties to visual properties.
 For example, if you want to color your visual elements using a data field
@@ -80,17 +82,17 @@ together define the `ScaleSpec`. In Tangelo, a `ScaleSpec` may also be an
 arbitrary function.
 
 Callbacks
----------
+=========
 
 Data Callbacks
-~~~~~~~~~~~~~~
+--------------
 
 *   `enter`
 *   `update`
 *   `exit`
 
 Interaction Callbacks
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
 *   `click`
 *   `dblclick`
@@ -98,7 +100,7 @@ Interaction Callbacks
 *   `mouseout`
 
 Behavior Callbacks
-~~~~~~~~~~~~~~~~~~
+------------------
 
 *   `select`
 *   `focus`
