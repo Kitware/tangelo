@@ -13,9 +13,40 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(tangelo)
 
 # Cache variables.
+#
+# Whether to build Tangelo at all, and then if yes, whether to build the Python
+# package.
+set(BUILD_TANGELO ON CACHE BOOL "Build Tangelo")
+if(${BUILD_TANGELO})
+    set(BUILD_TANGELO_PYTHON_PACKAGE ON CACHE BOOL "Generate a Python package for Tangelo")
+    mark_as_advanced(CLEAR BUILD_TANGELO_PYTHON_PACKAGE)
+    mark_as_advanced(CLEAR JSLint_EXECUTABLE)
+    mark_as_advanced(CLEAR UglifyJS_EXECUTABLE)
+else()
+    mark_as_advanced(FORCE BUILD_TANGELO_PYTHON_PACKAGE)
+    mark_as_advanced(FORCE JSLint_EXECUTABLE)
+    mark_as_advanced(FORCE UglifyJS_EXECUTABLE)
+endif()
+
+# Whether to build Sphinx documentation.
 set(BUILD_DOCUMENTATION OFF CACHE BOOL "Generate documentation for project.")
-set(JSLINT_TESTS OFF CACHE BOOL "Generate tests for JS source files using JSLint program.")
-set(SERVICE_TESTS OFF CACHE BOOL "Generate tests for Tangelo test services.")
+if(${BUILD_DOCUMENTATION})
+    mark_as_advanced(CLEAR Sphinx_EXECUTABLE)
+else()
+    mark_as_advanced(FORCE Sphinx_EXECUTABLE)
+endif()
+
+# Show/hide testing options depending on whether testing is enabled.
+if(${BUILD_TESTING})
+    set(JSLINT_TESTS OFF CACHE BOOL "Generate tests for JS source files using JSLint program.")
+    mark_as_advanced(CLEAR JSLINT_TESTS)
+
+    set(SERVICE_TESTS OFF CACHE BOOL "Generate tests for Tangelo test services.")
+    mark_as_advanced(CLEAR SERVICE_TESTS)
+else()
+    mark_as_advanced(FORCE JSLINT_TESTS)
+    mark_as_advanced(FORCE SERVICE_TESTS)
+endif()
 
 # We will need the Python interpreter to build the package and run the tests.
 find_package(PythonInterp 2.7 REQUIRED)
@@ -80,60 +111,62 @@ set(JS_UGLIFY_FILES
 # These files should be copied to the build directory.
 glob_recurse_ungit(TANGELO_SOURCES tangelo/*)
 
-# Copy package files to build directory.
-foreach(m ${TANGELO_SOURCES})
-    set(outfile ${CMAKE_BINARY_DIR}/${m})
-    copy_file(${m} ${outfile})
-    list(APPEND TANGELO_BUILD_FILES ${outfile})
-endforeach()
+if(${BUILD_TANGELO})
+    # Copy package files to build directory.
+    foreach(m ${TANGELO_SOURCES})
+        set(outfile ${CMAKE_BINARY_DIR}/${m})
+        copy_file(${m} ${outfile})
+        list(APPEND TANGELO_BUILD_FILES ${outfile})
+    endforeach()
 
-# Also copy the README file.
-copy_file(README.rst ${CMAKE_BINARY_DIR}/tangelo/README)
+    # Also copy the README file.
+    copy_file(README.rst ${CMAKE_BINARY_DIR}/tangelo/README)
 
-# And the server testing framework script.
-copy_file(
-    testing/tangelo-server-test.sh
-    ${CMAKE_BINARY_DIR}/testing/tangelo-server-test.sh
-)
+    # And the server testing framework script.
+    copy_file(
+        testing/tangelo-server-test.sh
+        ${CMAKE_BINARY_DIR}/testing/tangelo-server-test.sh
+    )
 
-# Uglify and concatenate the library js files.
-#
-# Set up options to create an unminified file.
-set(concatenator cat)
-set(output_operator ">")
+    # Uglify and concatenate the library js files.
+    #
+    # Set up options to create an unminified file.
+    set(concatenator cat)
+    set(output_operator ">")
 
-# Use UglifyJS to create a minified file, falling back on an unminified file if
-# it cannot be found.
-find_package(UglifyJS)
-if(UglifyJS_EXECUTABLE)
-    set(min_concatenator ${UglifyJS_EXECUTABLE})
-    set(min_output_operator "-o")
-    set(min_mangle_flag "-m")
-else()
-    message(WARNING "Could not find UglifyJS - generating UNMINIFIED javascript file for tangelo.min.js")
+    # Use UglifyJS to create a minified file, falling back on an unminified file if
+    # it cannot be found.
+    find_package(UglifyJS)
+    if(UglifyJS_EXECUTABLE)
+        set(min_concatenator ${UglifyJS_EXECUTABLE})
+        set(min_output_operator "-o")
+        set(min_mangle_flag "-m")
+    else()
+        message(WARNING "Could not find UglifyJS - generating UNMINIFIED javascript file for tangelo.min.js")
 
-    set(min_concatenator ${concatenator})
-    set(min_output_operator ${output_operator})
-    unset(min_mangle_flag)
+        set(min_concatenator ${concatenator})
+        set(min_output_operator ${output_operator})
+        unset(min_mangle_flag)
+    endif()
+
+    set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/tangelo/web/js/tangelo.min.js)
+    set(JS_FILE ${CMAKE_BINARY_DIR}/tangelo/web/js/tangelo.js)
+
+    add_custom_command(
+        OUTPUT ${MIN_JS_FILE}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/tangelo/web/js
+        COMMAND ${min_concatenator} ${JS_UGLIFY_FILES} ${min_mangle_flag} ${min_output_operator} ${MIN_JS_FILE}
+        DEPENDS ${JS_UGLIFY_FILES}
+        COMMENT "Creating minified javascript library"
+    )
+
+    add_custom_command(
+        OUTPUT ${JS_FILE}
+        COMMAND ${concatenator} ${JS_UGLIFY_FILES} ${mangle_flag} ${output_operator} ${JS_FILE}
+        DEPENDS ${JS_UGLIFY_FILES}
+        COMMENT "Creating unminified javascript library"
+    )
 endif()
-
-set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/tangelo/web/js/tangelo.min.js)
-set(JS_FILE ${CMAKE_BINARY_DIR}/tangelo/web/js/tangelo.js)
-
-add_custom_command(
-    OUTPUT ${MIN_JS_FILE}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/tangelo/web/js
-    COMMAND ${min_concatenator} ${JS_UGLIFY_FILES} ${min_mangle_flag} ${min_output_operator} ${MIN_JS_FILE}
-    DEPENDS ${JS_UGLIFY_FILES}
-    COMMENT "Creating minified javascript library"
-)
-
-add_custom_command(
-    OUTPUT ${JS_FILE}
-    COMMAND ${concatenator} ${JS_UGLIFY_FILES} ${mangle_flag} ${output_operator} ${JS_FILE}
-    DEPENDS ${JS_UGLIFY_FILES}
-    COMMENT "Creating unminified javascript library"
-)
 
 # Generate documentation.
 if(${BUILD_DOCUMENTATION})
@@ -175,15 +208,17 @@ if(${BUILD_DOCUMENTATION})
     )
 endif()
 
-# A target to build the package.
-set(DIST_STAMP ${CMAKE_BINARY_DIR}/stamps/sdist)
-add_custom_command(
-    OUTPUT ${DIST_STAMP}
-    COMMAND ${PYTHON_EXECUTABLE} setup.py sdist --dist-dir ../sdist >../sdist.log && ${CMAKE_COMMAND} -E touch ${DIST_STAMP}
-    DEPENDS ${TANGELO_BUILD_FILES}
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tangelo
-    COMMENT "Generating Python package"
-)
+if(${BUILD_TANGELO} AND ${BUILD_TANGELO_PYTHON_PACKAGE})
+    # A target to build the package.
+    set(DIST_STAMP ${CMAKE_BINARY_DIR}/stamps/sdist)
+    add_custom_command(
+        OUTPUT ${DIST_STAMP}
+        COMMAND ${PYTHON_EXECUTABLE} setup.py sdist --dist-dir ../sdist >../sdist.log && ${CMAKE_COMMAND} -E touch ${DIST_STAMP}
+        DEPENDS ${TANGELO_BUILD_FILES}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tangelo
+        COMMENT "Generating Python package"
+        )
+endif()
 
 # The top-level target.
 get_property(ALL_COPIED_FILES GLOBAL PROPERTY copied_files)
