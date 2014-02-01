@@ -5,8 +5,14 @@
 .. todo::
     Fill in "setup and administration" page
 
-A Note on Version Numbers
-=========================
+.. todo::
+    Setup page: mention safety issues, and about creating a permissionless
+    "tangelo" user
+
+.. _versioning:
+
+Versioning
+==========
 
 Tangelo uses `semantic versioning <http://semver.org/>`_ for its version
 numbers.
