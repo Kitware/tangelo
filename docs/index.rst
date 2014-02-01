@@ -11,21 +11,13 @@
 
 Tangelo is a general-purpose web server framework, built on top of CherryPy_.
 Once it's set up, it stays out of your way, clearing the path for you to use
-HTML5, CSS, JavaScript, and other web technologies such as
-
-* JQuery
-* D3
-* Bootstrap
-* WebGL
-* Canvas
-* Vega_
-
-to create rich web applications - from traditional, static pages, to
-cutting-edge, visual, dynamic displays.  **Tangelo also lets you include Python
-scripts as part of your application, alongside your HTML and Javascript files**,
-running them on your behalf to do anything from retrieving a few database
-results for display, to engaging with powerful computational engines such as
-Hadoop_ to compute complex results.
+HTML5, CSS, JavaScript, and other web technologies such as jQuery, D3,
+Bootstrap, WebGL, Canvas, and Vega_ to create rich web applications - from traditional,
+static pages, to cutting-edge, visual, dynamic displays.  **Tangelo also lets
+you include Python scripts as part of your application, alongside your HTML and
+Javascript files**, running them on your behalf to do anything from retrieving a
+few database results for display, to engaging with powerful computational
+engines such as Hadoop_ to compute complex results.
 
 To help in creating these applications, Tangelo exports the Tangelo API, which
 exists as a collection of Python functions, JavaScript functions, and a set of
