@@ -2,218 +2,230 @@
     Tangelo Javascript API
 ===================================
 
-jQuery plugins
-==============
+The Tangelo clientside library (*tangelo.js*) contains many functions to help
+create rich web applications for performing visualization and other tasks.  The
+library is conceptually split up into several sections, reviewed here.
 
-.. js:function:: jQuery.landingPage(cfg)
+Core Services
+=============
 
-    :param string cfg.specFile: JSON file describing what applications will be listed on the page.
-    :param string cfg.leftColumn: CSS selector for left text column
-    :param string cfg.rightColumn: CSS selector for right text column
-    :param string cfg.leftExternalColumn: CSS selector for left text column for external applications
-    :param string cfg.rightExternalColumn: CSS selector for right text column for external applications
-
-    Constructs a landing page describing one or more other applications on a
-    server.  `cfg.specFile` points to a JSON file containing a single object
-    with two fields, `apps` and `external`.  The `apps` field is a list of
-    objects, each of which has three fields: `name`, giving the title (and link
-    text) for an application; `path`, giving the link target for the app; and
-    `description`, containing descriptive HTML text that will describe the
-    application within the list.  The `external` field also contains a list of
-    objects, with the following fields: `name`, as before; `link`, containing a
-    link to the external webpage for the project; `institution`, giving the name
-    of the organization that hosts the external project; `institution_link`,
-    giving a link target for the institution; and `description`, as before.
-
-    This function lists out the projects in the JSON file columnwise into two
-    columns (specified by `cfg.leftColumn`, `cfg.rightColumn`,
-    `cfg.leftExternalColumn`, and `cfg.rightExternalColumn`), placing links
-    and descriptive text appropriately.
-
-.. js:function:: jQuery.controlPanel(cfg)
-
-.. js:function:: drawer_size()
-
-    Returns the height of the drawer handle icon (for use in laying out drawer
-    elements).
-
-    .. todo::
-        This function should simply be a private variable within the module.
-
-.. js:function:: drawer_toggle(container, icon)
-
-    :param string container: CSS selector for the element containing the control panel drawer
-    :param string icon: CSS selector for the element containing the drawer handle icon
-
-    Returns a function that can be used as the open/close callback for a control
-    panel.  The function causes the height of the control panel element to
-    toggle between full height (open) and zero height (closed).
-
-.. js:function:: jQuery.svgColorLegend(cfg)
-
-    :param string cfg.legend: CSS selector for SVG group element that will contain the legend
-    :param function cfg.cmap_func: A colormapping function to create color patches for the legend entries
-    :param int cfg.xoffset: How far, in pixels, to set the legend from the left edge of the parent SVG element.
-    :param int cfg.yoffset: How far, in pixels, to set the legend from the top edge of the parent SVG element.
-    :param string[] cfg.categories: A list of strings naming the categories represented in the legend.
-    :param int cfg.height_padding: How much space, in pixels, to place between legend entries.
-    :param int cfg.width_padding: How much space, in pixels, to place between a color patch and its associated label
-    :param int cfg.text_spacing: How far, in pixels, to raise text labels (used to vertically center text within the vertical space occupied by a color patch).
-    :param object cfg.legend_margins: An object with (optional) fields `top`, `bottom`, `left`, and `right`, specifying how much space, in pixels, to leave between the edge of the legend and the entries.
-    :param bool cfg.clear: Whether to clear out the previous contents of the element selected by `cfg.legend`.
-
-    Constructs an SVG color legend in the ``<g>`` element specified by
-    `cfg.legend`, mapping colors from the elements of `cfg.categories`
-    through the function `cfg.cmap_func`.
-
-.. js:function:: jQuery.navbar(cfg)
-
-
-tangelo
-=======
+The core functions represent basic support for creating web applications.
 
 .. js:function:: tangelo.version()
 
-    Returns the version as string of the form ``"x.y.z"``.
+    Returns a string representing Tangelo's current version number.  See
+    :ref:`versioning` for more information on Tangelo version numbers.
 
-.. js:attribute:: tangelo.identity
+    :rtype: string
 
-    The identity function: ``function (d) { return d; }``.
+.. js:function:: tangelo.fatalError([module, ] msg)
 
-.. js:function:: tangelo.isNumber(x)
+    Throws a JavaScript error containing a message, and optionally the name of
+    the reporting module.  For example, the call
+    ``tangelo.fatalError("mymodule", "You can't divide by zero!");`` produces a
+    JavaScript ``Error`` exception with the message *[mymodule] You can't divide
+    by zero!*
 
-    Returns ``true`` if `x` is a number.
+    :param string module: reporting module name
+    :param string msg: message to report in exception
 
-.. js:function:: tangelo.isBoolean(x)
+.. js:function:: tangelo.unavailable(cfg)
 
-    Returns ``true`` if `x` is a boolean.
+    Returns a function that raises a fatal error telling the user about missing
+    JavaScript requirements needed to run some functionality.
 
-.. js:function:: tangelo.isArray(x)
+    Generally, when it is detected that the requirements for some function are
+    incomplete, the function can be implemented with ``tangelo.unavailable()``
+    in order to produce a useful error message at runtime.
 
-    Returns ``true`` if `x` is an array.
-
-.. js:function:: tangelo.isObject(x)
-
-    Returns ``true`` if `x` is an object.
-
-.. js:function:: tangelo.isString(x)
-
-    Returns ``true`` if `x` is a string.
-
-.. js:function:: tangelo.accessor(spec, default)
-
-    :param spec.value: If this attribute is present, creates a function that returns the specified constant value.
-    :param string spec.field: If this attribute is present, creates a function that returns the specified constant value.
-        The `field` may be dot-separated to reference nested attributes.
-        For example, ``"foo.bar"`` will return the ``bar`` sub-attribute of the ``foo`` attribute.
-        Passing the string ``"."`` will return the identity function.
-    :param default: The default value returned if `spec.field` is not present.
-
-    Returns a function which takes an object and returns a value according to the `spec`.
-
-.. js:function:: tangelo.hasNaN(values)
-    
-    Returns ``true`` if any of the elements in the array `values` are ``NaN``.
-
-.. js:function:: tangelo.appendFunction(f1, f2)
-
-    Returns a new function which first calls `f1` then calls `f2`. All arguments are passed to each function.
-
-.. js:function:: tangelo.requireCompatibleVersion(reqvstr)
-
-    Returns ``true`` if :js:func:`tangelo.version()` returns a version >= the version specified in `reqvstr`.
-
-.. js:function:: tangelo.getMongoRange(host, database, collection, field, callback)
-
-    :param string host: MongoDB hostname
-    :param string database: MongoDB database on ``host``
-    :param string collection: MongoDB collection in ``database``
-    :param string field: Target field within ``collection``
-    :param function callback: Function to call on range results
-
-    Finds the two extreme values in field ``field`` of ``collection``
-    in ``database`` on Mongo server ``host``, then calls ``callback`` passing
-    these two values as arguments.
-
-    This function could be used, for example, to find the earliest and latest
-    events in a Mongo collection, then use that information to set up a date
-    selector element in the webpage.
-
-.. js:function:: tangelo.allDefined([arg1, ..., argN])
-
-    Returns ``true`` if all arguments are defined, and ``false`` otherwise.
-
-.. js:class:: tangelo.defaults(inputSpec, callback)
-
-    Constructs a key/value store object, initializing it with the information
-    found in `inputSpec`.
-
-    If `inputSpec` is a Javascript object, its contents are used directly as
-    the initialization data for the `defaults` object.  Otherwise, if
-    `inputSpec` is a string, it is treated as the path to a JSON file that
-    encodes a single Javascript object - this file is loaded via ajax and its
-    contents then used as the initialization data.
-
-    If ajax is used to load the initialization data, `callback` - if specified
-    - will be invoked on the newly created `defaults` object when the ajax
-    call finishes.  This can be used to specify, for example, the continuation
-    of the containing function so as to ensure that the object is created and
-    ready when the continuation is invoked (in other words, using the callback
-    is the asynchronous version of returning the new object directly from the
-    call to the `defaults` function).
-
-    The `defaults` object has two methods: ``get(key)`` returns the value
-    associated to `key` (or ``undefined`` if `key` is not present);
-    ``set(key, value)`` associates `value` to `key`.
-
-    This object can be used to set up default configuration options for a web
-    application.  The following example shows one useful pattern:
+    *Example:*
 
     .. code-block:: javascript
 
-        tangelo.util.defaults("defaults.json", function (config) {
-            var opt = {
-                color: "red",
-                fontsize: 12
-            };
+        if (!foobar) {
+            coolLib.awesomeFeature = tangelo.unavailable({
+                plugin: "coolLib.awesomeFeature",
+                required: "foobar"
+            });
+        }
 
-            for (o in opt) {
-                config.set(o, config.get(o) || opt[o]);
-            }
+    Note that the `cfg.required` may also be a list of strings, if there are
+    multiple requirements.
 
-            .
-            .
-            .
-        });
+    :param string cfg.plugin: The functionality with missing requirements
 
-    This code snippet reads in values from a file and fills in hardcoded
-    default values for anything missing in the file.  This pattern can be
-    deployed somewhere, and the site maintainer can supply a ``defaults.json``
-    file to vary the default values.  If the file is omitted, then the hardcoded
-    defaults will kick in.
+    :param cfg.required: The requirement(s)
+    :type cfg.required: string or list of string
 
-.. js:function:: tangelo.uniqueID()
+.. js:function:: tangelo.requireCompatibleVersion(requiredVersion)
 
-    Returns a unique string ID for use as, e.g., ids for dynamically generated html
-    elements, etc.
+    Determines if `requiredVersion` represents a Tangelo version that is
+    compatible with the current version.  The notion of compatibility comes from
+    Tangelo's semantic versioning (see :ref:`versioning` for more information)
+    and works as follows:
 
-.. js:class:: tangelo.GoogleMapSVG(elem, mapoptions, cfg, cont)
+    **Development versions** are compatible if all components match.  That is to
+    say, the major and minor versions, the patchlevel (if any), and the tag text
+    must all match.
 
-.. js:function:: tangelo.resolve(spec, done)
+    **Unstable versions** (those with major version 0) are compatible if the
+    major version numbers are both 0 and the minor version numbers match.
 
-tangelo.data
-============
+    **Release versions** (those with major version greater than zero) are
+    compatible if the major version numbers match, and the required version's
+    minor version number is at most to Tangelo's minor version number.  In
+    case the minor version numbers are equal, the required patchlevel must be at
+    most equal to Tangelo's patchlevel as well.
+
+    These rules ensure that the required API is the same as the API exported by
+    Tangelo.
+
+    :param string requiredVersion: The version required by the calling application
+    :rtype: boolean
+
+Utilities
+=========
+
+The utility functions provide services that may be useful or convenient in many
+kinds of web applications.
+
+.. js:function:: tangelo.config(webpath, callback)
+
+    Loads the JSON file found at `webpath` asynchronously, then invokes
+    `callback`, passing the JSON data, a status flag, and any error string that
+    may have occurred, when the content is ready.
+
+    This function can be used to perform static configuration of a deployed web
+    application.  For example, the JSON file might list databases where
+    application data is stored.
+
+    :param string webpath: A webpath referring to a JSON configuration file -
+        relative paths will be resolved with respect to the current web location
+
+    :param function(data,status,error) callback: A callback used to access the
+        configuration data once it is loaded.  `status` reads either `OK` if
+        everything is well, or `could not open file` if, e.g., the file is missing.
+        This may occur if, for example, the configuration file is optional.  If
+        there is an ajax error, it will be passed in the `error` parameter.
+
+.. js:function:: tangelo.uniqueID(n)
+
+    Generates a identifier made up of `n` randomly chosen lower and upper case
+    letters, guaranteed to be unique during the run of a single web application.
+
+    This function can be useful when designing plugins that create DOM elements
+    that need to be referenced in a reliable way later.  The unique identifiers that
+    come from this function can be used in the ``id`` attribute of such
+    elements.
+
+    Be careful about calling this function with a small `n` - for example, a
+    sequence of 52 calls to ``tangelo.uniqueID(1)`` would take longer and longer
+    to randomly generate each single-letter string, while the 53rd call would
+    enter an infinite loop.  This is an extremely unlikely scenario but it bears
+    to keep it in mind.
+
+    :param integer n: The length of the desired identifier
+    :rtype: string
+
+.. js:function:: tangelo.queryArguments()
+
+    Returns an object whose key-value pairs are the query arguments passed to
+    the current web page.
+
+    This function may be useful to customize page content based on query
+    arguments, or for restoring state based on configuration options, etc.
+
+    :rtype: object
+
+.. js:function:: tangelo.isNumber(value)
+
+    Returns ``true`` is `value` is a number and ``false`` otherwise.
+
+    :param value: The value to test
+    :rtype: boolean
+
+.. js:function:: tangelo.isBoolean(value)
+
+    Returns ``true`` is `value` is a boolean and ``false`` otherwise.
+
+    :param value: The value to test
+    :rtype: boolean
+
+.. js:function:: tangelo.isArray(value)
+
+    Returns ``true`` is `value` is an array and ``false`` otherwise.
+
+    :param value: The value to test
+    :rtype: boolean
+
+.. js:function:: tangelo.isObject(value)
+
+    Returns ``true`` is `value` is an object and ``false`` otherwise.
+
+    :param value: The value to test
+    :rtype: boolean
+
+.. js:function:: tangelo.isString(value)
+
+    Returns ``true`` is `value` is a string and ``false`` otherwise.
+
+    :param value: The value to test
+    :rtype: boolean
+
+.. js:function:: tangelo.isFunction(value)
+
+    Returns ``true`` is `value` is a function and ``false`` otherwise.
+
+    :param value: The value to test
+    :rtype: boolean
+
+.. js:function:: tangelo.absoluteUrl(webpath)
+
+    Computes an absolute web path for `webpath` based on the current location.
+    If `webpath` is already an absolute path, it is returned unchanged;
+    if relative, the return value has the appropriate prefix computed and prepended.
+
+    :param string webpath: an absolute or relative web path
+    :rtype: string
+
+.. js:function:: tangelo.accessor([spec])
+
+    Returns an *accessor function* that behaves according to the accessor
+    specification `spec`.  Accessor functions generally take as input a
+    Javascript object, and return some value that may or may not be related to
+    that object.  For instance, ``tangelo.accessor({field: "mass"})`` returns a
+    function equivalent to:
+
+    .. code-block:: javascript
+
+        function (d) {
+            return d.mass;
+        }
+
+    while ``tangelo.accessor({value: 47})`` return a constant function that
+    returns 47, regardless of its input.
+
+    As a special case, if `spec` is missing, or equal to the empty object
+    ``{}``, then the return value is the ``undefined accessor``, which simply
+    raises a fatal error when called.
+
+    For more information of the semantics of the `spec` argument, see
+
+.. todo::
+
+    Decide where to put the full Tangelo accessor specification documentation.
+
+Data Transformation
+===================
+
+These functions, in the ``tangelo.data`` namespace, provide transformations of
+common data formats into a common format usable by Tangelo plugins.
 
 .. js:function:: tangelo.data.tree(spec)
 
-    :param object spec.data: The array of nodes.
-    :param Accessor spec.id: An accessor for the ID of each node in the tree.
-    :param Accessor spec.idChild: An accessor for the ID of the elements of the children array.
-    :param Accessor spec.children: An accessor to retrieve the array of children for a node.
-
     Converts an array of nodes with ids and child lists into a nested tree structure.
     The nested tree format with a standard `children` attribute is the required format for other Tangelo
-    functions such as :js:class:`tangelo.vis.dendrogram`.
+    functions such as :js:func:`$.dendrogram`.
 
     As an example, evaluating:
 
@@ -252,48 +264,205 @@ tangelo.data
             ]
         }
 
-tangelo.ui
-==========
 
-.. js:function:: tangelo.ui.html(spec)
+    :param object spec.data: The array of nodes.
+    :param Accessor spec.id: An accessor for the ID of each node in the tree.
+    :param Accessor spec.idChild: An accessor for the ID of the elements of the children array.
+    :param Accessor spec.children: An accessor to retrieve the array of children for a node.
 
-    :param Element spec.el: The parent DOM element.
-    :param string spec.html: The HTML content string.
+Streaming API
+=============
 
-    Appends the specified arbitrary HTML content under the specified element. 
+The Streaming API allows for the handling of web services that yield parts of
+their output a piece at a time.  This is useful for handling very large data
+streams, but could also be used for purposes such as informing a web application
+of different phases of its execution, etc.  The streaming functions are found in
+the ``tangelo.stream`` namespace.
 
-.. js:function:: tangelo.ui.rangeslider(spec)
+See :ref:`streaming` for a full discussion on how streaming works.
 
-    :param Element spec.el: The parent DOM element.
-    :param object spec.range: An object of the form ``{min: minValue, max: maxValue}`` containing
-        the full range of the slider. The values `spec.range.min` and `spec.range.max` must be numeric.
-    :param object spec.value: An object of the form ``{min: minValue, max: maxValue}`` containing
-        the initial selected range of the slider. The values `spec.range.min` and `spec.range.max` must be numeric.
-    :param boolean spec.date: If ``true``, display the values as if they were milliseconds
-        since January 1, 1980 (i.e. interpret as the date ``new Date(value)``).
-    :param function spec.on.change: When the slider is dragged, ``spec.on.change(value)`` is called
-        with the current value of the form ``{min: minValue, max: maxValue}``.
+.. js:function:: tangelo.stream.streams(callback)
 
-    Creates a double-handled range slider control appended to the specified parent element.
+    Asynchronously retrieves a JSON-encoded list of all stream keys, then
+    invokes `callback`, passing the keys in as a Javascript list of strings.
 
-.. js:function:: tangelo.ui.select(spec)
+    :param function(keys) callback: A callback taking one argument of type list
+        of strings.
 
-    :param Element spec.el: The parent DOM element.
-    :param array spec.data: An array, one for each option in the drop-down.
-    :param Accessor spec.id: The accessor for a unique identifier for each object.
-    :param Accessor spec.label: The accessor for a label to be shown in the drop-down (default: `spec.id`).
-    :param function spec.on.change: When the drop-down selection changes, ``spec.on.change(value)`` is called
-        with the data element that was selected.
-    :param spec.value: The identifier of the object to initially select.
+.. js:function:: tangelo.stream.start(webpath, callback)
 
-    Creates a drop-down selection menu (HTML ``<select>`` element) with the specified options.
+    Asynchronously invokes the web service at `webpath` - which should initiate a
+    stream by returning a Python iterable object from its `run()` method - then
+    invokes `callback`, passing it the stream key associated with the new
+    stream.
 
-tangelo.vis
+    This callback might, for example, log the key with the application so that
+    it can be used later, possibly via calls to :js:func:`tangelo.stream.query`
+    or :js:func:`tangelo.stream.run`:
+
+    .. code-block:: javascript
+
+        tangelo.stream.start("myservice", function (key) {
+            app.key = key;
+        });
+
+    :param string webpath: A relative or absolute web path, naming a
+        stream-initiating web service
+    :param function(key) callback: A function to call when the key for the new
+        stream becomes available
+
+.. js:function:: tangelo.stream.query(key, callback)
+
+    Runs the stream keyed by `key` for one step, then invokes `callback` with
+    the result.  If there is an error, `callback` is instead invoked passing
+    ``undefined`` as the first argument, and the error as the second.
+
+    :param string key: The key for the desired stream
+    :param function(data) callback: The callback to invoke when results come
+        back from the stream
+
+.. js:function:: tangelo.stream.run(key, callback[, delay=100])
+
+    Runs the stream keyed by `key` continuously until it runs out, or there is
+    an error, invoking `callback` with the results each time.  The `delay`
+    parameter expresses in milliseconds the interval between when a callback
+    returns, and when the stream is queried again.
+
+    The behavior of `callback` can influence the future behavior of this
+    function.  If `callback` returns a value, and the value is a
+
+    * **function**, it will replace `callback` for the remainder of the stream
+      queries;
+
+    * **boolean**, it will stop running the stream if ``false``;
+
+    * **number**, it will become the new delay, beginning with the very next
+      stream query.
+
+    Other return types will simply be ignored.
+
+    :param string key: The key for the stream to run
+    :param function(data) callback: The callback to pass stream data when it
+        becomes available
+    :param number delay: The delay in milliseconds between the return from a
+        callback invocation, and the next stream query
+
+.. js:function:: tangelo.stream.delete(key[, callback])
+
+    Deletes the stream keyed by `key`.  The optional `callback` is a function
+    that is invoked with an error object is something went wrong during the
+    delete operation, or no arguments if the delete was successful.
+
+    :param string key: The key of the stream to delete
+    :param function(error) callback: A callback that is passed an error object
+        if an error occurs during deletion.
+
+VTK Web API
 ===========
 
-.. js:class:: tangelo.vis.dendrogram(spec)
+Tangelo offers native support for VTK Web processes.  These functions help to
+launch, manage, query, and terminate such processes.
 
-    :param Element spec.el: The parent DOM element.
+.. js:function:: tangelo.vtkweb.processes(callback)
+
+    Asynchronously retrieves a list of VTK Web process keys, and invokes
+    `callback` with the list.
+
+    :param function(keys) callback: The callback to invoke when the list of keys
+        becomes available
+
+.. js:function:: tangelo.vtkweb.info(key, callback)
+
+    Retrieves a status report about the VTK Web process keyed by `key`, then
+    invokes `callback` with it when it becomes available.
+
+    The report is a Javascript object containing a ``status`` field indicating
+    whether the request succeeded ("complete") or not ("failed").  If the status
+    is "failed", the ``reason`` field will explain why.
+
+    A successful report will contain a ``process`` field that reads either
+    "running" or "terminated".  For a terminated process, the ``returncode``
+    field will contain the exit code of the process.
+
+    For running processes, there are additional fields: ``port``, reporting the
+    port number the process is running on, and ``stdout`` and ``stderr``, which
+    contain a list of lines coming from those two output streams.
+
+    This function may be useful for debugging an errant VTK Web script.
+
+.. js:function:: tangelo.vtkweb.launch(cfg)
+
+    Attempts to launch a new VTK Web process by running a Python script found at
+    `cfg.url`, passing `cfg.argstring` as commandline arguments to the launcher
+    script.  If successful, the streaming image output will be sent to the first
+    DOM element matching the CSS selector given in `cfg.viewport`, which should
+    generally be a ``div`` element.
+
+    After the launch attempt succeeds or fails, `callback` is invoked, passing
+    the process key as the first argument, and the error object describing any
+    errors that occurred as the second (or ``undefined`` if there was no error).
+
+    :param string cfg.url: A relative or absolute web path referring to a VTK
+        Web script
+    :param string cfg.argstring: A string containing command line arguments to
+        pass to the launcher script
+    :param string cfg.viewport: A CSS selector for the ``div`` element to serve
+        as the graphics viewport for the running process
+    :param function(key,error) cfg.callback: A callback that reports the key of
+        the new process, or the error that occured
+
+.. js:function:: tangelo.vtkweb.terminate(key[, callback])
+
+    Attempts to terminate the VTK Web process keyed by `key`.  If there is a
+    `callback`, it will be invoked with the key of the terminated process, the
+    DOM element that was the viewport for that process, and an error (if any).
+    The key is passed to the callback in case this function is called several
+    times at once, and you wish to distinguish between the termination of
+    different processes.  The DOM element is passed in case you wish to change
+    something about the appearance of the element upon termination.
+
+    :param string key: The key of the process to terminate
+    :param function(key,viewport,error) callback: A callback that will be
+        invoked upon completion of the termination attempt
+
+jQuery plugins
+==============
+
+Tangelo defines several `jQuery plugins <http://learn.jquery.com/plugins/>`_ to
+provide convenient behaviors or to implement common visualization methods.  See
+:ref:`jquery-widgets` for more information.
+
+.. js:function:: $.svgColorLegend(cfg)
+
+    Constructs an SVG color legend in the ``g`` element specified by
+    `cfg.legend`, mapping colors from the elements of `cfg.categories`
+    through the function `cfg.cmap_func`.
+
+    :param string cfg.legend: CSS selector for SVG group element that will
+        contain the legend
+    :param function cfg.cmap_func: A colormapping function to create color
+        patches for the legend entries
+    :param integer cfg.xoffset: How far, in pixels, to set the legend from the
+        left edge of the parent SVG element.
+    :param integer cfg.yoffset: How far, in pixels, to set the legend from the
+        top edge of the parent SVG element.
+    :param string[] cfg.categories: A list of strings naming the categories
+        represented in the legend.
+    :param integer cfg.height_padding: How much space, in pixels, to place
+        between legend entries.
+    :param integer cfg.width_padding: How much space, in pixels, to place
+        between a color patch and its associated label
+    :param integer cfg.text_spacing: How far, in pixels, to raise text labels
+        (used to vertically center text within the vertical space occupied by a
+        color patch).
+    :param object cfg.legend_margins: An object with (optional) fields `top`,
+        `bottom`, `left`, and `right`, specifying how much space, in pixels, to
+        leave between the edge of the legend and the entries.
+    :param bool cfg.clear: Whether to clear out the previous contents of the
+        element selected by `cfg.legend`.
+
+.. js:function:: $.dendrogram(spec)
+
     :param object spec.data: A nested tree object where child nodes are stored in the `children` attribute.
     :param Accessor spec.label: The accessor for displaying tree node labels.
     :param Accessor spec.distance: The accessor for the numeric value of each node to its parent (default: 1).
@@ -321,14 +490,12 @@ tangelo.vis
 
         Downloads the view in the specified `format`. Currently only the ``"pdf"`` format is supported.
 
-.. js:class:: tangelo.vis.geodots(spec)
+.. js:function:: $.geodots(spec)
 
-.. js:class:: tangelo.vis.geonodelink(spec)
+.. js:function:: $.geonodelink(spec)
 
-.. js:class:: tangelo.vis.mapdots(spec)
+.. js:function:: $.mapdots(spec)
 
-.. js:class:: tangelo.vis.nodelink(spec)
+.. js:function:: $.nodelink(spec)
 
-.. js:class:: tangelo.vis.timebar(spec)
-
-.. js:class:: tangelo.vis.timeline(spec)
+.. js:class:: tangelo.GoogleMapSVG(elem, mapoptions, cfg, cont)
