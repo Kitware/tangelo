@@ -124,7 +124,7 @@
         return path;
     };
 
-    tangelo.accessor = function (spec, defaultValue) {
+    tangelo.accessor = function (spec) {
         var parts,
             func,
             key;
@@ -161,8 +161,6 @@
             func.undefined = true;
         } else if (tangelo.isFunction(spec)) {
             func = spec.clone();
-        } else if (!spec) {
-            func = function () { return defaultValue; };
         } else if (spec.hasOwnProperty("value")) {
             func = function () { return spec.value; };
         } else if (spec.hasOwnProperty("index")) {
@@ -179,7 +177,7 @@
                     for (i = 0; i < parts.length; i += 1) {
                         d = d[parts[i]];
                         if (d === undefined) {
-                            return defaultValue;
+                            return undefined;
                         }
                     }
                     return d;
