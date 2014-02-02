@@ -212,6 +212,7 @@ class TangeloVtkweb(object):
             # Remove the process entry from the table.
             del self.processes[key]
 
-            return json.dumps({"status": "complete"})
+            return json.dumps({ "status": "complete",
+                                "key": key })
         else:
             raise cherrypy.HTTPError(405, "Method not allowed")
