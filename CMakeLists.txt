@@ -16,7 +16,11 @@ include(tangelo)
 #
 # Whether to build Tangelo at all, and then if yes, whether to build the Python
 # package.
+#
+# This option is marked as advanced, as it only applies in a particular set of
+# circumstances that apply mainly to Tangelo developers.
 set(BUILD_TANGELO ON CACHE BOOL "Build Tangelo")
+mark_as_advanced(BUILD_TANGELO)
 if(${BUILD_TANGELO})
     set(BUILD_TANGELO_PYTHON_PACKAGE ON CACHE BOOL "Generate a Python package for Tangelo")
     mark_as_advanced(CLEAR BUILD_TANGELO_PYTHON_PACKAGE)
