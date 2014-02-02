@@ -11,6 +11,33 @@ var tangelo = {};
         return "0.5-dev1";
     };
 
+    // An "in-band" error, one that the application can recover from (possibly
+    // by displaying an error message and asking the user to try again, etc.).
+    tangelo.error = function (code, message, jqxhr) {
+        var error = {};
+
+        error.code = code;
+
+        if (!message || tangelo.isObject(message)) {
+            if (!jqxhr) {
+                jqxhr = message;
+            }
+            message = tangelo.error.message[code] || "unrecognized error, code " + code;
+        }
+
+        error.message = message;
+
+        if (jqxhr) {
+            error.jqxhr = jqxhr;
+        }
+
+        return error;
+    };
+    tangelo.error.AJAX_FAILURE = 0;
+    tangelo.error.message = [];
+    tangelo.error.message[tangelo.error.AJAX_FAILURE] = "ajax failure";
+
+    // An error bad enough to halt execution of the problem.
     tangelo.fatalError = function (module, msg) {
         if (msg === undefined) {
             msg = module;
