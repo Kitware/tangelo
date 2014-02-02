@@ -38,15 +38,15 @@
             url: "/stream/" + key,
             dataType: "json",
             error: function (jqxhr) {
-                callback(undefined, jqxhr);
+                callback(undefined, undefined, jqxhr);
             },
-            success: function (data) {
-                if (data.error) {
+            success: function (result) {
+                if (result.error) {
                     console.warn("[tangelo.stream.query()] error: " + data.error);
                     return;
                 }
 
-                callback(data);
+                callback(result.data, result.finished);
             }
         });
     };
@@ -67,32 +67,35 @@
                 console.warn("[tangelo.stream.run()] error: ajax call failed; aborting stream run");
                 callback(undefined, jqxhr);
             },
-            success: function (data) {
-                var result,
+            success: function (result) {
+                var flag,
                     keepgoing = true;
 
-                if (data.error) {
+                if (result.error) {
                     console.warn("[tangelo.stream.run()] error: " + data.error + "; aborting stream run");
+                    return;
+                } else if (result.finished) {
+                    callback(undefined, true);
                     return;
                 }
 
                 // Invoke the callback, and if it returns a value, inspect
                 // it to possibly affect how to continue.
-                result = callback(data);
-                if (result !== undefined) {
-                    if (tangelo.isFunction(result)) {
+                flag = callback(result.data, false);
+                if (flag !== undefined) {
+                    if (tangelo.isFunction(flag)) {
                         // If the callback returns a new function, use that
                         // function for the next invocation of the stream.
-                        callback = result;
-                    } else if (tangelo.isBoolean(result)) {
+                        callback = flag;
+                    } else if (tangelo.isBoolean(flag)) {
                         // If the callback returns a boolean value, use that
                         // as a cue about whether to continue running the
                         // stream or not.
-                        keepgoing = result;
-                    } else if (tangelo.isNumber(result)) {
+                        keepgoing = flag;
+                    } else if (tangelo.isNumber(flag)) {
                         // If it returns a numerical value, use that as the
                         // new delay time.
-                        delay = result;
+                        delay = flag;
                     }
                 }
 
@@ -115,9 +118,9 @@
                     callback(undefined, jqxhr);
                 }
             },
-            success: function (data) {
+            success: function (result) {
                 if (callback) {
-                    callback(data);
+                    callback(result);
                 }
             }
         });

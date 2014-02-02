@@ -49,7 +49,7 @@ class TangeloStream(object):
                 result["error"] = "Unknown key"
             else:
                 del self.streams[key]
-                result["data"] = "OK"
+                result["key"] = key
 
         else:
             # All other methods are illegal.
