@@ -24,11 +24,9 @@ mark_as_advanced(BUILD_TANGELO)
 if(${BUILD_TANGELO})
     set(BUILD_TANGELO_PYTHON_PACKAGE ON CACHE BOOL "Generate a Python package for Tangelo")
     mark_as_advanced(CLEAR BUILD_TANGELO_PYTHON_PACKAGE)
-    mark_as_advanced(CLEAR JSLint_EXECUTABLE)
     mark_as_advanced(CLEAR UglifyJS_EXECUTABLE)
 else()
     mark_as_advanced(FORCE BUILD_TANGELO_PYTHON_PACKAGE)
-    mark_as_advanced(FORCE JSLint_EXECUTABLE)
     mark_as_advanced(FORCE UglifyJS_EXECUTABLE)
 endif()
 
@@ -42,14 +40,52 @@ endif()
 
 # Show/hide testing options depending on whether testing is enabled.
 if(${BUILD_TESTING})
-    set(JSLINT_TESTS OFF CACHE BOOL "Generate tests for JS source files using JSLint program.")
-    mark_as_advanced(CLEAR JSLINT_TESTS)
+    set(JS_STYLE_TESTS ON CACHE BOOL "Generate style tests for JS source files (via JSLint).")
+    mark_as_advanced(CLEAR JS_STYLE_TESTS)
+    if(${JS_STYLE_TESTS})
+        mark_as_advanced(CLEAR JSLint_EXECUTABLE)
+    else()
+        mark_as_advanced(FORCE JSLint_EXECUTABLE)
+    endif()
 
-    set(SERVICE_TESTS OFF CACHE BOOL "Generate tests for Tangelo test services.")
+    set(PY_STYLE_TESTS ON CACHE BOOL "Generate style tests for Python source files (via pep8).")
+    mark_as_advanced(CLEAR PY_STYLE_TESTS)
+    if(${PY_STYLE_TESTS})
+        mark_as_advanced(CLEAR Pep8_EXECUTABLE)
+    else()
+        mark_as_advanced(FORCE Pep8_EXECUTABLE)
+    endif()
+
+    set(SERVICE_TESTS ON CACHE BOOL "Generate tests for Tangelo test services.")
     mark_as_advanced(CLEAR SERVICE_TESTS)
+
+    set(JS_UNIT_TESTS ON CACHE BOOL "Generate tangelo.js unit tests.")
+    mark_as_advanced(CLEAR JS_UNIT_TESTS)
+
+    set(PY_UNIT_TESTS ON CACHE BOOL "Generate tangelo Python module unit tests.")
+    mark_as_advanced(CLEAR PY_STYLE_TESTS)
+
+    set(WEB_TESTS ON CACHE BOOL "Generate tests for example web appplications.")
+    mark_as_advanced(CLEAR WEB_TESTS)
+
+    if(${JS_UNIT_TESTS} OR ${WEB_TESTS})
+        mark_as_advanced(CLEAR PhantomJS_EXECUTABLE)
+        mark_as_advanced(CLEAR PhantomJS_jasmine_runner)
+    else()
+        mark_as_advanced(FORCE PhantomJS_EXECUTABLE)
+        mark_as_advanced(FORCE PhantomJS_jasmine_runner)
+    endif()
 else()
-    mark_as_advanced(FORCE JSLINT_TESTS)
+    mark_as_advanced(FORCE JS_STYLE_TESTS)
+    mark_as_advanced(FORCE JSLint_EXECUTABLE)
+    mark_as_advanced(FORCE PY_STYLE_TESTS)
+    mark_as_advanced(FORCE Pep8_EXECUTABLE)
     mark_as_advanced(FORCE SERVICE_TESTS)
+    mark_as_advanced(FORCE JS_UNIT_TESTS)
+    mark_as_advanced(FORCE PhantomJS_EXECUTABLE)
+    mark_as_advanced(FORCE PhantomJS_jasmine_runner)
+    mark_as_advanced(FORCE PY_UNIT_TESTS)
+    mark_as_advanced(FORCE WEB_TESTS)
 endif()
 
 # We will need the Python interpreter to build the package and run the tests.
@@ -236,85 +272,125 @@ add_custom_target(
 include(CTest)
 enable_testing()
 
-set(TESTING_SOURCES
-    testing/vtkweb/vtkwebtest.py
-    testing/vtkweb/baseline-cone.png
-    testing/vtkweb/baseline-phylotree.png
-    testing/vtkweb/tangelo-vtkweb-test.py
-)
+if(${BUILD_TESTING})
+    set(TESTING_SOURCES
+        testing/vtkweb/vtkwebtest.py
+        testing/vtkweb/baseline-cone.png
+        testing/vtkweb/baseline-phylotree.png
+        testing/vtkweb/tangelo-vtkweb-test.py
+    )
 
-foreach(f ${TESTING_SOURCES})
-    configure_file(${f} ${f} COPYONLY)
-endforeach()
-
-# VTKWeb test.
-add_test(
-    NAME vtkwebcone
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/testing/vtkweb
-    COMMAND /home/roni/work/VTK/build-osmesa/bin/vtkpython vtkweb-cone-test.py
-)
-
-# JSLint tests.
-if(${JSLINT_TESTS})
-    # Find JSLint.
-    find_package(JSLint REQUIRED)
-
-    # Generate the tests.
-    foreach(f ${JS_LINT_FILES})
-        add_test(jslint-${f} ${JSLint_EXECUTABLE} ${f})
+    foreach(f ${TESTING_SOURCES})
+        configure_file(${f} ${f} COPYONLY)
     endforeach()
-endif()
 
-if(NOT "${WIN32}")
-    set(tester "${CMAKE_BINARY_DIR}/testing/tangelo-server-test.sh")
-    set(site "${SERVER_HOSTNAME}:${SERVER_PORT}")
-
-    # curl uses \r at the ends of lines for some reason when reporting response
-    # headers, so we include one at the end of our "expected string" lines.
-    add_test(static-content ${tester}
-        "curl --silent -I ${site} | head -n 1"
-        "HTTP/1.1 200 OK\r"
+    # VTKWeb test.
+    add_test(
+        NAME vtkwebcone
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/testing/vtkweb
+        COMMAND /home/roni/work/VTK/build-osmesa/bin/vtkpython vtkweb-cone-test.py
     )
 
-    add_test(geodots ${tester}
-        "python ${CMAKE_SOURCE_DIR}/src/imagetest.py --name=geodots --url=http://${site}/app/testing/vis/geodots.html --baseline-url=http://${site}/app/testing/vis/geodots.png"
-        "success"
-    )
+    # Javascript style tests.
+    if(${JS_STYLE_TESTS})
+        # Find JSLint.
+        find_package(JSLint REQUIRED)
 
-    add_test(resolve ${tester}
-        "python ${CMAKE_SOURCE_DIR}/tangelo/web/examples/testing/resolve/test.py"
-        "success"
-    )
+        # Generate the tests.
+        foreach(f ${JS_LINT_FILES})
+            add_test(jslint-${f} ${JSLint_EXECUTABLE} ${f})
+        endforeach()
+    endif()
 
-    if(SERVICE_TESTS)
-        add_test(rest-get ${tester}
-            "curl --silent -X GET ${site}/service/test/restful/one/two/three?foo=bar"
-            "GET: one two three{'foo': u'bar'}"
+    # Python style tests.
+    if(${PY_STYLE_TESTS})
+        # Find pep8.
+        find_package(Pep8 REQUIRED)
+
+        # Generate the tests.
+        foreach(f ${PY_LINT_FILES})
+            add_test(pep8-${f} ${Pep8_EXECUTABLE} ${f})
+        endforeach()
+    endif()
+
+    # Unit tests for tangelo.js.
+    if(${JS_UNIT_TESTS})
+        # Find PhantomJS.
+        find_package(PhantomJS REQUIRED)
+
+        # Generate the tests.
+        #
+        # TODO(choudhury): put tests here.
+    endif()
+
+    # Unit tests for tangelo Python module.
+    if(${PY_UNIT_TESTS})
+        # Generate the tests.
+        #
+        # TODO(choudhury): put tests here.
+    endif()
+
+    # Example website tests.
+    if(${WEB_TESTS})
+        # Find PhantomJS.
+        find_package(PhantomJS REQUIRED)
+
+        # Generate the tests.
+        #
+        # TODO(choudhury): put tests here.
+    endif()
+
+    if(NOT "${WIN32}")
+        set(tester "${CMAKE_BINARY_DIR}/testing/tangelo-server-test.sh")
+        set(site "${SERVER_HOSTNAME}:${SERVER_PORT}")
+
+        # curl uses \r at the ends of lines for some reason when reporting response
+        # headers, so we include one at the end of our "expected string" lines.
+        add_test(static-content ${tester}
+            "curl --silent -I ${site} | head -n 1"
+            "HTTP/1.1 200 OK\r"
         )
 
-        add_test(rest-post ${tester}
-            "curl --silent -X POST -d foo=bar ${site}/service/test/restful/one/two/three"
-            "POST: one two three{'foo': u'bar'}"
+        add_test(geodots ${tester}
+            "python ${CMAKE_SOURCE_DIR}/src/imagetest.py --name=geodots --url=http://${site}/app/testing/vis/geodots.html --baseline-url=http://${site}/app/testing/vis/geodots.png"
+            "success"
         )
 
-        add_test(404-not-found ${tester}
-            "curl --silent -I ${site}/service/test/404 | head -n 1"
-            "HTTP/1.1 404 Not Found\r"
+        add_test(resolve ${tester}
+            "python ${CMAKE_SOURCE_DIR}/tangelo/web/examples/testing/resolve/test.py"
+            "success"
         )
 
-        add_test(service-ner ${tester}
-            "curl --silent \"${site}/app/ner/service/ner?text=Toto,+I've+got+a+feeling+we're+not+in+Kansas+anymore.\""
-            "{\"result\": [[\"GPE\", \"Toto\"], [\"GPE\", \"Kansas\"]], \"error\": null}"
-        )
+        if(SERVICE_TESTS)
+            add_test(rest-get ${tester}
+                "curl --silent -X GET ${site}/service/test/restful/one/two/three?foo=bar"
+                "GET: one two three{'foo': u'bar'}"
+            )
 
-        add_test(service-echo-blank ${tester}
-            "curl --silent ${site}/service/test/echo"
-            "(No arguments passed)"
-        )
+            add_test(rest-post ${tester}
+                "curl --silent -X POST -d foo=bar ${site}/service/test/restful/one/two/three"
+                "POST: one two three{'foo': u'bar'}"
+            )
 
-        add_test(service-echo ${tester}
-            "curl --silent \"${site}/service/test/echo/jan/feb/mar?color=red&answer=42\""
-            "[jan, feb, mar]\ncolor -> red\nanswer -> 42"
-        )
+            add_test(404-not-found ${tester}
+                "curl --silent -I ${site}/service/test/404 | head -n 1"
+                "HTTP/1.1 404 Not Found\r"
+            )
+
+            add_test(service-ner ${tester}
+                "curl --silent \"${site}/app/ner/service/ner?text=Toto,+I've+got+a+feeling+we're+not+in+Kansas+anymore.\""
+                "{\"result\": [[\"GPE\", \"Toto\"], [\"GPE\", \"Kansas\"]], \"error\": null}"
+            )
+
+            add_test(service-echo-blank ${tester}
+                "curl --silent ${site}/service/test/echo"
+                "(No arguments passed)"
+            )
+
+            add_test(service-echo ${tester}
+                "curl --silent \"${site}/service/test/echo/jan/feb/mar?color=red&answer=42\""
+                "[jan, feb, mar]\ncolor -> red\nanswer -> 42"
+            )
+        endif()
     endif()
 endif()
