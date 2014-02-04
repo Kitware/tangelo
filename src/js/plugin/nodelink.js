@@ -4,10 +4,6 @@
     "use strict";
 
     if (!($ && $.widget && d3)) {
-        $.fn.nodelink = tangelo.unavailable({
-            plugin: "nodelink",
-            required: ["JQuery", "JQuery UI", "d3"]
-        });
         return;
     }
 

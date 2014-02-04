@@ -70,10 +70,8 @@ if(${BUILD_TESTING})
 
     if(${JS_UNIT_TESTS} OR ${WEB_TESTS})
         mark_as_advanced(CLEAR PhantomJS_EXECUTABLE)
-        mark_as_advanced(CLEAR PhantomJS_jasmine_runner)
     else()
         mark_as_advanced(FORCE PhantomJS_EXECUTABLE)
-        mark_as_advanced(FORCE PhantomJS_jasmine_runner)
     endif()
 else()
     mark_as_advanced(FORCE JS_STYLE_TESTS)
@@ -83,7 +81,6 @@ else()
     mark_as_advanced(FORCE SERVICE_TESTS)
     mark_as_advanced(FORCE JS_UNIT_TESTS)
     mark_as_advanced(FORCE PhantomJS_EXECUTABLE)
-    mark_as_advanced(FORCE PhantomJS_jasmine_runner)
     mark_as_advanced(FORCE PY_UNIT_TESTS)
     mark_as_advanced(FORCE WEB_TESTS)
 endif()
@@ -260,19 +257,17 @@ if(${BUILD_TANGELO} AND ${BUILD_TANGELO_PYTHON_PACKAGE})
         )
 endif()
 
-# The top-level target.
-get_property(ALL_COPIED_FILES GLOBAL PROPERTY copied_files)
-add_custom_target(
-    tangelo-all
-    ALL
-    DEPENDS ${ALL_COPIED_FILES} ${EXAMPLES_SYMLINK} ${MIN_JS_FILE} ${JS_FILE} ${DOCUMENTATION_STAMP} ${DIST_STAMP}
-)
-
 # Testing
 include(CTest)
 enable_testing()
 
 if(${BUILD_TESTING})
+    # A list of Javascript unit tests - list the base of the filename here.  The
+    # corresponding .js file should appear in testing/js-unit-tests/.
+    set(JS_UNIT_TEST_CASES
+        isFunction
+    )
+
     set(TESTING_SOURCES
         testing/vtkweb/vtkwebtest.py
         testing/vtkweb/baseline-cone.png
@@ -319,8 +314,26 @@ if(${BUILD_TESTING})
         find_package(PhantomJS REQUIRED)
 
         # Generate the tests.
-        #
-        # TODO(choudhury): put tests here.
+        foreach(f ${JS_UNIT_TEST_CASES})
+            set(js ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/${f}.js)
+            set(html ${CMAKE_BINARY_DIR}/tangelo/web/tests/js-unit-tests/${f}.html)
+
+            # Generate the testing HTML file (to be run with phantomjs via a
+            # jasmine runner) via a custom command, so the file is regenerated
+            # when the source file changes.
+            add_custom_command(OUTPUT ${html}
+                COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}" -P ${CMAKE_SOURCE_DIR}/cmake/configure_js_unit_test.cmake
+                COMMAND ${CMAKE_COMMAND} -E touch ${html}
+                DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/phantomjs/jasmine-scaffold.html.in
+                COMMENT "Generating Javascript unit test ${f}"
+            )
+
+            list(APPEND JS_UNIT_TEST_FILES ${html})
+
+            add_test(js-unit-test-${f}
+                ${PhantomJS_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js http://localhost:8080/tests/js-unit-tests/${f}.html
+            )
+        endforeach()
     endif()
 
     # Unit tests for tangelo Python module.
@@ -394,3 +407,11 @@ if(${BUILD_TESTING})
         endif()
     endif()
 endif()
+
+# The top-level target.
+get_property(ALL_COPIED_FILES GLOBAL PROPERTY copied_files)
+add_custom_target(
+    tangelo-all
+    ALL
+    DEPENDS ${ALL_COPIED_FILES} ${EXAMPLES_SYMLINK} ${MIN_JS_FILE} ${JS_FILE} ${DOCUMENTATION_STAMP} ${DIST_STAMP} ${JS_UNIT_TEST_FILES}
+)

@@ -4,10 +4,6 @@
     "use strict";
 
     if (!($ && d3)) {
-        $.fn.svgColorLegend = tangelo.unavailable({
-            plugin: "svgColorLegend",
-            required: ["JQuery", "d3"]
-        });
         return;
     }
 
