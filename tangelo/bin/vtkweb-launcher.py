@@ -95,8 +95,9 @@ if __name__ == "__main__":
     except IOError:
         print >>sys.stderr, "error: could not open file '%s'" % (userfile)
         sys.exit(2)
-    except ImportError:
-        print >>sys.stderr, "error: coult not import module '%s'" % (userfile)
+    except ImportError as e:
+        print >>sys.stderr, "error: could not import module '%s'" % (userfile)
+        print >>sys.stderr, "({})".format(e)
         sys.exit(2)
 
     # Create argument parser
