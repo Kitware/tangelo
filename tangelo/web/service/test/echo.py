@@ -4,11 +4,11 @@ def run(*pargs, **kwargs):
 
     # Dump the positional arguments.
     if len(pargs) > 0:
-        response += "[" + ", ".join(pargs) + "]\n"
+        response += "[" + ", ".join(pargs) + "]"
 
     # Dump the keyword arguments.
     for k in kwargs:
-        response += "%s -> %s\n" % (k, kwargs[k])
+        response += "\n%s -> %s" % (k, kwargs[k])
 
     # Send the response back.
     if response != "":

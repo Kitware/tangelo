@@ -65,10 +65,10 @@ if(${BUILD_TESTING})
     set(PY_UNIT_TESTS ON CACHE BOOL "Generate tangelo Python module unit tests.")
     mark_as_advanced(CLEAR PY_STYLE_TESTS)
 
-    set(WEB_TESTS ON CACHE BOOL "Generate tests for example web appplications.")
-    mark_as_advanced(CLEAR WEB_TESTS)
+    set(WEB_CONTENT_TESTS ON CACHE BOOL "Generate tests for example web appplications.")
+    mark_as_advanced(CLEAR WEB_CONTENT_TESTS)
 
-    if(${JS_UNIT_TESTS} OR ${WEB_TESTS})
+    if(${JS_UNIT_TESTS} OR ${WEB_CONTENT_TESTS})
         mark_as_advanced(CLEAR PhantomJS_EXECUTABLE)
     else()
         mark_as_advanced(FORCE PhantomJS_EXECUTABLE)
@@ -82,7 +82,7 @@ else()
     mark_as_advanced(FORCE JS_UNIT_TESTS)
     mark_as_advanced(FORCE PhantomJS_EXECUTABLE)
     mark_as_advanced(FORCE PY_UNIT_TESTS)
-    mark_as_advanced(FORCE WEB_TESTS)
+    mark_as_advanced(FORCE WEB_CONTENT_TESTS)
 endif()
 
 # We will need the Python interpreter to build the package and run the tests.
@@ -268,6 +268,19 @@ if(${BUILD_TESTING})
         isFunction
     )
 
+    # A list of "web content tests" - that is, these tests will generally
+    # speaking, retrieve content from a URL, then run a function on the content
+    # to determine whether the test passes.  This may be as simple as comparing
+    # the content directly against expected output.
+    set(WEB_CONTENT_TEST_CASES
+        echo-service-no-args
+        echo-service
+        rest-implicit-get
+        rest-get
+        rest-post
+        ner-service
+    )
+
     set(TESTING_SOURCES
         testing/vtkweb/vtkwebtest.py
         testing/vtkweb/baseline-cone.png
@@ -293,7 +306,7 @@ if(${BUILD_TESTING})
 
         # Generate the tests.
         foreach(f ${JS_LINT_FILES})
-            add_test(jslint-${f} ${JSLint_EXECUTABLE} ${f})
+            add_test(jslint:${f} ${JSLint_EXECUTABLE} ${f})
         endforeach()
     endif()
 
@@ -304,7 +317,7 @@ if(${BUILD_TESTING})
 
         # Generate the tests.
         foreach(f ${PY_LINT_FILES})
-            add_test(pep8-${f} ${Pep8_EXECUTABLE} ${f})
+            add_test(pep8:${f} ${Pep8_EXECUTABLE} ${f})
         endforeach()
     endif()
 
@@ -322,7 +335,7 @@ if(${BUILD_TESTING})
             # jasmine runner) via a custom command, so the file is regenerated
             # when the source file changes.
             add_custom_command(OUTPUT ${html}
-                COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}" -P ${CMAKE_SOURCE_DIR}/cmake/configure_js_unit_test.cmake
+                COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}" -P ${CMAKE_SOURCE_DIR}/cmake/configure-js-unit-test.cmake
                 COMMAND ${CMAKE_COMMAND} -E touch ${html}
                 DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/phantomjs/jasmine-scaffold.html.in
                 COMMENT "Generating Javascript unit test ${f}"
@@ -330,7 +343,7 @@ if(${BUILD_TESTING})
 
             list(APPEND JS_UNIT_TEST_FILES ${html})
 
-            add_test(js-unit-test-${f}
+            add_test(js-unit-test:${f}
                 ${PhantomJS_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js http://localhost:8080/tests/js-unit-tests/${f}.html
             )
         endforeach()
@@ -343,14 +356,29 @@ if(${BUILD_TESTING})
         # TODO(choudhury): put tests here.
     endif()
 
-    # Example website tests.
-    if(${WEB_TESTS})
+    # Web content tests.
+    if(${WEB_CONTENT_TESTS})
         # Find PhantomJS.
         find_package(PhantomJS REQUIRED)
 
         # Generate the tests.
-        #
-        # TODO(choudhury): put tests here.
+        foreach(f ${WEB_CONTENT_TEST_CASES})
+            set(js ${CMAKE_SOURCE_DIR}/testing/web-content-tests/${f}.js)
+            set(js_out ${CMAKE_BINARY_DIR}/tangelo/web/tests/web-content-tests/${f}.js)
+
+            add_custom_command(OUTPUT ${js_out}
+                COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}" -P ${CMAKE_SOURCE_DIR}/cmake/configure-web-content-test.cmake
+                COMMAND ${CMAKE_COMMAND} -E touch ${js_out}
+                DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/phantomjs/web-content-test-scaffold.js.in
+                COMMENT "Generating web content test ${f}"
+            )
+
+            list(APPEND WEB_CONTENT_TEST_FILES ${js_out})
+
+            add_test(web-content-test:${f}
+                ${PhantomJS_EXECUTABLE} ${js_out}
+            )
+        endforeach()
     endif()
 
     if(NOT "${WIN32}")
@@ -369,40 +397,10 @@ if(${BUILD_TESTING})
             "success"
         )
 
-        add_test(resolve ${tester}
-            "python ${CMAKE_SOURCE_DIR}/tangelo/web/examples/testing/resolve/test.py"
-            "success"
-        )
-
         if(SERVICE_TESTS)
-            add_test(rest-get ${tester}
-                "curl --silent -X GET ${site}/service/test/restful/one/two/three?foo=bar"
-                "GET: one two three{'foo': u'bar'}"
-            )
-
-            add_test(rest-post ${tester}
-                "curl --silent -X POST -d foo=bar ${site}/service/test/restful/one/two/three"
-                "POST: one two three{'foo': u'bar'}"
-            )
-
             add_test(404-not-found ${tester}
                 "curl --silent -I ${site}/service/test/404 | head -n 1"
                 "HTTP/1.1 404 Not Found\r"
-            )
-
-            add_test(service-ner ${tester}
-                "curl --silent \"${site}/app/ner/service/ner?text=Toto,+I've+got+a+feeling+we're+not+in+Kansas+anymore.\""
-                "{\"result\": [[\"GPE\", \"Toto\"], [\"GPE\", \"Kansas\"]], \"error\": null}"
-            )
-
-            add_test(service-echo-blank ${tester}
-                "curl --silent ${site}/service/test/echo"
-                "(No arguments passed)"
-            )
-
-            add_test(service-echo ${tester}
-                "curl --silent \"${site}/service/test/echo/jan/feb/mar?color=red&answer=42\""
-                "[jan, feb, mar]\ncolor -> red\nanswer -> 42"
             )
         endif()
     endif()
@@ -413,5 +411,12 @@ get_property(ALL_COPIED_FILES GLOBAL PROPERTY copied_files)
 add_custom_target(
     tangelo-all
     ALL
-    DEPENDS ${ALL_COPIED_FILES} ${EXAMPLES_SYMLINK} ${MIN_JS_FILE} ${JS_FILE} ${DOCUMENTATION_STAMP} ${DIST_STAMP} ${JS_UNIT_TEST_FILES}
+    DEPENDS ${ALL_COPIED_FILES}
+            ${EXAMPLES_SYMLINK}
+            ${MIN_JS_FILE}
+            ${JS_FILE}
+            ${DOCUMENTATION_STAMP}
+            ${DIST_STAMP}
+            ${JS_UNIT_TEST_FILES}
+            ${WEB_CONTENT_TEST_FILES}
 )

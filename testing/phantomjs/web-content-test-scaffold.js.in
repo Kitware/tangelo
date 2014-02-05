@@ -1,0 +1,84 @@
+// This is a script for PhantomJS to run.  It fetches a webpage and renders it
+// either as HTML or as plain text, depending on the second parameter.
+
+var system = require('system');
+
+var page = require('webpage').create();
+
+var url;
+var method;
+var data;
+var suite_name = "";
+var results = [];
+
+function suite(name, content_url, test_suite, http_method, http_data){
+    suite_name = name;
+    url = content_url;
+    method = http_method;
+    data = http_data;
+    test_suite();
+}
+
+function test(name, test_func){
+    results.push({
+        name: name,
+        runTest: test_func
+    });
+}
+
+@TEST_SUITE@
+
+console.log("url: " + url);
+if (method) {
+    console.log("method: " + method);
+}
+if (data) {
+    console.log("data: " + JSON.stringify(data, null, 4));
+}
+console.log("");
+
+// Route "console.log()" calls from within the Page context to the main Phantom
+// context (i.e. current "this")
+page.onConsoleMessage = function(msg) {
+    console.log(msg);
+};
+
+var runner = function(status) {
+    var i,
+        passed = 0,
+        failed = 0,
+        total,
+        pass;
+
+    if (status !== "success") {
+        console.log("Unable to access network");
+        phantom.exit(1);
+    }
+
+    for (i = 0; i < results.length; i += 1) {
+        console.log("Running test " + (i+1) + ": " + suite_name + " - " + results[i].name);
+        pass = results[i].runTest(page);
+
+        if (pass) {
+            passed += 1;
+            console.log("PASSED\n");
+        } else {
+            failed += 1;
+            console.log("FAILED\n");
+        }
+    }
+
+    total = passed + failed;
+
+    console.log("Of " + total + " test" + (total === 1 ? "" : "s") + " run, " + passed + " (" + (100 * passed / total) + "%) passed");
+
+    phantom.exit(failed !== 0);
+};
+
+if (method && data) {
+    page.open(url, method, data, runner);
+} else if (method) {
+    page.open(url, method, runner);
+} else {
+    page.open(url, runner);
+}
