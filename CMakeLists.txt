@@ -276,6 +276,7 @@ if(${BUILD_TESTING})
         rest-post
         ner-service
         404-not-found
+        200-ok
     )
 
     set(TESTING_SOURCES
@@ -384,11 +385,6 @@ if(${BUILD_TESTING})
 
         # curl uses \r at the ends of lines for some reason when reporting response
         # headers, so we include one at the end of our "expected string" lines.
-        add_test(static-content ${tester}
-            "curl --silent -I ${site} | head -n 1"
-            "HTTP/1.1 200 OK\r"
-        )
-
         add_test(geodots ${tester}
             "python ${CMAKE_SOURCE_DIR}/src/imagetest.py --name=geodots --url=http://${site}/app/testing/vis/geodots.html --baseline-url=http://${site}/app/testing/vis/geodots.png"
             "success"
