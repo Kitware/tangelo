@@ -56,9 +56,6 @@ if(${BUILD_TESTING})
         mark_as_advanced(FORCE Pep8_EXECUTABLE)
     endif()
 
-    set(SERVICE_TESTS ON CACHE BOOL "Generate tests for Tangelo test services.")
-    mark_as_advanced(CLEAR SERVICE_TESTS)
-
     set(JS_UNIT_TESTS ON CACHE BOOL "Generate tangelo.js unit tests.")
     mark_as_advanced(CLEAR JS_UNIT_TESTS)
 
@@ -78,7 +75,6 @@ else()
     mark_as_advanced(FORCE JSLint_EXECUTABLE)
     mark_as_advanced(FORCE PY_STYLE_TESTS)
     mark_as_advanced(FORCE Pep8_EXECUTABLE)
-    mark_as_advanced(FORCE SERVICE_TESTS)
     mark_as_advanced(FORCE JS_UNIT_TESTS)
     mark_as_advanced(FORCE PhantomJS_EXECUTABLE)
     mark_as_advanced(FORCE PY_UNIT_TESTS)
@@ -279,6 +275,7 @@ if(${BUILD_TESTING})
         rest-get
         rest-post
         ner-service
+        404-not-found
     )
 
     set(TESTING_SOURCES
@@ -396,13 +393,6 @@ if(${BUILD_TESTING})
             "python ${CMAKE_SOURCE_DIR}/src/imagetest.py --name=geodots --url=http://${site}/app/testing/vis/geodots.html --baseline-url=http://${site}/app/testing/vis/geodots.png"
             "success"
         )
-
-        if(SERVICE_TESTS)
-            add_test(404-not-found ${tester}
-                "curl --silent -I ${site}/service/test/404 | head -n 1"
-                "HTTP/1.1 404 Not Found\r"
-            )
-        endif()
     endif()
 endif()
 

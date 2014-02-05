@@ -6,6 +6,8 @@ var system = require('system');
 var page = require('webpage').create();
 
 var url;
+var status;
+var statusText;
 var method;
 var data;
 var suite_name = "";
@@ -43,17 +45,27 @@ page.onConsoleMessage = function(msg) {
     console.log(msg);
 };
 
-var runner = function(status) {
+// Capture the status code for the target url in this callback.  Look for a
+// match in the "url" field and for "stage" to be "end" - this will distinguish
+// the final status code for the url itself, from those for other requested
+// resource within the page (images, etc.).
+page.onResourceReceived = function (response) {
+    if (response.url === url && response.stage === "end") {
+        // Log the status code and message.
+        status = response.status;
+        statusText = response.statusText;
+
+        // Unregister this callback.
+        page.onResourceReceived = undefined;
+    }
+};
+
+var runner = function() {
     var i,
         passed = 0,
         failed = 0,
         total,
         pass;
-
-    if (status !== "success") {
-        console.log("Unable to access network");
-        phantom.exit(1);
-    }
 
     for (i = 0; i < results.length; i += 1) {
         console.log("Running test " + (i+1) + ": " + suite_name + " - " + results[i].name);
