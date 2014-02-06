@@ -258,6 +258,12 @@ if(${BUILD_TESTING})
         isFunction
     )
 
+    # A list of Tangelo (i.e. Python) unit tests.  The corresponding .py file
+    # should appear in testing/py-unit-tests/.
+    set(PY_UNIT_TEST_CASES
+        get_free_port
+    )
+
     # A list of "web content tests" - that is, these tests will generally
     # speaking, retrieve content from a URL, then run a function on the content
     # to determine whether the test passes.  This may be as simple as comparing
@@ -344,9 +350,12 @@ if(${BUILD_TESTING})
 
     # Unit tests for tangelo Python module.
     if(${PY_UNIT_TESTS})
-        # Generate the tests.
-        #
-        # TODO(choudhury): put tests here.
+        # Add each test.
+        foreach(f ${PY_UNIT_TEST_CASES})
+            add_test(py-unit-test:${f}
+                ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/${f}.py
+            )
+        endforeach()
     endif()
 
     # Web content tests.
