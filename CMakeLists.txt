@@ -155,12 +155,6 @@ if(${BUILD_TANGELO})
     # Also copy the README file.
     copy_file(README.rst ${CMAKE_BINARY_DIR}/tangelo/README)
 
-    # And the server testing framework script.
-    copy_file(
-        testing/tangelo-server-test.sh
-        ${CMAKE_BINARY_DIR}/testing/tangelo-server-test.sh
-    )
-
     # Uglify and concatenate the library js files.
     #
     # Set up options to create an unminified file.
@@ -277,6 +271,7 @@ if(${BUILD_TESTING})
         ner-service
         404-not-found
         200-ok
+        geodots-match
     )
 
     set(TESTING_SOURCES
@@ -377,18 +372,6 @@ if(${BUILD_TESTING})
                 ${PhantomJS_EXECUTABLE} ${js_out}
             )
         endforeach()
-    endif()
-
-    if(NOT "${WIN32}")
-        set(tester "${CMAKE_BINARY_DIR}/testing/tangelo-server-test.sh")
-        set(site "${SERVER_HOSTNAME}:${SERVER_PORT}")
-
-        # curl uses \r at the ends of lines for some reason when reporting response
-        # headers, so we include one at the end of our "expected string" lines.
-        add_test(geodots ${tester}
-            "python ${CMAKE_SOURCE_DIR}/src/imagetest.py --name=geodots --url=http://${site}/app/testing/vis/geodots.html --baseline-url=http://${site}/app/testing/vis/geodots.png"
-            "success"
-        )
     endif()
 endif()
 

@@ -8,13 +8,30 @@ var page = require('webpage').create();
 var cmake_binary_dir = "@CMAKE_BINARY_DIR@";
 var cmake_source_dir = "@CMAKE_SOURCE_DIR@";
 
+function Promise(callback) {
+    return {
+        then: function (deliver) {
+            callback(deliver);
+        }
+    };
+};
+
 var url;
 var status;
 var statusText;
+
 var image_file;
 var image_data;
+var threshold = 0.0;
+
 var method;
 var data;
+
+var size = {
+    width: 1024,
+    height: 768
+};
+
 var suite_name = "";
 var results = [];
 
@@ -26,8 +43,14 @@ function suite(cfg) {
             .replace("${CMAKE_BINARY_DIR}", cmake_binary_dir)
             .replace("${CMAKE_SOURCE_DIR}", cmake_source_dir);
     }
+    if (cfg.threshold) {
+        threshold = cfg.threshold;
+    }
     method = cfg.method;
     data = cfg.data;
+    if (cfg.size) {
+        size = cfg.size;
+    }
     cfg.test_suite();
 }
 
@@ -51,6 +74,8 @@ if (image_file) {
     console.log("image file: " + image_file);
 }
 console.log("");
+
+page.viewportSize = size;
 
 // Route "console.log()" calls from within the Page context to the main Phantom
 // context (i.e. current "this")
@@ -84,6 +109,8 @@ var runner = function() {
         passed = 0,
         failed = 0,
         total,
+        pending = 0,
+        ready,
         pass;
 
     // If there is an image file, read it in as base64.
@@ -97,11 +124,91 @@ var runner = function() {
         }
     }
 
+    toImageData = function (png_data) {
+        var img,
+            c,
+            ctx;
+
+        return new Promise(function (resolve, reject) {
+            img = new Image();
+            img.onload = function () {
+                c = document.createElement("canvas");
+                ctx = c.getContext("2d");
+                ctx.drawImage(img, 0, 0);
+
+                resolve(ctx.getImageData(0, 0, img.width, img.height));
+            };
+            img.src = "data:image/png;base64," + png_data;
+        });
+    };
+
+    compareImages = function (data1, data2, comparator) {
+        return new Promise(function (deliver) {
+            var promise1 = toImageData(data1),
+                promise2 = toImageData(data2);
+
+            promise1.then(function (png1) {
+                promise2.then(function (png2) {
+                    var diff,
+                        val,
+                        i;
+
+                    if (comparator) {
+                        deliver(comparator(png1, png2));
+                    } else {
+                        // If image dimensions do not match exactly, then reject
+                        // the match.
+                        if (png1.width !== png2.width || png1.height !== png2.height) {
+                            console.log("image dimensions do not match");
+                            deliver(false);
+                        } else {
+                            // Otherwise, compute the L2 difference between the
+                            // images.
+                            diff = 0.0;
+                            for (i = 0; i < png1.data.length; i += 1) {
+                                val = png1.data[i] - png2.data[i];
+                                diff += val * val;
+                            }
+
+                            console.log("L2 diff: " + diff);
+                            console.log("threshold: " + threshold);
+
+                            deliver(Math.sqrt(diff) <= threshold);
+                        }
+                    }
+                });
+            });
+        });
+    }
+
     for (i = 0; i < results.length; i += 1) {
         console.log("Running test " + (i+1) + ": " + suite_name + " - " + results[i].name);
         pass = results[i].runTest(page);
 
-        if (pass) {
+        if (pass.then) {
+            pending += 1;
+            pass.then(function (result) {
+                if (result) {
+                    passed += 1;
+                    console.log("PASSED\n");
+                } else {
+                    failed += 1;
+                    console.log("FAILED\n");
+                }
+
+                pending -= 1;
+
+                if (pending === 0) {
+                    if (i === results.length) {
+                        cleanup();
+                    } else {
+                        ready = true;
+                    }
+                }
+            }, function () {
+                console.log("error");
+            });
+        } else if (pass) {
             passed += 1;
             console.log("PASSED\n");
         } else {
@@ -110,11 +217,17 @@ var runner = function() {
         }
     }
 
-    total = passed + failed;
+    if (ready) {
+        cleanup();
+    }
 
-    console.log("Of " + total + " test" + (total === 1 ? "" : "s") + " run, " + passed + " (" + (100 * passed / total) + "%) passed");
+    function cleanup(){
+        total = passed + failed;
 
-    phantom.exit(failed !== 0);
+        console.log("Of " + total + " test" + (total === 1 ? "" : "s") + " run, " + passed + " (" + (100 * passed / total) + "%) passed");
+
+        phantom.exit(failed !== 0);
+    }
 };
 
 if (method && data) {
