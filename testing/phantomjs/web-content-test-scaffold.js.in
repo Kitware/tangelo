@@ -2,23 +2,33 @@
 // either as HTML or as plain text, depending on the second parameter.
 
 var system = require('system');
-
+var fs = require("fs");
 var page = require('webpage').create();
+
+var cmake_binary_dir = "@CMAKE_BINARY_DIR@";
+var cmake_source_dir = "@CMAKE_SOURCE_DIR@";
 
 var url;
 var status;
 var statusText;
+var image_file;
+var image_data;
 var method;
 var data;
 var suite_name = "";
 var results = [];
 
-function suite(name, content_url, test_suite, http_method, http_data){
-    suite_name = name;
-    url = content_url;
-    method = http_method;
-    data = http_data;
-    test_suite();
+function suite(cfg) {
+    suite_name = cfg.name;
+    url = cfg.url;
+    if (cfg.image_file) {
+        image_file = cfg.image_file
+            .replace("${CMAKE_BINARY_DIR}", cmake_binary_dir)
+            .replace("${CMAKE_SOURCE_DIR}", cmake_source_dir);
+    }
+    method = cfg.method;
+    data = cfg.data;
+    cfg.test_suite();
 }
 
 function test(name, test_func){
@@ -36,6 +46,9 @@ if (method) {
 }
 if (data) {
     console.log("data: " + JSON.stringify(data, null, 4));
+}
+if (image_file) {
+    console.log("image file: " + image_file);
 }
 console.log("");
 
@@ -55,6 +68,11 @@ page.onResourceReceived = function (response) {
         status = response.status;
         statusText = response.statusText;
 
+        if (status === "null") {
+            console.log("error: received null status code from url " + url);
+            phantom.exit(1);
+        }
+
         // Unregister this callback.
         page.onResourceReceived = undefined;
     }
@@ -62,10 +80,22 @@ page.onResourceReceived = function (response) {
 
 var runner = function() {
     var i,
+        f,
         passed = 0,
         failed = 0,
         total,
         pass;
+
+    // If there is an image file, read it in as base64.
+    if (image_file) {
+        try {
+            f = fs.open(image_file, "rb");
+            image_data = window.btoa(f.read());
+        } catch (e) {
+            console.log("error reading " + image_file + ": " + e);
+            phantom.exit(1);
+        }
+    }
 
     for (i = 0; i < results.length; i += 1) {
         console.log("Running test " + (i+1) + ": " + suite_name + " - " + results[i].name);
