@@ -9,12 +9,14 @@ var cmake_binary_dir = "@CMAKE_BINARY_DIR@";
 var cmake_source_dir = "@CMAKE_SOURCE_DIR@";
 
 function Promise(callback) {
+    "use strict";
+
     return {
         then: function (deliver) {
             callback(deliver);
         }
     };
-};
+}
 
 var url;
 var status;
@@ -32,11 +34,14 @@ var size = {
     height: 768
 };
 
-var suite_name = "";
-var results = [];
+var test;
 
-function suite(cfg) {
-    suite_name = cfg.name;
+var test_name = "";
+
+function declareTest(cfg) {
+    "use strict";
+
+    test_name = cfg.name;
     url = cfg.url;
     if (cfg.image_file) {
         image_file = cfg.image_file
@@ -51,15 +56,11 @@ function suite(cfg) {
     if (cfg.size) {
         size = cfg.size;
     }
-    cfg.test_suite();
+    test = cfg.test;
 }
 
-function test(name, test_func){
-    results.push({
-        name: name,
-        runTest: test_func
-    });
-}
+var toImageData;
+var compareImages;
 
 @TEST_SUITE@
 
@@ -79,7 +80,9 @@ page.viewportSize = size;
 
 // Route "console.log()" calls from within the Page context to the main Phantom
 // context (i.e. current "this")
-page.onConsoleMessage = function(msg) {
+page.onConsoleMessage = function (msg) {
+    "use strict";
+
     console.log(msg);
 };
 
@@ -88,6 +91,8 @@ page.onConsoleMessage = function(msg) {
 // the final status code for the url itself, from those for other requested
 // resource within the page (images, etc.).
 page.onResourceReceived = function (response) {
+    "use strict";
+
     if (response.url === url && response.stage === "end") {
         // Log the status code and message.
         status = response.status;
@@ -103,7 +108,9 @@ page.onResourceReceived = function (response) {
     }
 };
 
-var runner = function() {
+var runner = function () {
+    "use strict";
+
     var i,
         f,
         passed = 0,
@@ -179,54 +186,20 @@ var runner = function() {
                 });
             });
         });
+    };
+
+    console.log("Running test: " + test_name);
+    pass = test(page);
+
+    if (pass.then) {
+        pass.then(report);
+    } else {
+        report(pass);
     }
 
-    for (i = 0; i < results.length; i += 1) {
-        console.log("Running test " + (i+1) + ": " + suite_name + " - " + results[i].name);
-        pass = results[i].runTest(page);
-
-        if (pass.then) {
-            pending += 1;
-            pass.then(function (result) {
-                if (result) {
-                    passed += 1;
-                    console.log("PASSED\n");
-                } else {
-                    failed += 1;
-                    console.log("FAILED\n");
-                }
-
-                pending -= 1;
-
-                if (pending === 0) {
-                    if (i === results.length) {
-                        cleanup();
-                    } else {
-                        ready = true;
-                    }
-                }
-            }, function () {
-                console.log("error");
-            });
-        } else if (pass) {
-            passed += 1;
-            console.log("PASSED\n");
-        } else {
-            failed += 1;
-            console.log("FAILED\n");
-        }
-    }
-
-    if (ready) {
-        cleanup();
-    }
-
-    function cleanup(){
-        total = passed + failed;
-
-        console.log("Of " + total + " test" + (total === 1 ? "" : "s") + " run, " + passed + " (" + (100 * passed / total) + "%) passed");
-
-        phantom.exit(failed !== 0);
+    function report(passed) {
+        console.log(passed ? "PASSED" : "FAILED");
+        phantom.exit(!passed);
     }
 };
 
