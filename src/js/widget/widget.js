@@ -3,11 +3,16 @@
 (function (tangelo, $) {
     "use strict";
 
-    if (!($ && $.widget)) {
-        $.fn.widget = tangelo.unavailable({
-            plugin: "tangelo.widget",
-            required: ["JQuery", "JQuery UI"]
-        });
+    var unavailable = tangelo.unavailable({
+        plugin: "tangelo.widget",
+        required: ["JQuery", "JQuery UI"]
+    });
+
+    if (!$) {
+        tangelo.widget = unavailable;
+        return;
+    } else if (!$.widget) {
+        tangelo.widget = $.fn.widget = unavailable;
         return;
     }
 

@@ -4,10 +4,6 @@
     "use strict";
 
     if (!($ && $.widget && vg)) {
-        $.fn.geonodelink = tangelo.unavailable({
-            plugin: "geonodelink",
-            required: ["JQuery", "JQuery UI", "Vega"]
-        });
         return;
     }
 

@@ -28,7 +28,7 @@ var tangelo = {};
             i,
             t;
 
-        if (tangelo.isArray(required)) {
+        if (Object.prototype.toString.call(required) === '[object Array]') {
             if (required.length === 1) {
                 required = required[0];
             } else if (required.length === 2) {
