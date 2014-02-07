@@ -8,6 +8,6 @@ endforeach()
 
 file(READ ${alljs} TEST_SOURCE)
 configure_file(
-    ../testing/phantomjs/coverage-scaffold.html.in
+    ../testing/scaffolding/coverage-scaffold.html.in
     tangelo/web/tests/js-unit-tests/tangelojs-coverage.html
 )

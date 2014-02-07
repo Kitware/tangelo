@@ -338,7 +338,7 @@ if(${BUILD_TESTING})
             add_custom_command(OUTPUT ${html}
                 COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}" -P ${CMAKE_SOURCE_DIR}/cmake/configure-js-unit-test.cmake
                 COMMAND ${CMAKE_COMMAND} -E touch ${html}
-                DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/phantomjs/jasmine-scaffold.html.in
+                DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/scaffolding/jasmine-scaffold.html.in
                 COMMENT "Generating Javascript unit test ${f}"
             )
 
@@ -359,7 +359,7 @@ if(${BUILD_TESTING})
         add_custom_command(OUTPUT ${coverage_test}
             COMMAND ${CMAKE_COMMAND} "-DJS_UNIT_TEST_CASES=\"${JS_UNIT_TEST_CASES}\"" -P ${coverage_configurator}
             COMMAND ${CMAKE_COMMAND} -E touch ${coverage_test}
-            DEPENDS ${JS_UNIT_TEST_FILES} ${CMAKE_SOURCE_DIR}/testing/phantomjs/coverage-scaffold.html.in ${coverage_configurator}
+            DEPENDS ${JS_UNIT_TEST_FILES} ${CMAKE_SOURCE_DIR}/testing/scaffolding/coverage-scaffold.html.in ${coverage_configurator}
             COMMENT "Generating tangelo.js coverage test"
         )
 
@@ -389,7 +389,7 @@ if(${BUILD_TESTING})
             add_custom_command(OUTPUT ${js_out}
                 COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}" -P ${CMAKE_SOURCE_DIR}/cmake/configure-web-content-test.cmake
                 COMMAND ${CMAKE_COMMAND} -E touch ${js_out}
-                DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/phantomjs/web-content-test-scaffold.js.in
+                DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/scaffolding/web-content-test-scaffold.js.in
                 COMMENT "Generating web content test ${f}"
             )
 
