@@ -350,8 +350,8 @@ if(${BUILD_TESTING})
         endforeach()
 
         # Copy the blanket JS files to where they need to be.
-        configure_file(${CMAKE_SOURCE_DIR}/testing/phantomjs/blanket.min.js tangelo/web/tests/js-unit-tests/blanket.min.js COPYONLY)
-        configure_file(${CMAKE_SOURCE_DIR}/testing/phantomjs/jasmine-blanket.js tangelo/web/tests/js-unit-tests/jasmine-blanket.js COPYONLY)
+        configure_file(${CMAKE_SOURCE_DIR}/testing/js/blanket.min.js tangelo/web/tests/js-unit-tests/blanket.min.js COPYONLY)
+        configure_file(${CMAKE_SOURCE_DIR}/testing/js/jasmine-blanket.js tangelo/web/tests/js-unit-tests/jasmine-blanket.js COPYONLY)
 
         # Generate the coverage test.
         set(coverage_test ${CMAKE_BINARY_DIR}/tangelo/web/tests/js-unit-tests/tangelojs-coverage.html)
