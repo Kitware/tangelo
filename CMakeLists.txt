@@ -255,7 +255,9 @@ if(${BUILD_TESTING})
     # A list of Javascript unit tests - list the base of the filename here.  The
     # corresponding .js file should appear in testing/js-unit-tests/.
     set(JS_UNIT_TEST_CASES
+        tangelo-exists
         isFunction
+        isBoolean
     )
 
     # A list of Tangelo (i.e. Python) unit tests.  The corresponding .py file
@@ -346,6 +348,22 @@ if(${BUILD_TESTING})
                 ${PhantomJS_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js http://localhost:8080/tests/js-unit-tests/${f}.html
             )
         endforeach()
+
+        # Copy the blanket JS files to where they need to be.
+        configure_file(${CMAKE_SOURCE_DIR}/testing/phantomjs/blanket.min.js tangelo/web/tests/js-unit-tests/blanket.min.js COPYONLY)
+        configure_file(${CMAKE_SOURCE_DIR}/testing/phantomjs/jasmine-blanket.js tangelo/web/tests/js-unit-tests/jasmine-blanket.js COPYONLY)
+
+        # Generate the coverage test.
+        set(coverage_test ${CMAKE_BINARY_DIR}/tangelo/web/tests/js-unit-tests/tangelojs-coverage.html)
+        set(coverage_configurator  ${CMAKE_SOURCE_DIR}/cmake/configure-js-coverage-test.cmake)
+        add_custom_command(OUTPUT ${coverage_test}
+            COMMAND ${CMAKE_COMMAND} "-DJS_UNIT_TEST_CASES=\"${JS_UNIT_TEST_CASES}\"" -P ${coverage_configurator}
+            COMMAND ${CMAKE_COMMAND} -E touch ${coverage_test}
+            DEPENDS ${JS_UNIT_TEST_FILES} ${CMAKE_SOURCE_DIR}/testing/phantomjs/coverage-scaffold.html.in ${coverage_configurator}
+            COMMENT "Generating tangelo.js coverage test"
+        )
+
+        list(APPEND JS_UNIT_TEST_FILES ${coverage_test})
     endif()
 
     # Unit tests for tangelo Python module.
