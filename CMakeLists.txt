@@ -364,6 +364,10 @@ if(${BUILD_TESTING})
         )
 
         list(APPEND JS_UNIT_TEST_FILES ${coverage_test})
+
+        add_test(coverage:tangelo.js
+            ${PhantomJS_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/phantomjs/blanket-test.js http://localhost:8080/tests/js-unit-tests/tangelojs-coverage.html 100
+        )
     endif()
 
     # Unit tests for tangelo Python module.
