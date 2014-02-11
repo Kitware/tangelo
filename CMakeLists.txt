@@ -130,7 +130,6 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/geodots/geodots.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/geonodelink/geonodelink.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/mapdots/mapdots.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/ner/md5.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/ner/ner.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/primes/primes.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/vegabuilder/vegabuilder.js
@@ -138,8 +137,6 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/isBoolean.js
     ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/isFunction.js
     ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/tangelo-exists.js
-    ${CMAKE_SOURCE_DIR}/testing/js/blanket.min.js
-    ${CMAKE_SOURCE_DIR}/testing/js/jasmine-blanket.js
     ${CMAKE_SOURCE_DIR}/testing/phantomjs/blanket-test.js
     ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js
     ${CMAKE_SOURCE_DIR}/testing/web-content-tests/200-ok.js
