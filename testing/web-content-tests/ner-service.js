@@ -1,6 +1,6 @@
 declareTest({
     name: "NER service, example sentence - correctness",
-    url: "http://localhost:8080/examples/ner/ner?text=Toto, I've a feeling we're not in Kansas anymore.",
+    url: "/examples/ner/ner?text=Toto, I've a feeling we're not in Kansas anymore.",
     test: function (page) {
         var expected = JSON.stringify({
             result: [

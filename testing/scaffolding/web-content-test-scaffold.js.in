@@ -7,6 +7,8 @@ var page = require('webpage').create();
 
 var cmake_binary_dir = "@CMAKE_BINARY_DIR@";
 var cmake_source_dir = "@CMAKE_SOURCE_DIR@";
+var testing_host = "@TESTING_HOST@";
+var testing_port = "@TESTING_PORT@";
 
 function Promise(callback) {
     "use strict";
@@ -42,7 +44,7 @@ function declareTest(cfg) {
     "use strict";
 
     test_name = cfg.name;
-    url = cfg.url;
+    url = "http://" + testing_host + ":" + testing_port + cfg.url;
     if (cfg.image_file) {
         image_file = cfg.image_file
             .replace("${CMAKE_BINARY_DIR}", cmake_binary_dir)
