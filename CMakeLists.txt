@@ -332,6 +332,7 @@ if(${BUILD_TESTING})
     set(TANGELO_STAMP ${CMAKE_BINARY_DIR}/stamps/tangelo)
     add_custom_command(
         OUTPUT ${TANGELO_STAMP}
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/UninstallTangelo.cmake
         COMMAND ${VIRTUALENV_DIR}/bin/pip install sdist/tangelo-${TANGELO_VERSION}.tar.gz && ${CMAKE_COMMAND} -E touch ${TANGELO_STAMP}
         COMMAND ${VIRTUALENV_DIR}/bin/pip install coverage
         DEPENDS ${VIRTUALENV_STAMP} ${DIST_STAMP}
