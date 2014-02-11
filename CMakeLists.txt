@@ -358,11 +358,12 @@ if(${BUILD_TESTING})
     # requested command.
     function(add_tangelo_test test_name)
         add_test(
-            NAME "${test_name}"
+            NAME ${test_name}
             COMMAND ${PYTHON_EXECUTABLE}
                     ${CMAKE_BINARY_DIR}/tangelo-test-runner.py
                     ${ARGN}
         )
+        set_property(TEST ${test_name} PROPERTY RESOURCE_LOCK tangelo)
     endfunction()
 
     # Unit tests for tangelo.js.
@@ -410,8 +411,11 @@ if(${BUILD_TESTING})
 
         list(APPEND JS_UNIT_TEST_FILES ${coverage_test})
 
-        add_test(coverage:tangelo.js
-            ${PhantomJS_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/phantomjs/blanket-test.js http://${TESTING_HOST}:${TESTING_PORT}/tests/js-unit-tests/tangelojs-coverage.html 100
+        add_tangelo_test(coverage:tangelo.js
+            ${PhantomJS_EXECUTABLE}
+            ${CMAKE_SOURCE_DIR}/testing/phantomjs/blanket-test.js
+            http://${TESTING_HOST}:${TESTING_PORT}/tests/js-unit-tests/tangelojs-coverage.html
+            100
         )
     endif()
 
@@ -466,7 +470,7 @@ if(${BUILD_TESTING})
 
             list(APPEND WEB_CONTENT_TEST_FILES ${js_out})
 
-            add_test(web-content-test:${f}
+            add_tangelo_test(web-content-test:${f}
                 ${PhantomJS_EXECUTABLE} ${js_out}
             )
         endforeach()
