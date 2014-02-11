@@ -1,6 +1,6 @@
 declareTest({
     name: "Geodots - ground truth match",
-    url: "http://localhost:8080/examples/geodots",
+    url: "/examples/geodots",
     image_file: "${CMAKE_BINARY_DIR}/tangelo/web/examples/geodots/geodots.png",
     test: function (page) {
         var rect,

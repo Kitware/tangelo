@@ -22,6 +22,7 @@ class StatusFile(SimplePlugin):
 
         tangelo.log("here")
         self.status = {k: str(v) for k, v in zip(StatusFile.fields, map(eval, StatusFile.fields))}
+        self.status["pid"] = str(self.pid)
         tangelo.log("there")
 
         for k, v in self.status.iteritems():
@@ -70,4 +71,4 @@ class StatusFile(SimplePlugin):
 
     @staticmethod
     def status_filename(pid):
-        return "/var/tmp/tangelo.%d" % (pid)
+        return "/var/tmp/tangelo.%s" % (pid)

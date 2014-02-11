@@ -10,6 +10,7 @@ import signal
 from   twisted.internet import reactor
 import sys
 import time
+import tangelo.util
 import tangelo.ws4py.server
 import json
 import re
@@ -257,22 +258,27 @@ def start():
 
 def stop():
     # First see how many tangelos are running.  If there is more than one, the
-    # user needs to have specified which one to stop with --pid.
+    # user needs to have specified which one to stop with --pid or --port.
     running = running_pids()
     if len(running) == 0:
         print >>sys.stderr, "no tangelo instances are running"
         return 0
     elif len(running) > 1:
-        if status_pid is None:
-            print >>sys.stderr, "multiple tangelo instances are running, with process IDs: %s" % (", ".join(map(str, running)))
-            print >>sys.stderr, "use --pid to select one to stop"
-            return 1
-        else:
+        if status_pid is not None:
             if status_pid in running:
                 pid = status_pid
             else:
                 print >>sys.stderr, "no tangelo instance with pid %d" % (status_pid)
                 return 1
+        elif status_port is not None:
+            pid = tangelo.util.pid_from_port(status_port)
+            if pid is None:
+                print >>sys.stderr, "no tangelo instance running on port %d" % (status_port)
+                return 1
+        else:
+            print >>sys.stderr, "multiple tangelo instances are running, with process IDs: %s" % (", ".join(map(str, running)))
+            print >>sys.stderr, "use --pid or --port to select one to stop"
+            return 1
     else:
         pid = running[0]
 
@@ -559,8 +565,9 @@ if __name__ == "__main__":
 
     verbose.write("Serving content from %s" % (root))
 
-    # See if the user is asking for information on a particular PID.
+    # See if the user is asking for information on a particular PID or port.
     status_pid = args.pid
+    status_port = args.port
     pids = args.pids
 
     # Set the web root directory.
@@ -595,12 +602,19 @@ if __name__ == "__main__":
 
         # The status actions has a few options: --pids will simply list out the
         # running PIDs for tangelo instances; --pid will show the status for a
-        # single process; omitting all flags will show the status information
-        # for all processes.
+        # single process; --port will show the status for the single process
+        # running on the requested port; omitting all flags will show the status
+        # information for all processes.
         if pids:
             report_running()
         elif status_pid is not None:
             status(status_pid, args.attr, clean=args.clean)
+        elif status_port is not None:
+            pid = tangelo.util.pid_from_port(status_port)
+            if pid is None:
+                print >>sys.stderr, "error: no tangelo instance running on port %d" % (status_port)
+                sys.exit(1)
+            status(pid, args.attr, clean=args.clean)
         else:
             running = running_pids()
             for i, pid in enumerate(running):

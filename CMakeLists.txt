@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 # This project doesn't require any of the standard compilers, hence the "NONE"
 # argument.
 project(Tangelo NONE)
+set(TANGELO_VERSION 0.5-dev1)
 
 mark_as_advanced(CMAKE_INSTALL_PREFIX)
 
@@ -65,6 +66,15 @@ if(${BUILD_TESTING})
     set(WEB_CONTENT_TESTS ON CACHE BOOL "Generate tests for example web appplications.")
     mark_as_advanced(CLEAR WEB_CONTENT_TESTS)
 
+    set(PY_COVERAGE_REPORT ON CACHE BOOL "Generate Python coverage report.")
+    mark_as_advanced(CLEAR PY_COVERAGE_REPORT)
+
+    set(TESTING_HOST localhost CACHE STRING "The host to run Tangelo on for the test suite.")
+    mark_as_advanced(TESTING_HOST)
+
+    set(TESTING_PORT 50047 CACHE STRING "The port number to run Tangelo for the test suite.")
+    mark_as_advanced(CLEAR TESTING_PORT)
+
     if(${JS_UNIT_TESTS} OR ${WEB_CONTENT_TESTS})
         mark_as_advanced(CLEAR PhantomJS_EXECUTABLE)
     else()
@@ -79,6 +89,8 @@ else()
     mark_as_advanced(FORCE PhantomJS_EXECUTABLE)
     mark_as_advanced(FORCE PY_UNIT_TESTS)
     mark_as_advanced(FORCE WEB_CONTENT_TESTS)
+    mark_as_advanced(FORCE PY_COVERAGE_REPORT)
+    mark_as_advanced(FORCE TESTING_PORT)
 endif()
 
 # We will need the Python interpreter to build the package and run the tests.
@@ -282,6 +294,32 @@ if(${BUILD_TESTING})
         geodots-match
     )
 
+    # Create startup/shutdown targets.
+    add_custom_target(startup
+        COMMAND ${CMAKE_BINARY_DIR}/venv/bin/tangelo restart --port ${TESTING_PORT} --root ${CMAKE_BINARY_DIR}/tangelo/web
+    )
+
+    add_custom_target(shutdown
+        COMMAND ${CMAKE_BINARY_DIR}/venv/bin/tangelo stop --port ${TESTING_PORT}
+    )
+
+    # Create a virtual Python environment.
+    set(VIRTUALENV_STAMP ${CMAKE_BINARY_DIR}/stamps/virtualenv)
+    set(VIRTUALENV_DIR ${CMAKE_BINARY_DIR}/venv)
+    add_custom_command(
+        OUTPUT ${VIRTUALENV_STAMP}
+        COMMAND ${VIRTUALENV_EXECUTABLE} -p ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/venv && ${CMAKE_COMMAND} -E touch ${VIRTUALENV_STAMP}
+    )
+
+    # Install Tangelo in the virtual environment, and also a coverage tool.
+    set(TANGELO_STAMP ${CMAKE_BINARY_DIR}/stamps/tangelo)
+    add_custom_command(
+        OUTPUT ${TANGELO_STAMP}
+        COMMAND ${VIRTUALENV_DIR}/bin/pip install sdist/tangelo-${TANGELO_VERSION}.tar.gz && ${CMAKE_COMMAND} -E touch ${TANGELO_STAMP}
+        COMMAND ${VIRTUALENV_DIR}/bin/pip install coverage
+        DEPENDS ${VIRTUALENV_STAMP} ${DIST_STAMP}
+    )
+
     set(TESTING_SOURCES
         testing/vtkweb/vtkwebtest.py
         testing/vtkweb/baseline-cone.png
@@ -345,7 +383,7 @@ if(${BUILD_TESTING})
             list(APPEND JS_UNIT_TEST_FILES ${html})
 
             add_test(js-unit-test:${f}
-                ${PhantomJS_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js http://localhost:8080/tests/js-unit-tests/${f}.html
+                ${PhantomJS_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js http://${TESTING_HOST}:${TESTING_PORT}/tests/js-unit-tests/${f}.html
             )
         endforeach()
 
@@ -366,17 +404,39 @@ if(${BUILD_TESTING})
         list(APPEND JS_UNIT_TEST_FILES ${coverage_test})
 
         add_test(coverage:tangelo.js
-            ${PhantomJS_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/phantomjs/blanket-test.js http://localhost:8080/tests/js-unit-tests/tangelojs-coverage.html 100
+            ${PhantomJS_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/phantomjs/blanket-test.js http://${TESTING_HOST}:${TESTING_PORT}/tests/js-unit-tests/tangelojs-coverage.html 100
+        )
+    endif()
+
+    # Python coverage testing setup.
+    set(COVERAGE_EXECUTABLE "${CMAKE_BINARY_DIR}/venv/bin/coverage")
+    if(PY_COVERAGE_REPORT)
+        add_test(py-coverage:reset
+            ${COVERAGE_EXECUTABLE} erase
+        )
+
+        add_test(py-coverage:report
+            ${COVERAGE_EXECUTABLE} html -d ${CMAKE_BINARY_DIR}/tangelo/web/tests/python-coverage --fail-under=100
         )
     endif()
 
     # Unit tests for tangelo Python module.
     if(${PY_UNIT_TESTS})
-        # Add each test.
+        # Add each test.  Decorate the call with the coverage tool if we're in
+        # coverage mode.
         foreach(f ${PY_UNIT_TEST_CASES})
-            add_test(py-unit-test:${f}
-                ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/${f}.py
-            )
+            set(name py-unit-test:${f})
+            if(PY_COVERAGE_REPORT)
+                add_test(${name}
+                    ${COVERAGE_EXECUTABLE} run --append --source=${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/util.py,${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/__init__.py --include="*util*" ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/${f}.py
+                )
+                set_property(TEST ${name} APPEND PROPERTY DEPENDS py-coverage:reset)
+                set_property(TEST py-coverage:report APPEND PROPERTY DEPENDS ${name})
+            else()
+                add_test(${name}
+                    ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/${f}.py
+                )
+            endif()
         endforeach()
     endif()
 
@@ -391,7 +451,7 @@ if(${BUILD_TESTING})
             set(js_out ${CMAKE_BINARY_DIR}/tangelo/web/tests/web-content-tests/${f}.js)
 
             add_custom_command(OUTPUT ${js_out}
-                COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}" -P ${CMAKE_SOURCE_DIR}/cmake/configure-web-content-test.cmake
+                COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}" -DTESTING_HOST="${TESTING_HOST}" -DTESTING_PORT="${TESTING_PORT}" -P ${CMAKE_SOURCE_DIR}/cmake/configure-web-content-test.cmake
                 COMMAND ${CMAKE_COMMAND} -E touch ${js_out}
                 DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/scaffolding/web-content-test-scaffold.js.in
                 COMMENT "Generating web content test ${f}"
@@ -417,6 +477,8 @@ add_custom_target(
             ${JS_FILE}
             ${DOCUMENTATION_STAMP}
             ${DIST_STAMP}
+            ${VIRTUALENV_STAMP}
+            ${TANGELO_STAMP}
             ${JS_UNIT_TEST_FILES}
             ${WEB_CONTENT_TEST_FILES}
 )
