@@ -121,11 +121,8 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/app-template/myapp.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/charitynet/charitynet.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/enron/enron.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/enron-impala/enron-imp.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/enron-titan/enron-titan.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/flickr/flickr.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/ner/ner.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/options/options.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/primes/primes.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/vegabuilder/vegabuilder.js
 )
