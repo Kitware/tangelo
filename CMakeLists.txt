@@ -294,18 +294,12 @@ if(${BUILD_TESTING})
         geodots-match
     )
 
-    # Create startup/shutdown targets.
-    add_custom_target(startup
-        COMMAND ${CMAKE_BINARY_DIR}/venv/bin/tangelo restart --port ${TESTING_PORT} --root ${CMAKE_BINARY_DIR}/tangelo/web
-    )
-
-    add_custom_target(shutdown
-        COMMAND ${CMAKE_BINARY_DIR}/venv/bin/tangelo stop --port ${TESTING_PORT}
-    )
+    # Configure the python test runner.
+    set(VIRTUALENV_DIR ${CMAKE_BINARY_DIR}/venv)
+    configure_file(testing/tangelo-test-runner.py.in ${CMAKE_BINARY_DIR}/tangelo-test-runner.py)
 
     # Create a virtual Python environment.
     set(VIRTUALENV_STAMP ${CMAKE_BINARY_DIR}/stamps/virtualenv)
-    set(VIRTUALENV_DIR ${CMAKE_BINARY_DIR}/venv)
     add_custom_command(
         OUTPUT ${VIRTUALENV_STAMP}
         COMMAND ${VIRTUALENV_EXECUTABLE} -p ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/venv && ${CMAKE_COMMAND} -E touch ${VIRTUALENV_STAMP}
@@ -360,6 +354,17 @@ if(${BUILD_TESTING})
         endforeach()
     endif()
 
+    # A variation of add_test that invokes setup and teardown around the
+    # requested command.
+    function(add_tangelo_test test_name)
+        add_test(
+            NAME "${test_name}"
+            COMMAND ${PYTHON_EXECUTABLE}
+                    ${CMAKE_BINARY_DIR}/tangelo-test-runner.py
+                    ${ARGN}
+        )
+    endfunction()
+
     # Unit tests for tangelo.js.
     if(${JS_UNIT_TESTS})
         # Find PhantomJS.
@@ -382,8 +387,10 @@ if(${BUILD_TESTING})
 
             list(APPEND JS_UNIT_TEST_FILES ${html})
 
-            add_test(js-unit-test:${f}
-                ${PhantomJS_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js http://${TESTING_HOST}:${TESTING_PORT}/tests/js-unit-tests/${f}.html
+            add_tangelo_test(js-unit-test:${f}
+               ${PhantomJS_EXECUTABLE}
+               ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js
+               http://${TESTING_HOST}:${TESTING_PORT}/tests/js-unit-tests/${f}.html
             )
         endforeach()
 
