@@ -1,5 +1,5 @@
 /*jslint browser: true */
-/*globals declareTest, status */
+/*globals declareTest, compareImages, toImageData */
 
 declareTest({
     name: "404 - nonexistent page should return a 404 error",

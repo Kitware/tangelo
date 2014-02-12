@@ -1,5 +1,5 @@
 /*jslint browser: true */
-/*globals declareTest, image_data, compareImages, $ */
+/*globals declareTest, compareImages, toImageData, $ */
 
 declareTest({
     name: "Geodots - ground truth match",

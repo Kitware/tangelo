@@ -1,5 +1,5 @@
 /*jslint browser: true */
-/*globals declareTest */
+/*globals declareTest, compareImages, toImageData */
 
 declareTest({
     name: "echo test service, no arguments - correctness",
