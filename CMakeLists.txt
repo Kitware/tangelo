@@ -150,6 +150,42 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/testing/web-content-tests/rest-post.js
 )
 
+# These files should be validated with pep8.
+set(PEP8_FILES
+    ${CMAKE_SOURCE_DIR}/tangelo/bin/vtkweb-launcher.py
+    ${CMAKE_SOURCE_DIR}/tangelo/setup.py
+    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/__init__.py
+    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/plugin.py
+    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/server.py
+    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/stream.py
+    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/tool.py
+    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/util.py
+    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/vtkweb.py
+    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/websocket.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/app-template/myservice.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/charitynet/charitynet.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/enron/emailers.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/ner/ner.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/ner/nermongo.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/primes/primes.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/config.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/impala-json.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/mongo.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/svg2pdf.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/tasks/celery.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/404.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/abspath.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/broken.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/echo.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/exceptional.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/restful.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/testapp.py
+    ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/get_free_port.py
+    ${CMAKE_SOURCE_DIR}/testing/vtkweb/imagetest.py
+    ${CMAKE_SOURCE_DIR}/testing/vtkweb/tangelo-vtkweb-test.py
+    ${CMAKE_SOURCE_DIR}/testing/vtkweb/vtkwebtest.py
+)
+
 # These files should be uglified and concatenated.
 set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/core/core.js
