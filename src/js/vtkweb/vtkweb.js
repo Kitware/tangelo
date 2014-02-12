@@ -64,7 +64,7 @@
                 program: url
             };
             if (argstring) {
-                data.args = argstring
+                data.args = argstring;
             }
 
             // Fire off POST request to vtkweb service.

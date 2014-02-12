@@ -1,7 +1,12 @@
+/*jslint browser: true */
+/*globals declareTest */
+
 declareTest({
     name: "echo test service, no arguments - correctness",
     url: "/service/test/echo",
     test: function (page) {
+        "use strict";
+
         var expected = "(No arguments passed)";
 
         console.log("expected: " + expected);

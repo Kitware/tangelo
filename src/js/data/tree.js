@@ -3,7 +3,7 @@
 (function (tangelo) {
     "use strict";
 
-    tangelo.data.tree = function(spec) {
+    tangelo.data.tree = function (spec) {
         var id = tangelo.accessor(spec.id || {value: ""}),
             idChild = tangelo.accessor(spec.idChild || {value: ""}),
             children = tangelo.accessor(spec.children),

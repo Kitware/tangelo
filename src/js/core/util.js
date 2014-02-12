@@ -126,15 +126,16 @@
 
     tangelo.accessor = function (spec) {
         var parts,
-            func,
-            key;
+            func;
 
         // Need a way to "clone" a function, so we can put properties on the
         // clone without affecting the original.  Code adapted from
         // http://stackoverflow.com/a/11230005/1886928).
         Function.prototype.clone = function () {
+            /*jslint nomen: true */
             var cloneObj = this,
-                temp;
+                temp,
+                key;
 
             if (this.__isClone) {
                 cloneObj = this.__clonedFrom;
@@ -145,11 +146,14 @@
             };
 
             for (key in this) {
-                temp[key] = this[key];
+                if (this.hasOwnProperty(key)) {
+                    temp[key] = this[key];
+                }
             }
 
             temp.__isClone = true;
             temp.__clonedFrom = cloneObj;
+            /*jslint nomen: true */
 
             return temp;
         };
