@@ -15,7 +15,6 @@
         var div,
             button,
             state,
-            divheight,
             iconheight;
 
         // Use the selectors to grab the DOM elements.
@@ -28,21 +27,24 @@
         // The glyphicon halfings are around 20 pixels tall.
         iconheight = "20px";
 
-        // Save the original height of the panel.
-        // This requires a DOM update to do this correctly, so we wait a second.
-        // I have found that waiting less than 200ms can cause undefined behavior,
-        // since there may be other callback that need to populate the panel.
-        function updateHeight() {
-            divheight = $(div.node()).height() + "px";
+        // Compute the "standing" height of the control panel.  This is done by
+        // clearing the current height style directive, then asking what its
+        // height is, then replacing the height directive.  This should not
+        // result in any visible flicker.
+        function getFullHeight() {
+            var styleheight = div.style("height"),
+                fullheight;
+
+            div.style("height", null);
+            fullheight = $(div.node()).height() + "px";
+            div.style("height", styleheight);
+
+            return fullheight;
         }
-        window.setTimeout(updateHeight, 1000);
 
         // This function, when called, will toggle the state of the panel.
         return function () {
             if (state === 'uncollapsed') {
-                // Update height in case the content of the drawer changed.
-                updateHeight();
-
                 div.transition()
                     .duration(500)
                     .style("height", iconheight);
@@ -52,9 +54,17 @@
 
                 state = 'collapsed';
             } else if (state === 'collapsed') {
+                // This transition computes the full height of the panel, grows
+                // the panel to that height, then tosses out the height style
+                // directive.  This allows new, dynamic content to automatically
+                // grow the element, while also allowing the smooth transition
+                // effect here.
                 div.transition()
                     .duration(500)
-                    .style("height", divheight);
+                    .style("height", getFullHeight())
+                    .each("end", function () {
+                        div.style("height", null);
+                    });
 
                 button.classed("glyphicon-chevron-down", true)
                     .classed("glyphicon-chevron-up", false);
