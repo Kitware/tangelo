@@ -1,4 +1,9 @@
-window.onload = function () {
+/*jslint browser: true */
+/*globals $ */
+
+$(function () {
+    "use strict";
+
     var data = [
         {lat: 0,  lon: 0,   value: 5,  group: 'a'},
         {lat: 5,  lon: -5,  value: 6,  group: 'a'},
@@ -24,4 +29,4 @@ window.onload = function () {
         size: {field: "value"},
         color: {field: "group"}
     });
-};
+});

@@ -1,4 +1,9 @@
-window.onload = function () {
+/*jslint browser: true */
+/*globals $ */
+
+$(function () {
+    "use strict";
+
     var data = {
         nodes: [
             {lat:  0, lon:  0, value: 10, group: 'a', name: 'node 1'},
@@ -30,4 +35,4 @@ window.onload = function () {
         nodeSize: {field: "value"},
         nodeColor: {field: "group"}
     });
-};
+});

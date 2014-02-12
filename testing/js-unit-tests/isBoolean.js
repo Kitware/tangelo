@@ -1,4 +1,8 @@
+/*globals describe, it, expect, tangelo */
+
 describe("isBoolean()", function () {
+    "use strict";
+
     it("Test 1 - 'true' is a boolean", function () {
         expect(tangelo.isBoolean(true))
             .toBe(true);
