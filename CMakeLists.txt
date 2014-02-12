@@ -103,16 +103,20 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/stamps)
 set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/src/js/core/core.js
     ${CMAKE_SOURCE_DIR}/src/js/core/util.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/controlPanel.js
+    ${CMAKE_SOURCE_DIR}/src/js/data/_package.js
+    ${CMAKE_SOURCE_DIR}/src/js/data/tree.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/GoogleMapSVG.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/svgColorLegend.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/controlPanel.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/dendrogram.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/geodots.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/geonodelink.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/mapdots.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/nodelink.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/svgColorLegend.js
     ${CMAKE_SOURCE_DIR}/src/js/stream/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/stream/stream.js
+    ${CMAKE_SOURCE_DIR}/src/js/vega/_package.js
+    ${CMAKE_SOURCE_DIR}/src/js/vega/geovis.js
     ${CMAKE_SOURCE_DIR}/src/js/vtkweb/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/vtkweb/vtkweb.js
     ${CMAKE_SOURCE_DIR}/src/js/widget/widget.js
@@ -120,14 +124,30 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/landingPage.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/app-template/myapp.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/charitynet/charitynet.js
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/dendrogram/dendrogram.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/enron/enron.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/enron-impala/enron-imp.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/enron-titan/enron-titan.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/flickr/flickr.js
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/geodots/geodots.js
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/geonodelink/geonodelink.js
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/mapdots/mapdots.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/ner/ner.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/options/options.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/primes/primes.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/vegabuilder/vegabuilder.js
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/vtkweb/index.js
+    ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/isBoolean.js
+    ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/isFunction.js
+    ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/tangelo-exists.js
+    ${CMAKE_SOURCE_DIR}/testing/phantomjs/blanket-test.js
+    ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js
+    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/200-ok.js
+    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/404-not-found.js
+    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/echo-service-no-args.js
+    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/echo-service.js
+    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/geodots-match.js
+    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/ner-service.js
+    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/rest-get.js
+    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/rest-implicit-get.js
+    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/rest-post.js
 )
 
 # These files should be uglified and concatenated.
@@ -310,6 +330,7 @@ if(${BUILD_TESTING})
     set(TANGELO_STAMP ${CMAKE_BINARY_DIR}/stamps/tangelo)
     add_custom_command(
         OUTPUT ${TANGELO_STAMP}
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/UninstallTangelo.cmake
         COMMAND ${VIRTUALENV_DIR}/bin/pip install sdist/tangelo-${TANGELO_VERSION}.tar.gz && ${CMAKE_COMMAND} -E touch ${TANGELO_STAMP}
         COMMAND ${VIRTUALENV_DIR}/bin/pip install coverage
         DEPENDS ${VIRTUALENV_STAMP} ${DIST_STAMP}

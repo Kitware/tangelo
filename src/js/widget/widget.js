@@ -10,68 +10,65 @@
 
     if (!$) {
         tangelo.widget = unavailable;
-        return;
     } else if (!$.widget) {
         tangelo.widget = $.fn.widget = unavailable;
-        return;
-    }
+    } else {
+        $.widget("tangelo.widget", {
+            _setOption: function (key, value) {
+                if (this._defaults[key] && this._defaults[key].accessor) {
+                    this._super(key, tangelo.accessor(value));
+                } else {
+                    this._super(key, value);
+                }
+            },
 
-    $.widget("tangelo.widget", {
-        _setOption: function (key, value) {
-            if (this._defaults[key] && this._defaults[key].accessor) {
-                this._super(key, tangelo.accessor(value));
-            } else {
-                this._super(key, value);
+            _setOptions: function (options) {
+                var that = this;
+
+                $.each(options, function (key, value) {
+                    that._setOption(key, value);
+                });
+
+                this._update();
+            },
+
+            _update: function () {
+                // This function intentionally does nothing.  It is here as a
+                // placeholder to avoid an error in case a child widget does not
+                // supply an _update() method for some reason.
             }
-        },
+        });
 
-        _setOptions: function (options) {
-            var that = this;
+        tangelo.widget = function (name, spec) {
+            var key,
+                ptype = {
+                    _defaults: spec.options || {},
 
-            $.each(options, function (key, value) {
-                that._setOption(key, value);
-            });
+                    _create: function () {
+                        this.options = $.extend({}, this._defaults, this.options);
 
-            this._update();
-        },
+                        if (spec._create) {
+                            spec._create.apply(this, arguments);
+                        }
 
-        _update: function () {
-            // This function intentionally does nothing.  It is here as a
-            // placeholder to avoid an error in case a child widget does not
-            // supply an _update() method for some reason.
-        }
-    });
+                        // TODO: reduce _defaults down to a map to bool, then rename it
+                        // to _accessor.
 
-    tangelo.widget = function (name, spec) {
-        var key,
-            ptype = {
-                _defaults: spec.options || {},
-
-                _create: function () {
-                    this.options = $.extend({}, this._defaults, this.options);
-
-                    if (spec._create) {
-                        spec._create.apply(this, arguments);
+                        this._setOptions(this.options);
                     }
+                };
 
-                    // TODO: reduce _defaults down to a map to bool, then rename it
-                    // to _accessor.
-
-                    this._setOptions(this.options);
-                }
-            };
-
-        for (key in spec) {
-            if (spec.hasOwnProperty(key)) {
-                if (key === "_defaults") {
-                    tangelo.fatalError("tangelo.widget(\"" + name + "\")", "You cannot use '_defaults' as a field name in your Tangelo widget");
-                } else if (key !== "_create") {
-                    ptype[key] = spec[key];
+            for (key in spec) {
+                if (spec.hasOwnProperty(key)) {
+                    if (key === "_defaults") {
+                        tangelo.fatalError("tangelo.widget(\"" + name + "\")", "You cannot use '_defaults' as a field name in your Tangelo widget");
+                    } else if (key !== "_create") {
+                        ptype[key] = spec[key];
+                    }
                 }
             }
-        }
 
-        $.widget(name, $.tangelo.widget, ptype);
-    };
-
+            $.widget(name, $.tangelo.widget, ptype);
+        };
+    }
 }(window.tangelo, window.jQuery));

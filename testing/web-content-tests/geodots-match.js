@@ -1,8 +1,13 @@
+/*jslint browser: true */
+/*globals declareTest, compareImages, toImageData, $ */
+
 declareTest({
     name: "Geodots - ground truth match",
     url: "/examples/geodots",
-    image_file: "${CMAKE_BINARY_DIR}/tangelo/web/examples/geodots/geodots.png",
-    test: function (page) {
+    imageFile: "${CMAKE_BINARY_DIR}/tangelo/web/examples/geodots/geodots.png",
+    test: function (page, info) {
+        "use strict";
+
         var rect,
             screencap,
             ground,
@@ -21,7 +26,7 @@ declareTest({
         page.clipRect = rect;
         screencap = page.renderBase64("png");
 
-        ground = image_data;
+        ground = info.imageData;
 
         return compareImages(screencap, ground);
     }
