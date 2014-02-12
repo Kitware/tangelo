@@ -40,6 +40,9 @@
         // This function, when called, will toggle the state of the panel.
         return function () {
             if (state === 'uncollapsed') {
+                // Update height in case the content of the drawer changed.
+                updateHeight();
+
                 div.transition()
                     .duration(500)
                     .style("height", iconheight);
