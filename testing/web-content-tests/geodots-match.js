@@ -1,7 +1,7 @@
 declareTest({
     name: "Geodots - ground truth match",
     url: "/examples/geodots",
-    image_file: "${CMAKE_BINARY_DIR}/tangelo/web/examples/geodots/geodots.png",
+    imageFile: "${CMAKE_BINARY_DIR}/tangelo/web/examples/geodots/geodots.png",
     test: function (page) {
         var rect,
             screencap,
@@ -21,7 +21,7 @@ declareTest({
         page.clipRect = rect;
         screencap = page.renderBase64("png");
 
-        ground = image_data;
+        ground = imageData;
 
         return compareImages(screencap, ground);
     }

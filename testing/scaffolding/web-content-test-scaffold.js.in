@@ -5,10 +5,10 @@ var system = require('system');
 var fs = require("fs");
 var page = require('webpage').create();
 
-var cmake_binary_dir = "@CMAKE_BINARY_DIR@";
-var cmake_source_dir = "@CMAKE_SOURCE_DIR@";
-var testing_host = "@TESTING_HOST@";
-var testing_port = "@TESTING_PORT@";
+var cmakeBinaryDir = "@CMAKE_BINARY_DIR@";
+var cmakeSourceDir = "@CMAKE_SOURCE_DIR@";
+var testingHost = "@TESTING_HOST@";
+var testingPort = "@TESTING_PORT@";
 
 function Promise(callback) {
     "use strict";
@@ -24,8 +24,8 @@ var url;
 var status;
 var statusText;
 
-var image_file;
-var image_data;
+var imageFile;
+var imageData;
 var threshold = 0.0;
 
 var method;
@@ -38,17 +38,17 @@ var size = {
 
 var test;
 
-var test_name = "";
+var testName = "";
 
 function declareTest(cfg) {
     "use strict";
 
-    test_name = cfg.name;
-    url = "http://" + testing_host + ":" + testing_port + cfg.url;
-    if (cfg.image_file) {
-        image_file = cfg.image_file
-            .replace("${CMAKE_BINARY_DIR}", cmake_binary_dir)
-            .replace("${CMAKE_SOURCE_DIR}", cmake_source_dir);
+    testName = cfg.name;
+    url = "http://" + testingHost + ":" + testingPort + cfg.url;
+    if (cfg.imageFile) {
+        imageFile = cfg.imageFile
+            .replace("${CMAKE_BINARY_DIR}", cmakeBinaryDir)
+            .replace("${CMAKE_SOURCE_DIR}", cmakeSourceDir);
     }
     if (cfg.threshold) {
         threshold = cfg.threshold;
@@ -73,8 +73,8 @@ if (method) {
 if (data) {
     console.log("data: " + JSON.stringify(data, null, 4));
 }
-if (image_file) {
-    console.log("image file: " + image_file);
+if (imageFile) {
+    console.log("image file: " + imageFile);
 }
 console.log("");
 
@@ -123,17 +123,17 @@ var runner = function () {
         pass;
 
     // If there is an image file, read it in as base64.
-    if (image_file) {
+    if (imageFile) {
         try {
-            f = fs.open(image_file, "rb");
-            image_data = window.btoa(f.read());
+            f = fs.open(imageFile, "rb");
+            imageData = window.btoa(f.read());
         } catch (e) {
-            console.log("error reading " + image_file + ": " + e);
+            console.log("error reading " + imageFile + ": " + e);
             phantom.exit(1);
         }
     }
 
-    toImageData = function (png_data) {
+    toImageData = function (pngData) {
         var img,
             c,
             ctx;
@@ -147,7 +147,7 @@ var runner = function () {
 
                 resolve(ctx.getImageData(0, 0, img.width, img.height));
             };
-            img.src = "data:image/png;base64," + png_data;
+            img.src = "data:image/png;base64," + pngData;
         });
     };
 
@@ -190,7 +190,7 @@ var runner = function () {
         });
     };
 
-    console.log("Running test: " + test_name);
+    console.log("Running test: " + testName);
     pass = test(page);
 
     if (pass.then) {
