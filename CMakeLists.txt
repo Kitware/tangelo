@@ -292,6 +292,7 @@ if(${BUILD_TESTING})
         404-not-found
         200-ok
         geodots-match
+        dynamic-control-panel
     )
 
     # Configure the python test runner.
