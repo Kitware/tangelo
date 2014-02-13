@@ -41,6 +41,10 @@ endif()
 
 # Show/hide testing options depending on whether testing is enabled.
 if(${BUILD_TESTING})
+    find_program(VIRTUALENV_EXECUTABLE
+        NAMES virtualenv virtualenv2
+    )
+
     set(JS_STYLE_TESTS ON CACHE BOOL "Generate style tests for JS source files (via JSLint).")
     mark_as_advanced(CLEAR JS_STYLE_TESTS)
     if(${JS_STYLE_TESTS})
