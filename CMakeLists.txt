@@ -150,6 +150,42 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/testing/web-content-tests/rest-post.js
 )
 
+# These files should be validated with pep8.
+set(PEP8_FILES
+    ${CMAKE_SOURCE_DIR}/tangelo/bin/vtkweb-launcher.py
+    ${CMAKE_SOURCE_DIR}/tangelo/setup.py
+    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/__init__.py
+    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/plugin.py
+    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/server.py
+    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/stream.py
+    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/tool.py
+    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/util.py
+    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/vtkweb.py
+    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/websocket.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/app-template/myservice.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/charitynet/charitynet.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/enron/emailers.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/ner/ner.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/ner/nermongo.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/primes/primes.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/config.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/impala-json.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/mongo.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/svg2pdf.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/tasks/celery.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/404.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/abspath.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/broken.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/echo.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/exceptional.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/restful.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/testapp.py
+    ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/get_free_port.py
+    ${CMAKE_SOURCE_DIR}/testing/vtkweb/imagetest.py
+    ${CMAKE_SOURCE_DIR}/testing/vtkweb/tangelo-vtkweb-test.py
+    ${CMAKE_SOURCE_DIR}/testing/vtkweb/vtkwebtest.py
+)
+
 # These files should be uglified and concatenated.
 set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/core/core.js
@@ -361,7 +397,7 @@ if(${BUILD_TESTING})
 
         # Generate the tests.
         foreach(f ${JS_LINT_FILES})
-            add_test(jslint:${f} ${JSLint_EXECUTABLE} ${f})
+            add_test(style:js:${f} ${JSLint_EXECUTABLE} ${f})
         endforeach()
     endif()
 
@@ -371,8 +407,8 @@ if(${BUILD_TESTING})
         find_package(Pep8 REQUIRED)
 
         # Generate the tests.
-        foreach(f ${PY_LINT_FILES})
-            add_test(pep8:${f} ${Pep8_EXECUTABLE} ${f})
+        foreach(f ${PEP8_FILES})
+            add_test(style:py:${f} ${Pep8_EXECUTABLE} ${f})
         endforeach()
     endif()
 
@@ -410,7 +446,7 @@ if(${BUILD_TESTING})
 
             list(APPEND JS_UNIT_TEST_FILES ${html})
 
-            add_tangelo_test(js-unit-test:${f}
+            add_tangelo_test(unit-test:js:${f}
                ${PhantomJS_EXECUTABLE}
                ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js
                http://${TESTING_HOST}:${TESTING_PORT}/tests/js-unit-tests/${f}.html
@@ -433,7 +469,7 @@ if(${BUILD_TESTING})
 
         list(APPEND JS_UNIT_TEST_FILES ${coverage_test})
 
-        add_tangelo_test(coverage:tangelo.js
+        add_tangelo_test(coverage:js:report
             ${PhantomJS_EXECUTABLE}
             ${CMAKE_SOURCE_DIR}/testing/phantomjs/blanket-test.js
             http://${TESTING_HOST}:${TESTING_PORT}/tests/js-unit-tests/tangelojs-coverage.html
@@ -444,11 +480,11 @@ if(${BUILD_TESTING})
     # Python coverage testing setup.
     set(COVERAGE_EXECUTABLE "${CMAKE_BINARY_DIR}/venv/bin/coverage")
     if(PY_COVERAGE_REPORT)
-        add_test(py-coverage:reset
+        add_test(coverage:py:reset
             ${COVERAGE_EXECUTABLE} erase
         )
 
-        add_test(py-coverage:report
+        add_test(coverage:py:report
             ${COVERAGE_EXECUTABLE} html -d ${CMAKE_BINARY_DIR}/tangelo/web/tests/python-coverage --fail-under=100
         )
     endif()
@@ -458,13 +494,13 @@ if(${BUILD_TESTING})
         # Add each test.  Decorate the call with the coverage tool if we're in
         # coverage mode.
         foreach(f ${PY_UNIT_TEST_CASES})
-            set(name py-unit-test:${f})
+            set(name unit-test:py:${f})
             if(PY_COVERAGE_REPORT)
                 add_test(${name}
                     ${COVERAGE_EXECUTABLE} run --append --source=${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/util.py,${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/__init__.py --include="*util*" ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/${f}.py
                 )
-                set_property(TEST ${name} APPEND PROPERTY DEPENDS py-coverage:reset)
-                set_property(TEST py-coverage:report APPEND PROPERTY DEPENDS ${name})
+                set_property(TEST ${name} APPEND PROPERTY DEPENDS coverage:py:reset)
+                set_property(TEST coverage:py:report APPEND PROPERTY DEPENDS ${name})
             else()
                 add_test(${name}
                     ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/${f}.py
@@ -492,7 +528,7 @@ if(${BUILD_TESTING})
 
             list(APPEND WEB_CONTENT_TEST_FILES ${js_out})
 
-            add_tangelo_test(web-content-test:${f}
+            add_tangelo_test(web-content:${f}
                 ${PhantomJS_EXECUTABLE} ${js_out}
             )
         endforeach()

@@ -1,11 +1,13 @@
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.keys import Keys
-import Image, ImageChops
+import Image
+import ImageChops
 import time
 import argparse
 import cStringIO
 import urllib2
+
 
 def image_difference(im1, im2, threshold):
     px1 = im1.load()
@@ -27,6 +29,7 @@ def image_difference(im1, im2, threshold):
         return False
     return True
 
+
 def check_url_image(browser, url, baseline_url, test_name, threshold=8000):
     browser.get(url)
     time.sleep(5)
@@ -36,17 +39,21 @@ def check_url_image(browser, url, baseline_url, test_name, threshold=8000):
     im2 = Image.open(f)
     return image_difference(im1, im2, threshold)
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Test a webpage.')
     parser.add_argument('--url', help='URL for the test')
     parser.add_argument('--baseline-url', help='URL for the baseline image')
     parser.add_argument('--name', help='the test name')
-    parser.add_argument('--threshold', help='the numeric threshold for the comparison image', type=int, default=8000)
+    parser.add_argument('--threshold',
+                        help='the numeric threshold for the comparison image',
+                        type=int, default=8000)
     opt = parser.parse_args()
     try:
         browser = webdriver.Chrome()
         browser.set_window_size(600, 600)
-        if check_url_image(browser, opt.url, opt.baseline_url, opt.name, threshold=opt.threshold):
+        if check_url_image(browser, opt.url, opt.baseline_url,
+                           opt.name, threshold=opt.threshold):
             print "success"
     except Exception as e:
         print "error: exception -- ", e

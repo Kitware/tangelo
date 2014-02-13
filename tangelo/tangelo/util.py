@@ -9,6 +9,7 @@ import Queue
 
 import tangelo.plugin
 
+
 def get_free_port():
     # Bind a socket to port 0 (which directs the OS to find an unused port).
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -22,20 +23,23 @@ def get_free_port():
 
     return port
 
+
 def expandpath(spec):
     return (os.path.expanduser if spec[0] == "~" else os.path.abspath)(spec)
+
 
 def live_pid(pid):
     try:
         os.kill(pid, 0)
     except OSError as e:
-        # ESRCH means os.kill() couldn't find a valid pid to send the signal to,
-        # which means it's not a live PID.  The other possible error value is
-        # EPERM, meaning that the pid is live but the user doesn't have the
+        # ESRCH means os.kill() couldn't find a valid pid to send the signal
+        # to, which means it's not a live PID.  The other possible error value
+        # is EPERM, meaning that the pid is live but the user doesn't have the
         # permissions to send it a signal.
         return e.errno != errno.ESRCH
     else:
         return True
+
 
 def read_pid(pidfile):
     # Open the file and convert the contents to an integer - if this fails for
@@ -45,12 +49,14 @@ def read_pid(pidfile):
 
     return pid
 
+
 def generate_key(taken, randbytes=128):
     key = md5.md5(os.urandom(randbytes)).hexdigest()
     while key in taken:
         key = md5.md5(os.urandom(randbytes)).hexdigest()
 
     return key
+
 
 def pid_from_port(port):
     # Find the pid of the tangelo process running on the requested port.
@@ -64,7 +70,9 @@ def pid_from_port(port):
     pattern = components[-1]
 
     # Get a list of the status files by using UNIX-style wildcard patterns.
-    status_files = [directory + os.path.sep + f for f in os.listdir(directory) if fnmatch.fnmatch(f, pattern)]
+    status_files = [directory + os.path.sep + f
+                    for f in os.listdir(directory)
+                    if fnmatch.fnmatch(f, pattern)]
 
     # Find the file for the process running on the specified port.
     for f in status_files:
@@ -77,6 +85,7 @@ def pid_from_port(port):
         return None
 
     return int(pstatus["pid"])
+
 
 class NonBlockingReader(threading.Thread):
     def __init__(self, stream):

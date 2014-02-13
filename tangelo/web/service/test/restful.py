@@ -13,27 +13,33 @@ import tangelo
 # Also note that you can create non-standard verbs, simply by writing the
 # function and exposing it via the decorator.
 
+
 @tangelo.restful
 def get(*pargs, **kwargs):
     return "GET: " + " ".join(pargs) + " %s" % (kwargs)
+
 
 @tangelo.restful
 def post(*pargs, **kwargs):
     return "POST: " + " ".join(pargs) + " %s" % (kwargs)
 
+
 @tangelo.restful
 def put(*pargs, **kwargs):
     return "PUT: " + " ".join(pargs) + " %s" % (kwargs)
+
 
 # This function has not been decorated as the above three, so it will not be
 # part of this service's RESTful API.
 def delete(*pargs, **kwargs):
     return "DELETE: " + " ".join(pargs) + "  %s" % (kwargs)
 
+
 # And here is an example of an unusual HTTP method.
 @tangelo.restful
 def propfind(*pargs, **kwargs):
     return "PROPFIND: " + " ".join(pargs) + "  %s" % (kwargs)
+
 
 # And one that isn't even a valid HTTP method.
 @tangelo.restful
