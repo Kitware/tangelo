@@ -7,6 +7,7 @@ import cherrypy
 
 import tangelo.websocket
 
+
 class TangeloVtkweb(object):
     def __init__(self, vtkpython=None, weblauncher=None):
         if vtkpython is None:
@@ -50,15 +51,17 @@ class TangeloVtkweb(object):
 
                 # Check for the key in the process table.
                 if key not in self.processes:
-                    return json.dumps({"status": "failed", "reason": "Requested key not in process table"})
+                    return json.dumps(
+                        {"status": "failed",
+                         "reason": "Requested key not in process table"})
 
                 # Retrieve the entry.
                 rec = self.processes[key]
-                response = { "status": "complete",
-                             "process": "running",
-                             "port": rec["port"],
-                             "stdout": rec["stdout"].readlines(),
-                             "stderr": rec["stderr"].readlines() }
+                response = {"status": "complete",
+                            "process": "running",
+                            "port": rec["port"],
+                            "stdout": rec["stdout"].readlines(),
+                            "stderr": rec["stderr"].readlines()}
 
                 returncode = rec["process"].poll()
                 if returncode is not None:
@@ -74,18 +77,25 @@ class TangeloVtkweb(object):
         elif method == "POST":
             #if len(pargs) == 0:
             if progpath is None or len(progpath) == 0:
-                return json.dumps({"status": "incomplete", "reason": "missing 'program' argument (path to vtkweb script)"})
+                return json.dumps(
+                    {"status": "incomplete",
+                     "reason": "missing 'program' argument " +
+                               "(path to vtkweb script)"})
 
             # Check the user arguments.
             userargs = progargs.split()
             if "--port" in userargs:
-                return json.dumps({"status": "incomplete", "reason": "You may not specify --port in this interface"})
+                return json.dumps(
+                    {"status": "incomplete",
+                     "reason": "You may not specify --port in this interface"})
 
             # The program path must begin with a slash (it needs to be an
             # absolute path because we can't evaluate relative paths on the
             # serverside, since we don't know the user's current location).
             if progpath[0] != "/":
-                return json.dumps({"status": "incomplete", "reason": "Program path must be an absolute web path"})
+                return json.dumps(
+                    {"status": "incomplete",
+                     "reason": "Program path must be an absolute web path"})
 
             # Verify that the program path is legal (first stripping off the
             # leading slash, since from now on we are considering *disk* paths,
@@ -94,7 +104,8 @@ class TangeloVtkweb(object):
             # Obtain a filesystem path to the requested program.
             progfile = tangelo.abspath(progpath)
             if progfile is None:
-                return json.dumps({"status": "incomplete", "reason": "Illegal program URL"})
+                return json.dumps({"status": "incomplete",
+                                   "reason": "Illegal program URL"})
 
             # Obtain an available port.
             port = tangelo.util.get_free_port()
@@ -108,9 +119,15 @@ class TangeloVtkweb(object):
 
             # Launch the requested process.
             try:
-                cmdline = [self.vtkpython, self.weblauncher, progfile, "--port", str(port)] + userargs
-                tangelo.log("starting a vtkweb process: %s" % (" ".join(cmdline)))
-                process = subprocess.Popen(cmdline, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                cmdline = [self.vtkpython,
+                           self.weblauncher,
+                           progfile,
+                           "--port", str(port)] + userargs
+                tangelo.log("starting a vtkweb process: %s" %
+                            (" ".join(cmdline)))
+                process = subprocess.Popen(cmdline,
+                                           stdout=subprocess.PIPE,
+                                           stderr=subprocess.PIPE)
             except OSError as e:
                 return launch_failure(e.strerror)
             except IOError as e:
@@ -123,9 +140,15 @@ class TangeloVtkweb(object):
 
             # Read from stdout to look for the signal that the process has
             # started properly.
-            class FactoryStarted: pass
-            class Failed: pass
-            class Timeout: pass
+            class FactoryStarted:
+                pass
+
+            class Failed:
+                pass
+
+            class Timeout:
+                pass
+
             signal = "Starting factory"
             timeout = 10
             sleeptime = 0.5
@@ -144,22 +167,23 @@ class TangeloVtkweb(object):
                             # This means that the server has started.
                             raise FactoryStarted()
 
-                    # If neither failure nor success occurred in the last block of
-                    # lines from stdout, either time out, or try again after a short
-                    # delay.
+                    # If neither failure nor success occurred in the last block
+                    # of lines from stdout, either time out, or try again after
+                    # a short delay.
                     if wait >= timeout:
                         raise Timeout()
 
                     wait += sleeptime
                     time.sleep(sleeptime)
             except Timeout:
-                return json.dumps({ "status": "failed",
-                                    "reason": "process startup timed out" })
+                return json.dumps({"status": "failed",
+                                   "reason": "process startup timed out"})
             except Failed:
-                return json.dumps({ "status": "failed",
-                                    "reason": "process did not start up properly",
-                                    "stdout": saved_lines,
-                                    "stderr": stderr.readlines()})
+                return json.dumps(
+                    {"status": "failed",
+                     "reason": "process did not start up properly",
+                     "stdout": saved_lines,
+                     "stderr": stderr.readlines()})
             except FactoryStarted:
                 stdout.pushlines(saved_lines)
 
@@ -168,21 +192,22 @@ class TangeloVtkweb(object):
             if host == "0.0.0.0":
                 host = "localhost"
             wshandler = tangelo.websocket.WebSocketRelay(host, port, key)
-            cherrypy.tree.mount(tangelo.websocket.WebSocketHandler(),
-                                "/%s" % (key),
-                                config={"/ws": { "tools.websocket.on": True,
-                                                 "tools.websocket.handler_cls": wshandler,
-                                                 "tools.websocket.protocols": ["wamp"] } })
+            cherrypy.tree.mount(
+                tangelo.websocket.WebSocketHandler(),
+                "/%s" % (key),
+                config={"/ws": {"tools.websocket.on": True,
+                                "tools.websocket.handler_cls": wshandler,
+                                "tools.websocket.protocols": ["wamp"]}})
 
             # Log the new process in the process table, including non-blocking
             # stdout and stderr readers.
-            self.processes[key] = { "port": port,
-                                           "process": process,
-                                           "stdout": stdout,
-                                           "stderr": stderr }
+            self.processes[key] = {"port": port,
+                                   "process": process,
+                                   "stdout": stdout,
+                                   "stderr": stderr}
 
-            # Form the websocket URL from the hostname/port used in the request,
-            # and the newly generated key.
+            # Form the websocket URL from the hostname/port used in the
+            # request, and the newly generated key.
             url = "ws://%s/%s/ws" % (cherrypy.request.base.split("//")[1], key)
             return json.dumps({"status": "complete", "key": key, "url": url})
         elif method == "DELETE":
@@ -191,7 +216,8 @@ class TangeloVtkweb(object):
 
             # Make sure there's a key.
             if len(pargs) == 0:
-                return json.dumps({"status": "incomplete", "reason": "'key' argument is REQUIRED"})
+                return json.dumps({"status": "incomplete",
+                                   "reason": "'key' argument is REQUIRED"})
 
             # Extract the key.
             key = pargs[0]
@@ -200,7 +226,8 @@ class TangeloVtkweb(object):
             # Check for the key in the process table.
             if key not in self.processes:
                 tangelo.log("key not found")
-                return json.dumps({"status": "failed", "reason": "no such key in process table"})
+                return json.dumps({"status": "failed",
+                                   "reason": "no such key in process table"})
 
             # Terminate the process.
             tangelo.log("terminating process")
@@ -212,7 +239,7 @@ class TangeloVtkweb(object):
             # Remove the process entry from the table.
             del self.processes[key]
 
-            return json.dumps({ "status": "complete",
-                                "key": key })
+            return json.dumps({"status": "complete",
+                               "key": key})
         else:
             raise cherrypy.HTTPError(405, "Method not allowed")

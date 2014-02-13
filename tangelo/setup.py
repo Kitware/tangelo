@@ -1,11 +1,15 @@
 import distutils.core
 import os
 
+
 # Recursively collect all files in a given directory.
 def rcollect(path):
     if not os.path.exists(path):
         raise IOError("%s does not exist" % (path))
-    return sum(map(lambda x: map(lambda y: x[0] + "/" + y, x[2]), os.walk(path)), [])
+    return sum(map(lambda x: map(lambda y: x[0] + "/" + y, x[2]),
+                   os.walk(path)),
+               [])
+
 
 def copy_with_dir(files, base):
     return [(base + "/" + os.path.dirname(f), [f]) for f in files]
@@ -13,7 +17,8 @@ def copy_with_dir(files, base):
 # Build up a list of extra files to install.
 #
 # Include the example configuration files.
-data_files_list = [("share/tangelo/conf", ["conf/tangelo.conf.global", "conf/tangelo.conf.local"]),
+data_files_list = [("share/tangelo/conf", ["conf/tangelo.conf.global",
+                                           "conf/tangelo.conf.local"]),
                    ("share/tangelo", ["images/tangelo.ico"])]
 
 # Include the website base files.
@@ -29,12 +34,15 @@ distutils.core.setup(name="tangelo",
                                "tangelo.autobahn",
                                "tangelo.ws4py",
                                "tangelo.ws4py.server"],
-                     scripts=["bin/tangelo", "bin/tangelo-passwd", "bin/vtkweb-launcher.py"],
+                     scripts=["bin/tangelo",
+                              "bin/tangelo-passwd",
+                              "bin/vtkweb-launcher.py"],
                      data_files=data_files_list,
                      description="Tangelo Web Framework",
-                     long_description="Tangelo is a Python-based web server framework bundled with"
-                     " clientside tools to help you supercharge your web applications"
-                     " with the power of Python",
+                     long_description="Tangelo is a Python-based web " +
+                     "server framework bundled with clientside tools " +
+                     "to help you supercharge your web applications " +
+                     "with the power of Python",
                      license="Apache License, Version 2.0",
                      platforms=["Linux", "OS X", "Windows"],
                      install_requires=["cherrypy >= 3.2",

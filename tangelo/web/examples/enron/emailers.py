@@ -3,13 +3,20 @@ import itertools
 import pymongo
 import tangelo
 
-def run(host, database, collection, start_time=None, end_time=None, center=None, degree=None):
+
+def run(host, database, collection, start_time=None,
+        end_time=None, center=None, degree=None):
     response = {}
 
     # Bail with error if any of the required arguments is missing.
-    missing = map(lambda x: x[0], filter(lambda x: x[1] is None, zip(["start_time", "end_time", "center", "degree"], [start_time, end_time, center, degree])))
+    missing = map(lambda x: x[0], filter(lambda x: x[1] is None,
+                                         zip(["start_time", "end_time",
+                                              "center", "degree"],
+                                             [start_time, end_time,
+                                              center, degree])))
     if len(missing) > 0:
-        response["error"] = "missing required arguments: %s" % (", ".join(missing))
+        response["error"] = ("missing required arguments: " +
+                             "%s" % (", ".join(missing)))
         return response
 
     # Cast the arguments to the right types.
@@ -22,13 +29,14 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
         response["error"] = "argument 'degree' must be an integer"
         return response
 
-    # The start time is the number of milliseconds since the epoch (which is how
-    # JavaScript dates are constructed, and therefore how dates are stored in
-    # MongoDB) - an integer.
+    # The start time is the number of milliseconds since the epoch (which is
+    # how JavaScript dates are constructed, and therefore how dates are stored
+    # in MongoDB) - an integer.
     try:
         start_time = datetime.datetime.strptime(start_time, "%Y-%m-%d")
     except ValueError:
-        response["error"] = "argument 'start_time' must be in YYYY-MM-DD format"
+        response["error"] = ("argument 'start_time' " +
+                             "must be in YYYY-MM-DD format")
         return response
 
     # The end time is another date - an integer.
@@ -42,7 +50,8 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
     ex = None
     try:
         c = pymongo.Connection(host)[database][collection]
-    except (pymongo.errors.AutoReconnect, pymongo.errors.ConnectionFailure) as e:
+    except (pymongo.errors.AutoReconnect,
+            pymongo.errors.ConnectionFailure) as e:
         ex = e
 
     # Bail out with an error message if there was an exception.
@@ -63,22 +72,18 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
         # Construct and send a query to retrieve all records involving the
         # current talkers, occurring within the time bounds specified, and
         # involving two known addresses.
-        query = {"$and": [ {"date": {"$gte": start_time} }, 
-            {"date": {"$lt": end_time} },
-            {"source": {"$ne": ""} },
-            {"target": {"$ne": ""} },
-            {"$or": [
-                {"source": {"$in": current_talkers} },
-                {"target": {"$in": current_talkers} }
-                ]
-            }
-            ]
-        }
+        query = {"$and": [{"date": {"$gte": start_time}},
+                          {"date": {"$lt": end_time}},
+                          {"source": {"$ne": ""}},
+                          {"target": {"$ne": ""}},
+                          {"$or": [{"source": {"$in": current_talkers}},
+                                   {"target": {"$in": current_talkers}}]}]}
         results = c.find(query, fields=["target", "source"])
 
         # Collect the names.
-        #current_talkers = list(set(map(lambda x: x["target"] if x["source"] == center else x["source"], results)))
-        current_talkers = list(itertools.chain(*map(lambda x: [x["target"], x["source"]], results)))
+        current_talkers = list(
+            itertools.chain(*map(lambda x: [x["target"], x["source"]],
+                                 results)))
         talkers = talkers.union(current_talkers)
 
         # Compute updates to everyone's distance from center.
@@ -90,8 +95,8 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
         results.rewind()
         all_results.append(results)
 
-    # Construct a canonical graph structure from the set of talkers and the list
-    # of emails.
+    # Construct a canonical graph structure from the set of talkers and the
+    # list of emails.
     #
     # Start with an index map of the talkers.
     talkers = list(talkers)
@@ -108,15 +113,15 @@ def run(host, database, collection, start_time=None, end_time=None, center=None,
         target = result["target"]
         ident = str(result["_id"])
 
-        rec = { "source": talker_index[source],
-                "target": talker_index[target],
-                "id": ident }
+        rec = {"source": talker_index[source],
+               "target": talker_index[target],
+               "id": ident}
 
         edges.append(rec)
 
     talkers = [{"email": n, "distance": distance[n]} for n in talkers]
 
     # Stuff the graph data into the response object, and return it.
-    response["result"] = { "nodes": talkers,
-                           "edges": edges }
+    response["result"] = {"nodes": talkers,
+                          "edges": edges}
     return response

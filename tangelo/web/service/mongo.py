@@ -3,6 +3,7 @@ import pymongo
 
 import tangelo
 
+
 def decode(s, argname, resp):
     try:
         return bson.json_util.loads(s)
@@ -10,7 +11,9 @@ def decode(s, argname, resp):
         resp['error'] = e.message + " (argument '%s' was '%s')" % (argname, s)
         raise
 
-def run(server, db, coll, method='find', query=None, limit=1000, skip=0, fields=None, sort=None, fill=None):
+
+def run(server, db, coll, method='find', query=None, limit=1000,
+        skip=0, fields=None, sort=None, fill=None):
     # Create an empty response object.
     response = {}
 
@@ -21,9 +24,12 @@ def run(server, db, coll, method='find', query=None, limit=1000, skip=0, fields=
 
     # Decode the query strings into Python objects.
     try:
-        if query is not None: query = decode(query, 'query', response)
-        if fields is not None: fields = decode(fields, 'fields', response)
-        if sort is not None: sort = decode(sort, 'sort', response)
+        if query is not None:
+            query = decode(query, 'query', response)
+        if fields is not None:
+            fields = decode(fields, 'fields', response)
+        if sort is not None:
+            sort = decode(sort, 'sort', response)
         if fill is not None:
             fill = decode(fill, 'fill', response)
         else:
@@ -35,27 +41,31 @@ def run(server, db, coll, method='find', query=None, limit=1000, skip=0, fields=
     try:
         limit = int(limit)
     except ValueError:
-        response['error'] = "Argument 'limit' ('%s') could not be converted to int." % (limit)
+        response['error'] = ("Argument 'limit' ('%s') could " +
+                             "not be converted to int.") % (limit)
         return bson.json_util.dumps(response)
 
     # Cast the skip value to an int.
     try:
         skip = int(skip)
     except ValueError:
-        response['error'] = "Argument 'skip' ('%s') could not be converted to int." % (skip)
+        response['error'] = ("Argument 'skip' ('%s') could " +
+                             "not be converted to int.") % (skip)
         return bson.json_util.dumps(response)
 
     # Create database connection.
     try:
         c = pymongo.Connection(server)[db][coll]
     except (pymongo.errors.AutoReconnect, pymongo.errors.ConnectionFailure):
-        response['error'] = "Could not connect to MongoDB server '%s'" % (server)
+        response['error'] = ("Could not connect to " +
+                             "MongoDB server '%s'") % (server)
         return bson.json_util.dumps(response)
 
     # Perform the requested action.
     if method == 'find':
         # Do a find operation with the passed arguments.
-        it = c.find(spec=query, fields=fields, skip=skip, limit=limit, sort=sort)
+        it = c.find(spec=query, fields=fields, skip=skip,
+                    limit=limit, sort=sort)
 
         # Create a list of the results.
         if fill:

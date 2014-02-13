@@ -20,6 +20,7 @@ celery = Celery()
 config = tangelo.config()
 celery.conf.update(**config)
 
+
 @tangelo.restful
 def get(job_id, operation, **kwargs):
     job = AsyncResult(job_id, backend=celery.backend)
@@ -32,10 +33,11 @@ def get(job_id, operation, **kwargs):
 
         return response
     elif operation == 'result':
-        response  = {'result': job.result}
+        response = {'result': job.result}
         return response
     else:
         return tangelo.HTTPStatusCode(400, "Invalid request")
+
 
 @tangelo.restful
 def post(*pargs, **kwargs):
@@ -46,9 +48,10 @@ def post(*pargs, **kwargs):
 
     pargs = filter(None, pargs)
     task_module = '.'.join(pargs)
-    async_result  = celery.send_task('%s.run' % task_module, [input])
+    async_result = celery.send_task('%s.run' % task_module, [input])
 
-    return { 'id': async_result.task_id }
+    return {'id': async_result.task_id}
+
 
 @tangelo.restful
 def delete(job_id, **kwargs):

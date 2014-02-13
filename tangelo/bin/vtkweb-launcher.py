@@ -13,15 +13,15 @@ r"""
              Port number on which the HTTP server will listen to.
 
         --content /path-to-web-content/
-             Directory that you want to server as static web content.
-             By default, this variable is empty which mean that we rely on another server
-             to deliver the static content and the current process only focus on the
-             WebSocket connectivity of clients.
+             Directory that you want to server as static web content.  By
+             default, this variable is empty which mean that we rely on another
+             server to deliver the static content and the current process only
+             focus on the WebSocket connectivity of clients.
 
         --authKey vtk-secret
-             Secret key that should be provided by the client to allow it to make any
-             WebSocket communication. The client will assume if none is given that the
-             server expect "vtk-secret" as secret key.
+             Secret key that should be provided by the client to allow it to
+             make any WebSocket communication. The client will assume if none
+             is given that the server expect "vtk-secret" as secret key.
 """
 
 import imp
@@ -47,10 +47,11 @@ except ImportError:
 # Create custom File Opener class to handle clients requests
 # =============================================================================
 
+
 def VTKWebAppProtocol(args, usermod):
     class VTKWebApp(wamp.ServerProtocol):
         # Application configuration
-        view    = None
+        view = None
         authKey = "vtkweb-secret"
 
         def __init__(self):
@@ -62,13 +63,13 @@ def VTKWebAppProtocol(args, usermod):
             wamp.ServerProtocol.__init__(self)
 
         def initialize(self):
-            #global renderer, renderWindow, renderWindowInteractor, cone, mapper, actor
-
             # Bring used components
             self.registerVtkWebProtocol(protocols.vtkWebMouseHandler())
             self.registerVtkWebProtocol(protocols.vtkWebViewPort())
-            self.registerVtkWebProtocol(protocols.vtkWebViewPortImageDelivery())
-            self.registerVtkWebProtocol(protocols.vtkWebViewPortGeometryDelivery())
+            self.registerVtkWebProtocol(
+                protocols.vtkWebViewPortImageDelivery())
+            self.registerVtkWebProtocol(
+                protocols.vtkWebViewPortGeometryDelivery())
 
             # Update authentication key to use
             self.updateSecret(VTKWebApp.authKey)
@@ -85,7 +86,8 @@ def VTKWebAppProtocol(args, usermod):
 if __name__ == "__main__":
     # Get the full path to the user's application file.
     if len(sys.argv) < 2:
-        print >>sys.stderr, "usage: vtkweb-launcher.py [tangelo-vtkweb-app] [arg1, arg2, arg3, ...]"
+        print >>sys.stderr, ("usage: vtkweb-launcher.py " +
+                             "[tangelo-vtkweb-app] [arg1, arg2, arg3, ...]")
         sys.exit(1)
     userfile = sys.argv[1]
 

@@ -4,9 +4,9 @@ import StringIO
 import tangelo
 import tempfile
 import random
-import cherrypy
 
 converted = {}
+
 
 @tangelo.restful
 def post():
@@ -22,8 +22,9 @@ def post():
     converted[id] = renderPDF.drawToString(drawing)
     return {"result": id, "error": None}
 
+
 @tangelo.restful
 def get(id=None):
     tangelo.content_type("application/pdf")
-    cherrypy.response.headers["Content-disposition"] = "attachment; filename=figure.pdf"
+    tangelo.header("Content-disposition", "attachment; filename=figure.pdf")
     return converted[id]

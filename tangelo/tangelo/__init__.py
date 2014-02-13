@@ -4,6 +4,7 @@ import os.path
 import sys
 import types
 
+
 def content_type(t=None):
     r = cherrypy.response.headers['Content-type']
 
@@ -12,11 +13,23 @@ def content_type(t=None):
 
     return r
 
+
+def header(h, t=None):
+    r = cherrypy.response.headers[h]
+
+    if t is not None:
+        cherrypy.response.headers[h] = t
+
+    return r
+
+
 def log(*pargs, **kwargs):
     cherrypy.log(*pargs, **kwargs)
 
+
 def request_path():
     return cherrypy.request.path_info
+
 
 def request_body():
     class RequestBody:
@@ -44,7 +57,9 @@ def request_body():
             else:
                 return self.readlines(*pargs, **kwargs)
 
-    return RequestBody(cherrypy.request.body, cherrypy.request.process_request_body)
+    return RequestBody(cherrypy.request.body,
+                       cherrypy.request.process_request_body)
+
 
 def abspath(path):
     if len(path) >= 2 and path[0] == "/" and path[1] == "~":
@@ -63,6 +78,7 @@ def abspath(path):
             return path
 
     return None
+
 
 def paths(runtimepaths):
     # If a single string is passed in, wrap it into a singleton list (this is
@@ -84,12 +100,15 @@ def paths(runtimepaths):
             log("Illegal path (absolute): %s" % (orig), "SERVICE")
             return None
 
-        path = os.path.abspath(cherrypy.thread_data.modulepath + os.path.sep + path)
+        path = os.path.abspath(cherrypy.thread_data.modulepath + os.path.sep +
+                               path)
         if len(path) >= len(root) and path[:len(root)] == root:
             return path
 
         comp = path.split(os.path.sep)
-        if len(comp) >= len(home) + 2 and comp[:len(home)] == home and comp[len(home)+1] == "tangelo_html":
+        if (len(comp) >= len(home) + 2 and
+                comp[:len(home)] == home and
+                comp[len(home)+1] == "tangelo_html"):
             return path
 
         log("Illegal path (outside of web space): %s" % (orig), "SERVICE")
@@ -103,13 +122,17 @@ def paths(runtimepaths):
     # Finally, augment the path list.
     sys.path = newpaths + sys.path
 
+
 def config():
-    return copy.deepcopy(cherrypy.config["module-config"][cherrypy.thread_data.modulename])
+    return copy.deepcopy(cherrypy.config["module-config"]
+                                        [cherrypy.thread_data.modulename])
+
 
 class HTTPStatusCode:
     def __init__(self, code, msg=None):
         self.code = code
         self.msg = msg
+
 
 # A decorator that exposes functions as being part of a service's RESTful API.
 def restful(f):
