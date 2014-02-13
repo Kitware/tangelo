@@ -18,16 +18,17 @@ include(tangelo)
 # Whether to build Tangelo at all, and then if yes, whether to build the Python
 # package.
 #
-# This option is marked as advanced, as it only applies in a particular set of
-# circumstances that apply mainly to Tangelo developers.
+# These options are marked as advanced, as they only apply in a particular set
+# of circumstances that apply mainly to Tangelo developers.
 set(BUILD_TANGELO ON CACHE BOOL "Build Tangelo")
 mark_as_advanced(BUILD_TANGELO)
+
+set(BUILD_TANGELO_PYTHON_PACKAGE ON CACHE BOOL "Generate a Python package for Tangelo")
+mark_as_advanced(BUILD_TANGELO_PYTHON_PACKAGE)
+
 if(${BUILD_TANGELO})
-    set(BUILD_TANGELO_PYTHON_PACKAGE ON CACHE BOOL "Generate a Python package for Tangelo")
-    mark_as_advanced(CLEAR BUILD_TANGELO_PYTHON_PACKAGE)
     mark_as_advanced(CLEAR UglifyJS_EXECUTABLE)
 else()
-    mark_as_advanced(FORCE BUILD_TANGELO_PYTHON_PACKAGE)
     mark_as_advanced(FORCE UglifyJS_EXECUTABLE)
 endif()
 
@@ -45,9 +46,9 @@ if(${BUILD_TESTING})
         NAMES virtualenv virtualenv2
     )
 
-    set(JS_STYLE_TESTS ON CACHE BOOL "Generate style tests for JS source files (via JSLint).")
-    mark_as_advanced(CLEAR JS_STYLE_TESTS)
-    if(${JS_STYLE_TESTS})
+    set(JS_LINT_TESTS ON CACHE BOOL "Generate style tests for JS source files (via JSLint).")
+    mark_as_advanced(CLEAR JS_LINT_TESTS)
+    if(${JS_LINT_TESTS})
         mark_as_advanced(CLEAR JSLint_EXECUTABLE)
     else()
         mark_as_advanced(FORCE JSLint_EXECUTABLE)
@@ -55,11 +56,13 @@ if(${BUILD_TESTING})
 
     set(PY_STYLE_TESTS ON CACHE BOOL "Generate style tests for Python source files (via pep8).")
     mark_as_advanced(CLEAR PY_STYLE_TESTS)
-    if(${PY_STYLE_TESTS})
-        mark_as_advanced(CLEAR Pep8_EXECUTABLE)
-    else()
-        mark_as_advanced(FORCE Pep8_EXECUTABLE)
-    endif()
+
+    # These tests are set to be OFF by default because they are mainly useful
+    # during development.  It's hard to get pylint tests to be definitive
+    # because they are very strict by design, and a file that fails a pylint
+    # test may actually be ok as it is.
+    set(PY_LINT_TESTS OFF CACHE BOOL "Generate pylint tests for Python source files.")
+    mark_as_advanced(CLEAR PY_LINT_TESTS)
 
     set(JS_UNIT_TESTS ON CACHE BOOL "Generate tangelo.js unit tests.")
     mark_as_advanced(CLEAR JS_UNIT_TESTS)
@@ -70,8 +73,8 @@ if(${BUILD_TESTING})
     set(WEB_CONTENT_TESTS ON CACHE BOOL "Generate tests for example web appplications.")
     mark_as_advanced(CLEAR WEB_CONTENT_TESTS)
 
-    set(PY_COVERAGE_REPORT ON CACHE BOOL "Generate Python coverage report.")
-    mark_as_advanced(CLEAR PY_COVERAGE_REPORT)
+    set(PY_COVERAGE_TEST ON CACHE BOOL "Generate Python coverage report.")
+    mark_as_advanced(CLEAR PY_COVERAGE_TEST)
 
     set(TESTING_HOST localhost CACHE STRING "The host to run Tangelo on for the test suite.")
     mark_as_advanced(TESTING_HOST)
@@ -85,15 +88,15 @@ if(${BUILD_TESTING})
         mark_as_advanced(FORCE PhantomJS_EXECUTABLE)
     endif()
 else()
-    mark_as_advanced(FORCE JS_STYLE_TESTS)
+    mark_as_advanced(FORCE JS_LINT_TESTS)
     mark_as_advanced(FORCE JSLint_EXECUTABLE)
     mark_as_advanced(FORCE PY_STYLE_TESTS)
-    mark_as_advanced(FORCE Pep8_EXECUTABLE)
+    mark_as_advanced(FORCE PY_LINT_TESTS)
     mark_as_advanced(FORCE JS_UNIT_TESTS)
     mark_as_advanced(FORCE PhantomJS_EXECUTABLE)
     mark_as_advanced(FORCE PY_UNIT_TESTS)
     mark_as_advanced(FORCE WEB_CONTENT_TESTS)
-    mark_as_advanced(FORCE PY_COVERAGE_REPORT)
+    mark_as_advanced(FORCE PY_COVERAGE_TEST)
     mark_as_advanced(FORCE TESTING_PORT)
 endif()
 
@@ -366,15 +369,24 @@ if(${BUILD_TESTING})
         COMMAND ${VIRTUALENV_EXECUTABLE} -p ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/venv && ${CMAKE_COMMAND} -E touch ${VIRTUALENV_STAMP}
     )
 
-    # Install Tangelo in the virtual environment, and also a coverage tool.
+    # Install Tangelo in the virtual environment, along with a coverage tool,
+    # pep8, and pylint.
     set(TANGELO_STAMP ${CMAKE_BINARY_DIR}/stamps/tangelo)
     add_custom_command(
         OUTPUT ${TANGELO_STAMP}
         COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/UninstallTangelo.cmake
         COMMAND ${VIRTUALENV_DIR}/bin/pip install sdist/tangelo-${TANGELO_VERSION}.tar.gz && ${CMAKE_COMMAND} -E touch ${TANGELO_STAMP}
         COMMAND ${VIRTUALENV_DIR}/bin/pip install coverage
+        COMMAND ${VIRTUALENV_DIR}/bin/pip install pep8
+        COMMAND ${VIRTUALENV_DIR}/bin/pip install pylint
         DEPENDS ${VIRTUALENV_STAMP} ${DIST_STAMP}
     )
+
+    set(COVERAGE_EXECUTABLE "${CMAKE_BINARY_DIR}/venv/bin/coverage")
+    set(PEP8_EXECUTABLE "${CMAKE_BINARY_DIR}/venv/bin/pep8")
+    set(PYLINT_EXECUTABLE "${CMAKE_BINARY_DIR}/venv/bin/pylint")
+    set(PYLINT_RCFILE "${CMAKE_SOURCE_DIR}/testing/pylint/pylintrc")
+    set(PYLINT_OPTIONS --rcfile=${PYLINT_RCFILE})
 
     set(TESTING_SOURCES
         testing/vtkweb/vtkwebtest.py
@@ -395,7 +407,7 @@ if(${BUILD_TESTING})
     )
 
     # Javascript style tests.
-    if(${JS_STYLE_TESTS})
+    if(${JS_LINT_TESTS})
         # Find JSLint.
         find_package(JSLint REQUIRED)
 
@@ -407,12 +419,18 @@ if(${BUILD_TESTING})
 
     # Python style tests.
     if(${PY_STYLE_TESTS})
-        # Find pep8.
-        find_package(Pep8 REQUIRED)
-
-        # Generate the tests.
         foreach(f ${PEP8_FILES})
-            add_test(style:py:${f} ${Pep8_EXECUTABLE} ${f})
+            add_test(style:py:pep8:${f} ${PEP8_EXECUTABLE} ${f})
+        endforeach()
+    endif()
+
+    # Python lint tests.
+    if(PY_LINT_TESTS)
+        foreach(f ${PEP8_FILES})
+            add_test(
+                NAME style:py:pylint:${f}
+                COMMAND ${PYLINT_EXECUTABLE} ${PYLINT_OPTIONS} ${f}
+                )
         endforeach()
     endif()
 
@@ -473,7 +491,7 @@ if(${BUILD_TESTING})
 
         list(APPEND JS_UNIT_TEST_FILES ${coverage_test})
 
-        add_tangelo_test(coverage:js:report
+        add_tangelo_test(coverage:js
             ${PhantomJS_EXECUTABLE}
             ${CMAKE_SOURCE_DIR}/testing/phantomjs/blanket-test.js
             http://${TESTING_HOST}:${TESTING_PORT}/tests/js-unit-tests/tangelojs-coverage.html
@@ -482,13 +500,12 @@ if(${BUILD_TESTING})
     endif()
 
     # Python coverage testing setup.
-    set(COVERAGE_EXECUTABLE "${CMAKE_BINARY_DIR}/venv/bin/coverage")
     if(PY_COVERAGE_REPORT)
         add_test(coverage:py:reset
             ${COVERAGE_EXECUTABLE} erase
         )
 
-        add_test(coverage:py:report
+        add_test(coverage:py
             ${COVERAGE_EXECUTABLE} html -d ${CMAKE_BINARY_DIR}/tangelo/web/tests/python-coverage --fail-under=100
         )
     endif()
@@ -504,7 +521,7 @@ if(${BUILD_TESTING})
                     ${COVERAGE_EXECUTABLE} run --append --source=${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/util.py,${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/__init__.py --include="*util*" ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/${f}.py
                 )
                 set_property(TEST ${name} APPEND PROPERTY DEPENDS coverage:py:reset)
-                set_property(TEST coverage:py:report APPEND PROPERTY DEPENDS ${name})
+                set_property(TEST coverage:py APPEND PROPERTY DEPENDS ${name})
             else()
                 add_test(${name}
                     ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/${f}.py
