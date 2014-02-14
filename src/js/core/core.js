@@ -22,7 +22,7 @@ var tangelo = {};
             if (!jqxhr) {
                 jqxhr = message;
             }
-            message = tangelo.error.message[code] || "unrecognized error, code " + code;
+            message = tangelo.error.string(code);
         }
 
         error.message = message;
@@ -33,9 +33,14 @@ var tangelo = {};
 
         return error;
     };
-    tangelo.error.AJAX_FAILURE = 0;
     tangelo.error.message = [];
+    tangelo.error.string = function (code) {
+        return tangelo.error.message[code] || "unrecognized error, code " + code;
+    };
+    tangelo.error.AJAX_FAILURE = 0;
+    tangelo.error.APPLICATION_ERROR = 1;
     tangelo.error.message[tangelo.error.AJAX_FAILURE] = "ajax failure";
+    tangelo.error.message[tangelo.error.APPLICATION_ERROR] = "application error";
 
     // An error bad enough to halt execution of the problem.
     tangelo.fatalError = function (module, msg) {
