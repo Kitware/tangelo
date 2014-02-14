@@ -35,7 +35,7 @@
                     // necessary.  Otherwise, pass the status and data along to the
                     // callback.
                     if (data.error) {
-                        callback(undefined, undefined, data.error);
+                        callback(undefined, undefined, tangelo.error(tangelo.error.APPLICATION_ERROR, data.error));
                     } else {
                         callback(data.result, data.status);
                     }

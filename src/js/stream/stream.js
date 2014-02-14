@@ -43,10 +43,10 @@
             success: function (result) {
                 if (result.error) {
                     console.warn("[tangelo.stream.query()] error: " + result.error);
-                    return;
+                    callback(undefined, undefined, tangelo.error(tangelo.APPLICATION_ERROR, result.error));
+                } else {
+                    callback(result.data, result.finished);
                 }
-
-                callback(result.data, result.finished);
             }
         });
     };
