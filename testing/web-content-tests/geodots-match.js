@@ -8,23 +8,16 @@ declareTest({
     test: function (page, info) {
         "use strict";
 
-        var rect,
-            screencap,
+        var screencap,
             ground,
             diff;
 
-        rect = page.evaluate(function () {
-            var canvas = $("canvas");
-            return {
-                top: canvas.offset().top,
-                left: canvas.offset().left,
-                width: canvas.width(),
-                height: canvas.height()
-            };
-        });
+        screencap = page.evaluate(function () {
+            var canvas = $("canvas")[0],
+                b64 = canvas.toDataURL().split(",")[1];
 
-        page.clipRect = rect;
-        screencap = page.renderBase64("png");
+            return b64;
+        });
 
         ground = info.imageData;
 

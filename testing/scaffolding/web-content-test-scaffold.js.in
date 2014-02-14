@@ -71,6 +71,7 @@ function declareTest(cfg) {
 // Global functions that will be available to the testing function.
 var toImageData;
 var compareImages;
+var dumpImage;
 
 // ---user test suite code begin---
 @TEST_SUITE@
@@ -207,6 +208,11 @@ var runner = function () {
                 });
             });
         });
+    };
+
+    dumpImage = function (imgdata, filename) {
+        var png = window.atob(imgdata);
+        fs.write(filename, png, "wb");
     };
 
     // Invoke the test runner.
