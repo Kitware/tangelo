@@ -159,6 +159,7 @@ set(JS_LINT_FILES
 
 # These files should be validated with pep8.
 set(PEP8_FILES
+    ${CMAKE_SOURCE_DIR}/tangelo/bin/tangelo
     ${CMAKE_SOURCE_DIR}/tangelo/bin/vtkweb-launcher.py
     ${CMAKE_SOURCE_DIR}/tangelo/setup.py
     ${CMAKE_SOURCE_DIR}/tangelo/tangelo/__init__.py
