@@ -98,8 +98,22 @@ def treat_url():
             cherrypy.thread_data.target = {"type": "dir",
                                            "path": path}
     elif os.path.exists(path):
-        cherrypy.thread_data.target = {"type": "file",
-                                       "path": path}
+        # Don't serve Python files (if someone really wants to serve the program
+        # text, they can create a symlink with a different file extension and
+        # that will be served just fine).
+        if len(path) > 3 and path[-3:] == ".py":
+            cherrypy.thread_data.target = {"type": "restricted",
+                                           "path": path}
+        else:
+            # Also do not serve config files that match up to Python files.
+            if (len(path) > 5 and
+                    path[-5:] == ".json" and
+                    os.path.exists(path[:-5] + ".py")):
+                cherrypy.thread_data.target = {"type": "restricted",
+                                               "path": path}
+            else:
+                cherrypy.thread_data.target = {"type": "file",
+                                               "path": path}
     else:
         service_path = None
         pargs = None

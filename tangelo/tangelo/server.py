@@ -325,6 +325,9 @@ class Tangelo(object):
                                            **args)
             elif target["type"] == "404":
                 raise cherrypy.lib.static.serve_file(target["path"])
+            elif target["type"] == "restricted":
+                raise cherrypy.HTTPError("403 Forbidden",
+                                         "The path '%s' is forbidden" % (cherrypy.serving.request.path_info))
             else:
                 raise RuntimeError("Illegal target type '%s'" %
                                    (target["type"]))
