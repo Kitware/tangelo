@@ -564,9 +564,9 @@ if __name__ == "__main__":
         root = tangelo.util.expandpath(root)
     else:
         default_paths = map(tangelo.util.expandpath, [sys.prefix + "/share/tangelo/web", invocation_dir + "/share/tangelo/web"])
-        for p in default_paths:
-            if os.path.exists(p):
-                root = p
+        for path in default_paths:
+            if os.path.exists(path):
+                root = path
                 break
 
         if not root:
