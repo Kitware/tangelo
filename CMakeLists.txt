@@ -357,6 +357,9 @@ if(${BUILD_TESTING})
         200-ok
         geodots-match
         dynamic-control-panel
+        service-config
+        service-protected
+        service-config-protected
     )
 
     # Configure the python test runner.
