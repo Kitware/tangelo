@@ -26,78 +26,127 @@ mark_as_advanced(BUILD_TANGELO)
 set(BUILD_TANGELO_PYTHON_PACKAGE ON CACHE BOOL "Generate a Python package for Tangelo")
 mark_as_advanced(BUILD_TANGELO_PYTHON_PACKAGE)
 
-if(${BUILD_TANGELO})
-    mark_as_advanced(CLEAR UglifyJS_EXECUTABLE)
-else()
-    mark_as_advanced(FORCE UglifyJS_EXECUTABLE)
-endif()
-
 # Whether to build Sphinx documentation.
 set(BUILD_DOCUMENTATION OFF CACHE BOOL "Generate documentation for project.")
-if(${BUILD_DOCUMENTATION})
-    mark_as_advanced(CLEAR Sphinx_EXECUTABLE)
-else()
-    mark_as_advanced(FORCE Sphinx_EXECUTABLE)
-endif()
 
-# Show/hide testing options depending on whether testing is enabled.
-if(${BUILD_TESTING})
+# We will need Sphinx (for documentation), or the virtual environment in general
+# (for testing).
+if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
     find_program(VIRTUALENV_EXECUTABLE
         NAMES virtualenv virtualenv2
     )
 
+    # This initializes the virtual environment.
+    set(VENV_DIR ${CMAKE_BINARY_DIR}/venv)
+    set(VENV_PYTHON_EXECUTABLE ${VENV_DIR}/bin/python)
+    set(PIP_EXECUTABLE ${VENV_DIR}/bin/pip)
+    add_custom_command(
+        OUTPUT ${VENV_PYTHON_EXECUTABLE}
+               ${VENV_DIR}/bin/pip
+        COMMAND ${VIRTUALENV_EXECUTABLE} -p ${PYTHON_EXECUTABLE}
+                                         ${CMAKE_BINARY_DIR}/venv
+        COMMENT "Creating virtual Python environment"
+    )
+
+    # Install Sphinx (for documentation).
+    set(SPHINX_EXECUTABLE ${VENV_DIR}/bin/sphinx-build)
+    add_custom_command(
+        OUTPUT ${SPHINX_EXECUTABLE}
+        COMMAND ${PIP_EXECUTABLE} install Sphinx
+        COMMENT "Installing Sphinx"
+    )
+
+    # Install coverage (for Python coverage testing).
+    set(COVERAGE_EXECUTABLE ${VENV_DIR}/bin/coverage)
+    add_custom_command(
+        OUTPUT ${COVERAGE_EXECUTABLE}
+        COMMAND ${PIP_EXECUTABLE} install coverage
+        COMMENT "Installing coverage"
+    )
+
+    # Install pep8 (for Python style testing).
+    set(PEP8_EXECUTABLE ${VENV_DIR}/bin/pep8)
+    add_custom_command(
+        OUTPUT ${PEP8_EXECUTABLE}
+        COMMAND ${PIP_EXECUTABLE} install pep8
+        COMMENT "Installing pep8"
+    )
+
+    # Install pylint (for Python lint tests).
+    set(PYLINT_EXECUTABLE ${VENV_DIR}/bin/pylint)
+    add_custom_command(
+        OUTPUT ${PYLINT_EXECUTABLE}
+        COMMAND ${PIP_EXECUTABLE} install pylint
+        COMMENT "Installing pylint"
+    )
+endif()
+
+# Need UglifyJS to build Tangelo; JSLint and PhantomJS to test.
+if(${BUILD_TANGELO} OR "${BUILD_TESTING}")
+    find_program(NPM_EXECUTABLE
+        npm
+    )
+
+    set(NPM_DIR ${CMAKE_BINARY_DIR}/node_modules)
+
+    # Install JSLint (for Javascript style/lint tests).
+    set(JSLINT_EXECUTABLE ${NPM_DIR}/jslint/bin/jslint.js)
+    add_custom_command(
+        OUTPUT ${JSLINT_EXECUTABLE}
+        COMMAND ${NPM_EXECUTABLE} install jslint
+        COMMENT "Installing jslint"
+    )
+
+    # Install UglifyJS (to build Tangelo Javascript libraries).
+    set(UGLIFYJS_EXECUTABLE ${NPM_DIR}/uglify-js/bin/uglifyjs)
+    add_custom_command(
+        OUTPUT ${UGLIFYJS_EXECUTABLE}
+        COMMAND ${NPM_EXECUTABLE} install uglify-js
+        COMMENT "Installing uglify-js"
+    )
+
+    # Install PhantomJS (for web content and Javascript unit tests).
+    set(PHANTOMJS_EXECUTABLE ${NPM_DIR}/phantomjs/bin/phantomjs)
+    add_custom_command(
+        OUTPUT ${PHANTOMJS_EXECUTABLE}
+        COMMAND ${NPM_EXECUTABLE} install phantomjs
+        COMMENT "Installing phantomjs"
+    )
+endif()
+
+# Show/hide testing options depending on whether testing is enabled.
+if(${BUILD_TESTING})
     set(JS_LINT_TESTS ON CACHE BOOL "Generate style tests for JS source files (via JSLint).")
-    mark_as_advanced(CLEAR JS_LINT_TESTS)
-    if(${JS_LINT_TESTS})
-        mark_as_advanced(CLEAR JSLint_EXECUTABLE)
-    else()
-        mark_as_advanced(FORCE JSLint_EXECUTABLE)
-    endif()
-
     set(PY_STYLE_TESTS ON CACHE BOOL "Generate style tests for Python source files (via pep8).")
-    mark_as_advanced(CLEAR PY_STYLE_TESTS)
-
-    # These tests are set to be OFF by default because they are mainly useful
-    # during development.  It's hard to get pylint tests to be definitive
-    # because they are very strict by design, and a file that fails a pylint
-    # test may actually be ok as it is.
     set(PY_LINT_TESTS OFF CACHE BOOL "Generate pylint tests for Python source files.")
-    mark_as_advanced(CLEAR PY_LINT_TESTS)
-
     set(JS_UNIT_TESTS ON CACHE BOOL "Generate tangelo.js unit tests.")
-    mark_as_advanced(CLEAR JS_UNIT_TESTS)
-
     set(PY_UNIT_TESTS ON CACHE BOOL "Generate tangelo Python module unit tests.")
-    mark_as_advanced(CLEAR PY_STYLE_TESTS)
-
     set(WEB_CONTENT_TESTS ON CACHE BOOL "Generate tests for example web appplications.")
-    mark_as_advanced(CLEAR WEB_CONTENT_TESTS)
-
     set(PY_COVERAGE_TEST ON CACHE BOOL "Generate Python coverage report.")
-    mark_as_advanced(CLEAR PY_COVERAGE_TEST)
-
     set(TESTING_HOST localhost CACHE STRING "The host to run Tangelo on for the test suite.")
+    set(TESTING_PORT 50047 CACHE STRING "The port number to run Tangelo for the test suite.")
+
     mark_as_advanced(TESTING_HOST)
 
-    set(TESTING_PORT 50047 CACHE STRING "The port number to run Tangelo for the test suite.")
-    mark_as_advanced(CLEAR TESTING_PORT)
-
-    if(${JS_UNIT_TESTS} OR ${WEB_CONTENT_TESTS})
-        mark_as_advanced(CLEAR PhantomJS_EXECUTABLE)
-    else()
-        mark_as_advanced(FORCE PhantomJS_EXECUTABLE)
-    endif()
+    mark_as_advanced(CLEAR JS_LINT_TESTS
+                           PY_STYLE_TESTS
+                           PY_LINT_TESTS
+                           JS_UNIT_TESTS
+                           PY_STYLE_TESTS
+                           WEB_CONTENT_TESTS
+                           PY_COVERAGE_TEST
+                           TESTING_PORT
+    )
 else()
-    mark_as_advanced(FORCE JS_LINT_TESTS)
-    mark_as_advanced(FORCE JSLint_EXECUTABLE)
-    mark_as_advanced(FORCE PY_STYLE_TESTS)
-    mark_as_advanced(FORCE PY_LINT_TESTS)
-    mark_as_advanced(FORCE JS_UNIT_TESTS)
-    mark_as_advanced(FORCE PhantomJS_EXECUTABLE)
-    mark_as_advanced(FORCE PY_UNIT_TESTS)
-    mark_as_advanced(FORCE WEB_CONTENT_TESTS)
-    mark_as_advanced(FORCE PY_COVERAGE_TEST)
-    mark_as_advanced(FORCE TESTING_PORT)
+    mark_as_advanced(FORCE JS_LINT_TESTS
+                           PY_STYLE_TESTS
+                           PY_LINT_TESTS
+                           JS_UNIT_TESTS
+                           PY_UNIT_TESTS
+                           WEB_CONTENT_TESTS
+                           PY_COVERAGE_TEST
+                           TESTING_PORT
+    )
 endif()
 
 # We will need the Python interpreter to build the package and run the tests.
@@ -231,54 +280,30 @@ if(${BUILD_TANGELO})
     # Also copy the README file.
     copy_file(README.rst ${CMAKE_BINARY_DIR}/tangelo/README)
 
-    # Uglify and concatenate the library js files.
-    #
-    # Set up options to create an unminified file.
-    set(concatenator cat)
-    set(output_operator ">")
-
-    # Use UglifyJS to create a minified file, falling back on an unminified file if
-    # it cannot be found.
-    find_package(UglifyJS)
-    if(UglifyJS_EXECUTABLE)
-        set(min_concatenator ${UglifyJS_EXECUTABLE})
-        set(min_output_operator "-o")
-        set(min_mangle_flag "-m")
-    else()
-        message(WARNING "Could not find UglifyJS - generating UNMINIFIED javascript file for tangelo.min.js")
-
-        set(min_concatenator ${concatenator})
-        set(min_output_operator ${output_operator})
-        unset(min_mangle_flag)
-    endif()
-
+    # Build the Tangelo javascript libraries.
     set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/tangelo/web/js/tangelo.min.js)
     set(JS_FILE ${CMAKE_BINARY_DIR}/tangelo/web/js/tangelo.js)
 
+    # Minified .js file.
     add_custom_command(
         OUTPUT ${MIN_JS_FILE}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/tangelo/web/js
-        COMMAND ${min_concatenator} ${JS_UGLIFY_FILES} ${min_mangle_flag} ${min_output_operator} ${MIN_JS_FILE}
-        DEPENDS ${JS_UGLIFY_FILES}
+        COMMAND ${UGLIFYJS_EXECUTABLE} ${JS_UGLIFY_FILES} -m -o ${MIN_JS_FILE}
+        DEPENDS ${JS_UGLIFY_FILES} ${UGLIFYJS_EXECUTABLE}
         COMMENT "Creating minified javascript library"
     )
 
+    # Unminified .js file.
     add_custom_command(
         OUTPUT ${JS_FILE}
-        COMMAND ${concatenator} ${JS_UGLIFY_FILES} ${mangle_flag} ${output_operator} ${JS_FILE}
-        DEPENDS ${JS_UGLIFY_FILES}
+        COMMAND ${UGLIFYJS_EXECUTABLE} ${JS_UGLIFY_FILES} -b -o ${JS_FILE}
+        DEPENDS ${JS_UGLIFY_FILES} ${UGLIFYJS_EXECUTABLE}
         COMMENT "Creating unminified javascript library"
     )
 endif()
 
 # Generate documentation.
 if(${BUILD_DOCUMENTATION})
-    # Find Sphinx
-    find_package(Sphinx REQUIRED)
-
-    # A signal file to indicate the last time the documentation was built.
-    set(DOCUMENTATION_STAMP ${CMAKE_BINARY_DIR}/stamps/documentation)
-
     set(DOCUMENTATION_SOURCES
         ${CMAKE_SOURCE_DIR}/docs/advanced-usage.rst
         ${CMAKE_SOURCE_DIR}/docs/architecture.rst
@@ -303,24 +328,30 @@ if(${BUILD_DOCUMENTATION})
     )
 
     # A command to generate the documentation.
+    set(DOCUMENTATION_DIR ${CMAKE_BINARY_DIR}/tangelo/web/docs)
+    set(DOCUMENTATION_INDEX ${DOCUMENTATION_DIR}/index.html)
     add_custom_command(
-        OUTPUT ${DOCUMENTATION_STAMP}
-        COMMAND ${Sphinx_EXECUTABLE} -b html ${CMAKE_SOURCE_DIR}/docs ${CMAKE_BINARY_DIR}/tangelo/web/docs && ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_STAMP}
-        DEPENDS ${DOCUMENTATION_SOURCES} ${DOCUMENTATION_CONTROL_FILE}
+        OUTPUT ${DOCUMENTATION_INDEX}
+        COMMAND ${SPHINX_EXECUTABLE} -b html
+                ${CMAKE_SOURCE_DIR}/docs ${DOCUMENTATION_DIR}
+        COMMAND ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_INDEX}
+        DEPENDS ${DOCUMENTATION_SOURCES} ${DOCUMENTATION_CONTROL_FILE} ${SPHINX_EXECUTABLE}
         COMMENT "Generating documentation"
     )
+
+    set(DOCUMENTATION_DEPENDENCIES ${DOCUMENTATION_INDEX})
 endif()
 
 if(${BUILD_TANGELO} AND ${BUILD_TANGELO_PYTHON_PACKAGE})
     # A target to build the package.
-    set(DIST_STAMP ${CMAKE_BINARY_DIR}/stamps/sdist)
+    set(TANGELO_PACKAGE ${CMAKE_BINARY_DIR}/sdist/tangelo-${TANGELO_VERSION}.tar.gz)
     add_custom_command(
-        OUTPUT ${DIST_STAMP}
-        COMMAND ${PYTHON_EXECUTABLE} setup.py sdist --dist-dir ../sdist >../sdist.log && ${CMAKE_COMMAND} -E touch ${DIST_STAMP}
+        OUTPUT ${TANGELO_PACKAGE}
+        COMMAND ${PYTHON_EXECUTABLE} setup.py sdist --dist-dir ../sdist >../sdist.log
         DEPENDS ${TANGELO_BUILD_FILES}
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tangelo
-        COMMENT "Generating Python package"
-        )
+        COMMENT "Creating Tangelo Python package"
+    )
 endif()
 
 # Testing
@@ -363,35 +394,25 @@ if(${BUILD_TESTING})
     )
 
     # Configure the python test runner.
-    set(VIRTUALENV_DIR ${CMAKE_BINARY_DIR}/venv)
     configure_file(testing/tangelo-test-runner.py.in ${CMAKE_BINARY_DIR}/tangelo-test-runner.py)
 
-    # Create a virtual Python environment.
-    set(VIRTUALENV_STAMP ${CMAKE_BINARY_DIR}/stamps/virtualenv)
+    # Install Tangelo in the virtual environment.
+    set(TANGELO_EXECUTABLE ${VENV_DIR}/bin/tangelo)
     add_custom_command(
-        OUTPUT ${VIRTUALENV_STAMP}
-        COMMAND ${VIRTUALENV_EXECUTABLE} -p ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/venv && ${CMAKE_COMMAND} -E touch ${VIRTUALENV_STAMP}
+        OUTPUT ${TANGELO_EXECUTABLE}
+        COMMAND ${PIP_EXECUTABLE} install ${TANGELO_PACKAGE}
+        DEPENDS ${PIP_EXECUTABLE} ${TANGELO_PACKAGE}
+        COMMENT "Installing Tangelo"
     )
 
-    # Install Tangelo in the virtual environment, along with a coverage tool,
-    # pep8, and pylint.
-    set(TANGELO_STAMP ${CMAKE_BINARY_DIR}/stamps/tangelo)
-    add_custom_command(
-        OUTPUT ${TANGELO_STAMP}
-        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/cmake/UninstallTangelo.cmake
-        COMMAND ${VIRTUALENV_DIR}/bin/pip install sdist/tangelo-${TANGELO_VERSION}.tar.gz && ${CMAKE_COMMAND} -E touch ${TANGELO_STAMP}
-        COMMAND ${VIRTUALENV_DIR}/bin/pip install coverage
-        COMMAND ${VIRTUALENV_DIR}/bin/pip install pep8
-        COMMAND ${VIRTUALENV_DIR}/bin/pip install pylint
-        DEPENDS ${VIRTUALENV_STAMP} ${DIST_STAMP}
+    # These will be added to the dependencies of the top-level target.
+    list(APPEND TESTING_DEPENDENCIES ${TANGELO_EXECUTABLE}
+                                     ${COVERAGE_EXECUTABLE}
+                                     ${PEP8_EXECUTABLE}
+                                     ${PYLINT_EXECUTABLE}
     )
 
-    set(COVERAGE_EXECUTABLE "${CMAKE_BINARY_DIR}/venv/bin/coverage")
-    set(PEP8_EXECUTABLE "${CMAKE_BINARY_DIR}/venv/bin/pep8")
-    set(PYLINT_EXECUTABLE "${CMAKE_BINARY_DIR}/venv/bin/pylint")
-    set(PYLINT_RCFILE "${CMAKE_SOURCE_DIR}/testing/pylint/pylintrc")
-    set(PYLINT_OPTIONS --rcfile=${PYLINT_RCFILE})
-
+    # TODO: figure out how to move this test into the new testing framework.
     set(TESTING_SOURCES
         testing/vtkweb/vtkwebtest.py
         testing/vtkweb/baseline-cone.png
@@ -412,13 +433,13 @@ if(${BUILD_TESTING})
 
     # Javascript style tests.
     if(${JS_LINT_TESTS})
-        # Find JSLint.
-        find_package(JSLint REQUIRED)
-
         # Generate the tests.
         foreach(f ${JS_LINT_FILES})
-            add_test(style:js:${f} ${JSLint_EXECUTABLE} ${f})
+            add_test(style:js:${f} ${JSLINT_EXECUTABLE} ${f})
         endforeach()
+
+        # Make sure JSLint is installed.
+        list(APPEND TESTING_DEPENDENCIES ${JSLINT_EXECUTABLE})
     endif()
 
     # Python style tests.
@@ -426,16 +447,25 @@ if(${BUILD_TESTING})
         foreach(f ${PEP8_FILES})
             add_test(style:py:pep8:${f} ${PEP8_EXECUTABLE} ${f})
         endforeach()
+
+        # Make sure pep8 is installed.
+        list(APPEND TESTING_DEPENDENCIES ${PEP8_EXECUTABLE})
     endif()
 
     # Python lint tests.
     if(PY_LINT_TESTS)
+        set(PYLINT_RCFILE "${CMAKE_SOURCE_DIR}/testing/pylint/pylintrc")
+        set(PYLINT_OPTIONS --rcfile=${PYLINT_RCFILE})
+
         foreach(f ${PEP8_FILES})
             add_test(
                 NAME style:py:pylint:${f}
                 COMMAND ${PYLINT_EXECUTABLE} ${PYLINT_OPTIONS} ${f}
                 )
         endforeach()
+
+        # Make sure pylint is installed.
+        list(APPEND TESTING_DEPENDENCIES ${PYLINT_EXECUTABLE})
     endif()
 
     # A variation of add_test that invokes setup and teardown around the
@@ -452,8 +482,8 @@ if(${BUILD_TESTING})
 
     # Unit tests for tangelo.js.
     if(${JS_UNIT_TESTS})
-        # Find PhantomJS.
-        find_package(PhantomJS REQUIRED)
+        # Make sure PhantomJS is installed.
+        list(APPEND TESTING_DEPENDENCIES ${PHANTOMJS_EXECUTABLE})
 
         # Generate the tests.
         foreach(f ${JS_UNIT_TEST_CASES})
@@ -473,9 +503,8 @@ if(${BUILD_TESTING})
             list(APPEND JS_UNIT_TEST_FILES ${html})
 
             add_tangelo_test(unit-test:js:${f}
-               ${PhantomJS_EXECUTABLE}
-               ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js
-               http://${TESTING_HOST}:${TESTING_PORT}/tests/js-unit-tests/${f}.html
+                ${PHANTOMJS_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js
+                                            http://${TESTING_HOST}:${TESTING_PORT}/tests/js-unit-tests/${f}.html
             )
         endforeach()
 
@@ -496,7 +525,7 @@ if(${BUILD_TESTING})
         list(APPEND JS_UNIT_TEST_FILES ${coverage_test})
 
         add_tangelo_test(coverage:js
-            ${PhantomJS_EXECUTABLE}
+            ${PHANTOMJS_EXECUTABLE}
             ${CMAKE_SOURCE_DIR}/testing/phantomjs/blanket-test.js
             http://${TESTING_HOST}:${TESTING_PORT}/tests/js-unit-tests/tangelojs-coverage.html
             100
@@ -536,8 +565,8 @@ if(${BUILD_TESTING})
 
     # Web content tests.
     if(${WEB_CONTENT_TESTS})
-        # Find PhantomJS.
-        find_package(PhantomJS REQUIRED)
+        # Make sure PhantomJS is installed.
+        list(APPEND TESTING_DEPENDENCIES ${PHANTOMJS_EXECUTABLE})
 
         # Generate the tests.
         foreach(f ${WEB_CONTENT_TEST_CASES})
@@ -545,8 +574,10 @@ if(${BUILD_TESTING})
             set(js_out ${CMAKE_BINARY_DIR}/tangelo/web/tests/web-content-tests/${f}.js)
 
             add_custom_command(OUTPUT ${js_out}
-                COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}" -DTESTING_HOST="${TESTING_HOST}" -DTESTING_PORT="${TESTING_PORT}" -P ${CMAKE_SOURCE_DIR}/cmake/configure-web-content-test.cmake
-                COMMAND ${CMAKE_COMMAND} -E touch ${js_out}
+                COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}"
+                                         -DTESTING_HOST="${TESTING_HOST}"
+                                         -DTESTING_PORT="${TESTING_PORT}"
+                                         -P ${CMAKE_SOURCE_DIR}/cmake/configure-web-content-test.cmake
                 DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/scaffolding/web-content-test-scaffold.js.in
                 COMMENT "Generating web content test ${f}"
             )
@@ -554,7 +585,7 @@ if(${BUILD_TESTING})
             list(APPEND WEB_CONTENT_TEST_FILES ${js_out})
 
             add_tangelo_test(web-content:${f}
-                ${PhantomJS_EXECUTABLE} ${js_out}
+                ${PHANTOMJS_EXECUTABLE} ${js_out}
             )
         endforeach()
     endif()
@@ -566,13 +597,10 @@ add_custom_target(
     tangelo-all
     ALL
     DEPENDS ${ALL_COPIED_FILES}
-            ${EXAMPLES_SYMLINK}
             ${MIN_JS_FILE}
             ${JS_FILE}
-            ${DOCUMENTATION_STAMP}
-            ${DIST_STAMP}
-            ${VIRTUALENV_STAMP}
-            ${TANGELO_STAMP}
+            ${TESTING_DEPENDENCIES}
+            ${DOCUMENTATION_DEPENDENCIES}
             ${JS_UNIT_TEST_FILES}
             ${WEB_CONTENT_TEST_FILES}
 )
