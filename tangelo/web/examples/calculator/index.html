@@ -1,0 +1,66 @@
+<!doctype html>
+<meta charset=utf-8>
+
+<title>Calculator</title>
+
+<script src=http://code.jquery.com/jquery-1.8.2.min.js></script>
+<script src=http://d3js.org/d3.v3.min.js charset=utf-8></script>
+<script src=/js/tangelo.min.js></script>
+<script src=calc.js></script>
+
+<link href=http://bootswatch.com/cosmo/bootstrap.min.css rel=stylesheet>
+<link href=//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css rel=stylesheet>
+<script src=http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js></script>
+
+<style>
+    body {
+        padding-top: 50px;
+    }
+
+    #control-panel {
+        background-color: lightgray;
+    }
+</style>
+
+<div id=info-panel class="modal fade">
+    <div class=modal-dialog>
+        <div class=modal-content>
+            <div class=modal-header>
+                <h3>Information</h3>
+            </div>
+
+            <div class=modal-body>
+                A simple calculator that demonstrates how to use Python
+                services in a Tangelo application.
+            </div>
+
+            <div class=modal-footer>
+                <a class="btn btn-default" data-dismiss=modal>OK</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class=navbar-header>
+        <a class=navbar-brand href=/examples>Tangelo</a>
+    </div>
+
+    <ul class="nav navbar-nav">
+        <li class=active> <a>MyApp</a>
+        <li><a style=cursor:pointer data-toggle=modal data-target=#info-panel><span class="glyphicon glyphicon-info-sign"></span> Info</a>
+    </ul>
+</div>
+
+<p>Value 1: <input id=input-a type=text></input></p>
+
+<p>Value 2: <input id=input-b type=text></input></p>
+
+<p>
+    <a id=plus class="btn btn-default">Add</a>
+    <a id=minus class="btn btn-default">Substract</a>
+    <a id=times class="btn btn-default">Multiply</a>
+    <a id=divide class="btn btn-default">Divide</a>
+</p>
+
+<p>Result: <span id=result></span></p>
