@@ -4,7 +4,7 @@
 function(copy_file f outfile)
     add_custom_command(
         OUTPUT ${outfile}
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/${f} ${outfile}
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/${f} ${outfile}
         DEPENDS ${f}
         COMMENT "Copying ${f}"
     )
