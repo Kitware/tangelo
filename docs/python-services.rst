@@ -53,10 +53,12 @@ Here is a simple example of a web service.  Suppose
                 return "Unsupported operation: %s\nAllowed operations are: %s" % (operation, ", ".join(allowed))
         except ValueError:
             return "Could not %s '%s' and '%s'" % (operation, a, b)
+        except ZeroDivisionError:
+            return "Can't divide by zero!"
 
 This is a Python module named ``calc``, implementing a very rudimentary
 four-function calculator in the ``run()`` function.  Tangelo will respond to a
-request for the URL ``http://localhost:8080/~riker/calc/add?a=33&b=14``
+request for the URL ``http://localhost:8080/examples/calculator/calc/add?a=33&b=14``
 (**without** the trailing ``.py``) by loading ``calc.py`` as a Python module,
 executing its ``run()`` function, and returning the result - in this case, the
 string ``47`` - as the contents of the URL.
@@ -90,7 +92,7 @@ the following:
 
     function do_arithmetic(op) {
         var a_val = $("#input-a").val();
-        var b_val = $("#input-a").val();
+        var b_val = $("#input-b").val();
 
         $.ajax({
             url: "calc/" + op,
@@ -107,19 +109,19 @@ the following:
 
     $("#plus").click(function () {
         do_arithmetic("add");
-    };
+    });
 
     $("#minus").click(function () {
         do_arithmetic("subtract");
-    };
+    });
 
     $("#times").click(function () {
         do_arithmetic("multiply");
-    };
+    });
 
     $("#divide").click(function () {
         do_arithmetic("divide");
-    };
+    });
 
 The ``do_arithmetic()`` function is called whenever the operation buttons are
 clicked; it contains a call to the JQuery ``ajax()`` function, which prepares a
