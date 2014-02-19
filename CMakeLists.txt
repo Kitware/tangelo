@@ -527,7 +527,9 @@ if(${BUILD_TESTING})
             # jasmine runner) via a custom command, so the file is regenerated
             # when the source file changes.
             add_custom_command(OUTPUT ${html}
-                COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}" -P ${CMAKE_SOURCE_DIR}/cmake/configure-js-unit-test.cmake
+                COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}"
+                                         -DSOURCE_DIR="${CMAKE_SOURCE_DIR}"
+                                         -P ${CMAKE_SOURCE_DIR}/cmake/configure-js-unit-test.cmake
                 COMMAND ${CMAKE_COMMAND} -E touch ${html}
                 DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/scaffolding/jasmine-scaffold.html.in
                 COMMENT "Generating Javascript unit test ${f}"
@@ -549,7 +551,9 @@ if(${BUILD_TESTING})
         set(coverage_test ${CMAKE_BINARY_DIR}/tangelo/web/tests/js-unit-tests/tangelojs-coverage.html)
         set(coverage_configurator  ${CMAKE_SOURCE_DIR}/cmake/configure-js-coverage-test.cmake)
         add_custom_command(OUTPUT ${coverage_test}
-            COMMAND ${CMAKE_COMMAND} "-DJS_UNIT_TEST_CASES=\"${JS_UNIT_TEST_CASES}\"" -P ${coverage_configurator}
+            COMMAND ${CMAKE_COMMAND} "-DJS_UNIT_TEST_CASES=\"${JS_UNIT_TEST_CASES}\""
+                                     -DSOURCE_DIR="${CMAKE_SOURCE_DIR}"
+                                     -P ${coverage_configurator}
             COMMAND ${CMAKE_COMMAND} -E touch ${coverage_test}
             DEPENDS ${JS_UNIT_TEST_FILES} ${CMAKE_SOURCE_DIR}/testing/scaffolding/coverage-scaffold.html.in ${coverage_configurator}
             COMMENT "Generating tangelo.js coverage test"
@@ -610,7 +614,9 @@ if(${BUILD_TESTING})
                 COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}"
                                          -DTESTING_HOST="${TESTING_HOST}"
                                          -DTESTING_PORT="${TESTING_PORT}"
+                                         -DSOURCE_DIR="${CMAKE_SOURCE_DIR}"
                                          -P ${CMAKE_SOURCE_DIR}/cmake/configure-web-content-test.cmake
+                COMMAND ${CMAKE_COMMAND} -E touch ${js_out}
                 DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/scaffolding/web-content-test-scaffold.js.in
                 COMMENT "Generating web content test ${f}"
             )
