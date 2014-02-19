@@ -1,3 +1,4 @@
+import cgi
 import datetime
 import sys
 import HTMLParser
@@ -18,6 +19,9 @@ cpserver = None
 class Tangelo(object):
     # An HTML parser for use in the error_page handler.
     html = HTMLParser.HTMLParser()
+
+    # An in-band signal to treat HTML error messages as literal strings.
+    literal = "literal:::"
 
     def __init__(self, vtkweb=None, stream=None):
         self.vtkweb = vtkweb
@@ -74,7 +78,8 @@ class Tangelo(object):
 
     @staticmethod
     def error_page(status, message, traceback, version):
-        message = Tangelo.html.unescape(message)
+        if message.startswith(Tangelo.literal):
+            message = Tangelo.html.unescape(message[len(Tangelo.literal):])
         return """<!doctype html>
 <h2>%s</h2>
 <p>%s
@@ -172,7 +177,7 @@ class Tangelo(object):
             tangelo.log(bt, "SERVICE")
 
             result = tangelo.HTTPStatusCode("501 Error in Python Service",
-                                            "There was an error while " +
+                                            Tangelo.literal + "There was an error while " +
                                             "trying to import module " +
                                             "%s:<br><pre>%s</pre>" %
                                             (tangelo.request_path(), bt))
@@ -211,7 +216,7 @@ class Tangelo(object):
                 tangelo.log(bt, "SERVICE")
 
                 result = tangelo.HTTPStatusCode("501 Error in Python Service",
-                                                "There was an error " +
+                                                Tangelo.literal + "There was an error " +
                                                 "executing service " +
                                                 "%s:<br><pre>%s</pre>" %
                                                 (tangelo.request_path(), bt))
@@ -248,12 +253,8 @@ class Tangelo(object):
             try:
                 result = json.dumps(result)
             except TypeError as e:
-                t = e.message.split("<service.")[1].split()[0]
-                msg = (("Service %s returned an object of type %s that " +
-                       "could not be serialized to JSON") %
-                       (tangelo.request_path(), t))
-
-                tangelo.log("Error: %s" % (msg), "SERVICE")
+                msg = Tangelo.literal + "<p>A JSON type error occurred in service " + tangelo.request_path() + ":</p>"
+                msg += "<p><pre>" + cgi.escape(e.message) + "</pre></p>"
 
                 raise cherrypy.HTTPError("501 Error in Python Service", msg)
 
