@@ -3,7 +3,7 @@ import sys
 
 def main():
     # Start tangelo on the testing port, and bail out with error if it fails.
-    result = subprocess.call(["@VIRTUALENV_DIR@/bin/tangelo", "restart",
+    result = subprocess.call(["@VENV_DIR@/bin/tangelo", "restart",
                               "--host", "@TESTING_HOST@",
                               "--port", "@TESTING_PORT@",
                               "--root", "tangelo/web"])
@@ -18,7 +18,7 @@ def main():
     result = subprocess.call(sys.argv[1:])
 
     # Shut the server down.
-    shutdown = subprocess.call(["@VIRTUALENV_DIR@/bin/tangelo", "stop",
+    shutdown = subprocess.call(["@VENV_DIR@/bin/tangelo", "stop",
                                 "--port", "@TESTING_PORT@"])
     
     # If there was an error shutting down, report it and fail the test.
