@@ -407,6 +407,9 @@ function retrieveData(initial) {
                                 msg += "<b>Location:</b> (" + d.location[1] + ", " + d.location[0] + ")<br>\n";
                                 msg += "<b>Author:</b> " + d.author + "<br>\n";
                                 msg += "<b>Description:</b> " + d.title + "<br>\n";
+                                if (d.url) {
+                                    msg += "<img src=" + d.url + ">";
+                                }
 
                                 cfg = {
                                     html: true,
