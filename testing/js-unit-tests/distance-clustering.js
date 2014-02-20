@@ -1,6 +1,6 @@
 /*globals describe, it, expect, tangelo */
 
-describe('tangelo.data.cluster', function () {
+describe('tangelo.data.distanceCluster', function () {
     'use strict';
     
 
@@ -83,7 +83,7 @@ describe('tangelo.data.cluster', function () {
             spec.clusterDistance = spec.clusterDistance || 10;
             spec.data = makeRandomData(N);
             
-            var obj = tangelo.data.cluster(spec);
+            var obj = tangelo.data.distanceCluster(spec);
             
             spec.metric = spec.metric || metric;
             checkCluster(obj.clusters, obj.singlets, spec);
@@ -114,7 +114,7 @@ describe('tangelo.data.cluster', function () {
             spec.metric = function () {
                 return 0;
             };
-            var obj = tangelo.data.cluster(spec);
+            var obj = tangelo.data.distanceCluster(spec);
             expect(obj.clusters.length).toBe(1);
             expect(obj.singlets.length).toBe(0);
         });
@@ -125,7 +125,7 @@ describe('tangelo.data.cluster', function () {
             spec.metric = function () {
                 return 100;
             };
-            var obj = tangelo.data.cluster(spec);
+            var obj = tangelo.data.distanceCluster(spec);
             expect(obj.clusters.length).toBe(0);
             expect(obj.singlets.length).toBe(spec.data.length);
         });
@@ -137,11 +137,11 @@ describe('tangelo.data.cluster', function () {
                 data: makeRandomData(100).map(function (d) {
                     return [d.x, d.y];
                 }),
-                xAccessor: function (d) { return d[0]; },
-                yAccessor: function (d) { return d[1]; },
+                x: function (d) { return d[0]; },
+                y: function (d) { return d[1]; },
                 clusterDistance: 15
             };
-            var obj = tangelo.data.cluster(spec);
+            var obj = tangelo.data.distanceCluster(spec);
             
             spec.metric = function (a, b) {
                 var x = a[0] - b[0],
@@ -155,11 +155,11 @@ describe('tangelo.data.cluster', function () {
                 data: makeRandomData(100).map(function (d) {
                     return { loc: d };
                 }),
-                xAccessor: function (d) { return d.loc.x; },
-                yAccessor: function (d) { return d.loc.y; },
+                x: function (d) { return d.loc.x; },
+                y: function (d) { return d.loc.y; },
                 clusterDistance: 15
             };
-            var obj = tangelo.data.cluster(spec);
+            var obj = tangelo.data.distanceCluster(spec);
             
             spec.metric = function (a, b) {
                 var x = a.loc.x - b.loc.x,

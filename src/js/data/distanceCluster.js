@@ -1,7 +1,8 @@
 /*jslint browser: true */
 
 /*
- * Defines a data clustering algorithm for tangelo.
+ * Defines a data clustering algorithm for tangelo based on
+ * the maximum distance from the cluster center.
  *
  * By default, clusters according to the standard euclidean
  * metric in R^2, but arbitrary topologies are possible by
@@ -17,11 +18,11 @@
  * Optional input:
  *
  * spec.clusterDistance [Number]: Maximum clustering radius (default 20)
- * spec.xAccessor [Function (d) -> R],
- * spec.yAccessor [Function (d) -> R]: Returns the x/y-coordinate of a data
- *                                      object for the default metric.
+ * spec.x [Function (d) -> R],
+ * spec.y [Function (d) -> R]: Returns the x/y-coordinate of a data
+ *                             object for the default metric.
  * spec.metric [Function (d, d) -> R >= 0]: Returns the distance between two
- *                                            objects
+ *                                          objects
  *
  *
  * Basic usage example:
@@ -86,8 +87,8 @@
         // using defaults if unspecified
         var xAcc, yAcc, metric, data, dist;
 
-        xAcc = spec.xAccessor || tangelo.accessor({field: 'x'});
-        yAcc = spec.yAccessor || tangelo.accessor({field: 'y'});
+        xAcc = spec.x || tangelo.accessor({field: 'x'});
+        yAcc = spec.y || tangelo.accessor({field: 'y'});
         metric = spec.metric || defaultMetric(xAcc, yAcc);
         dist = spec.clusterDistance || 20;
         data = spec.data || [];
@@ -145,5 +146,5 @@
         return { singlets: singlets, clusters: groups };
     }
 
-    tangelo.data.cluster = cluster;
+    tangelo.data.distanceCluster = cluster;
 }(window.tangelo));
