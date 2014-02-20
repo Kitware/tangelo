@@ -398,6 +398,7 @@ if(${BUILD_TESTING})
         tangelo-exists
         isFunction
         isBoolean
+        accessorFunction
     )
 
     # A list of Tangelo (i.e. Python) unit tests.  The corresponding .py file
