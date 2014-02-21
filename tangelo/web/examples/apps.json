@@ -7,12 +7,6 @@
         },
 
         {
-            "name": "CharityNet",
-            "path": "charitynet",
-            "description": "3 million charitable donations, visualized on a county choropleth map."
-        },
-
-        {
             "name": "Dendrogram",
             "path": "dendrogram",
             "description": "The Tangelo <b>dendrogram</b> plugin, illustrating the organizational structure on board the starship Enterprise"
