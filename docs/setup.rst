@@ -23,7 +23,7 @@ are to **set up a MongoDB server**, **retrieve photo metadata via the Flickr
 API**, and **upload the data to the MongoDB server**.
 
 #. **Set up MongoDB.**  To set up a Mongo server you can consult the `MongoDB
-   documentation <http://www.mongodb.org>"`_.  It is generally as
+   documentation <http://www.mongodb.org>`_.  It is generally as
    straightforward as installing it via a package manager, then launching the
    ``mongod`` program, or starting it via your local service manager.
 
@@ -40,9 +40,8 @@ API**, and **upload the data to the MongoDB server**.
 
        get-flickr-data.py <your API key> <maximum number of photos to retrieve> >flickr_paris.json
    
-   If you do not want to retrieve the data yourself, there is a default dataset
-   hosted `here
-   <http://kitware.github.io/tangelo/data/flickr_paris_1000.json>`_.
+   If you do not want to retrieve the data yourself, you can use the
+   `hosted version <http://midas3.kitwarein.com/midas/download/bitstream/339384/flickr_paris_1000.json.gz>`_.
    This dataset was generated with this script, with a max count argument of 1000.
 
 #. **Upload the data to Mongo.** You can use this command to place the photo
@@ -60,6 +59,31 @@ API**, and **upload the data to the MongoDB server**.
 
 Now the database should be set up to feed photo data to the Flickr app - reload
 the page and you should be able to explore Paris through photos.
+
+Enron Email Network
+-------------------
+
+The `Enron Email Network <http://localhost:8080/examples/enron>`_ application
+visualizes the `enron email dataset <https://www.cs.cmu.edu/~enron/>`_ as a
+network of communication.  The original data has been processed into graph form,
+in a file hosted `here <http://midas3.kitwarein.com/midas/download/bitstream/339385/enron_email.json.gz>`_.
+Download this file, ``gunzip`` it, and then issue this command to upload the
+records to Mongo:
+
+   .. code-block:: none
+
+       mongoimport -d tangelo -c flickr_paris --file enron_email.json
+
+(Note: although ``enron_email.json`` contains one JSON-encoded object per line,
+keep in mind that the file as a whole does **not** constitute a single JSON
+object - the file is instead in a particular format recognized by Mongo.)
+
+As with the Flickr data prep above, you can modify this command line to install
+this data on another server or in a different database/collection.  If you do
+so, remember to also modify
+``/usr/share/tangelo/web/examples/enron/config.json`` to reflect these changes.
+
+Reload the Enron app and take a look at the email communication network.
 
 A Note on Version Numbers
 =========================

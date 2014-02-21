@@ -15,6 +15,8 @@ enron.range = null;
 enron.center = null;
 enron.degree = null;
 enron.host = null;
+enron.database = null;
+enron.collection = null;
 
 function updateGraph() {
     "use strict";
@@ -58,7 +60,7 @@ function updateGraph() {
     };
 
     $.ajax({
-        url: "emailers/" + enron.host + "/xdata/enron",
+        url: "emailers/" + enron.host + "/" + enron.database + "/" + enron.collection,
         data: data,
         dataType: "json",
         success: function (resp) {
@@ -231,6 +233,8 @@ window.onload = function () {
         }
 
         enron.host = config.host;
+        enron.database = config.database;
+        enron.collection = config.collection;
 
         svg = d3.select("svg");
 
