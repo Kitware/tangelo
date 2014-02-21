@@ -22,8 +22,11 @@ data_files_list = [("share/tangelo/conf", ["conf/tangelo.conf.global",
                    ("share/tangelo/data", ["data/get-flickr-data.py"]),
                    ("share/tangelo", ["images/tangelo.ico"])]
 
-# Include the website base files.
-data_files_list += copy_with_dir(rcollect("web"), "share/tangelo")
+# Include the website base files, excluding generated tests and compiled python
+# files.
+web_files = filter(lambda f: not (f.startswith("web/tests") or f.endswith(".pyc")),
+                   rcollect("web"))
+data_files_list += copy_with_dir(web_files, "share/tangelo")
 
 # Create the package.
 distutils.core.setup(name="tangelo",
