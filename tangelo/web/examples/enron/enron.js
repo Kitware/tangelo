@@ -72,6 +72,19 @@ function updateGraph() {
                 node,
                 tau;
 
+            if (resp.error === "no database found") {
+                d3.select("#content")
+                    .style("font-size", "14pt")
+                    .style("padding-top", "20%")
+                    .style("padding-left", "20%")
+                    .style("padding-right", "20%")
+                    .style("text-align", "center")
+                    .html("There doesn't seem to be any Flickr data in the Mongo instance at <em>" + enron.host + "</em>" +
+                        ", database <em>" + enron.database + "</em>, collection <em>" + enron.collection + "</em>." +
+                        "  See these <a href=\"http://localhost:8080/docs/setup.html#enron-email-network\">instructions</a> for help setting this up.");
+                return;
+            }
+
             if (change_button) {
                 d3.select("#update")
                     .attr("disabled", null)
