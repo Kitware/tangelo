@@ -1,3 +1,21 @@
+#!python
+
+# To reproduce the 'flickr_paris_1000.json' file, run this script as follows:
+#
+#     get-flickr-data.py <your-api-key> 1000 >flickr_paris_1000.json
+#
+# This will retrieve 1000 photos bounded to the Paris area, taken between the
+# dates indicated in the "data" dict below, and save them as a JSON array.
+#
+# To upload these entries to a Mongo database, use the following command (after
+# setting up and launching a Mongo instance):
+#
+#     mongoimport -d tangelo -c flickr_paris --jsonArray --file flickr_paris_1000.json
+#
+# This will store the 1000 photo entries in a collection called "flickr_paris",
+# in a database named "tangelo".  This is the default location the flickr
+# example application will look for data.
+
 import datetime
 import json
 import sys

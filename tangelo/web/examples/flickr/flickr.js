@@ -483,6 +483,19 @@ function getMinMaxDates(zoom) {
             options,
             div;
 
+        if (min === null || max === null) {
+            d3.select("#map")
+                .style("font-size", "14pt")
+                .style("padding-top", "20%")
+                .style("padding-left", "20%")
+                .style("padding-right", "20%")
+                .style("text-align", "center")
+                .html("There doesn't seem to be any Flickr data in the Mongo instance at <em>" + flickr.config.server + "</em>" +
+                    ", database <em>" + flickr.config.db + "</em>, collection <em>" + flickr.config.coll + "</em>." +
+                    "  See these <a href=\"\">instructions</a> for help setting this up.");
+            return;
+        }
+
         // Retrieve the timestamps from the records.
         min = min.$date;
         max = max.$date;
