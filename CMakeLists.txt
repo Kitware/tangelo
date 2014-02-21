@@ -190,7 +190,7 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/stamps)
 
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
-    ${CMAKE_SOURCE_DIR}/src/js/core/core.js
+    ${CMAKE_SOURCE_DIR}/src/js/core/core.js.in
     ${CMAKE_SOURCE_DIR}/src/js/core/util.js
     ${CMAKE_SOURCE_DIR}/src/js/data/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/data/tree.js
@@ -277,8 +277,9 @@ set(PEP8_FILES
 )
 
 # These files should be uglified and concatenated.
+configure_file(src/js/core/core.js.in ${CMAKE_BINARY_DIR}/core.js)
 set(JS_UGLIFY_FILES
-    ${CMAKE_SOURCE_DIR}/src/js/core/core.js
+    ${CMAKE_BINARY_DIR}/core.js
     ${CMAKE_SOURCE_DIR}/src/js/core/util.js
     ${CMAKE_SOURCE_DIR}/src/js/widget/widget.js
     ${CMAKE_SOURCE_DIR}/src/js/vega/_package.js
