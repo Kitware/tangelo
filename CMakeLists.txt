@@ -190,7 +190,7 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/stamps)
 
 # These files should be validated with JSLint.
 set(JS_LINT_FILES
-    ${CMAKE_SOURCE_DIR}/src/js/core/core.js
+    ${CMAKE_SOURCE_DIR}/src/js/core/core.js.in
     ${CMAKE_SOURCE_DIR}/src/js/core/util.js
     ${CMAKE_SOURCE_DIR}/src/js/data/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/data/tree.js
@@ -277,8 +277,9 @@ set(PEP8_FILES
 )
 
 # These files should be uglified and concatenated.
+configure_file(src/js/core/core.js.in ${CMAKE_BINARY_DIR}/core.js)
 set(JS_UGLIFY_FILES
-    ${CMAKE_SOURCE_DIR}/src/js/core/core.js
+    ${CMAKE_BINARY_DIR}/core.js
     ${CMAKE_SOURCE_DIR}/src/js/core/util.js
     ${CMAKE_SOURCE_DIR}/src/js/widget/widget.js
     ${CMAKE_SOURCE_DIR}/src/js/vega/_package.js
@@ -300,7 +301,22 @@ set(JS_UGLIFY_FILES
 )
 
 # These files should be copied to the build directory.
-glob_recurse_ungit(TANGELO_SOURCES tangelo/*)
+glob_recurse_ungit(TANGELO_WEB_SOURCES tangelo/web/*)
+glob_recurse_ungit(TANGELO_MODULE_SOURCES tangelo/tangelo/*)
+set(TANGELO_SOURCES
+    ${TANGELO_WEB_SOURCES}
+    ${TANGELO_MODULE_SOURCES}
+    tangelo/bin/tangelo
+    tangelo/bin/tangelo-passwd
+    tangelo/bin/vtkweb-launcher.py
+    tangelo/conf/tangelo.conf.global
+    tangelo/conf/tangelo.conf.local
+    tangelo/data/get-flickr-data.py
+    tangelo/images/tangelo.ico
+)
+
+# Configure setup.py
+configure_file(tangelo/setup.py.in ${CMAKE_BINARY_DIR}/tangelo/setup.py)
 
 if(${BUILD_TANGELO})
     # Copy package files to build directory.
@@ -366,7 +382,9 @@ if(${BUILD_DOCUMENTATION})
     add_custom_command(
         OUTPUT ${DOCUMENTATION_INDEX}
         COMMAND ${SPHINX_EXECUTABLE} -b html
-                ${CMAKE_SOURCE_DIR}/docs ${DOCUMENTATION_DIR}
+                                     -D version="${TANGELO_VERSION}"
+                                     -D release="${TANGELO_VERSION}"
+                                     ${CMAKE_SOURCE_DIR}/docs ${DOCUMENTATION_DIR}
         COMMAND ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_INDEX}
         DEPENDS ${DOCUMENTATION_SOURCES} ${DOCUMENTATION_CONTROL_FILE} ${SPHINX_EXECUTABLE}
         COMMENT "Generating documentation"

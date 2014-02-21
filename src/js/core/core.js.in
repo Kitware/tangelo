@@ -8,7 +8,7 @@ var tangelo = {};
 
     // Tangelo version number.
     tangelo.version = function () {
-        return "0.5-dev1";
+        return "@TANGELO_VERSION@";
     };
 
     // An "in-band" error, one that the application can recover from (possibly
