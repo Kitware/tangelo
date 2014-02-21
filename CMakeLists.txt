@@ -300,7 +300,22 @@ set(JS_UGLIFY_FILES
 )
 
 # These files should be copied to the build directory.
-glob_recurse_ungit(TANGELO_SOURCES tangelo/*)
+glob_recurse_ungit(TANGELO_WEB_SOURCES tangelo/web/*)
+glob_recurse_ungit(TANGELO_MODULE_SOURCES tangelo/tangelo/*)
+set(TANGELO_SOURCES
+    ${TANGELO_WEB_SOURCES}
+    ${TANGELO_MODULE_SOURCES}
+    tangelo/bin/tangelo
+    tangelo/bin/tangelo-passwd
+    tangelo/bin/vtkweb-launcher.py
+    tangelo/conf/tangelo.conf.global
+    tangelo/conf/tangelo.conf.local
+    tangelo/data/get-flickr-data.py
+    tangelo/images/tangelo.ico
+)
+
+# Configure setup.py
+configure_file(tangelo/setup.py ${CMAKE_BINARY_DIR}/tangelo/setup.py)
 
 if(${BUILD_TANGELO})
     # Copy package files to build directory.
