@@ -139,8 +139,8 @@ function retrieveData(initial) {
 
     // Construct a query that selects times between the two ends of the slider.
     timequery = {
-        $and : [{'date' : {$gte : {"$date" : times[0]}}},
-                {'date' : {$lte : {"$date" : times[1]}}}]
+        $and : [{"datetaken" : {$gte : {"$date" : times[0]}}},
+                {"datetaken" : {$lte : {"$date" : times[1]}}}]
     };
 
     // Get the hashtag text and split it into several tags.
@@ -172,7 +172,7 @@ function retrieveData(initial) {
         data: {
             query: JSON.stringify(query),
             limit: d3.select("#record-limit").node().value,
-            sort: JSON.stringify([['date', 1]])
+            sort: JSON.stringify([["datetaken", 1]])
         },
         dataType: 'json',
         success: function (response) {
@@ -209,7 +209,7 @@ function retrieveData(initial) {
             //
             // Extract some information from the date.
             data = response.result.data.map(function (d) {
-                var date = new Date(d.date.$date);
+                var date = new Date(d.datetaken.$date);
 
                 d.month = flickr.monthName(date);
                 d.day = flickr.dayName(date);
@@ -400,13 +400,16 @@ function retrieveData(initial) {
                                     msg,
                                     date;
 
-                                date = new Date(d.date.$date);
+                                date = new Date(d.datetaken.$date);
 
                                 msg = "";
                                 msg += "<b>Date:</b> " + flickr.dateformat(date) + "<br>\n";
                                 msg += "<b>Location:</b> (" + d.location[1] + ", " + d.location[0] + ")<br>\n";
-                                msg += "<b>Author:</b> " + d.author + "<br>\n";
+                                msg += "<b>Owner:</b> " + d.owner + "<br>\n";
                                 msg += "<b>Description:</b> " + d.title + "<br>\n";
+                                if (d.url) {
+                                    msg += "<img src=" + d.url + ">";
+                                }
 
                                 cfg = {
                                     html: true,
@@ -475,10 +478,23 @@ function getMinMaxDates(zoom) {
 
     // Get the earliest and latest times in the collection, and set the slider
     // range/handles appropriately.
-    flickr.getMongoRange(flickr.config.server, flickr.config.db, flickr.config.coll, "date", function (min, max) {
+    flickr.getMongoRange(flickr.config.server, flickr.config.db, flickr.config.coll, "datetaken", function (min, max) {
         var gmap_cfg,
             options,
             div;
+
+        if (min === null || max === null) {
+            d3.select("#map")
+                .style("font-size", "14pt")
+                .style("padding-top", "20%")
+                .style("padding-left", "20%")
+                .style("padding-right", "20%")
+                .style("text-align", "center")
+                .html("There doesn't seem to be any Flickr data in the Mongo instance at <em>" + flickr.config.server + "</em>" +
+                    ", database <em>" + flickr.config.db + "</em>, collection <em>" + flickr.config.coll + "</em>." +
+                    "  See these <a href=\"\">instructions</a> for help setting this up.");
+            return;
+        }
 
         // Retrieve the timestamps from the records.
         min = min.$date;

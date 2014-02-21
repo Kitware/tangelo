@@ -19,6 +19,7 @@ def copy_with_dir(files, base):
 # Include the example configuration files.
 data_files_list = [("share/tangelo/conf", ["conf/tangelo.conf.global",
                                            "conf/tangelo.conf.local"]),
+                   ("share/tangelo/data", ["data/get-flickr-data.py"]),
                    ("share/tangelo", ["images/tangelo.ico"])]
 
 # Include the website base files.
