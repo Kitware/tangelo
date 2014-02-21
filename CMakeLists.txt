@@ -382,7 +382,9 @@ if(${BUILD_DOCUMENTATION})
     add_custom_command(
         OUTPUT ${DOCUMENTATION_INDEX}
         COMMAND ${SPHINX_EXECUTABLE} -b html
-                ${CMAKE_SOURCE_DIR}/docs ${DOCUMENTATION_DIR}
+                                     -D version="${TANGELO_VERSION}"
+                                     -D release="${TANGELO_VERSION}"
+                                     ${CMAKE_SOURCE_DIR}/docs ${DOCUMENTATION_DIR}
         COMMAND ${CMAKE_COMMAND} -E touch ${DOCUMENTATION_INDEX}
         DEPENDS ${DOCUMENTATION_SOURCES} ${DOCUMENTATION_CONTROL_FILE} ${SPHINX_EXECUTABLE}
         COMMENT "Generating documentation"
