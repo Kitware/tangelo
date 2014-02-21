@@ -315,7 +315,7 @@ set(TANGELO_SOURCES
 )
 
 # Configure setup.py
-configure_file(tangelo/setup.py ${CMAKE_BINARY_DIR}/tangelo/setup.py)
+configure_file(tangelo/setup.py.in ${CMAKE_BINARY_DIR}/tangelo/setup.py)
 
 if(${BUILD_TANGELO})
     # Copy package files to build directory.
