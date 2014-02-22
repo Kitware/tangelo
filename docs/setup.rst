@@ -41,7 +41,7 @@ API**, and **upload the data to the MongoDB server**.
        get-flickr-data.py <your API key> <maximum number of photos to retrieve> >flickr_paris.json
    
    If you do not want to retrieve the data yourself, you can use the
-   `hosted version <http://midas3.kitwarein.com/midas/download/bitstream/339384/flickr_paris_1000.json.gz>`_.
+   `hosted version <http://midas3.kitware.com/midas/download/bitstream/339384/flickr_paris_1000.json.gz>`_.
    This dataset was generated with this script, with a max count argument of 1000.
 
 #. **Upload the data to Mongo.** You can use this command to place the photo
@@ -66,7 +66,7 @@ Enron Email Network
 The `Enron Email Network <http://localhost:8080/examples/enron>`_ application
 visualizes the `enron email dataset <https://www.cs.cmu.edu/~enron/>`_ as a
 network of communication.  The original data has been processed into graph form,
-in a file hosted `here <http://midas3.kitwarein.com/midas/download/bitstream/339385/enron_email.json.gz>`_.
+in a file hosted `here <http://midas3.kitware.com/midas/download/bitstream/339385/enron_email.json.gz>`_.
 Download this file, ``gunzip`` it, and then issue this command to upload the
 records to Mongo:
 
