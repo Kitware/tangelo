@@ -112,6 +112,14 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
         COMMAND ${PIP_EXECUTABLE} install pylint
         COMMENT "Installing pylint"
     )
+
+    # Install pymongo (for use of Mongo in example applications).
+    set(MONGO_MODULE ${VENV_DIR}/lib/python2.7/site-packages/pymongo/__init__.py)
+    add_custom_command(
+        OUTPUT ${MONGO_MODULE}
+        COMMAND ${PIP_EXECUTABLE} install pymongo
+        COMMENT "Installing pymongo"
+    )
 endif()
 
 # Need UglifyJS to build Tangelo; JSLint and PhantomJS to test.
@@ -657,6 +665,7 @@ add_custom_target(
             ${MIN_JS_FILE}
             ${JS_FILE}
             ${TESTING_DEPENDENCIES}
+            ${MONGO_MODULE}
             ${DOCUMENTATION_DEPENDENCIES}
             ${JS_UNIT_TEST_FILES}
             ${WEB_CONTENT_TEST_FILES}
