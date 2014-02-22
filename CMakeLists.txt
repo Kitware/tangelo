@@ -120,6 +120,24 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
         COMMAND ${PIP_EXECUTABLE} install pymongo
         COMMENT "Installing pymongo"
     )
+
+    # Install numpy (needed for nltk).
+    set(NUMPY_MODULE ${VENV_DIR}/lib/python2.7/site-packages/numpy/__init__.py)
+    add_custom_command(
+        OUTPUT ${NUMPY_MODULE}
+        COMMAND ${PIP_EXECUTABLE} install numpy
+        COMMENT "Installing nltk"
+    )
+
+    # Install nltk (for use in NER example application).
+    set(NLTK_MODULE ${VENV_DIR}/lib/python2.7/site-packages/nltk/__init__.py)
+    add_custom_command(
+        OUTPUT ${NLTK_MODULE}
+        COMMAND ${PIP_EXECUTABLE} install nltk
+        COMMAND ${PYTHON_EXECUTABLE} -m nltk.downloader maxent_ne_chunker maxent_treebank_pos_tagger punkt words
+        DEPENDS ${NUMPY_MODULE}
+        COMMENT "Installing nltk"
+    )
 endif()
 
 # Need UglifyJS to build Tangelo; JSLint and PhantomJS to test.
@@ -666,6 +684,7 @@ add_custom_target(
             ${JS_FILE}
             ${TESTING_DEPENDENCIES}
             ${MONGO_MODULE}
+            ${NLTK_MODULE}
             ${DOCUMENTATION_DEPENDENCIES}
             ${JS_UNIT_TEST_FILES}
             ${WEB_CONTENT_TEST_FILES}
