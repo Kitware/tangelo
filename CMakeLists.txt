@@ -444,7 +444,7 @@ if(${BUILD_TESTING})
         tangelo-exists
         isFunction
         isBoolean
-        accessorFunction
+        accessor
         distance-clustering
     )
 
