@@ -158,7 +158,7 @@
             return temp;
         };
 
-        if (spec === undefined || Object.keys(spec).length === 0) {
+        if (spec === undefined || tangelo.isObject(spec) && Object.keys(spec).length === 0) {
             func = function () {
                 tangelo.fatalError("tangelo.accessor()", "I am an undefined accessor - you shouldn't be calling me!");
             };
