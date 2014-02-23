@@ -483,11 +483,7 @@ if(${BUILD_TESTING})
     )
 
     # These will be added to the dependencies of the top-level target.
-    list(APPEND TESTING_DEPENDENCIES ${TANGELO_EXECUTABLE}
-                                     ${COVERAGE_EXECUTABLE}
-                                     ${PEP8_EXECUTABLE}
-                                     ${PYLINT_EXECUTABLE}
-    )
+    list(APPEND TESTING_DEPENDENCIES ${TANGELO_EXECUTABLE})
 
     # TODO: figure out how to move this test into the new testing framework.
     set(TESTING_SOURCES
@@ -622,6 +618,8 @@ if(${BUILD_TESTING})
         add_test(coverage:py
             ${COVERAGE_EXECUTABLE} html -d ${CMAKE_BINARY_DIR}/tangelo/web/tests/python-coverage --fail-under=100
         )
+
+        list(APPEND TESTING_DEPENDENCIES ${COVERAGE_EXECUTABLE})
     endif()
 
     # Unit tests for tangelo Python module.
