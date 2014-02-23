@@ -220,6 +220,7 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/src/js/core/util.js
     ${CMAKE_SOURCE_DIR}/src/js/data/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/data/tree.js
+    ${CMAKE_SOURCE_DIR}/src/js/data/distanceCluster.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/GoogleMapSVG.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/controlPanel.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/dendrogram.js
@@ -324,6 +325,7 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/stream/stream.js
     ${CMAKE_SOURCE_DIR}/src/js/data/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/data/tree.js
+    ${CMAKE_SOURCE_DIR}/src/js/data/distanceCluster.js
 )
 
 # These files should be copied to the build directory.
@@ -442,6 +444,7 @@ if(${BUILD_TESTING})
         tangelo-exists
         isFunction
         isBoolean
+        distance-clustering
     )
 
     # A list of Tangelo (i.e. Python) unit tests.  The corresponding .py file
