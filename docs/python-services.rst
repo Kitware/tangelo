@@ -22,23 +22,16 @@ Here is a simple example of a web service.  Suppose
 
 .. code-block:: python
 
+    import tangelo
+
     allowed = ["add", "subtract", "multiply", "divide"]
 
+    @tangelo.types(a=float, b=float)
     def run(operation, a=None, b=None):
         if a is None:
             return "Parameter 'a' is missing!"
         elif b is None:
             return "Parameter 'b' is missing!"
-
-        try:
-            a = float(a)
-        except ValueError:
-            return "Argument 'a' ('%s') must be a number!" % (a)
-
-        try:
-            b = float(b)
-        except ValueError:
-            return "Argument 'b' ('%s') must be a number!" % (b)
 
         try:
             if operation == "add":
@@ -78,7 +71,10 @@ URL is the equivalent of running the following short Python script:
 Note that *all arguments are passed as strings.*  This is due to the way URLs
 and associated web technologies work - the URL itself is simply a string, so it
 is chunked up into tokens which are then sent to the server.  These arguments
-must therefore be cast to appropriate types at run time.
+must therefore be cast to appropriate types at run time.  The ``@tangelo.types``
+decorator offers a convenient way to perform this type casting automatically,
+but of course you can do it manually within the service itself if it is
+necessary.
 
 Generally speaking, the web endpoints exposed by Tangelo for each Python file
 are not meant to be visited directly in a web browser; instead, they provide

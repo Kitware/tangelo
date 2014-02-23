@@ -1,20 +1,13 @@
+import tangelo
+
 allowed = ["add", "subtract", "multiply", "divide"]
 
+@tangelo.types(a=float, b=float)
 def run(operation, a=None, b=None):
     if a is None:
         return "Parameter 'a' is missing!"
     elif b is None:
         return "Parameter 'b' is missing!"
-
-    try:
-        a = float(a)
-    except ValueError:
-        return "Argument 'a' ('%s') must be a number!" % (a)
-
-    try:
-        b = float(b)
-    except ValueError:
-        return "Argument 'b' ('%s') must be a number!" % (b)
 
     try:
         if operation == "add":
