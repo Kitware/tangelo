@@ -1,8 +1,9 @@
 import cherrypy
 import copy
+import functools
 import os.path
 import sys
-import types
+from types import StringTypes
 
 
 def content_type(t=None):
@@ -85,7 +86,7 @@ def paths(runtimepaths):
     # important because a string in Python is technically a list of lists, so
     # without this check, this function will treat a single string as a list of
     # single-letter strings - not at all what we expect to happen).
-    if type(runtimepaths) in types.StringTypes:
+    if type(runtimepaths) in StringTypes:
         runtimepaths = [runtimepaths]
 
     home = os.path.expanduser("~").split(os.path.sep)[:-1]
@@ -138,3 +139,55 @@ class HTTPStatusCode:
 def restful(f):
     f.restful = True
     return f
+
+
+def types(*_ptypes, **kwtypes):
+    """
+    Decorate a function that takes strings to one that takes typed values.
+
+    The decorator's arguments are functions to perform type conversion.
+    The positional and keyword arguments will be mapped to the positional and
+    keyword arguments of the decoratored function.  This allows web-based
+    service functions, which by design always are passed string arguments, to be
+    declared as functions taking typed arguments instead, eliminating
+    the overhead of having to perform type conversions manually.
+
+    If type conversion fails for any argument, the wrapped function will return
+    a dict describing the exception that was raised.
+    """
+    def wrap(f):
+        @functools.wraps(f)
+        def typed_func(*pargs, **kwargs):
+            # Make a list out of the tuple so we can change it below if
+            # necessary.
+            ptypes = list(_ptypes)
+
+            # Pad out or truncate the typing array to match the length of the
+            # function's positional arguments.
+            diff = len(pargs) - len(ptypes)
+            if diff > 0:
+                ptypes += [None] * diff
+            elif diff < 0:
+                ptypes = ptypes[:len(pargs)]
+
+            # Replace None with the identity function in ptypes.
+            def ident(x):
+                return x
+            ptypes = [ident if x is None else x for x in ptypes]
+
+            try:
+                # Map the typing functions over the positional arguments.
+                pargs = map(lambda f, v: f(v), ptypes, pargs)
+
+                # Do the same for the keyword arguments by consulting the kwtypes dict.
+                for k in kwargs:
+                    if k in kwtypes and kwtypes[k] is not None:
+                        kwargs[k] = kwtypes[k](kwargs[k])
+            except ValueError as e:
+                return {"error": str(e)}
+
+            # Call the wrapped function using the converted arguments.
+            return f(*pargs, **kwargs)
+
+        return typed_func
+    return wrap

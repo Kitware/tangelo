@@ -134,7 +134,7 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
     add_custom_command(
         OUTPUT ${NLTK_MODULE}
         COMMAND ${PIP_EXECUTABLE} install nltk
-        COMMAND ${PYTHON_EXECUTABLE} -m nltk.downloader maxent_ne_chunker maxent_treebank_pos_tagger punkt words
+        COMMAND ${VENV_PYTHON_EXECUTABLE} -m nltk.downloader maxent_ne_chunker maxent_treebank_pos_tagger punkt words
         DEPENDS ${NUMPY_MODULE}
         COMMENT "Installing nltk"
     )
@@ -452,6 +452,7 @@ if(${BUILD_TESTING})
     # should appear in testing/py-unit-tests/.
     set(PY_UNIT_TEST_CASES
         get_free_port
+        tangelo-types
     )
 
     # A list of "web content tests" - that is, these tests will generally
@@ -550,7 +551,7 @@ if(${BUILD_TESTING})
     function(add_tangelo_test test_name)
         add_test(
             NAME ${test_name}
-            COMMAND ${PYTHON_EXECUTABLE}
+            COMMAND ${VENV_PYTHON_EXECUTABLE}
                     ${CMAKE_BINARY_DIR}/tangelo-test-runner.py
                     ${ARGN}
         )
@@ -634,13 +635,15 @@ if(${BUILD_TESTING})
             set(name unit-test:py:${f})
             if(PY_COVERAGE_REPORT)
                 add_test(${name}
-                    ${COVERAGE_EXECUTABLE} run --append --source=${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/util.py,${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/__init__.py --include="*util*" ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/${f}.py
+                    ${COVERAGE_EXECUTABLE} run --append
+                                           --source=${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/util.py,${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/__init__.py
+                                           --include="*util*" ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/${f}.py
                 )
                 set_property(TEST ${name} APPEND PROPERTY DEPENDS coverage:py:reset)
                 set_property(TEST coverage:py APPEND PROPERTY DEPENDS ${name})
             else()
                 add_test(${name}
-                    ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/${f}.py
+                    ${VENV_PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/${f}.py
                 )
             endif()
         endforeach()
