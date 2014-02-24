@@ -31,7 +31,7 @@ would serve content from ``/srv/tangelo/root/foobar``, etc.
     Link to documentation for streaming and VTKWeb
 
 **The streaming and VTKWeb APIs.** The URLs http://localhost:8080/stream and
-http://localhost:8080/stream are **reserved**; they are the interfaces to the
+http://localhost:8080/vtkweb are **reserved**; they are the interfaces to the
 Streaming and VTKWeb APIs, respectively.  Files in the web root directory named
 ``stream`` and ``vtkweb`` *will not be served by Tangelo*.
 
