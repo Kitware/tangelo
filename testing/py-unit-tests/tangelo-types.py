@@ -83,6 +83,20 @@ class Tester(unittest.TestCase):
 
         self.assertEqual(result, json.dumps(test_data) + "!!!")
 
+    def test_return_type_bad_conversion(self):
+        msg = "this is a bad converter function"
+        def bad_converter(x):
+            raise ValueError(msg)
+
+        @tangelo.return_type(bad_converter)
+        def dump(data):
+            return data
+
+        result = dump({})
+
+        self.assertTrue("error" in result)
+        self.assertTrue(result["error"] == "could not convert return value: %s" % (msg))
+
 
 if __name__ == "__main__":
     unittest.main()
