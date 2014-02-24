@@ -93,7 +93,7 @@ def run(host, database, collection, start_time=None,
         # Compute updates to everyone's distance from center.
         for t in current_talkers:
             if t not in distance:
-                distance[t] = i+1
+                distance[t] = i + 1
 
         # Rewind and save the cursor.
         results.rewind()

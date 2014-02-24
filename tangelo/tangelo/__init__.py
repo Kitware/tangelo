@@ -109,7 +109,7 @@ def paths(runtimepaths):
         comp = path.split(os.path.sep)
         if (len(comp) >= len(home) + 2 and
                 comp[:len(home)] == home and
-                comp[len(home)+1] == "tangelo_html"):
+                comp[len(home) + 1] == "tangelo_html"):
             return path
 
         log("Illegal path (outside of web space): %s" % (orig), "SERVICE")
@@ -191,6 +191,7 @@ def types(*_ptypes, **kwtypes):
 
         return typed_func
     return wrap
+
 
 def return_type(rettype):
     """

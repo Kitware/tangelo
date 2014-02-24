@@ -239,7 +239,6 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/index.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/landingPage.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/app-template/myapp.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/charitynet/charitynet.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/dendrogram/dendrogram.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/enron/enron.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/flickr/flickr.js
@@ -270,7 +269,7 @@ set(JS_LINT_FILES
 set(PEP8_FILES
     ${CMAKE_SOURCE_DIR}/tangelo/bin/tangelo
     ${CMAKE_SOURCE_DIR}/tangelo/bin/vtkweb-launcher.py
-    ${CMAKE_SOURCE_DIR}/tangelo/setup.py
+    ${CMAKE_SOURCE_DIR}/tangelo/setup.py.in
     ${CMAKE_SOURCE_DIR}/tangelo/tangelo/__init__.py
     ${CMAKE_SOURCE_DIR}/tangelo/tangelo/plugin.py
     ${CMAKE_SOURCE_DIR}/tangelo/tangelo/server.py
@@ -280,16 +279,15 @@ set(PEP8_FILES
     ${CMAKE_SOURCE_DIR}/tangelo/tangelo/vtkweb.py
     ${CMAKE_SOURCE_DIR}/tangelo/tangelo/websocket.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/app-template/myservice.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/charitynet/charitynet.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/enron/emailers.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/ner/ner.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/ner/nermongo.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/primes/primes.py
+    ${CMAKE_SOURCE_DIR}/tangelo/web/service/celery.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/service/config.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/service/impala-json.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/service/mongo.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/service/svg2pdf.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/service/tasks/celery.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/404.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/abspath.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/broken.py

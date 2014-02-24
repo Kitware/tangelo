@@ -119,9 +119,9 @@ def treat_url():
         pargs = None
         #for i, comp in enumerate(pathcomp):
         for i in range(len(pathcomp)):
-            service_path = os.path.sep.join(pathcomp[:(i+1)]) + ".py"
+            service_path = os.path.sep.join(pathcomp[:(i + 1)]) + ".py"
             if os.path.exists(service_path):
-                pargs = pathcomp[(i+1):]
+                pargs = pathcomp[(i + 1):]
                 break
 
         if pargs is None:
@@ -181,7 +181,7 @@ class AuthUpdate(cherrypy.Tool):
                     else:
                         result["msg"] = (
                             "Unknown key '%s' on " +
-                            "line %d of file '%s'") % (k, i+1, filename)
+                            "line %d of file '%s'") % (k, i + 1, filename)
                         return result
         except IOError:
             result["msg"] = "Could not open file '%s'" % (filename)
@@ -278,8 +278,8 @@ class AuthUpdate(cherrypy.Tool):
 
         # Create a list of paths to search, starting with the requested
         # resource and moving towards the root.
-        paths = reversed(map(lambda i: ("/".join(reqpathcomp[:(i+1)]) or "/",
-                                        os.path.sep.join(pathcomp[:(i+1)])),
+        paths = reversed(map(lambda i: ("/".join(reqpathcomp[:(i + 1)]) or "/",
+                                        os.path.sep.join(pathcomp[:(i + 1)])),
                              range(len(reqpathcomp))))
 
         # Check each path that represents a directory for a .htaccess file,
