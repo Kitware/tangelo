@@ -191,3 +191,19 @@ def types(*_ptypes, **kwtypes):
 
         return typed_func
     return wrap
+
+def return_type(rettype):
+    """
+    Decorate a function to automatically convert its return type to a string
+    using a custom function.
+
+    Web-based service functions must return text to the client.  Tangelo
+    contains default logic to convert many kinds of values into string, but this
+    decorator allows the service writer to specify custom behavior falling
+    outside of the default.  If the conversion fails, an appropriate server
+    error will be raised.
+    """
+    def wrap(f):
+        f.return_type = rettype
+        return f
+    return wrap

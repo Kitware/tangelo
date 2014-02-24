@@ -65,6 +65,24 @@ class Tester(unittest.TestCase):
         self.assertTrue("error" in result)
         self.assertEqual(result["error"], "invalid literal for int() with base 10: '3.2'")
 
+    def test_return_type(self):
+        """
+        Demonstrate the use of the tangelo.return_type() decorator.
+        """
+
+        def excite(data):
+            return json.dumps(data) + "!!!"
+
+        @tangelo.return_type(excite)
+        def dump(data):
+            data["foo"] = "bar"
+            return data
+
+        result = dump({"bar": "baz"})
+
+        self.assertTrue("return_type" in dump.__dict__)
+        self.assertEqual(dump.return_type, excite)
+
 
 if __name__ == "__main__":
     unittest.main()
