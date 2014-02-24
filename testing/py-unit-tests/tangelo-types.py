@@ -1,5 +1,4 @@
 import bson.json_util
-import cherrypy
 import json
 import unittest
 
@@ -62,9 +61,9 @@ class Tester(unittest.TestCase):
 
         result = identity("3.2")
 
-        self.assertEqual(type(result), dict)
-        self.assertTrue("error" in result)
-        self.assertEqual(result["error"], "invalid literal for int() with base 10: '3.2'")
+        self.assertTrue(isinstance(result, tangelo.HTTPStatusCode))
+        self.assertEqual(result.code, "400 Input Value Conversion Failed")
+        self.assertEqual(result.msg, "invalid literal for int() with base 10: '3.2'")
 
     def test_return_type(self):
         """
@@ -93,12 +92,11 @@ class Tester(unittest.TestCase):
         def dump(data):
             return data
 
-        with self.assertRaises(cherrypy.HTTPError) as ctx:
-            result = dump({})
+        result = dump({})
 
-        self.assertEqual(ctx.exception.code, 500)
-        self.assertEqual(ctx.exception.reason, "Return Value Conversion Failure")
-        self.assertEqual(ctx.exception._message, "could not convert return value: %s" % (msg))
+        self.assertTrue(isinstance(result, tangelo.HTTPStatusCode))
+        self.assertEqual(result.code, "500 Return Value Conversion Failed")
+        self.assertEqual(result.msg, msg)
 
 
 if __name__ == "__main__":
