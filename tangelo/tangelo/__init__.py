@@ -184,7 +184,7 @@ def types(*_ptypes, **kwtypes):
                     if k in kwtypes and kwtypes[k] is not None:
                         kwargs[k] = kwtypes[k](kwargs[k])
             except ValueError as e:
-                return {"error": str(e)}
+                return HTTPStatusCode("400 Input Value Conversion Failed", str(e))
 
             # Call the wrapped function using the converted arguments.
             return f(*pargs, **kwargs)
@@ -213,8 +213,7 @@ def return_type(rettype):
             try:
                 result = rettype(result)
             except ValueError as e:
-                return {"error": "could not convert return value: %s" % (str(e))}
-
+                return HTTPStatusCode("500 Return Value Conversion Failed", str(e))
             return result
 
         return converter
