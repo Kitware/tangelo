@@ -1,3 +1,4 @@
+import bson.json_util
 import json
 import unittest
 
@@ -34,7 +35,22 @@ class Tester(unittest.TestCase):
 
         self.assertEqual(extract_foo(json_text), "bar")
 
-    def test_tangelo_types_bad_converstion(self):
+    def test_tangelo_types_bson(self):
+        """
+        Demonstrate that @tangelo.types works with functions in modules not
+        imported by Tangelo itself.
+        """
+
+        @tangelo.types(bson.json_util.loads)
+        def extract_foo(data):
+            return data["foo"]
+
+        json_text = json.dumps({"foo": "bar",
+                                "baz": "quux"})
+
+        self.assertEqual(extract_foo(json_text), "bar")
+
+    def test_tangelo_types_bad_conversion(self):
         """
         Demonstrate the failure mode when a value cannot be converted.
         """
