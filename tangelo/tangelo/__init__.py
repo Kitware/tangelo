@@ -204,6 +204,18 @@ def return_type(rettype):
     error will be raised.
     """
     def wrap(f):
-        f.return_type = rettype
-        return f
+        @functools.wraps(f)
+        def converter(*pargs, **kwargs):
+            # Run the function to capture the output.
+            result = f(*pargs, **kwargs)
+
+            # Convert the result using the return type function.
+            try:
+                result = rettype(result)
+            except ValueError as e:
+                return {"error": "could not convert return value: %s" % (str(e))}
+
+            return result
+
+        return converter
     return wrap

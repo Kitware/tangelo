@@ -78,10 +78,10 @@ class Tester(unittest.TestCase):
             data["foo"] = "bar"
             return data
 
-        result = dump({"bar": "baz"})
+        test_data = {"bar": "baz"}
+        result = dump(test_data)
 
-        self.assertTrue("return_type" in dump.__dict__)
-        self.assertEqual(dump.return_type, excite)
+        self.assertEqual(result, json.dumps(test_data) + "!!!")
 
 
 if __name__ == "__main__":
