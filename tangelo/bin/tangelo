@@ -7,7 +7,7 @@ import os
 import cherrypy
 import platform
 import signal
-from   twisted.internet import reactor
+from twisted.internet import reactor
 import sys
 import time
 import tangelo.util
@@ -16,7 +16,7 @@ import json
 import re
 
 import tangelo
-from   tangelo.minify_json import json_minify
+from tangelo.minify_json import json_minify
 import tangelo.plugin
 import tangelo.server
 import tangelo.stream
@@ -25,8 +25,10 @@ import tangelo.util
 import tangelo.vtkweb
 import tangelo.websocket
 
+
 def running_pids():
     return map(lambda x: int(x.group(1)), filter(None, map(lambda x: re.search(r"^tangelo\.([0-9]*)$", x), os.walk(tangelo.plugin.StatusFile.tmpdir).next()[2])))
+
 
 def report_running():
     running = running_pids()
@@ -35,6 +37,7 @@ def report_running():
     else:
         print >>sys.stderr, "tangelo instances are running with the following process ids: %s" % (", ".join(map(str, running)))
         print >>sys.stderr, "(use --pid to get information about one of these)"
+
 
 def read_config(cfgfile):
     if cfgfile is None:
@@ -47,12 +50,15 @@ def read_config(cfgfile):
     # Strip comments and then parse into a dict.
     return json.loads(json_minify(text))
 
+
 def polite(signum, frame):
     print >>sys.stderr, "Already shutting down.  To force shutdown immediately, send SIGQUIT (Ctrl-\\)."
+
 
 def die(signum, frame):
     print >>sys.stderr, "Forced shutdown.  Exiting immediately."
     os.kill(os.getpid(), signal.SIGKILL)
+
 
 def shutdown(signum, frame):
     # Disbale the shutdown handler (i.e., for repeated Ctrl-C etc.) for the
@@ -66,6 +72,7 @@ def shutdown(signum, frame):
     reactor.stop()
     cherrypy.engine.stop()
     cherrypy.engine.exit()
+
 
 def start():
     sys.stderr.write("starting tangelo...")
@@ -162,16 +169,16 @@ def start():
 
     # Create a VTKWeb API object if requested.
     if vtkpython is not None:
-        vtkweb = tangelo.vtkweb.TangeloVtkweb(vtkpython=vtkpython, weblauncher=invocation_dir+"/bin/vtkweb-launcher.py")
+        vtkweb = tangelo.vtkweb.TangeloVtkweb(vtkpython=vtkpython, weblauncher=invocation_dir + "/bin/vtkweb-launcher.py")
     else:
         vtkweb = None
 
     # Create an instance of the main handler object.
     tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(vtkweb=vtkweb, stream=stream), "/")
-    cherrypy.tree.mount(tangelo.server.cpserver, config={"/": { "tools.auth_update.on": access_auth,
-                                                                "tools.treat_url.on": True },
-                                                         "/favicon.ico": { "tools.staticfile.on": True,
-                                                                           "tools.staticfile.filename": sys.prefix + "/share/tangelo/tangelo.ico"} })
+    cherrypy.tree.mount(tangelo.server.cpserver, config={"/": {"tools.auth_update.on": access_auth,
+                                                               "tools.treat_url.on": True},
+                                                         "/favicon.ico": {"tools.staticfile.on": True,
+                                                                          "tools.staticfile.filename": sys.prefix + "/share/tangelo/tangelo.ico"}})
 
     # Try to drop privileges if requested, since we've bound to whatever port
     # superuser privileges were needed for already.
@@ -266,6 +273,7 @@ def start():
     reactor.run(installSignalHandlers=False)
     cherrypy.engine.block()
 
+
 def stop():
     # First see how many tangelos are running.  If there is more than one, the
     # user needs to have specified which one to stop with --pid or --port.
@@ -297,8 +305,12 @@ def stop():
     try:
         # Try to kill the process, but bail out with a failure message if the
         # process is not dead in 10 seconds.
-        class Timeout: pass
-        class Exit: pass
+        class Timeout:
+            pass
+
+        class Exit:
+            pass
+
         if tangelo.util.live_pid(pid):
             os.kill(pid, signal.SIGTERM)
             sleeptime = 0.1
@@ -306,7 +318,7 @@ def stop():
             for i in itertools.count():
                 if tangelo.util.live_pid(pid):
                     time.sleep(sleeptime)
-                    if (i+1)*sleeptime >= timeout:
+                    if (i + 1) * sleeptime >= timeout:
                         raise Timeout
                 else:
                     raise Exit
@@ -325,12 +337,14 @@ def stop():
     print >>sys.stderr, "success"
     return 0
 
+
 def restart():
     stopval = stop()
     if stopval == 0:
         return start()
     else:
         return stopval
+
 
 def status(pid, attr=None, clean=False):
     # See if the process is actually running.

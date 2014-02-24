@@ -3,7 +3,7 @@ import math
 
 
 def is_prime(v):
-    for i in range(2, int(math.ceil(math.sqrt(v))+1)):
+    for i in range(2, int(math.ceil(math.sqrt(v)) + 1)):
         if v % i == 0:
             return False
     return True

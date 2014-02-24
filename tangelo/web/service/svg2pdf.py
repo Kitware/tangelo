@@ -18,7 +18,7 @@ def post():
     #return open(f.name).read()
     drawing = svg2rlg(f.name)
     #drawing.renderScale = 1
-    id = '%030x' % random.randrange(16**30)
+    id = '%030x' % random.randrange(16 ** 30)
     converted[id] = renderPDF.drawToString(drawing)
     return {"result": id, "error": None}
 
