@@ -34,7 +34,7 @@ class Tester(unittest.TestCase):
 
         self.assertEqual(extract_foo(json_text), "bar")
 
-    def test_tangelo_types_bad_converstion(self):
+    def test_tangelo_types_bad_conversion(self):
         """
         Demonstrate the failure mode when a value cannot be converted.
         """
