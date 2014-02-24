@@ -99,6 +99,9 @@ the following:
             dataType: "text",
             success: function (response) {
                 $("#result").text(response);
+            },
+            error: function (jqxhr, textStatus, reason) {
+                $("#result").html(reason);
             }
         });
     }
