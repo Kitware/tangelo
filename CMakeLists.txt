@@ -482,7 +482,7 @@ if(${BUILD_TESTING})
     set(TANGELO_EXECUTABLE ${VENV_DIR}/bin/tangelo)
     add_custom_command(
         OUTPUT ${TANGELO_EXECUTABLE}
-        COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall ${TANGELO_PACKAGE}
+        COMMAND ${PIP_EXECUTABLE} install --upgrade ${TANGELO_PACKAGE}
         DEPENDS ${PIP_EXECUTABLE} ${TANGELO_PACKAGE}
         COMMENT "Installing Tangelo"
     )
