@@ -1,4 +1,5 @@
 import bson.json_util
+import cherrypy
 import json
 import unittest
 
@@ -92,10 +93,12 @@ class Tester(unittest.TestCase):
         def dump(data):
             return data
 
-        result = dump({})
+        with self.assertRaises(cherrypy.HTTPError) as ctx:
+            result = dump({})
 
-        self.assertTrue("error" in result)
-        self.assertTrue(result["error"] == "could not convert return value: %s" % (msg))
+        self.assertEqual(ctx.exception.code, 500)
+        self.assertEqual(ctx.exception.reason, "Return Value Conversion Failure")
+        self.assertEqual(ctx.exception._message, "could not convert return value: %s" % (msg))
 
 
 if __name__ == "__main__":

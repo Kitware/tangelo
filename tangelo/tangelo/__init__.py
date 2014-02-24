@@ -213,8 +213,8 @@ def return_type(rettype):
             try:
                 result = rettype(result)
             except ValueError as e:
-                return {"error": "could not convert return value: %s" % (str(e))}
-
+                raise cherrypy.HTTPError("500 Return Value Conversion Failure",
+                                         "could not convert return value: %s" % (str(e)))
             return result
 
         return converter
