@@ -613,7 +613,7 @@ if(${BUILD_TESTING})
     endif()
 
     # Python coverage testing setup.
-    if(PY_COVERAGE_REPORT)
+    if(PY_COVERAGE_TEST)
         add_test(coverage:py:reset
             ${COVERAGE_EXECUTABLE} erase
         )
@@ -631,7 +631,7 @@ if(${BUILD_TESTING})
         # coverage mode.
         foreach(f ${PY_UNIT_TEST_CASES})
             set(name unit-test:py:${f})
-            if(PY_COVERAGE_REPORT)
+            if(PY_COVERAGE_TEST)
                 add_test(${name}
                     ${COVERAGE_EXECUTABLE} run --append
                                            --source=${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/util.py,${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/__init__.py
