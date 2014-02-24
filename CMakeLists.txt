@@ -85,7 +85,7 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
     set(SPHINX_EXECUTABLE ${VENV_DIR}/bin/sphinx-build)
     add_custom_command(
         OUTPUT ${SPHINX_EXECUTABLE}
-        COMMAND ${PIP_EXECUTABLE} install Sphinx
+        COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall Sphinx
         COMMENT "Installing Sphinx"
     )
 
@@ -93,7 +93,7 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
     set(COVERAGE_EXECUTABLE ${VENV_DIR}/bin/coverage)
     add_custom_command(
         OUTPUT ${COVERAGE_EXECUTABLE}
-        COMMAND ${PIP_EXECUTABLE} install coverage
+        COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall coverage
         COMMENT "Installing coverage"
     )
 
@@ -101,7 +101,7 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
     set(PEP8_EXECUTABLE ${VENV_DIR}/bin/pep8)
     add_custom_command(
         OUTPUT ${PEP8_EXECUTABLE}
-        COMMAND ${PIP_EXECUTABLE} install pep8
+        COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall pep8
         COMMENT "Installing pep8"
     )
 
@@ -109,7 +109,7 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
     set(PYLINT_EXECUTABLE ${VENV_DIR}/bin/pylint)
     add_custom_command(
         OUTPUT ${PYLINT_EXECUTABLE}
-        COMMAND ${PIP_EXECUTABLE} install pylint
+        COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall pylint
         COMMENT "Installing pylint"
     )
 
@@ -117,7 +117,7 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
     set(MONGO_MODULE ${VENV_DIR}/lib/python2.7/site-packages/pymongo/__init__.py)
     add_custom_command(
         OUTPUT ${MONGO_MODULE}
-        COMMAND ${PIP_EXECUTABLE} install pymongo
+        COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall pymongo
         COMMENT "Installing pymongo"
     )
 
@@ -125,15 +125,15 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
     set(NUMPY_MODULE ${VENV_DIR}/lib/python2.7/site-packages/numpy/__init__.py)
     add_custom_command(
         OUTPUT ${NUMPY_MODULE}
-        COMMAND ${PIP_EXECUTABLE} install numpy
-        COMMENT "Installing nltk"
+        COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall numpy
+        COMMENT "Installing numpy"
     )
 
     # Install nltk (for use in NER example application).
     set(NLTK_MODULE ${VENV_DIR}/lib/python2.7/site-packages/nltk/__init__.py)
     add_custom_command(
         OUTPUT ${NLTK_MODULE}
-        COMMAND ${PIP_EXECUTABLE} install nltk
+        COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall nltk
         COMMAND ${VENV_PYTHON_EXECUTABLE} -m nltk.downloader maxent_ne_chunker maxent_treebank_pos_tagger punkt words
         DEPENDS ${NUMPY_MODULE}
         COMMENT "Installing nltk"
@@ -482,7 +482,7 @@ if(${BUILD_TESTING})
     set(TANGELO_EXECUTABLE ${VENV_DIR}/bin/tangelo)
     add_custom_command(
         OUTPUT ${TANGELO_EXECUTABLE}
-        COMMAND ${PIP_EXECUTABLE} install -U ${TANGELO_PACKAGE}
+        COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall ${TANGELO_PACKAGE}
         DEPENDS ${PIP_EXECUTABLE} ${TANGELO_PACKAGE}
         COMMENT "Installing Tangelo"
     )
