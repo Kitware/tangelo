@@ -64,7 +64,7 @@
                 program: url
             };
             if (argstring) {
-                data.args = argstring
+                data.args = argstring;
             }
 
             // Fire off POST request to vtkweb service.
@@ -81,7 +81,7 @@
                         vp;
 
                     if (report.status === "failed" || report.status === "incomplete") {
-                        callback(undefined, report.reason);
+                        callback(undefined, tangelo.error(tangelo.error.APPLICATION_ERROR, report.reason));
                     } else if (report.status === "complete") {
 
                         connection = {
@@ -150,7 +150,7 @@
                     if (callback) {
                         // The second argument will be undefined if there was no
                         // error; the other arguments are always passed.
-                        callback(key, element, response.reason);
+                        callback(key, element, tangelo.error(tangelo.error.APPLICATION_ERROR, response.reason));
                     } else if (element) {
                         $(element).empty();
                     }

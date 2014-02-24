@@ -4,10 +4,6 @@
     "use strict";
 
     if (!($ && $.widget && d3)) {
-        $.fn.dendrogram = tangelo.unavailable({
-            plugin: "dendrogram",
-            required: ["JQuery", "JQuery UI", "d3"]
-        });
         return;
     }
 

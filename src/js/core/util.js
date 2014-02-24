@@ -35,7 +35,7 @@
                     // necessary.  Otherwise, pass the status and data along to the
                     // callback.
                     if (data.error) {
-                        callback(undefined, undefined, data.error);
+                        callback(undefined, undefined, tangelo.error(tangelo.error.APPLICATION_ERROR, data.error));
                     } else {
                         callback(data.result, data.status);
                     }
@@ -124,17 +124,18 @@
         return path;
     };
 
-    tangelo.accessor = function (spec, defaultValue) {
+    tangelo.accessor = function (spec) {
         var parts,
-            func,
-            key;
+            func;
 
         // Need a way to "clone" a function, so we can put properties on the
         // clone without affecting the original.  Code adapted from
         // http://stackoverflow.com/a/11230005/1886928).
         Function.prototype.clone = function () {
+            /*jslint nomen: true */
             var cloneObj = this,
-                temp;
+                temp,
+                key;
 
             if (this.__isClone) {
                 cloneObj = this.__clonedFrom;
@@ -145,24 +146,25 @@
             };
 
             for (key in this) {
-                temp[key] = this[key];
+                if (this.hasOwnProperty(key)) {
+                    temp[key] = this[key];
+                }
             }
 
             temp.__isClone = true;
             temp.__clonedFrom = cloneObj;
+            /*jslint nomen: true */
 
             return temp;
         };
 
-        if (spec === undefined || Object.keys(spec).length === 0) {
+        if (spec === undefined || tangelo.isObject(spec) && Object.keys(spec).length === 0) {
             func = function () {
                 tangelo.fatalError("tangelo.accessor()", "I am an undefined accessor - you shouldn't be calling me!");
             };
             func.undefined = true;
         } else if (tangelo.isFunction(spec)) {
             func = spec.clone();
-        } else if (!spec) {
-            func = function () { return defaultValue; };
         } else if (spec.hasOwnProperty("value")) {
             func = function () { return spec.value; };
         } else if (spec.hasOwnProperty("index")) {
@@ -179,7 +181,7 @@
                     for (i = 0; i < parts.length; i += 1) {
                         d = d[parts[i]];
                         if (d === undefined) {
-                            return defaultValue;
+                            return undefined;
                         }
                     }
                     return d;

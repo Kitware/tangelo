@@ -3,13 +3,17 @@
 (function (tangelo) {
     "use strict";
 
-    tangelo.data.tree = function(spec) {
-        var id = tangelo.accessor(spec.id, ""),
-            idChild = tangelo.accessor(spec.idChild, ""),
+    tangelo.data.tree = function (spec) {
+        var id = tangelo.accessor(spec.id || {value: ""}),
+            idChild = tangelo.accessor(spec.idChild || {value: ""}),
             children = tangelo.accessor(spec.children),
             data = spec.data,
             nodeMap = {},
             root;
+
+        if (children.undefined) {
+            tangelo.fatalError("tangelo.data.tree()", "A 'children' accessor is required");
+        }
 
         data.forEach(function (d) {
             nodeMap[id(d)] = d;

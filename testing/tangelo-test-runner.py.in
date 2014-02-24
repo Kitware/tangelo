@@ -1,0 +1,33 @@
+import subprocess
+import sys
+
+def main():
+    # Start tangelo on the testing port, and bail out with error if it fails.
+    result = subprocess.call(["@VENV_DIR@/bin/tangelo", "restart",
+                              "--host", "@TESTING_HOST@",
+                              "--port", "@TESTING_PORT@",
+                              "--root", "tangelo/web"])
+
+    if result != 0:
+        print "fatal error: could not start Tangelo on port @TESTING_PORT@"
+        return result
+
+    # Run the testing command, which is simply the arguments passed to this
+    # script.  Hang onto the return value so it can be returned after server
+    # shutdown.
+    result = subprocess.call(sys.argv[1:])
+
+    # Shut the server down.
+    shutdown = subprocess.call(["@VENV_DIR@/bin/tangelo", "stop",
+                                "--port", "@TESTING_PORT@"])
+    
+    # If there was an error shutting down, report it and fail the test.
+    if shutdown != 0:
+        print "fatal error: could not shut down Tangelo after test finished"
+        return shutdown
+
+    # Everything is good, return the result of running the test.
+    return result
+
+if __name__ == "__main__":
+    sys.exit(main())

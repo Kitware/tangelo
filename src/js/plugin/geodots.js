@@ -4,10 +4,6 @@
     "use strict";
 
     if (!($ && $.widget && vg)) {
-        $.fn.geodots = tangelo.unavailable({
-            plugin: "geodots",
-            required: ["JQuery", "JQuery UI", "Vega"]
-        });
         return;
     }
 

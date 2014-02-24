@@ -1,3 +1,4 @@
+import cgi
 import datetime
 import sys
 import HTMLParser
@@ -9,14 +10,18 @@ import traceback
 import types
 
 import tangelo
-from   tangelo.minify_json import json_minify
+from tangelo.minify_json import json_minify
 import tangelo.util
 
 cpserver = None
 
+
 class Tangelo(object):
     # An HTML parser for use in the error_page handler.
     html = HTMLParser.HTMLParser()
+
+    # An in-band signal to treat HTML error messages as literal strings.
+    literal = "literal:::"
 
     def __init__(self, vtkweb=None, stream=None):
         self.vtkweb = vtkweb
@@ -27,13 +32,15 @@ class Tangelo(object):
 
         # Mount a streaming API if requested.
         #
-        # TODO(choudhury): make the mounting directory configurable by the user.
+        # TODO(choudhury): make the mounting directory configurable by the
+        # user.
         if self.stream:
             cherrypy.tree.mount(stream, "/stream")
 
         # Mount a VTKWeb API if requested.
         #
-        # TODO(choudhury): make the mounting directory configurable by the user.
+        # TODO(choudhury): make the mounting directory configurable by the
+        # user.
         if self.vtkweb is not None:
             cherrypy.tree.mount(self.vtkweb, "/vtkweb")
 
@@ -71,7 +78,8 @@ class Tangelo(object):
 
     @staticmethod
     def error_page(status, message, traceback, version):
-        message = Tangelo.html.unescape(message)
+        if message.startswith(Tangelo.literal):
+            message = Tangelo.html.unescape(message[len(Tangelo.literal):])
         return """<!doctype html>
 <h2>%s</h2>
 <p>%s
@@ -80,10 +88,10 @@ class Tangelo(object):
 
     def invoke_service(self, module, *pargs, **kwargs):
         # TODO(choudhury): This method should attempt to load the named module,
-        # then invoke it with the given arguments.  However, if the named module
-        # is "config" or something similar, the method should instead launch a
-        # special "config" app, which lists the available app modules, along
-        # with docstrings or similar.  It should also allow the user to
+        # then invoke it with the given arguments.  However, if the named
+        # module is "config" or something similar, the method should instead
+        # launch a special "config" app, which lists the available app modules,
+        # along with docstrings or similar.  It should also allow the user to
         # add/delete search paths for other modules.
         tangelo.content_type("text/plain")
 
@@ -93,13 +101,13 @@ class Tangelo(object):
         origpath = list(sys.path)
 
         # By default, the result should be an object with error message in if
-        # something goes wrong; if nothing goes wrong this will be replaced with
-        # some other object.
+        # something goes wrong; if nothing goes wrong this will be replaced
+        # with some other object.
         result = {}
 
         # Store the modpath in the thread-local storage (tangelo.paths() makes
-        # use of this per-thread data, so this is the way to get the data across
-        # the "module boundary" properly).
+        # use of this per-thread data, so this is the way to get the data
+        # across the "module boundary" properly).
         modpath = os.path.dirname(module)
         cherrypy.thread_data.modulepath = modpath
         cherrypy.thread_data.modulename = module
@@ -107,9 +115,9 @@ class Tangelo(object):
         # Extend the system path with the module's home path.
         sys.path.insert(0, modpath)
 
-        # Import the module if not already imported previously (or if the module
-        # to import, or its configuration file, has been updated since the last
-        # import).
+        # Import the module if not already imported previously (or if the
+        # module to import, or its configuration file, has been updated since
+        # the last import).
         try:
             stamp = self.modules.get(module)
             mtime = os.path.getmtime(module)
@@ -119,7 +127,10 @@ class Tangelo(object):
             if os.path.exists(config_file):
                 config_mtime = os.path.getmtime(config_file)
 
-            if stamp is None or mtime > stamp["mtime"] or (config_mtime is not None and config_mtime > stamp["mtime"]):
+            if (stamp is None or
+                    mtime > stamp["mtime"] or
+                    (config_mtime is not None and
+                     config_mtime > stamp["mtime"])):
                 if stamp is None:
                     tangelo.log("loading new module: " + module)
                 else:
@@ -131,14 +142,18 @@ class Tangelo(object):
                         with open(config_file) as f:
                             config = json.loads(json_minify(f.read()))
                             if type(config) != dict:
-                                msg = "Service module configuration file does not contain a key-value store (i.e., a JSON Object)"
+                                msg = ("Service module configuration file " +
+                                       "does not contain a key-value store " +
+                                       "(i.e., a JSON Object)")
                                 tangelo.log(msg)
                                 raise TypeError(msg)
                     except IOError:
-                        tangelo.log("Could not open config file %s" % (config_file))
+                        tangelo.log("Could not open config file %s" %
+                                    (config_file))
                         raise
                     except ValueError as e:
-                        tangelo.log("Error reading config file %s: %s" % (config_file, e))
+                        tangelo.log("Error reading config file %s: %s" %
+                                    (config_file, e))
                         raise
                 else:
                     config = {}
@@ -150,30 +165,35 @@ class Tangelo(object):
 
                 # Load the module.
                 service = imp.load_source(name, module)
-                self.modules[module] = { "module": service,
-                                         "mtime": max(mtime, config_mtime) }
+                self.modules[module] = {"module": service,
+                                        "mtime": max(mtime, config_mtime)}
             else:
                 service = stamp["module"]
         except:
             bt = traceback.format_exc()
 
-            tangelo.log("Error importing module %s" % (tangelo.request_path()), "SERVICE")
+            tangelo.log("Error importing module %s" % (tangelo.request_path()),
+                        "SERVICE")
             tangelo.log(bt, "SERVICE")
 
-            result = tangelo.HTTPStatusCode("501 Error in Python Service", "There was an error while trying to import module %s:<br><pre>%s</pre>" % (tangelo.request_path(), bt))
+            result = tangelo.HTTPStatusCode("501 Error in Python Service",
+                                            Tangelo.literal + "There was an error while " +
+                                            "trying to import module " +
+                                            "%s:<br><pre>%s</pre>" %
+                                            (tangelo.request_path(), bt))
         else:
-            # Try to run the service - either it's in a function called "run()",
-            # or else it's in a REST API consisting of at least one of "get()",
-            # "put()", "post()", or "delete()".
+            # Try to run the service - either it's in a function called
+            # "run()", or else it's in a REST API consisting of at least one of
+            # "get()", "put()", "post()", or "delete()".
             #
-            # Collect the result in a variable - depending on its type, it will be
-            # transformed in some way below (by default, to JSON, but may also raise
-            # a cherrypy exception, log itself in a streaming table, etc.).
-            #
+            # Collect the result in a variable - depending on its type, it will
+            # be transformed in some way below (by default, to JSON, but may
+            # also raise a cherrypy exception, log itself in a streaming table,
+            # etc.).
             try:
                 if 'run' in dir(service):
-                    # Call the module's run() method, passing it the positional and
-                    # keyword args that came into this method.
+                    # Call the module's run() method, passing it the positional
+                    # and keyword args that came into this method.
                     result = service.run(*pargs, **kwargs)
                 else:
                     # Reaching here means it's a REST API.  Check for the
@@ -181,17 +201,25 @@ class Tangelo(object):
                     # of the API, and call it; or give a 405 error.
                     method = cherrypy.request.method
                     restfunc = service.__dict__[method.lower()]
-                    if restfunc is not None and hasattr(restfunc, "restful") and restfunc.restful:
+                    if (restfunc is not None and
+                            hasattr(restfunc, "restful") and
+                            restfunc.restful):
                         result = restfunc(*pargs, **kwargs)
                     else:
-                        result = tangelo.HTTPStatusCode(405, "Method not allowed")
+                        result = tangelo.HTTPStatusCode(405,
+                                                        "Method not allowed")
             except Exception as e:
                 bt = traceback.format_exc()
 
-                tangelo.log("Caught exception while executing service %s" % (tangelo.request_path()), "SERVICE")
+                tangelo.log("Caught exception while executing service %s" %
+                            (tangelo.request_path()), "SERVICE")
                 tangelo.log(bt, "SERVICE")
 
-                result = tangelo.HTTPStatusCode("501 Error in Python Service", "There was an error executing service %s:<br><pre>%s</pre>" % (tangelo.request_path(), bt))
+                result = tangelo.HTTPStatusCode("501 Error in Python Service",
+                                                Tangelo.literal + "There was an error " +
+                                                "executing service " +
+                                                "%s:<br><pre>%s</pre>" %
+                                                (tangelo.request_path(), bt))
 
         # Restore the path to what it was originally.
         sys.path = origpath
@@ -208,8 +236,8 @@ class Tangelo(object):
         #
         # 4. If it's a string, don't do anything to it.
         #
-        # This allows the services to return a Python object if they wish, or to
-        # perform custom serialization (such as for MongoDB results, etc.).
+        # This allows the services to return a Python object if they wish, or
+        # to perform custom serialization (such as for MongoDB results, etc.).
         if isinstance(result, tangelo.HTTPStatusCode):
             if result.msg:
                 raise cherrypy.HTTPError(result.code, result.msg)
@@ -219,15 +247,14 @@ class Tangelo(object):
             if self.stream:
                 return self.stream.add(result)
             else:
-                return json.dumps({"error": "Streaming is not supported in this instance of Tangelo"})
+                return json.dumps({"error": "Streaming is not supported " +
+                                            "in this instance of Tangelo"})
         elif not isinstance(result, types.StringTypes):
             try:
                 result = json.dumps(result)
             except TypeError as e:
-                t = e.message.split("<service.")[1].split()[0]
-                msg = "Service %s returned an object of type %s that could not be serialized to JSON" % (tangelo.request_path(), t)
-
-                tangelo.log("Error: %s" % (msg), "SERVICE")
+                msg = Tangelo.literal + "<p>A JSON type error occurred in service " + tangelo.request_path() + ":</p>"
+                msg += "<p><pre>" + cgi.escape(e.message) + "</pre></p>"
 
                 raise cherrypy.HTTPError("501 Error in Python Service", msg)
 
@@ -237,7 +264,8 @@ class Tangelo(object):
     def dirlisting(dirpath, reqpath):
         if reqpath[-1] == "/":
             reqpath = reqpath[:-1]
-        files = filter(lambda x: len(x) > 0 and x[0] != ".", os.listdir(dirpath))
+        files = filter(lambda x: len(x) > 0 and x[0] != ".",
+                       os.listdir(dirpath))
         #filespec = ["Type", "Name", "Last modified", "Size"]
         filespec = []
         for f in files:
@@ -247,7 +275,9 @@ class Tangelo(object):
             except OSError:
                 pass
             else:
-                mtime = datetime.datetime.fromtimestamp(s.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+                mtime = (datetime.datetime
+                         .fromtimestamp(s.st_mtime)
+                         .strftime("%Y-%m-%d %H:%M:%S"))
 
                 if os.path.isdir(p):
                     f += "/"
@@ -257,9 +287,16 @@ class Tangelo(object):
                     t = "file"
                     s = s.st_size
 
-                filespec.append([t, "<a href=\"%s/%s\">%s</a>" % (reqpath, f, f), mtime, s])
+                filespec.append([t, "<a href=\"%s/%s\">%s</a>" %
+                                    (reqpath, f, f),
+                                 mtime, s])
 
-        filespec = "\n".join(map(lambda row: "<tr>" + "".join(map(lambda x: "<td>%s</td>" % x, row)) + "</tr>", filespec))
+        filespec = "\n".join(
+            map(lambda row: "<tr>" +
+                            "".join(map(lambda x: "<td>%s</td>" % x,
+                                    row)) +
+                            "</tr>",
+                filespec))
 
         result = """<!doctype html>
 <title>Index of %s</title>
@@ -272,7 +309,6 @@ class Tangelo(object):
 </table>
 """ % (reqpath, reqpath, filespec)
 
-        #return "<!doctype html><h1>Directory Listing</h1>This is a dummy directory listing placeholder."
         return result
 
     @cherrypy.expose
@@ -282,10 +318,17 @@ class Tangelo(object):
             if target["type"] == "file":
                 return cherrypy.lib.static.serve_file(target["path"])
             elif target["type"] == "dir":
-                return Tangelo.dirlisting(target["path"], cherrypy.request.path_info)
+                return Tangelo.dirlisting(target["path"],
+                                          cherrypy.request.path_info)
             elif target["type"] == "service":
-                return self.invoke_service(target["path"], *target["pargs"], **args)
+                return self.invoke_service(target["path"],
+                                           *target["pargs"],
+                                           **args)
             elif target["type"] == "404":
                 raise cherrypy.lib.static.serve_file(target["path"])
+            elif target["type"] == "restricted":
+                raise cherrypy.HTTPError("403 Forbidden",
+                                         "The path '%s' is forbidden" % (cherrypy.serving.request.path_info))
             else:
-                raise RuntimeError("Illegal target type '%s'" % (target["type"]))
+                raise RuntimeError("Illegal target type '%s'" %
+                                   (target["type"]))

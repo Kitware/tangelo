@@ -1,0 +1,247 @@
+// This is a script for PhantomJS to run.  It fetches a webpage and renders it
+// either as HTML or as plain text, depending on the second parameter.
+
+var system = require('system');
+var fs = require("fs");
+var page = require('webpage').create();
+
+var cmakeBinaryDir = "@CMAKE_BINARY_DIR@";
+var cmakeSourceDir = "@CMAKE_SOURCE_DIR@";
+var testingHost = "@TESTING_HOST@";
+var testingPort = "@TESTING_PORT@";
+
+// A promise-type object that can be used to abstract away asynchrounous calls
+// made during the test function (e.g., image object construction in the
+// compareImages() function).
+function Promise(callback) {
+    "use strict";
+
+    return {
+        then: function (deliver) {
+            callback(deliver);
+        }
+    };
+}
+
+// An object that will contain useful metadata to be passed to the test
+// function.
+var info = {
+    testName: "",
+
+    url: null,
+    method: null,
+    data: null,
+
+    status: null,
+    statusText: null,
+
+    imageFile: null,
+    imageData: null,
+    threshold: 0.0,
+
+    size: {
+        width: 1024,
+        height: 768
+    }
+};
+
+var test;
+
+function declareTest(cfg) {
+    "use strict";
+
+    info.testName = cfg.name;
+    info.url = "http://" + testingHost + ":" + testingPort + cfg.url;
+    if (cfg.imageFile) {
+        info.imageFile = cfg.imageFile
+            .replace("${CMAKE_BINARY_DIR}", cmakeBinaryDir)
+            .replace("${CMAKE_SOURCE_DIR}", cmakeSourceDir);
+    }
+    if (cfg.threshold) {
+        info.threshold = cfg.threshold;
+    }
+    info.method = cfg.method;
+    info.data = cfg.data;
+    if (cfg.size) {
+        info.size = cfg.size;
+    }
+    test = cfg.test;
+}
+
+// Global functions that will be available to the testing function.
+var toImageData;
+var compareImages;
+var dumpImage;
+
+// ---user test suite code begin---
+@TEST_SUITE@
+// ---user test suite code end---
+
+// Print information about this test to the console.
+console.log("url: " + info.url);
+if (info.method) {
+    console.log("method: " + info.method);
+}
+if (info.data) {
+    console.log("data: " + JSON.stringify(info.data, null, 4));
+}
+if (info.imageFile) {
+    console.log("image file: " + info.imageFile);
+}
+console.log("");
+
+// Set the PhantomJS page size.
+page.viewportSize = info.size;
+
+// Route "console.log()" calls from within the Page context to the main Phantom
+// context (i.e. current "this")
+page.onConsoleMessage = function (msg) {
+    "use strict";
+
+    console.log(msg);
+};
+
+// Capture the status code for the target url in this callback.  Look for a
+// match in the "url" field and for "stage" to be "end" - this will distinguish
+// the final status code for the url itself, from those for other requested
+// resource within the page (images, etc.).
+page.onResourceReceived = function (response) {
+    "use strict";
+
+    if (response.url === info.url && response.stage === "end") {
+        // Log the status code and message.
+        info.status = response.status;
+        info.statusText = response.statusText;
+
+        if (info.status === "null") {
+            console.log("error: received null status code from url " + info.url);
+            phantom.exit(1);
+        }
+
+        // Unregister this callback, since we have received the answer we were
+        // looking for.
+        page.onResourceReceived = undefined;
+    }
+};
+
+// The test runner, which prepares some metadata (in the "info" object), loads
+// the requested url into the PhantomJS page object, then invokes the user's
+// testing function on the page object and metadata object.
+var runner = function () {
+    "use strict";
+
+    var i,
+        f,
+        passed = 0,
+        failed = 0,
+        total,
+        pending = 0,
+        ready,
+        pass;
+
+    // If there is an image file, read it in as base64.
+    if (info.imageFile) {
+        try {
+            f = fs.open(info.imageFile, "rb");
+            info.imageData = window.btoa(f.read());
+        } catch (e) {
+            console.log("error reading " + info.imageFile + ": " + e);
+            phantom.exit(1);
+        }
+    }
+
+    // Define toImageData() and compareImages() here, as they make use of the
+    // browser context (Image, document, etc.) that will be available to the
+    // test runner when it is invoked below.
+    toImageData = function (pngData) {
+        var img,
+            c,
+            ctx;
+
+        return new Promise(function (deliver) {
+            img = new Image();
+            img.onload = function () {
+                c = document.createElement("canvas");
+                ctx = c.getContext("2d");
+                ctx.drawImage(img, 0, 0);
+
+                deliver(ctx.getImageData(0, 0, img.width, img.height));
+            };
+            img.src = "data:image/png;base64," + pngData;
+        });
+    };
+
+    compareImages = function (data1, data2, comparator) {
+        return new Promise(function (deliver) {
+            var promise1 = toImageData(data1),
+                promise2 = toImageData(data2);
+
+            promise1.then(function (png1) {
+                promise2.then(function (png2) {
+                    var diff,
+                        val,
+                        i;
+
+                    if (comparator) {
+                        deliver(comparator(png1, png2));
+                    } else {
+                        // If image dimensions do not match exactly, then reject
+                        // the match.
+                        if (png1.width !== png2.width || png1.height !== png2.height) {
+                            console.log("image dimensions do not match");
+                            deliver(false);
+                        } else {
+                            // Otherwise, compute the L2 difference between the
+                            // images.
+                            diff = 0.0;
+                            for (i = 0; i < png1.data.length; i += 1) {
+                                val = png1.data[i] - png2.data[i];
+                                diff += val * val;
+                            }
+
+                            console.log("L2 diff: " + diff);
+                            console.log("threshold: " + info.threshold);
+
+                            deliver(Math.sqrt(diff) <= info.threshold);
+                        }
+                    }
+                });
+            });
+        });
+    };
+
+    dumpImage = function (imgdata, filename) {
+        var png = window.atob(imgdata);
+        fs.write(filename, png, "wb");
+    };
+
+    // Invoke the test runner.
+    console.log("Running test: " + info.testName);
+    pass = test(page, info);
+
+    // Analyze the test's return value (i.e., if it is a promise, extract the
+    // result first, before sending it to the reporting function).
+    if (pass.then) {
+        pass.then(report);
+    } else {
+        report(pass);
+    }
+
+    // Print a success/failure message, and return an appropriate code to the
+    // testing system (i.e., CTest).
+    function report(passed) {
+        console.log(passed ? "PASSED" : "FAILED");
+        phantom.exit(!passed);
+    }
+};
+
+// Kick off the testing procedure by loading the requested url, and invoking the
+// test runner on the resulting page object.  The different ways of doing this
+// depend on whether an HTTP method and/or HTTP data was supplied for this test.
+if (info.method && info.data) {
+    page.open(info.url, info.method, info.data, runner);
+} else if (info.method) {
+    page.open(info.url, info.method, runner);
+} else {
+    page.open(info.url, runner);
+}

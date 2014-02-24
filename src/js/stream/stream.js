@@ -38,15 +38,15 @@
             url: "/stream/" + key,
             dataType: "json",
             error: function (jqxhr) {
-                callback(undefined, jqxhr);
+                callback(undefined, undefined, jqxhr);
             },
-            success: function (data) {
-                if (data.error) {
-                    console.warn("[tangelo.stream.query()] error: " + data.error);
-                    return;
+            success: function (result) {
+                if (result.error) {
+                    console.warn("[tangelo.stream.query()] error: " + result.error);
+                    callback(undefined, undefined, tangelo.error(tangelo.APPLICATION_ERROR, result.error));
+                } else {
+                    callback(result.data, result.finished);
                 }
-
-                callback(data);
             }
         });
     };
@@ -67,39 +67,40 @@
                 console.warn("[tangelo.stream.run()] error: ajax call failed; aborting stream run");
                 callback(undefined, jqxhr);
             },
-            success: function (data) {
-                var result,
+            success: function (result) {
+                var flag,
                     keepgoing = true;
 
-                if (data.error) {
-                    console.warn("[tangelo.stream.run()] error: " + data.error + "; aborting stream run");
-                    return;
-                }
-
-                // Invoke the callback, and if it returns a value, inspect
-                // it to possibly affect how to continue.
-                result = callback(data);
-                if (result !== undefined) {
-                    if (tangelo.isFunction(result)) {
-                        // If the callback returns a new function, use that
-                        // function for the next invocation of the stream.
-                        callback = result;
-                    } else if (tangelo.isBoolean(result)) {
-                        // If the callback returns a boolean value, use that
-                        // as a cue about whether to continue running the
-                        // stream or not.
-                        keepgoing = result;
-                    } else if (tangelo.isNumber(result)) {
-                        // If it returns a numerical value, use that as the
-                        // new delay time.
-                        delay = result;
+                if (result.error) {
+                    console.warn("[tangelo.stream.run()] error: " + result.error + "; aborting stream run");
+                } else if (result.finished) {
+                    callback(undefined, true);
+                } else {
+                    // Invoke the callback, and if it returns a value, inspect
+                    // it to possibly affect how to continue.
+                    flag = callback(result.data, false);
+                    if (flag !== undefined) {
+                        if (tangelo.isFunction(flag)) {
+                            // If the callback returns a new function, use that
+                            // function for the next invocation of the stream.
+                            callback = flag;
+                        } else if (tangelo.isBoolean(flag)) {
+                            // If the callback returns a boolean value, use that
+                            // as a cue about whether to continue running the
+                            // stream or not.
+                            keepgoing = flag;
+                        } else if (tangelo.isNumber(flag)) {
+                            // If it returns a numerical value, use that as the
+                            // new delay time.
+                            delay = flag;
+                        }
                     }
-                }
 
-                // If we are meant to keep going, schedule this function to
-                // run again after the specified delay.
-                if (keepgoing) {
-                    window.setTimeout(tangelo.stream.run, delay, key, callback, delay);
+                    // If we are meant to keep going, schedule this function to
+                    // run again after the specified delay.
+                    if (keepgoing) {
+                        window.setTimeout(tangelo.stream.run, delay, key, callback, delay);
+                    }
                 }
             }
         });
@@ -115,9 +116,9 @@
                     callback(undefined, jqxhr);
                 }
             },
-            success: function (data) {
+            success: function (result) {
                 if (callback) {
-                    callback(data);
+                    callback(result);
                 }
             }
         });

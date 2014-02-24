@@ -5,6 +5,7 @@ import cherrypy
 
 import tangelo
 
+
 class TangeloStream(object):
     def __init__(self):
         self.streams = {}
@@ -27,10 +28,10 @@ class TangeloStream(object):
                 # Grab the stream in preparation for running it.
                 stream = self.streams[key]
 
-                # Attempt to run the stream via its next() method - if this yields a
-                # result, then continue; if the next() method raises StopIteration,
-                # then there are no more results to retrieve; if any other exception
-                # is raised, this is treated as an error.
+                # Attempt to run the stream via its next() method - if this
+                # yields a result, then continue; if the next() method raises
+                # StopIteration, then there are no more results to retrieve; if
+                # any other exception is raised, this is treated as an error.
                 try:
                     result["data"] = stream.next()
                     result["finished"] = False
@@ -39,8 +40,11 @@ class TangeloStream(object):
                     del self.streams[key]
                 except:
                     del self.streams[key]
-                    raise cherrypy.HTTPError("501 Error in Python Service",
-                            "Caught exception while executing stream service keyed by %s:<br><pre>%s</pre>" % (key, traceback.format_exc()))
+                    raise cherrypy.HTTPError(
+                        "501 Error in Python Service",
+                        "Caught exception while executing stream " +
+                        "service keyed by %s:<br><pre>%s</pre>" %
+                        (key, traceback.format_exc()))
 
         elif method == "DELETE":
             if key is None:
@@ -49,7 +53,7 @@ class TangeloStream(object):
                 result["error"] = "Unknown key"
             else:
                 del self.streams[key]
-                result["data"] = "OK"
+                result["key"] = key
 
         else:
             # All other methods are illegal.
@@ -59,8 +63,10 @@ class TangeloStream(object):
         try:
             return json.dumps(result)
         except TypeError:
-            raise cherrypy.HTTPError("501 Bad Response from Python Service",
-                    "The stream keyed by %s returned a non JSON-seriazable result: %s" % (key, result["data"]))
+            raise cherrypy.HTTPError(
+                "501 Bad Response from Python Service",
+                ("The stream keyed by %s returned a non " +
+                 "JSON-seriazable result: %s") % (key, result["data"]))
 
     def add(self, stream):
         # Generate a key corresponding to this object.

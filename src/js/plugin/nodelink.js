@@ -4,10 +4,6 @@
     "use strict";
 
     if (!($ && $.widget && d3)) {
-        $.fn.nodelink = tangelo.unavailable({
-            plugin: "nodelink",
-            required: ["JQuery", "JQuery UI", "d3"]
-        });
         return;
     }
 
@@ -133,7 +129,7 @@
             this.force.resume();
         },
 
-        _tick: function() {
+        _tick: function () {
             var that = this,
                 nodeLabels;
 
@@ -182,7 +178,7 @@
         //   y: 20       /* The x,y location to draw the label */
         // }
         // This will be a reduced set of the original node data.
-        _nodeLabels: function() {
+        _nodeLabels: function () {
             var that = this,
                 nodeLabels = [];
 
@@ -224,7 +220,7 @@
 
         // Reduce a collection of labels into a single label
         // using a frequent sequence of starting words.
-        _reduceLabels: function(labels) {
+        _reduceLabels: function (labels) {
             var label = "",
                 prefixTree = {},
                 word,

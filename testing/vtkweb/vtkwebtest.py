@@ -7,8 +7,10 @@ from selenium import webdriver
 
 import vtk
 
+
 def now():
     return datetime.datetime.now().strftime("%Y-%m-%d-%H:%M:%S")
+
 
 def compare_images(test_img, baseline_img):
     # Create a vtkTesting object, and tell it to use the current directory as
@@ -23,6 +25,7 @@ def compare_images(test_img, baseline_img):
     # Perform the image comparison test and print out the result.
     t.RegressionTest(test_img, 0.0)
 
+
 def wait_with_timeout(delay=None, limit=None, criterion=None):
     for i in itertools.count():
         if criterion():
@@ -34,6 +37,7 @@ def wait_with_timeout(delay=None, limit=None, criterion=None):
 
 browsers = ["firefox", "chrome", "internet_explorer"]
 Browsers = type("Enum", (), {k: i for i, k in enumerate(browsers)})
+
 
 class WebTest(object):
     class Abort:
@@ -67,7 +71,8 @@ class WebTest(object):
         elif self.browser == Browsers.internet_explorer:
             self.window = webdriver.Ie()
         else:
-            raise ValueError("self.browser argument has illegal value %r" % (self.browser))
+            raise ValueError("self.browser argument has illegal value %r" %
+                             (self.browser))
 
         if self.size is not None:
             self.window.set_window_size(self.size[0], self.size[1])
@@ -87,6 +92,7 @@ class WebTest(object):
 
     def cleanup(self):
         self.window.quit()
+
 
 class CDashImageComparator(WebTest):
     def __init__(self, filepat=None, baseline=None, **kwargs):
