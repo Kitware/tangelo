@@ -523,7 +523,7 @@ if(${BUILD_TESTING})
     # Python style tests.
     if(${PY_STYLE_TESTS})
         foreach(f ${PEP8_FILES})
-            add_test(style:py:pep8:${f} ${PEP8_EXECUTABLE} ${f})
+            add_test(style:py:pep8:${f} ${PEP8_EXECUTABLE} --ignore=E501 ${f})
         endforeach()
 
         # Make sure pep8 is installed.
