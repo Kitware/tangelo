@@ -48,7 +48,7 @@ appear in a file named ``add.py``:
     import tangelo
 
     class Handler:
-        def go(self, a=None, b=None):
+        def run(self, a=None, b=None):
             response = tangelo.empty_response()
 
             class BreakOut:

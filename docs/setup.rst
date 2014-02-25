@@ -3,14 +3,27 @@
 ================================
 
 .. todo::
-    Fill in "setup and administration" page
+    Fill in section
+
+Configuring and Launching Tangelo
+=================================
+
+.. todo::
+    Fill in section
+
+Administering a Tangelo Installation
+====================================
+
+.. todo::
+    Fill in section
 
 .. todo::
     Setup page: mention safety issues, and about creating a permissionless
     "tangelo" user
 
-Setting Up Data for the Example Applications
-============================================
+
+Preparing Data for the Example Applications
+===========================================
 
 Tangelo comes with several `example applications
 <http://localhost:8080/examples>`_, some of which require a bit of data setup

@@ -169,6 +169,12 @@ returned value from a Python service:
 #. Finally, if the return value **does not fit into any of the above
    steps**, Tangelo will report a server error.
 
+Specifying a Custom Return Type Coverter
+----------------------------------------
+
+.. todo::
+    Fill in section
+
 RESTful Services
 ================
 
@@ -202,6 +208,12 @@ databases might look like the following:
             else:
                 return "FAIL"
 
+The ``@tangelo.restful`` decorator is used to explicitly mark the functions that
+are part of the RESTful interface so as to avoid (1) restricting REST verbs to
+just the set of commonly used ones and (2) exposing every function in the
+service as part of a REST interface (since some of those could simply be helper
+functions).
+
 Configuration
 =============
 
@@ -217,15 +229,15 @@ For instance, suppose the following service is implemented in `autodestruct.py`:
         config = tangelo.config()
 
         if officer is None or code is None:
-            return { "status": "failed",
-                     "reason": "missing officer or code argument" }
+            return {"status": "failed",
+                    "reason": "missing officer or code argument"}
 
         if officer != config["officer"]:
-            return { "status": "failed",
-                     "reason": "unauthorized" }
+            return {"status": "failed",
+                    "reason": "unauthorized"}
         elif code != config["code"]:
-            return { "status": "failed",
-                     "reason": "incorrect code" }
+            return {"status": "failed",
+                    "reason": "incorrect code"}
 
         starship.autodestruct(countdown)
 

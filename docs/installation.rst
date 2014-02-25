@@ -8,8 +8,8 @@ UNIXlike operating systems as well, but these are the three supported platforms.
 There are two ways to install Tangelo: from the Python Package Index, or from
 source.
 
-Install from the Python Package Index with Pip
-==============================================
+Installing from the Python Package Index
+========================================
 
 The latest release version of Tangelo can always be found in the `Python Package
 Index <http://pypi.python.org/pypi>`_.  The easiest way to install Tangelo is
@@ -35,8 +35,8 @@ Use this command in a shell to install the Tangelo package and its dependencies:
 
 You may need to run this command as the superuser, using ``sudo`` or similar.
 
-Build and Install from Source
-=============================
+Building and Installing from Source
+===================================
 
 Tangelo is developed on `GitHub <https://github.com/Kitware/tangelo>`_.  If you
 wish to contribute code, or simply want the very latest development version, you
