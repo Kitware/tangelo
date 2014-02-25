@@ -16,6 +16,25 @@ Tangelo comes with several `example applications
 <http://localhost:8080/examples>`_, some of which require a bit of data setup
 before they will work.
 
+Named Entities
+--------------
+
+In order to run the named entities example at http://localhost:8000/examples/ner/,
+you need to install NLTK and download some datasets.  The part of NLTK used by
+the examples also requires `NumPy <http://www.numpy.org/>`_.
+On Mac and Linux, simply run::
+
+    pip install nltk numpy
+
+In a Windows Git Bash shell::
+
+    /c/Python27/Scripts/pip install pyyaml nltk numpy
+
+To get the NLTK datasets needed, run the NLTK downloader from the command line
+as follows::
+
+    python -m nltk.downloader nltk.downloader maxent_ne_chunker maxent_treebank_pos_tagger punkt words
+
 Flickr Metadata Maps
 --------------------
 

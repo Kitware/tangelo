@@ -225,57 +225,6 @@ to launch the server (on `localhost:8000 <http://localhost:8000>`_ by default).
 Point your browser there and you should see a collection of demo applications
 to get you started.
 
-Data Prep for Example Applications
-==================================
-
-Some of the `example applications <http://localhost:8080/examples>`_ require you
-to set up a Mongo database to store the requisite visualization data.  Follow
-these instructions to enable the applications.
-
-Named Entities
---------------
-
-In order to run the named entities example at http://localhost:8000/examples/ner/,
-you need to install NLTK and download some datasets.
-On Mac and Linux, simply run::
-
-    pip install nltk
-
-In a Windows Git Bash shell::
-
-    /c/Python27/Scripts/pip install pyyaml nltk
-
-To get the NLTK datasets needed, run
-``python`` from the shell (``/c/Python27/python`` from Git Bash on Windows)
-and execute the following::
-
-    import nltk
-    nltk.download()
-
-From the window that appears, go to the *Models* tab and download the
-*maxent_ne_chunker*, *maxent_treebank_pos_tagger*, and *punkt* models by
-clicking on each and pressing the download button. Similarly download the
-*words* dataset from the *Corpora* tab.  After closing the download window,
-``quit()`` will exit the Python shell.
-
-CharityNet
-----------
-
-.. todo::
-    Fill in CharityNet data prep section
-
-Flickr Metadata Maps
---------------------
-
-.. todo::
-    Fill in CharityNet data prep section
-
-Enron Email
------------
-
-.. todo::
-    Fill in CharityNet data prep section
-
 Testing
 =======
 
