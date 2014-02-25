@@ -289,13 +289,13 @@ to launch the server (on `localhost:8000 <http://localhost:8000>`_ by default).
 Point your browser there and you should see a collection of demo applications
 to get you started.
 
-Testing
-=======
+Running the Tests
+-----------------
 
-.. todo::
-    Explain in more detail what the tests are, how to run them and interpret the
-    results, and how to create a new test (if submitting a pull request, etc.).
-
-To run the Tangelo test suite, build your project by running ``make`` or
-``ninja`` as described above, then run the ``ctest`` in the Tangelo build
-directory.
+Now that you have built Tangelo, you may wish to run the included test suite to
+confirm that all is well.  From the build directory, run the ``ctest`` command
+with no arguments to run all the tests.  After they complete, a summary report
+showing the number of tests passed will be printed.  Don't worry too much if you
+find that the coverage tests have failed.  However, if you see other failures,
+we would like to hear about them.  Rerun the tests using ``ctest
+--output-on-failure`` and drop us a note at `tangelo-users@public.kitware.com`.

@@ -101,6 +101,7 @@ Information for Developers
     coding-style-guide
     architecture
     developing-visualizations
+    testing
 
 Indices and tables
 ==================

@@ -399,6 +399,7 @@ if(${BUILD_DOCUMENTATION})
         ${CMAKE_SOURCE_DIR}/docs/tangelo-manpage.rst
         ${CMAKE_SOURCE_DIR}/docs/tangelo-passwd-manpage.rst
         ${CMAKE_SOURCE_DIR}/docs/tangelo-py.rst
+        ${CMAKE_SOURCE_DIR}/docs/testing.rst
         ${CMAKE_SOURCE_DIR}/docs/setup.rst
         ${CMAKE_SOURCE_DIR}/docs/static/tangelo-sphinx.css
         ${CMAKE_SOURCE_DIR}/docs/templates/layout.html
