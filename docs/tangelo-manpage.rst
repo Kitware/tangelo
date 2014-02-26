@@ -42,5 +42,29 @@ Optional argument                  Effect
 --verbose, -v                      display extra information as Tangelo starts up
 =================================  ============================================================================================================================
 
-.. todo::
-    Fill in some detailed documentation and examples for ``tangelo``
+Example Usage
+=============
+
+To start a Tangelo server with the default configuration: ::
+
+    tangelo start
+
+This starts Tangelo on port 8080, and uses the log file
+``~/.config/tangelo/tangelo.log``.
+
+To control particular options, such as the port number (overriding the value
+specified in the config) file: ::
+
+    tangelo start --port 9090
+
+To restart a server that is already running: ::
+
+    tangelo restart
+
+If there are multiple Tangelo servers running at the same time: ::
+
+    tangelo restart --pid 12345
+
+To shut Tangelo down: ::
+
+    tangelo stop
