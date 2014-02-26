@@ -108,6 +108,8 @@ The ``tangelo.stream`` namespace of functions in *tangelo.js* offers a clean,
 callback-based JavaScript API to the streaming REST service.  See
 :ref:`streaming-js` for more information.
 
+.. _vtkweb:
+
 VTK Web
 =======
 
