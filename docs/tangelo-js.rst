@@ -359,6 +359,8 @@ See :ref:`streaming` for a full discussion on how streaming works.
     :param function(error) callback: A callback that is passed an error object
         if an error occurs during deletion.
 
+.. _vtkweb-js:
+
 VTK Web API
 ===========
 
