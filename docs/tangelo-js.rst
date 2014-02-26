@@ -499,9 +499,6 @@ provide convenient behaviors or to implement common visualization methods.  See
     Constructs a map from a `GeoJSON <http://geojson.org/>`_ specification, and
     plots colored SVG dots on it according to `spec.data`.
 
-    .. todo::
-        Include an example image of geodots in action.
-
     `spec.worldGeometry` is a web path referencing a GeoJSON file.  `spec.data`
     is an array of Javascript objects which may encode geodata attributes such
     as longitude and latitude, and visualization parameters such as size and
@@ -509,6 +506,12 @@ provide convenient behaviors or to implement common visualization methods.  See
     specifications describing how to derive the respective values from the data
     objects.  `spec.color` is an accessor deriving categorical values to put
     through a color mapping function.
+
+    .. image:: images/geodots-small.png
+        :align: center
+
+    For a demonstration of this plugin, see the `geodots example
+    <http://localhost:8080/examples/geodots>`_.
 
     :param string spec.worldGeometry: A web path to a GeoJSON file
     :param accessor spec.latitude: An accessor for the latitude component
@@ -522,9 +525,6 @@ provide convenient behaviors or to implement common visualization methods.  See
     Constructs a map from a `GeoJSON <http://geojson.org/>`_ specification, and
     plots a node-link diagram on it according to `spec.data`.  This plugin
     produces similar images as :js:func:`$.geodots` does.
-
-    .. todo::
-        Include an example image of geonodelink in action.
 
     `spec.worldGeometry` is a web path referencing a GeoJSON file.
 
@@ -541,13 +541,11 @@ provide convenient behaviors or to implement common visualization methods.  See
     The plugin draws a map with nodes plotted at their specified locations, with
     the specified links drawn as black lines between the appropriate nodes.
 
-    .. todo::
-        Include an example of geonodelink in action
+    .. image:: images/geonodelink-small.png
+        :align: center
 
-    .. todo::
-        Is there a way to link to examples from here?  The link would have to
-        show up differently in the docs built for readthedocs compared to those
-        built from source or installed via pip.
+    For a demonstration of this plugin, see the `geonodelink example
+    <http://localhost:8080/examples/geonodelink>`_.
 
     :param object spec.data: The encoded node-link diagram to plot
     :param string spec.worldGeometry: A web path to a GeoJSON file
@@ -570,8 +568,11 @@ provide convenient behaviors or to implement common visualization methods.  See
     is no need for a "worldGeometry" argument, but the data format and other
     arguments remain the same.
 
-    .. todo::
-        Include an example image of mapdots in action.
+    .. image:: images/mapdots-small.png
+        :align: center
+
+    For a demonstration of this plugin, see the `mapdots example
+    <http://localhost:8080/examples/mapdots>`_.
 
     :param object[] spec.data: The list of dots to plot
     :param accessor spec.latitude: An accessor for the latitude component
