@@ -270,6 +270,8 @@ common data formats into a common format usable by Tangelo plugins.
     :param Accessor spec.idChild: An accessor for the ID of the elements of the children array.
     :param Accessor spec.children: An accessor to retrieve the array of children for a node.
 
+.. _streaming-js:
+
 Streaming API
 =============
 
