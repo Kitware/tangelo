@@ -139,9 +139,6 @@ is then delivered to the ``success`` callback in the Javascript code above).  In
 general, Tangelo follows this set of steps to determine what to do with the
 returned value from a Python service:
 
-.. todo::
-    Link "server error" to the docs about how to raise an HTTP error.
-
 #. If the return value is a **Python object containing a** ``next()``
    **method**, Tangelo stores the object in the streaming table, and its
    contents can be retrieved via the :ref:`streaming API <streaming>`.
