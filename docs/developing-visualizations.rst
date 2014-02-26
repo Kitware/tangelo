@@ -44,6 +44,8 @@ appropriate (e.g. `nodeSize`, `nodeStrokeWidth`).
 *   `strokeWidth` - The width of the stroke of the visual element in pixels.
 *   `opacity` - The opacity of the entire visual element, as a number between 0 to 1.
 
+.. _accessor:
+
 Accessor Specifications
 =======================
 
@@ -58,14 +60,20 @@ accessors and scales.
 *   ``function (d) { ... }`` - The most general purpose way
     to generate a visual mapping. The argument is the data element and the return
     value is the value for the visual property.
+
 *   ``{value: v}`` - Sets the visual property to the same constant
     value `v` for all data elements.
+
+*   ``{index: true}`` - Evaluates to the index of the data item within its
+    array.
+
 *   ``{field: "dot.separated.name"}`` - Retrieves the specified field
     or subfield from the data element and passes it through the
     visualization's default scale for that visual property.
     Unlike Vega, fields from the original data do not need to be
     prefixed by ``"data."``. The special field name ``"."``
     refers to the entire data element.
+
 *   ``{field: "dot.separated.name", scale: ScaleSpec}`` - Overrides the default scale
     using a scale specification. Set `scale` to ``tangelo.identity`` to use
     a field directly as the visual property.

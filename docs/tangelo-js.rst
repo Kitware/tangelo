@@ -210,10 +210,7 @@ kinds of web applications.
     raises a fatal error when called.
 
     For more information of the semantics of the `spec` argument, see
-
-.. todo::
-
-    Decide where to put the full Tangelo accessor specification documentation.
+    :ref:`accessor`.
 
 Data Transformation
 ===================
