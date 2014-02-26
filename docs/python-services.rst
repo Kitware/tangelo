@@ -71,10 +71,10 @@ URL is the equivalent of running the following short Python script:
 Note that *all arguments are passed as strings.*  This is due to the way URLs
 and associated web technologies work - the URL itself is simply a string, so it
 is chunked up into tokens which are then sent to the server.  These arguments
-must therefore be cast to appropriate types at run time.  The ``@tangelo.types``
-decorator offers a convenient way to perform this type casting automatically,
-but of course you can do it manually within the service itself if it is
-necessary.
+must therefore be cast to appropriate types at run time.  The
+:py:func:`tangelo.types` decorator offers a convenient way to perform this type
+casting automatically, but of course you can do it manually within the service
+itself if it is necessary.
 
 Generally speaking, the web endpoints exposed by Tangelo for each Python file
 are not meant to be visited directly in a web browser; instead, they provide
@@ -166,8 +166,32 @@ returned value from a Python service:
 #. Finally, if the return value **does not fit into any of the above
    steps**, Tangelo will report a server error.
 
-Specifying a Custom Return Type Coverter
-----------------------------------------
+Specifying a Custom Return Type Converter
+-----------------------------------------
+
+Similarly to the :py:func:`tangelo.types` decorator mentioned above, services
+can specify a custom return type via the :py:func:`tangelo.return_type`
+decorator.  It takes a single argument, a function to convert the object
+returned from the service function to a string:
+
+.. code-block:: python
+
+    import tangelo
+
+    def excited(s):
+        return s + "!!!"
+
+    @tangelo.return_type(excited)
+    def run(name):
+        return "hello %s" % (name)
+
+Given ``Data`` as an input, this service will return the string ``Hello
+Data!!!`` to the client.
+
+A more likely use case for this decorator is special-purpose JSON converters,
+such as Pymongo's ``bson.json_util.dumps()`` function, which can handle certain
+non-standard objects such as Python ``datetime`` objects when converting to JSON
+text.
 
 .. todo::
     Fill in section
@@ -205,11 +229,11 @@ databases might look like the following:
             else:
                 return "FAIL"
 
-The ``@tangelo.restful`` decorator is used to explicitly mark the functions that
-are part of the RESTful interface so as to avoid (1) restricting REST verbs to
-just the set of commonly used ones and (2) exposing every function in the
-service as part of a REST interface (since some of those could simply be helper
-functions).
+The :py:func:`tangelo.restful()` decorator is used to explicitly mark the
+functions that are part of the RESTful interface so as to avoid (1) restricting
+REST verbs to just the set of commonly used ones and (2) exposing every function
+in the service as part of a REST interface (since some of those could simply be
+helper functions).
 
 Configuration
 =============
@@ -241,9 +265,9 @@ For instance, suppose the following service is implemented in `autodestruct.py`:
         return { "status": "complete",
                  "message": "Auto destruct in %d seconds!" % (countdown) }
 
-Via the `tangelo.config()` function, this service attempts to match the input
-data against credentials stored in the module level configuration, which is
-stored in `autodestruct.json`:
+Via the :py:func:`tangelo.config` function, this service attempts to match the
+input data against credentials stored in the module level configuration, which
+is stored in `autodestruct.json`:
 
 .. code-block:: javascript
 

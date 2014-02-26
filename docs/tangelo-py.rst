@@ -92,6 +92,16 @@
     all lowercase letters before searching the Python module for a matching
     function to call.
 
+.. py:decorator:: tangelo.types([ptype1,...,ptypeN],kwarg1=kwtype1,...,kwargN=kwtypeN)
+
+.. todo::
+    Fill in section
+
+.. py:decorator:: tangelo.return_type(type)
+
+.. todo::
+    Fill in section
+
 .. py:class:: tangelo.HTTPStatusCode(code[, description])
 
     Constructs an HTTP status object signalling the status code given by ``code``
