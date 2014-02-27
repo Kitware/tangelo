@@ -119,14 +119,10 @@ program and interacting with it via the mouse.  In a later version, the ability
 to call functions and otherwise interact with VTK Web in a programmatic way will
 be added.
 
-.. todo::
-    Link to configuration section discussing vtkpython, and to VTK docs
-    explaining how to build vtk with web support.
-
 In order to enable this funcationality, Tangelo must be launched with the
-``vtkpython`` option in the configuration file set to the full path to a
-``vtkpython`` executable in a build of VTK (or, alternatively, with the
-``--vtkpython`` option set on the command line).
+``vtkpython`` option in the configuration file (see :ref:`config-options`) set
+to the full path to a ``vtkpython`` executable in a build of VTK (or,
+alternatively, with the ``--vtkpython`` option set on the command line).
 
 The VTK Web REST API
 --------------------

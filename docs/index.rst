@@ -3,8 +3,6 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. todolist::
-
 =============================================
     Welcome to the Tangelo Web Framework!
 =============================================
@@ -32,6 +30,8 @@ information.
 .. _GitHub repository: https://github.com/Kitware/tangelo
 .. _Hadoop: http://hadoop.apache.org/
 .. _Vega: http://trifacta.github.io/vega/
+
+.. _quickstart:
 
 Quick Start
 ===========
@@ -102,6 +102,11 @@ Information for Developers
     architecture
     developing-visualizations
     testing
+
+TODO
+====
+
+.. todolist::
 
 Indices and tables
 ==================

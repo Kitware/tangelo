@@ -2,25 +2,177 @@
     Setup and Administration
 ================================
 
-.. todo::
-    Fill in section
+While the :ref:`quickstart` instructions will get you exploring the Tangelo
+examples in just two commands, Tangelo has a rich set of configuration options
+that can be used to administer Tangelo effectively.  This page will discuss
+configuration and deployment strategies, including suggestions for best
+practices.
 
 Configuring and Launching Tangelo
 =================================
 
-.. todo::
-    Fill in section
+The simplest way to launch a Tangelo server is to use this command: ::
+
+    tangelo start
+
+The simple command hides a fair amount of activity behind the scenes, and it
+will be instructive to track that activity.
+
+Tangelo's runtime behaviors are specified via *configuration file*.  Tangelo
+configuration files are simply `JSON+comments
+<http://blog.getify.com/json-comments/>`_ files containing a single Javascript
+object of key-value pairs describing the configuration.  When no configuration
+file is specified on the command line (via the ``-c`` or ``--config`` flags),
+Tangelo will search for one in a sequence of predetermined locations, as
+follows:
+
+#. ``/etc/tangelo.conf``
+
+#. ``~/.config/tangelo/tangelo.conf``
+
+#. ``/usr/share/tangelo/conf/tangelo.conf.local``
+
+For example, in the quickstart situation, Tangelo will end up using #3, one of
+the configuration files that ships with Tangelo.  ``tangelo.conf.local`` looks
+something like this:
+
+.. code-block:: javascript
+
+    {
+        "hostname": "0.0.0.0",
+        "port":     8080,
+
+        "logdir":   "~/.config/tangelo"
+    }
+
+This minimal configuration file specifies that Tangelo should listen on all
+interfaces for connections on port 8080, and use the logfile
+``~/.config/tangelo/tangelo.log``.  By contrast, ``tangelo.conf.global`` looks
+like this:
+
+.. code-block:: javascript
+
+    {
+        "hostname": "0.0.0.0",
+        "port":     80,
+
+        "user":     "nobody",
+        "group":    "nobody",
+
+        "logdir":   "/var/log"
+    }
+
+This configuration file is meant for the case when Tangelo is to be installed as
+a system-level service.  It will run on port 80 (the standard port for an HTTP
+server), store a logfile in ``/var/log``, and, though it will need to be started
+with superuser privileges, it will drop those privleges to run as user
+``nobody`` in group ``nobody`` to prevent damage to the system should the
+process be, e.g., hijacked by an attacker.
+
+To run Tangelo using a particular configuration file, ``tangelo`` can be invoked
+with the ``-c`` or ``--config`` option: ::
+
+    tangelo -c ~/myconfig.json
+
+Otherwise, a particular user may have a configuration she wishes to use for all
+Tangelo sessions; she can place this file at ``~/.config/tangelo.conf`` and
+forgo the use of ``-c`` and ``--config``.  Finally, a system administrator can
+create a sitewide configuration by installing a file to ``/etc/tangelo.conf``.
+
+.. _config-options:
+
+Configuration Options
+---------------------
+
+The following table shows what fields that can be included in the configuration
+file, what they mean, and their default values if left unspecified:
+
+=============== =========================================================================================   =============
+Option          Meaning                                                                                     Default value
+=============== =========================================================================================   =============
+hostname        The hostname interface on which to listen for connections (*string*)                        "localhost"
+
+port            The port number on which to listen for connections (*integer*)                              "8080"
+
+root            The path to the directory to be served by Tangelo as the web root (*string*)                "/usr/share/tangelo/web" [#root]_
+
+logdir          The directory that will contain the Tangelo log file (``tangelo.log``) (*string*)           "." [#logdir]_
+
+vtkpython       The path to the ``vtkptyhon`` program (for use in :ref:`vtkweb` capabilities) (*string*)    null
+
+drop_privileges Whether to drop privileges when started as the superuser (*boolean*)                        true
+
+user            The user account to drop privileges to (*string*)                                           "nobody" [#usergroup]_
+
+group           The user group to drop privileges to (*string*)                                             "nobody" [#usergroup]_
+
+daemonize       Whether to run as a daemon (*boolean*)                                                      true [#daemonize]_
+
+access_auth     Whether to protect directories containing a ``.htaccess`` file (*boolean*)                  true
+=============== =========================================================================================   =============
+
+.. rubric:: Footnotes
+
+.. [#root] The first component of this path may vary by platform.  Technically,
+    the path begins with the Python value stored in ``sys.prefix``; in a Unix
+    system, this value is */usr*, yielding the default path shown here.
+
+.. [#logdir] This is to say, by default the log file will appear in the
+    directory from which Tangelo was launched.
+
+.. [#daemonize] On platforms that don't support daemonization (i.e., Windows),
+    this defaults to false.
+
+.. [#usergroup] Your Unix system may already have a user named "nobody" which
+    has the least possible level of permissions.  The theory is that system daemons
+    can be run as this user, limiting the damage a rogue process can do.  However,
+    if multiple daemons are run this way, any rogue daemon can theoretically gain
+    control of the others.  Therefore, the recommendation is to create a new user
+    named "tangelo", that also has minimal permissions, but is only used to run
+    Tangelo in privilege drop mode.
 
 Administering a Tangelo Installation
 ====================================
 
-.. todo::
-    Fill in section
+Administering Tangelo on a particular system requires making some decisions
+about how Tangelo ought to behave, then implementing those decisions in a
+configuration file.
 
-.. todo::
-    Setup page: mention safety issues, and about creating a permissionless
-    "tangelo" user
+For example, as the system administrator you might create a directory on the web
+server machine at ``/srv/tangelo`` which would serve as the web root.  The
+website front page and supporting materials could be placed here, with the
+*tangelo.js* and *tangelo.min.js* files copied from
+``/usr/share/tangelo/web/js/`` to ``/srv/tangelo/js`` so they can be easily
+accessed from user web applications.
 
+The log file could be placed in ``/var/log``, and the hostname should reflect
+the desired external identity of the Tangelo server - perhaps
+*excelsior.starfleet.mil*.  As this is a "global" deployment, we want to listen
+on port 80 for connections.  Since we will need to start Tangelo as root (to
+gain access to the low-numbered ports), we should also specify a user and group
+to drop privileges to:  these can be the specially created user and group
+*tangelo*.
+
+The corresponding configuration file might look like this:
+
+.. code-block:: javascript
+
+    {
+        // Network options.
+        "hostname": "excelsior.starfleet.mil",
+        "port": 80,
+
+        // Privilege drop options.
+        "user": "tangelo",
+        "group": "tangelo",
+
+        // Runtime resources.
+        "root": "/srv/tangelo",
+        "logdir": "/var/log"
+    }
+
+This file should be placed in ``/etc/tangelo``, and then Tangelo can be launched
+with a simple ``tangelo start`` on the command line.
 
 Preparing Data for the Example Applications
 ===========================================
