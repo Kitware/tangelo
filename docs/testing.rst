@@ -122,8 +122,103 @@ actual bugs.
 Web Content Tests
 -----------------
 
+Web content tests work by retrieving a URL and loading it into PhantomJS, then
+running a user-specified test function on the resulting DOM.  A simple example
+would read as follows:
+
+.. code-block:: javascript
+
+    declareTest({
+        name: "200 - existing page should return a 200 OK message",
+        url: "/",
+        test: function (page, info) {
+            "use strict";
+
+            console.log("expected status code: 200");
+            console.log("received status code: " + info.status);
+
+            return info.status === 200;
+        }
+    });
+
+This test loads http://localhost:8080/, then invokes the ``test()`` function,
+passing it a PhantomJS ``page`` object, and an ``info`` object containing some
+metadata about the URL retrieval.  In this case, the test simply verifies that
+the status code on loading the URL is 200, indicating that the server is
+generally delivering webpages upon request.  It is possible to compute various
+values from the DOM using the ``page.evaluate()`` function, which takes a
+function of no arguments which will be run in the context of the DOM (as though
+it were executing in, e.g., and actual web browser).  For more information, see
+the PhantomJS documentation.
+
+The ``declareTest()`` function can be called with a variety of arguments to
+create different types of tests:
+
+.. js:function:: declareTest(cfg)
+
+    Declares a web content test, according to the information carried in `cfg`.
+
+    * `cfg.name` - A descriptive name for the test.
+
+    * `cfg.url` - The URL to load in order to carry out the test.
+
+    * `cfg.method` - The HTTP method to use to retrieve the URL.  This can be
+      useful for testing, e.g., REST services.
+
+    * `cfg.data` - A JavaScript object of key-value pairs, or a string, to send
+      as the request data for, e.g., POST requests.
+
+    * `cfg.size` - The size that PhantomJS should use for its virtual window.
+
+    * `cfg.imageFile` - An image file to use for image-based comparison tests.
+
+    * `cfg.threshold` - A number representing the error threshold for
+      image-based comparison tests.
+
+    * `cfg.test` - A function that implements the test itself.  This function
+      will be invoked with two arguments: the PhantomJS page object, and an
+      :js:data:`info` object.  The function should return either a boolean value
+      to indicate passing or failure, or a :js:class:`Promise` object that does
+      the same.  Promises should be used when asynchronous activity is involved:
+      since the asynchronous callback cannot simply ``return`` the boolean
+      value, it must be sent back via promise, but the test scaffolding is built
+      to seamlessly handle this case.
+
+.. js:function:: toImageData(pngData)
+
 .. todo::
-    Fill in web content tests section
+    Fill in section
+
+.. js:function:: compareImages(pngData1, pndData2, comparator)
+
+.. todo::
+    Fill in section
+
+.. js:function:: dumpImage(imgData, filename)
+
+.. todo::
+    Fill in section
+
+.. js:data:: info
+
+    The info object contains metadata about the test and the loading of the URL.
+    Its contents are as follows:
+
+    * `info.testName`, `info.url`, `info.imageFile`, `info.method`, `info.data`,
+      `info.size`, `info.threshold` - these are copies of the properties of the
+      same names passed to `declareTest()`.
+
+    * `info.imageData` - The data from `info.imageFile` encoded as base64.
+
+    * `info.status` - The HTTP status code associated with retrieving the test's
+      URL, as an integer.
+
+    * `info.statusText` - A string associated to the status code.
+
+.. js:class:: Promise
+
+.. todo::
+    Fill in section
 
 Coverage Tests
 --------------
