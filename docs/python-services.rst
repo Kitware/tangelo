@@ -129,6 +129,8 @@ then takes the response from the URL and places it on the webpage so the user
 can see the result.  In this way, your web application front end can connect to
 the Python back end via Ajax.
 
+.. _return-types:
+
 Return Types
 ------------
 
@@ -172,7 +174,8 @@ Specifying a Custom Return Type Converter
 Similarly to the :py:func:`tangelo.types` decorator mentioned above, services
 can specify a custom return type via the :py:func:`tangelo.return_type`
 decorator.  It takes a single argument, a function to convert the object
-returned from the service function to a string:
+returned from the service function to a string (or other legal service return
+type; see :ref:`return-types`):
 
 .. code-block:: python
 
@@ -192,9 +195,6 @@ A more likely use case for this decorator is special-purpose JSON converters,
 such as Pymongo's ``bson.json_util.dumps()`` function, which can handle certain
 non-standard objects such as Python ``datetime`` objects when converting to JSON
 text.
-
-.. todo::
-    Fill in section
 
 RESTful Services
 ================
