@@ -94,13 +94,58 @@
 
 .. py:decorator:: tangelo.types([ptype1,...,ptypeN],kwarg1=kwtype1,...,kwargN=kwtypeN)
 
-.. todo::
-    Fill in section
+    Decorates a service by converting it from a function of several string arguments
+    to a function taking typed arguments.  Each argument to ``tangelo.types()`` is a
+    function that converts strings to some other type - the standard Python
+    functions ``int()``, ``float()``, and ``json.loads()`` are good examples.  The
+    positional and keyword arguments represent the types of the positional and
+    keyword arguments, respectively, of the function.  For example, the following
+    code snippet
+
+    .. code-block:: python
+
+        import tangelo
+
+        def stringfunc(a, b):
+            return a + b
+
+        @types(int, int)
+        def intfunc(a, b):
+            return a + b
+
+        print stringfunc("3", "4")
+        print intfunc("3", "4")
+
+    will print::
+
+        34
+        7
+
+    ``stringfunc()`` performs string concatentation, while ``intfunc()`` performs
+    addition on strings that have been converted to integers.
+
+    Though the names of the built-in conversion functions make this decorator look
+    like it accepts "types" as arguments, any function that maps strings to any type
+    can be used.  For instance, a string representing the current time could be
+    consumed by a function that parses the string and returns a Python ``datetime``
+    object, or, as mentioned above, ``json.loads()`` could be used to convert
+    arbitrary JSON data into Python objects.
+
+    If an exception is raised by any of the conversion functions, its error message
+    will be passed back to the client via a :py:class:`tangelo.HTTPStatusCode`
+    object.
 
 .. py:decorator:: tangelo.return_type(type)
 
-.. todo::
-    Fill in section
+    Similarly to how :py:func:`tangelo.types` works, this decorator can be used to
+    provide a function to convert the return value of a service function to some
+    other type or form.  By default, return values are converted to JSON via the
+    standard ``json.dumps()`` function.  However, this may not be sufficient in
+    certain cases.  For example, the ``bson.dumps()`` is a function provided by
+    PyMongo that can handle certain types of objects that ``json.dumps()`` cannot,
+    such as ``datetime`` objects.  In such a case, the service module can provide
+    whatever functions it needs (e.g., by ``import``\ ing an appropriate module or
+    package) then naming the conversion function in this decorator.
 
 .. py:class:: tangelo.HTTPStatusCode(code[, description])
 
