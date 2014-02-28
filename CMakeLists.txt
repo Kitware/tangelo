@@ -302,9 +302,6 @@ set(PEP8_FILES
     ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/restful.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/testapp.py
     ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/get_free_port.py
-    ${CMAKE_SOURCE_DIR}/testing/vtkweb/imagetest.py
-    ${CMAKE_SOURCE_DIR}/testing/vtkweb/tangelo-vtkweb-test.py
-    ${CMAKE_SOURCE_DIR}/testing/vtkweb/vtkwebtest.py
 )
 
 # These files should be uglified and concatenated.
@@ -493,25 +490,6 @@ if(${BUILD_TESTING})
 
     # These will be added to the dependencies of the top-level target.
     list(APPEND TESTING_DEPENDENCIES ${TANGELO_EXECUTABLE})
-
-    # TODO: figure out how to move this test into the new testing framework.
-    set(TESTING_SOURCES
-        testing/vtkweb/vtkwebtest.py
-        testing/vtkweb/baseline-cone.png
-        testing/vtkweb/baseline-phylotree.png
-        testing/vtkweb/tangelo-vtkweb-test.py
-    )
-
-    foreach(f ${TESTING_SOURCES})
-        configure_file(${f} ${f} COPYONLY)
-    endforeach()
-
-    # VTKWeb test.
-    add_test(
-        NAME vtkwebcone
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/testing/vtkweb
-        COMMAND /home/roni/work/VTK/build-osmesa/bin/vtkpython vtkweb-cone-test.py
-    )
 
     # Javascript style tests.
     if(${JS_LINT_TESTS})
