@@ -98,7 +98,6 @@ Information for Developers
     :maxdepth: 2
 
     coding-style-guide
-    .. architecture
     developing-visualizations
     testing
 

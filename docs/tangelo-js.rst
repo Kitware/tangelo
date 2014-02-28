@@ -609,7 +609,7 @@ provide convenient behaviors or to implement common visualization methods.  See
     :param accessor spec.linkTarget: An accessor to derive the target node of
         each link
 
-.. js:class:: tangelo.GoogleMapSVG(elem, mapoptions, cfg, cont)
+.. .. js:class:: tangelo.GoogleMapSVG(elem, mapoptions, cfg, cont)
 
 .. todo::
-    Fill in section
+    Fill in GoogleMapSVG section
