@@ -103,11 +103,6 @@ Information for Developers
     developing-visualizations
     testing
 
-TODO
-====
-
-.. todolist::
-
 Indices and tables
 ==================
 

@@ -324,5 +324,26 @@ tests, the requester may be asked to add test before submitting again.
 Writing Tests
 =============
 
-.. todo::
-    Fill in "writing tests" section
+When creating new functionality for Tangelo, or fixing bugs, it is important to
+include a test that demonstrates the desired behavior.  For example, if a pull
+request is made against some feature of Tangelo, but has no tests, the author
+may be requested to add a test before it can be accepted.
+
+The goal of writing a test is to isolate the behavior under observation, and
+provide a minimal amount of code to bring about that behavior.  If the test is a
+unit test, it is possible to include several individual test functions (with
+``test_*`` methods under Python's ``unittest`` module, or the ``it()`` function
+in Jasmine) in a single test suite.  For an example, see
+``testing/js-unit-tests/accessor.js``.
+
+If it is a web content test, the testing infrastructure is somewhat more
+restrictive, as only a single test function is allowed per test.  However, since
+web content tests are less based on testing a single aspect of the code base,
+this may be more appropriate.  In these cases, you can use PhantomJS to perform
+arbitrary computations on the web page DOM under examination, or use the
+metadata delivered to the test function to examine the status code, etc.  Here
+too it is important to test a specific behavior of the web page.  For an
+example, see ``testing/web-content-tests/dynamic-control-panel.js``.  That
+example loads a page, simulates mouse interaction, waits for a reasonable delay,
+then examines the resulting DOM, looking for a particular expected property to
+be satisfied.
