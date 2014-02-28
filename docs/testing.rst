@@ -186,18 +186,41 @@ create different types of tests:
 
 .. js:function:: toImageData(pngData)
 
-.. todo::
-    Fill in section
+Returns a promise that delivers an array of pixel data as converted from the PNG
+data blob passed in as the argument.
 
-.. js:function:: compareImages(pngData1, pndData2, comparator)
+The function works by converting the PNG data to base64, then creating a
+JavaScript ``Image`` object using the base64-encoded PNG data, and finally using
+a Canvas element to extract the pixel data.  As such, the return value is in the
+format returned by a Canvas 2D context.
 
-.. todo::
-    Fill in section
+``toImageData()`` returns a promise because the process of converting to pixel
+data via a Canvas object requires asynchronously waiting for the ``Image``
+object to be constructed.
+
+.. js:function:: compareImages(pngData1, pngData2, comparator)
+
+A convenience function for comparing two PNG binary blobs.  ``compareImages()``
+works by first converting the PNG data blobs to pixel data arrays (using
+:js:func:`toImageData` internally), then invokes the ``comparator`` argument -
+a function of two arguments - on the two arrays.  The result is a promise that
+delivers the return value of ``comparator``, which should be a boolean.
+
+If ``comparator`` is not specified, a default comparator is invoked which
+returns false if the image dimensions do not match, true if they do match and
+the L2 difference between the pixel arrays falls below the threshold value
+(`cfg.threshold` in the :js:func:`declaretest`), and false otherwise.
+
+This default function may not be appropriate for most comparison tasks, but it
+is the simplest possible reasonable function for image comparison.  In general,
+you may want to specify your own.
 
 .. js:function:: dumpImage(imgData, filename)
 
-.. todo::
-    Fill in section
+A debugging function that takes a pixel array `imgData` (as returned by, e.g.,
+:fs:func:`toImageData`) and writes out a PNG file `filename`.  It is possible
+that this function will fail, e.g., if the user that is running Tangelo does not
+have write permission in the directory where this function is invoked.
 
 .. js:data:: info
 
@@ -215,10 +238,59 @@ create different types of tests:
 
     * `info.statusText` - A string associated to the status code.
 
-.. js:class:: Promise
+.. js:class:: Promise(callback)
 
-.. todo::
-    Fill in section
+A promise is a general programming notion of *deferring the delivery of
+computational results* to a later time when they are fully available.  In a web
+programming environment, promises are necessary to generalize the notion of
+"function return value" to asynchonrous contexts.
+
+In particular, if a web content test needs to perform asynchronous actions, it
+cannot simply issue a ``return`` from within the asynchronous callback, as the
+testing function itself will have already finished running, and will need to
+return some value besides the desired return value from the callback.
+
+The solution is to return a promise from the testing function that wraps the
+the callback, capturing its eventual return value.  The testing system can distinguish
+between bare return values of boolean type, and promises, and will take the
+appropriate action to maintain the abstraction that a simple *true* or *false*
+value always comes back from the test.
+
+The `callback` argument is a function of one argument, named `deliver`.
+`callback` should contain any asynchonous actions that are necessary to
+computing the test result.  However, in place of using a return statement, the
+callback should invoke `deliver` on the result.  An example will make this
+clear:
+
+.. code-block:: javascript
+
+    function testFunc(page, info) {
+        return new Promise(function (deliver) {
+            asyncAction(page, function (result) {
+                if (resultIsGood(result)) {
+                    deliver(true);
+                } else {
+                    deliver(false);
+                }
+            });
+        });
+    }
+
+Ordinarily, `testFunc()` would directly call `asyncAction()`, and it would have
+no way to "return" true or false from it's if-then statement.  However, using a
+``Promise``, the `deliver()` argument takes the place of the return statement.
+
+The ``Promise`` object constructed this way does not execute its `callback`
+argument immediately.  Instead, it contains a single method named `then()`,
+which is called with a `deliver` argument.  When it is called, it simply invokes
+`callback` with `deliver` as the argument.
+
+In the web content test scaffolding, if the test function returns a ``Promise``,
+the test driver knows to invoke its `then()` method to capture the result of the
+asynchonous action, and deliver a pass/fail signal to CTest.  In other words, if
+possible, a test function should return `true` or `false` directly; otherwise,
+it should return a ``Promise`` as in the example above.  From the point of view
+of CTest, both styles seem to deliver a boolean value describing the test run.
 
 Coverage Tests
 --------------
