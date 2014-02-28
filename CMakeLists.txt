@@ -75,7 +75,7 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
     set(PIP_EXECUTABLE ${VENV_DIR}/bin/pip)
     add_custom_command(
         OUTPUT ${VENV_PYTHON_EXECUTABLE}
-               ${VENV_DIR}/bin/pip
+               ${PIP_EXECUTABLE}
         COMMAND ${VIRTUALENV_EXECUTABLE} -p ${PYTHON_EXECUTABLE}
                                          ${CMAKE_BINARY_DIR}/venv
         COMMENT "Creating virtual Python environment"
@@ -86,6 +86,7 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
     add_custom_command(
         OUTPUT ${SPHINX_EXECUTABLE}
         COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall Sphinx
+        DEPENDS ${PIP_EXECUTABLE}
         COMMENT "Installing Sphinx"
     )
 
@@ -94,6 +95,7 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
     add_custom_command(
         OUTPUT ${COVERAGE_EXECUTABLE}
         COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall coverage
+        DEPENDS ${PIP_EXECUTABLE}
         COMMENT "Installing coverage"
     )
 
@@ -102,6 +104,7 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
     add_custom_command(
         OUTPUT ${PEP8_EXECUTABLE}
         COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall pep8
+        DEPENDS ${PIP_EXECUTABLE}
         COMMENT "Installing pep8"
     )
 
@@ -110,6 +113,7 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
     add_custom_command(
         OUTPUT ${PYLINT_EXECUTABLE}
         COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall pylint
+        DEPENDS ${PIP_EXECUTABLE}
         COMMENT "Installing pylint"
     )
 
@@ -118,6 +122,7 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
     add_custom_command(
         OUTPUT ${MONGO_MODULE}
         COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall pymongo
+        DEPENDS ${PIP_EXECUTABLE}
         COMMENT "Installing pymongo"
     )
 
@@ -126,6 +131,7 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
     add_custom_command(
         OUTPUT ${NUMPY_MODULE}
         COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall numpy
+        DEPENDS ${PIP_EXECUTABLE}
         COMMENT "Installing numpy"
     )
 
@@ -135,7 +141,7 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
         OUTPUT ${NLTK_MODULE}
         COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall nltk
         COMMAND ${VENV_PYTHON_EXECUTABLE} -m nltk.downloader maxent_ne_chunker maxent_treebank_pos_tagger punkt words
-        DEPENDS ${NUMPY_MODULE}
+        DEPENDS ${NUMPY_MODULE} ${PIP_EXECUTABLE}
         COMMENT "Installing nltk"
     )
 endif()
@@ -381,7 +387,6 @@ endif()
 if(${BUILD_DOCUMENTATION})
     set(DOCUMENTATION_SOURCES
         ${CMAKE_SOURCE_DIR}/docs/advanced-usage.rst
-        ${CMAKE_SOURCE_DIR}/docs/architecture.rst
         ${CMAKE_SOURCE_DIR}/docs/basic-usage.rst
         ${CMAKE_SOURCE_DIR}/docs/building-an-app.rst
         ${CMAKE_SOURCE_DIR}/docs/coding-style-guide.rst
@@ -393,6 +398,7 @@ if(${BUILD_DOCUMENTATION})
         ${CMAKE_SOURCE_DIR}/docs/tangelo-manpage.rst
         ${CMAKE_SOURCE_DIR}/docs/tangelo-passwd-manpage.rst
         ${CMAKE_SOURCE_DIR}/docs/tangelo-py.rst
+        ${CMAKE_SOURCE_DIR}/docs/testing.rst
         ${CMAKE_SOURCE_DIR}/docs/setup.rst
         ${CMAKE_SOURCE_DIR}/docs/static/tangelo-sphinx.css
         ${CMAKE_SOURCE_DIR}/docs/templates/layout.html

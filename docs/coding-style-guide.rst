@@ -294,10 +294,3 @@ this instance.
 ``eval``, it shall insert an ``evil: true`` directive into the JSLint
 options list. All other JavaScript files shall **not** make use of
 ``eval``.
-
-Packaging and Object Orientation
---------------------------------
-
-This section concerns the highest-level expressions of *packaging* code
-into modules for external use, and how to implement *object oriented
-programming* in JavaScript.

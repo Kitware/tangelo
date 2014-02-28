@@ -21,5 +21,21 @@ Optional argument Effect
 -c, --create      Create new password file
 ================= ===============================
 
-.. todo::
-    Fill in some detailed documentation and examples for ``tangelo-passwd``
+Example Usage
+=============
+
+To create a new password file: ::
+
+    tangelo-passwd -c secret.txt romulus tomalak
+
+(Then type in the password as prompted.)
+
+To add a user to the file: ::
+
+    tangelo-passwd secret.txt Qo\'noS martok
+
+(Again, type in password.)
+
+To overwrite a new password file on top of the old one: ::
+
+    tangelo-passwd -c secret.txt betazed troi

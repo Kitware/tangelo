@@ -27,13 +27,11 @@ directory is set to ``/srv/tangelo/root``, visiting http://localhost:8080/ would
 serve content from that directory, and visiting http://localhost:8080/foobar
 would serve content from ``/srv/tangelo/root/foobar``, etc.
 
-.. todo::
-    Link to documentation for streaming and VTKWeb
-
 **The streaming and VTKWeb APIs.** The URLs http://localhost:8080/stream and
 http://localhost:8080/vtkweb are **reserved**; they are the interfaces to the
 Streaming and VTKWeb APIs, respectively.  Files in the web root directory named
-``stream`` and ``vtkweb`` *will not be served by Tangelo*.
+``stream`` and ``vtkweb`` *will not be served by Tangelo*.  (For more
+information about these APIs, see :ref:`streaming` and :ref:`vtkweb`.)
 
 The foregoing examples demonstrate how Tangelo associates URLs to directories
 and files in the filesystem.  URLs referencing particular files will cause
@@ -51,7 +49,7 @@ according to the following cascade of rules:
    therein.
 
 As mentioned already, the URLs http://localhost:8080/stream and
-http://localhost:8080/vtkweb are special and does not serve any static content
+http://localhost:8080/vtkweb are special and do not serve any static content
 from disk.  Similarly, a URL referring to a Python script, but lacking the final
 ``.py``, names a *web service*; such URLs do not serve static content, but
 rather run the referred Python script and serve the results (see

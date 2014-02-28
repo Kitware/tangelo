@@ -8,8 +8,8 @@ UNIXlike operating systems as well, but these are the three supported platforms.
 There are two ways to install Tangelo: from the Python Package Index, or from
 source.
 
-Install from the Python Package Index with Pip
-==============================================
+Installing from the Python Package Index
+========================================
 
 The latest release version of Tangelo can always be found in the `Python Package
 Index <http://pypi.python.org/pypi>`_.  The easiest way to install Tangelo is
@@ -35,8 +35,8 @@ Use this command in a shell to install the Tangelo package and its dependencies:
 
 You may need to run this command as the superuser, using ``sudo`` or similar.
 
-Build and Install from Source
-=============================
+Building and Installing from Source
+===================================
 
 Tangelo is developed on `GitHub <https://github.com/Kitware/tangelo>`_.  If you
 wish to contribute code, or simply want the very latest development version, you
@@ -49,9 +49,6 @@ Linux and OS X
 
 Install the following software, which is required to download, build, deploy,
 and run Tangelo:
-
-.. todo::
-    Hyperlink the software packages to their homepages.
 
 * GNU Make
 * CMake
@@ -70,34 +67,101 @@ This will create a directory called ``tangelo`` containing the source code.
 
 Create a build directory and move into it: ::
 
-    cd tangelo
     mkdir build
 
 Run ``cmake`` or ``ccmake`` to configure, supplying the source code directory as
 its argument. ::
 
     cd build
-    cmake ..
+    cmake ../tangelo
 
-.. todo::
-    Verify these CMake options and uncomment
-    ``ccmake`` will present you with a curses-based configuration interface that
-    will allow you to edit the configuration options (some operating systems
-    provide ``ccmake`` and ``cmake`` in different packages - check your local
-    documentation).  The following options can be set if you wish, but the default
-    values should be fine as well:
-    * ``BUILD_TESTING`` - Generates a ``ctest`` suite for validating the JavaScript
-      code with ``jslint``, running unit tests, etc.
-    * ``DEPLOY_TEST_SERVICES`` - Includes the "testing" web services in the deployed
-      server.
-    * ``BUILD_DOCUMENTATION`` - Generates Tangelo documentation (the very document
-      you are reading!) during build.
-    * ``MANGLE`` and ``MINIFY`` - Options to the JavaScript minifier: ``MANGLE``
-      replaces non-public variable names with shorter strings, while ``MINIFY``
-      removes all unnecessary whitespace, resulting in smaller code to transmit over
-      the network.
-    * ``SERVER_HOSTNAME`` and ``SERVER_PORT`` - The name of the host that will run
-      the server, and the port number on which it will run.
+``ccmake`` will present you with a curses-based configuration interface that
+will allow you to edit the configuration options (some operating systems
+provide ``ccmake`` and ``cmake`` in different packages - check your local
+documentation).  The "top-level" options are as follows:
+
+    * ``BUILD_DOCUMENTATION`` - Generates Tangelo documentation (the very
+      documentation you are reading!).
+
+    * ``BUILD_TESTING`` - Generates a CTest suite for validating the JavaScript
+      code with `JSlint <http://www.jslint.com/>`_, Python code with `pep8
+      <https://pypi.python.org/pypi/pep8>`_ and `Pylint
+      <http://www.pylint.org/>`_, running Javascript unit tests with `Jasmine
+      <http://pivotal.github.io/jasmine/>`_, Python unit tests with the
+      `unittest module <http://docs.python.org/2/library/unittest.html>`_,
+      Javascript coverage with `Blanket.js <http://blanketjs.org/>`_, Python
+      coverage with the `coverage tool
+      <https://pypi.python.org/pypi/coverage>`_, and finally, web-based content
+      tests using `PhantomJS <http://phantomjs.org/>`_.
+
+    * ``NPM_EXECUTABLE`` - The path to the ``npm`` (`Node Package Manager
+      <https://www.npmjs.org/>`_) program.  This is used to perform local (in
+      the build directory) installs of `UglifyJS
+      <https://github.com/mishoo/UglifyJS2/>`_, which is used to minify the
+      ``tangelo.js`` output file, as well as other utilities necessary for
+      testing (JSLint and PhantomJS).  Because NPM is needed for the actual
+      build step, it appears as a top-level option in the configure step.
+
+Hitting ``c`` to configure will cause dependent options to appear.  If
+``BUILD_TESTING`` is set to ``ON``, the dependent options are:
+
+    * ``VIRTUALENV_EXECUTABLE`` - The path to the `Virtualenv
+      <https://pypi.python.org/pypi/virtualenv>`_ program, used to perform local
+      (in the build directory) intalls of Python packages necessary for
+      a testing deployment of Tangelo.
+
+    * ``JS_LINT_TESTS`` - Generates Javascript style validation tests using the
+      JSLint program (installed via NPM).
+
+    * ``JS_UNIT_TESTS`` - Generates Javascript unit test suites to stress
+      components of ``tangelo.js``.  These tests are carried out via JasmineJS.
+
+    * ``PY_LINT_TESTS`` - Generates lint tests for Python source files using
+      Pylint, which is installed via Virtualenv.  Note that this variable is set
+      to ``OFF`` by default.  This is because Pylint is extremely strict and
+      rigid by design, knowingly warning about code features which may not
+      actually be undesirable or error-prone in context.  This option is useful
+      mainly as an occasional check for the developer to look for fatal errors.
+      Unlike the other test types, it is **not** a development goal to eliminate
+      all Pylint warnings.  ``testing/pylint/pylintrc`` in the source files
+      contains a configuration file that suppresses some of the less useful
+      warnings.
+
+    * ``PY_STYLE_TESTS`` - Generates style tests for Python source files using
+      Pep8.  The line length rule is suppressed in these tests, but it is
+      generally good practice to conform to the other Pep8 rules when preparing
+      Python code for Git commits.
+
+    * ``PY_UNIT_TESTS`` - Generates unit tests for the Python components.  These
+      are carried out using the ``unittest`` module that is part of the Python
+      standard library.
+
+    * ``PY_COVERAGE_TEST`` - Sets up the Python unit tests to also perform
+      coverage analysis.
+
+    * ``WEB_CONTENT_TESTS`` - Generates tests to verify the content of web pages
+      relying on some aspect of the Tangelo server or clientside libraries.
+      These are carried out with PhantomJS.
+
+    * ``TESTING_PORT`` - Specifies what port Tangelo should run on to carry out
+      the web content tests.
+
+Documentation for Tangelo is built using `Sphinx <http://sphinx-doc.org/>`_.  It
+is installed locally via Virtualenv, so if ``BUILD_DOCUMENTATION`` is set to
+``ON``, the ``VIRTUALENV_EXECUTABLE`` option will appear.
+
+Finally, there are some options marked as "advanced" (you can toggle their
+visibility by pressing ``t`` in CCMake):
+
+    * ``BUILD_TANGELO`` and ``BUILD_TANGELO_PYTHON_PACKAGE`` - These control
+      whether Tangelo is actually built.  They are mainly useful for developers
+      working on, e.g., documentation and not wishing to spend any time building
+      Tangelo itself.  Normally you will not need to disable these options.
+
+    * ``TESTING_HOST`` - Just as ``TESTING_PORT`` specifies the port for Tangelo
+      to run on, this option specifies the hostname to use when launching
+      Tangelo.  Generally, ``localhost`` is the correct value for this option,
+      but you can modify this if necessary for an unusual configuration.
 
 **4. Build the server**
 
@@ -134,9 +198,8 @@ shutdown of the Tangelo server.  Run::
 
     tangelo start
 
-to launch the server (on `localhost:8000 <http://localhost:8000>`_ by default).
-Point your browser there and you should see a collection of demo applications
-to get you started.
+to launch the server (on `http://localhost:8080`_ by default).  Point your
+browser there and you should see the "Tangelo sunrise."
 
 Windows
 -------
@@ -225,64 +288,13 @@ to launch the server (on `localhost:8000 <http://localhost:8000>`_ by default).
 Point your browser there and you should see a collection of demo applications
 to get you started.
 
-Data Prep for Example Applications
-==================================
+Running the Tests
+-----------------
 
-Some of the `example applications <http://localhost:8080/examples>`_ require you
-to set up a Mongo database to store the requisite visualization data.  Follow
-these instructions to enable the applications.
-
-Named Entities
---------------
-
-In order to run the named entities example at http://localhost:8000/examples/ner/,
-you need to install NLTK and download some datasets.
-On Mac and Linux, simply run::
-
-    pip install nltk
-
-In a Windows Git Bash shell::
-
-    /c/Python27/Scripts/pip install pyyaml nltk
-
-To get the NLTK datasets needed, run
-``python`` from the shell (``/c/Python27/python`` from Git Bash on Windows)
-and execute the following::
-
-    import nltk
-    nltk.download()
-
-From the window that appears, go to the *Models* tab and download the
-*maxent_ne_chunker*, *maxent_treebank_pos_tagger*, and *punkt* models by
-clicking on each and pressing the download button. Similarly download the
-*words* dataset from the *Corpora* tab.  After closing the download window,
-``quit()`` will exit the Python shell.
-
-CharityNet
-----------
-
-.. todo::
-    Fill in CharityNet data prep section
-
-Flickr Metadata Maps
---------------------
-
-.. todo::
-    Fill in CharityNet data prep section
-
-Enron Email
------------
-
-.. todo::
-    Fill in CharityNet data prep section
-
-Testing
-=======
-
-.. todo::
-    Explain in more detail what the tests are, how to run them and interpret the
-    results, and how to create a new test (if submitting a pull request, etc.).
-
-To run the Tangelo test suite, build your project by running ``make`` or
-``ninja`` as described above, then run the ``ctest`` in the Tangelo build
-directory.
+Now that you have built Tangelo, you may wish to run the included test suite to
+confirm that all is well.  From the build directory, run the ``ctest`` command
+with no arguments to run all the tests.  After they complete, a summary report
+showing the number of tests passed will be printed.  Don't worry too much if you
+find that the coverage tests have failed.  However, if you see other failures,
+we would like to hear about them.  Rerun the tests using ``ctest
+--output-on-failure`` and drop us a note at `tangelo-users@public.kitware.com`.

@@ -1,19 +1,21 @@
-=========================
-Developing Visualizations
-=========================
+=================================
+    Developing Visualizations
+=================================
 
-Extend jQuery Widget
---------------------
+.. _jquery-widgets:
+
+Creating jQuery Widgets
+=======================
 
 Tangelo visualizations are implemented as jQuery widgets. They extend the
 base jQuery UI widget class, but otherwise do not need to depend on anything
 else from jQuery UI.
 
 Visualization Options
----------------------
+=====================
 
 Basic Options
-~~~~~~~~~~~~~
+-------------
 
 *   `data` - The data associated with the visualization, normally
     an array.
@@ -21,7 +23,7 @@ Basic Options
     If omitted, the visualization should resize to fit the DOM element.
 
 Visualization Mapping Options
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------
 
 The following options are optional, but if your visualization is able to map
 data element properties to visual attributes like size, color, and label, you
@@ -42,11 +44,13 @@ appropriate (e.g. `nodeSize`, `nodeStrokeWidth`).
 *   `strokeWidth` - The width of the stroke of the visual element in pixels.
 *   `opacity` - The opacity of the entire visual element, as a number between 0 to 1.
 
+.. _accessor:
+
 Accessor Specifications
------------------------
+=======================
 
 AccessorSpec
-~~~~~~~~~~~~
+------------
 
 Each visual mapping should take an `AccessorSpec` for a value.
 Accessor specifications work much like `DataRef` specs do in Vega,
@@ -56,20 +60,34 @@ accessors and scales.
 *   ``function (d) { ... }`` - The most general purpose way
     to generate a visual mapping. The argument is the data element and the return
     value is the value for the visual property.
+
 *   ``{value: v}`` - Sets the visual property to the same constant
     value `v` for all data elements.
+
+*   ``{index: true}`` - Evaluates to the index of the data item within its
+    array.
+
 *   ``{field: "dot.separated.name"}`` - Retrieves the specified field
     or subfield from the data element and passes it through the
     visualization's default scale for that visual property.
     Unlike Vega, fields from the original data do not need to be
     prefixed by ``"data."``. The special field name ``"."``
     refers to the entire data element.
+
 *   ``{field: "dot.separated.name", scale: ScaleSpec}`` - Overrides the default scale
     using a scale specification. Set `scale` to ``tangelo.identity`` to use
     a field directly as the visual property.
 
+*   ``{}`` - The *undefined accessor*.  This is a function that, if called,
+    throws an exception.  The function also has a property ``undefined`` set to
+    *true*.  This is meant as a stand-in for the case when an accessor must be
+    assigned but there is no clear choice for a default.  It is also used when
+    creating Tangelo jQuery widgets to mark a property as being an accessor.
+    Calling :js:func:`tangelo.accessor()` with no arguments also results in an
+    undefined accessor being created and returned.
+
 ScaleSpec
-~~~~~~~~~
+---------
 
 A scale specification defines how to map data properties to visual properties.
 For example, if you want to color your visual elements using a data field
@@ -78,28 +96,3 @@ you will need a scale that maps North America to ``"blue"``,
 Europe to ``"green"``, etc. Vega has a number of built-in named scales that
 together define the `ScaleSpec`. In Tangelo, a `ScaleSpec` may also be an
 arbitrary function.
-
-Callbacks
----------
-
-Data Callbacks
-~~~~~~~~~~~~~~
-
-*   `enter`
-*   `update`
-*   `exit`
-
-Interaction Callbacks
-~~~~~~~~~~~~~~~~~~~~~
-
-*   `click`
-*   `dblclick`
-*   `mouseover`
-*   `mouseout`
-
-Behavior Callbacks
-~~~~~~~~~~~~~~~~~~
-
-*   `select`
-*   `focus`
-*   `toggle`
