@@ -222,7 +222,7 @@ you may want to specify your own.
 .. js:function:: dumpImage(imgData, filename)
 
 A debugging function that takes a pixel array `imgData` (as returned by, e.g.,
-:fs:func:`toImageData`) and writes out a PNG file `filename`.  It is possible
+:js:func:`toImageData`) and writes out a PNG file `filename`.  It is possible
 that this function will fail, e.g., if the user that is running Tangelo does not
 have write permission in the directory where this function is invoked.
 
