@@ -610,3 +610,6 @@ provide convenient behaviors or to implement common visualization methods.  See
         each link
 
 .. js:class:: tangelo.GoogleMapSVG(elem, mapoptions, cfg, cont)
+
+.. todo::
+    Fill in section

@@ -15,7 +15,7 @@ static pages, to cutting-edge, visual, dynamic displays.  **Tangelo also lets
 you include Python scripts as part of your application, alongside your HTML and
 Javascript files**, running them on your behalf to do anything from retrieving a
 few database results for display, to engaging with powerful computational
-engines such as Hadoop_ to compute complex results.
+engines such as Hadoop to compute complex results.
 
 To help in creating these applications, Tangelo exports the Tangelo API, which
 exists as a collection of Python functions, JavaScript functions, and a set of
@@ -28,7 +28,6 @@ information.
 .. _CherryPy: http://www.cherrypy.org
 .. _Tangelo homepage: http://kitware.github.io/tangelo/
 .. _GitHub repository: https://github.com/Kitware/tangelo
-.. _Hadoop: http://hadoop.apache.org/
 .. _Vega: http://trifacta.github.io/vega/
 
 .. _quickstart:
@@ -99,7 +98,7 @@ Information for Developers
     :maxdepth: 2
 
     coding-style-guide
-    architecture
+    .. architecture
     developing-visualizations
     testing
 
@@ -107,5 +106,4 @@ Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`

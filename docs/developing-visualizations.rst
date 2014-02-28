@@ -78,6 +78,14 @@ accessors and scales.
     using a scale specification. Set `scale` to ``tangelo.identity`` to use
     a field directly as the visual property.
 
+*   ``{}`` - The *undefined accessor*.  This is a function that, if called,
+    throws an exception.  The function also has a property ``undefined`` set to
+    *true*.  This is meant as a stand-in for the case when an accessor must be
+    assigned but there is no clear choice for a default.  It is also used when
+    creating Tangelo jQuery widgets to mark a property as being an accessor.
+    Calling :js:func:`tangelo.accessor()` with no arguments also results in an
+    undefined accessor being created and returned.
+
 ScaleSpec
 ---------
 
@@ -88,28 +96,3 @@ you will need a scale that maps North America to ``"blue"``,
 Europe to ``"green"``, etc. Vega has a number of built-in named scales that
 together define the `ScaleSpec`. In Tangelo, a `ScaleSpec` may also be an
 arbitrary function.
-
-Callbacks
-=========
-
-Data Callbacks
---------------
-
-*   `enter`
-*   `update`
-*   `exit`
-
-Interaction Callbacks
----------------------
-
-*   `click`
-*   `dblclick`
-*   `mouseover`
-*   `mouseout`
-
-Behavior Callbacks
-------------------
-
-*   `select`
-*   `focus`
-*   `toggle`

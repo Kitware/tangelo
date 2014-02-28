@@ -298,7 +298,7 @@ The patch level is incremented when a bug fix or other correction to the
 software occurs.
 
 Major version 0 is special: essentially, there are no guarantees about
-compatibility in the 0.*y* series.  The stability of APIs and behaviors begins
+compatibility in the 0.\ *y* series.  The stability of APIs and behaviors begins
 with version 1.0.
 
 In addition to the standard semantic versioning practices, Tangelo also tags the

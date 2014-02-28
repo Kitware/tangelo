@@ -198,9 +198,8 @@ shutdown of the Tangelo server.  Run::
 
     tangelo start
 
-to launch the server (on `localhost:8000 <http://localhost:8000>`_ by default).
-Point your browser there and you should see a collection of demo applications
-to get you started.
+to launch the server (on `http://localhost:8080`_ by default).  Point your
+browser there and you should see the "Tangelo sunrise."
 
 Windows
 -------

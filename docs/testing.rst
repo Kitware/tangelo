@@ -158,31 +158,35 @@ create different types of tests:
 
     Declares a web content test, according to the information carried in `cfg`.
 
-    * `cfg.name` - A descriptive name for the test.
+    :param object cfg: A configration object, with contents as specified below.
 
-    * `cfg.url` - The URL to load in order to carry out the test.
+    :param string cfg.name: A descriptive name for the test.
 
-    * `cfg.method` - The HTTP method to use to retrieve the URL.  This can be
-      useful for testing, e.g., REST services.
+    :param string cfg.url: The URL to load in order to carry out the test.
 
-    * `cfg.data` - A JavaScript object of key-value pairs, or a string, to send
-      as the request data for, e.g., POST requests.
+    :param string cfg.method: The HTTP method to use to retrieve the URL.  This
+        can be useful for testing, e.g., REST services.
 
-    * `cfg.size` - The size that PhantomJS should use for its virtual window.
+    :param object-or-string cfg.data: A JavaScript object of key-value pairs, or
+        a string, to send as the request data for, e.g., POST requests.
 
-    * `cfg.imageFile` - An image file to use for image-based comparison tests.
+    :param list-of-number cfg.size: The size that PhantomJS should use for its
+        virtual window.
 
-    * `cfg.threshold` - A number representing the error threshold for
-      image-based comparison tests.
+    :param string cfg.imageFile: An image file to use for image-based comparison
+        tests.
 
-    * `cfg.test` - A function that implements the test itself.  This function
-      will be invoked with two arguments: the PhantomJS page object, and an
-      :js:data:`info` object.  The function should return either a boolean value
-      to indicate passing or failure, or a :js:class:`Promise` object that does
-      the same.  Promises should be used when asynchronous activity is involved:
-      since the asynchronous callback cannot simply ``return`` the boolean
-      value, it must be sent back via promise, but the test scaffolding is built
-      to seamlessly handle this case.
+    :param number cfg.threshold: A number representing the error threshold for
+        image-based comparison tests.
+
+    :param function(page,info) cfg.test: A function that implements the test
+        itself.  This function will be invoked with two arguments: the PhantomJS
+        page object, and an :js:data:`info` object.  The function should return
+        either a boolean value to indicate passing or failure, or a
+        :js:class:`Promise` object that does the same.  Promises should be used when
+        asynchronous activity is involved: since the asynchronous callback cannot
+        simply ``return`` the boolean value, it must be sent back via promise, but
+        the test scaffolding is built to seamlessly handle this case.
 
 .. js:function:: toImageData(pngData)
 

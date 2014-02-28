@@ -49,7 +49,7 @@ according to the following cascade of rules:
    therein.
 
 As mentioned already, the URLs http://localhost:8080/stream and
-http://localhost:8080/vtkweb are special and does not serve any static content
+http://localhost:8080/vtkweb are special and do not serve any static content
 from disk.  Similarly, a URL referring to a Python script, but lacking the final
 ``.py``, names a *web service*; such URLs do not serve static content, but
 rather run the referred Python script and serve the results (see
