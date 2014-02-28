@@ -125,6 +125,7 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
         DEPENDS ${PIP_EXECUTABLE}
         COMMENT "Installing pymongo"
     )
+    list(APPEND ${TESTING_DEPENDENCIES} ${MONGO_MODULE})
 
     # Install numpy (needed for nltk).
     set(NUMPY_MODULE ${VENV_DIR}/lib/python2.7/site-packages/numpy/__init__.py)
@@ -144,6 +145,7 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
         DEPENDS ${NUMPY_MODULE} ${PIP_EXECUTABLE}
         COMMENT "Installing nltk"
     )
+    list(APPEND ${TESTING_DEPENDENCIES} ${NLTK_MODULE})
 endif()
 
 # Need UglifyJS to build Tangelo; JSLint and PhantomJS to test.
@@ -422,7 +424,7 @@ if(${BUILD_DOCUMENTATION})
     set(DOCUMENTATION_DEPENDENCIES ${DOCUMENTATION_INDEX})
 endif()
 
-if(${BUILD_TANGELO} AND ${BUILD_TANGELO_PYTHON_PACKAGE})
+if(${BUILD_TANGELO} AND "${BUILD_TANGELO_PYTHON_PACKAGE}")
     # A target to build the package.
     set(TANGELO_PACKAGE ${CMAKE_BINARY_DIR}/sdist/tangelo-${TANGELO_VERSION}.tar.gz)
     add_custom_command(
@@ -661,18 +663,39 @@ if(${BUILD_TESTING})
     endif()
 endif()
 
-# The top-level target.
+# The top-level dependency list.
 get_property(ALL_COPIED_FILES GLOBAL PROPERTY copied_files)
+set(TOP_LEVEL_DEPENDENCIES
+    ${ALL_COPIED_FILES}
+    ${MIN_JS_FILE}
+    ${JS_FILE}
+)
+
+if(${BUILD_DOCUMENTATION})
+    list(APPEND TOP_LEVEL_DEPENDENCIES
+        ${DOCUMENTATION_DEPENDENCIES}
+    )
+endif()
+
+if(${BUILD_TANGELO_PYTHON_PACKAGE})
+    list(APPEND TOP_LEVEL_DEPENDENCIES
+        ${TANGELO_PACKAGE}
+    )
+endif()
+
+if(${BUILD_TESTING})
+    list(APPEND TOP_LEVEL_DEPENDENCIES
+        ${TESTING_DEPENDENCIES}
+        ${JS_UNIT_TEST_FILES}
+        ${WEB_CONTENT_TEST_FILES}
+        ${MONGO_MODULE}
+        ${NLTK_MODULE}
+    )
+endif()
+
+# The top-level target.
 add_custom_target(
     tangelo-all
     ALL
-    DEPENDS ${ALL_COPIED_FILES}
-            ${MIN_JS_FILE}
-            ${JS_FILE}
-            ${TESTING_DEPENDENCIES}
-            ${MONGO_MODULE}
-            ${NLTK_MODULE}
-            ${DOCUMENTATION_DEPENDENCIES}
-            ${JS_UNIT_TEST_FILES}
-            ${WEB_CONTENT_TEST_FILES}
+    DEPENDS ${TOP_LEVEL_DEPENDENCIES}
 )
