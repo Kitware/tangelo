@@ -66,10 +66,6 @@ flickr.getMongoRange = function (host, db, coll, field, callback) {
             // an error message on the console.
             if (response.error || response.result.data.length === 0) {
                 max = null;
-
-                if (response.error) {
-                    tangelo.fatalError("flickr.getMongoRange()", "error: could not retrieve max value from " + host + ":/" + db + "/" + coll + ":" + field);
-                }
             } else {
                 max = response.result.data[0][field];
             }
@@ -88,10 +84,6 @@ flickr.getMongoRange = function (host, db, coll, field, callback) {
                     // be retrieved.
                     if (response.error || response.result.data.length === 0) {
                         min = null;
-
-                        if (response.error) {
-                            tangelo.fatalError("flickr.getMongoRange()", "could not retrieve min value from " + host + ":/" + db + "/" + coll + ":" + field);
-                        }
                     } else {
                         min = response.result.data[0][field];
                     }
@@ -490,8 +482,9 @@ function getMinMaxDates(zoom) {
                 .style("padding-left", "20%")
                 .style("padding-right", "20%")
                 .style("text-align", "center")
-                .html("There doesn't seem to be any Flickr data in the Mongo instance at <em>" + flickr.config.server + "</em>" +
-                    ", database <em>" + flickr.config.db + "</em>, collection <em>" + flickr.config.coll + "</em>." +
+                .html("There doesn't seem to be a Mongo instance at <em>" + flickr.config.server + "</em>" +
+                    ", with database <em>" + flickr.config.db + "</em> and collection <em>" + flickr.config.coll + "</em>" +
+                    ", or there is no data there." +
                     "  See these <a href=\"http://localhost:8080/docs/setup.html#flickr-metadata-maps\">instructions</a> for help setting this up.");
             return;
         }

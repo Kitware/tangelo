@@ -54,13 +54,13 @@ def run(host, database, collection, start_time=None,
             pymongo.errors.ConnectionFailure) as e:
         ex = e
 
-    if c.find({}).count() == 0:
-        response["error"] = "no database found"
-        return response
-
     # Bail out with an error message if there was an exception.
     if ex is not None:
         response["error"] = "database error: %s" % (e.message)
+        return response
+
+    if c.find({}).count() == 0:
+        response["error"] = "no database found"
         return response
 
     # Start a set of all interlocutors we're interested in - that includes the
