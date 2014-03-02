@@ -13,7 +13,7 @@ describe("tangelo.accessor", function () {
     undef1 = tangelo.accessor(),
     undef2 = tangelo.accessor({}),
     func = tangelo.accessor(function (x, y) {
-        return x + y,
+        return x + y;
     }),
     value = tangelo.accessor({value: 10}),
     index = tangelo.accessor({index: true}),
