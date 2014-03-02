@@ -9,5 +9,5 @@ endforeach()
 file(READ ${alljs} TEST_SOURCE)
 configure_file(
     ${SOURCE_DIR}/testing/scaffolding/coverage-scaffold.html.in
-    tangelo/web/tests/js-unit-tests/tangelojs-coverage.html
+    tangelo/web/tests/js-coverage/tangelojs-coverage.html
 )
