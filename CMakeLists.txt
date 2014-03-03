@@ -190,6 +190,7 @@ if(${BUILD_TESTING})
     set(PY_UNIT_TESTS ON CACHE BOOL "Generate tangelo Python module unit tests.")
     set(WEB_CONTENT_TESTS ON CACHE BOOL "Generate tests for example web appplications.")
     set(PY_COVERAGE_TEST ON CACHE BOOL "Generate Python coverage report.")
+    set(OTHER_TESTS ON CACHE BOOL "Generate miscellaenous other tests.")
     set(TESTING_HOST localhost CACHE STRING "The host to run Tangelo on for the test suite.")
     set(TESTING_PORT 50047 CACHE STRING "The port number to run Tangelo for the test suite.")
 
@@ -668,11 +669,13 @@ if(${BUILD_TESTING})
     endif()
 
     # Other tests.
-    set(TANGELO_VERSION_TEST ${CMAKE_BINARY_DIR}/other-tests/tangelo-version.py)
-    configure_file(testing/other-tests/tangelo-version.py.in ${TANGELO_VERSION_TEST})
-    add_test(other:tangelo-version
-        ${VENV_PYTHON_EXECUTABLE} ${TANGELO_VERSION_TEST}
-    )
+    if(${OTHER_TESTS})
+        set(TANGELO_VERSION_TEST ${CMAKE_BINARY_DIR}/other-tests/tangelo-version.py)
+        configure_file(testing/other-tests/tangelo-version.py.in ${TANGELO_VERSION_TEST})
+        add_test(other:tangelo-version
+            ${VENV_PYTHON_EXECUTABLE} ${TANGELO_VERSION_TEST}
+        )
+    endif()
 endif()
 
 # The top-level dependency list.
