@@ -428,8 +428,14 @@ if __name__ == "__main__":
     p.add_argument("--attr", type=str, default=None, help="use with 'status' action to get a single status attribute (available attrs: %s)" % (attrs))
     p.add_argument("--clean", action="store_true", help="use with 'status' action to remove stale status files for dead processes")
     p.add_argument("--verbose", "-v", action="store_true", help="display extra information as Tangelo starts up")
-    p.add_argument("action", metavar="<start|stop|restart|status>", help="perform this action for the current Tangelo instance.")
+    p.add_argument("--version", action="store_true", help="display Tangelo version number")
+    p.add_argument("action", nargs="?", metavar="<start|stop|restart|status>", help="perform this action for the current Tangelo instance.")
     args = p.parse_args()
+
+    # If version flag is present, print the version number and exit.
+    if args.version:
+        print "@TANGELO_VERSION@"
+        sys.exit(0)
 
     # Make sure user didn't specify conflicting flags.
     if args.daemonize and args.no_daemonize:
@@ -607,7 +613,11 @@ if __name__ == "__main__":
 
     # Dispatch on action argument.
     code = 1
-    if action == "start":
+    if action is None:
+        print >>sys.stderr, "Action argument missing"
+        p.print_usage()
+        code = 1
+    elif action == "start":
         code = start()
     elif action == "stop":
         if not daemonize:
@@ -647,6 +657,7 @@ if __name__ == "__main__":
                     print >>sys.stderr
             code = 0
     else:
+        print >>sys.stderr, "Unknown action argument '%s'" % (action)
         p.print_usage()
         code = 1
 
