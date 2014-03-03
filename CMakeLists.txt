@@ -10,6 +10,10 @@ mark_as_advanced(CMAKE_INSTALL_PREFIX)
 # We will need the Python interpreter to build the package and run the tests.
 find_package(PythonInterp 2.7 REQUIRED)
 
+# Include the testing module; activate testing by default.
+include(CTest)
+enable_testing()
+
 # Extend cmake module path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -62,14 +66,12 @@ mark_as_advanced(BUILD_TANGELO)
 set(BUILD_TANGELO_PYTHON_PACKAGE ON CACHE BOOL "Generate a Python package for Tangelo")
 mark_as_advanced(BUILD_TANGELO_PYTHON_PACKAGE)
 
-set(BUILD_TESTING ON CACHE BOOL "Build the testing tree")
-
 # Whether to build Sphinx documentation.
 set(BUILD_DOCUMENTATION OFF CACHE BOOL "Generate documentation for project.")
 
 # We will need Sphinx (for documentation), or the virtual environment in general
 # (for testing).
-if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
+if(${BUILD_DOCUMENTATION} OR ${BUILD_TESTING})
     find_program(VIRTUALENV_EXECUTABLE
         NAMES virtualenv virtualenv2
     )
@@ -154,7 +156,7 @@ if(${BUILD_DOCUMENTATION} OR "${BUILD_TESTING}")
 endif()
 
 # Need UglifyJS to build Tangelo; JSLint and PhantomJS to test.
-if(${BUILD_TANGELO} OR "${BUILD_TESTING}")
+if(${BUILD_TANGELO} OR ${BUILD_TESTING})
     find_program(NPM_EXECUTABLE
         npm
     )
@@ -432,7 +434,7 @@ if(${BUILD_DOCUMENTATION})
     set(DOCUMENTATION_DEPENDENCIES ${DOCUMENTATION_INDEX})
 endif()
 
-if(${BUILD_TANGELO} AND "${BUILD_TANGELO_PYTHON_PACKAGE}")
+if(${BUILD_TANGELO} AND ${BUILD_TANGELO_PYTHON_PACKAGE})
     # A target to build the package.
     set(TANGELO_PACKAGE ${CMAKE_BINARY_DIR}/sdist/tangelo-${TANGELO_VERSION}.tar.gz)
     add_custom_command(
@@ -445,9 +447,6 @@ if(${BUILD_TANGELO} AND "${BUILD_TANGELO_PYTHON_PACKAGE}")
 endif()
 
 # Testing
-include(CTest)
-enable_testing()
-
 if(${BUILD_TESTING})
     # A list of Javascript unit tests - list the base of the filename here.  The
     # corresponding .js file should appear in testing/js-unit-tests/.
