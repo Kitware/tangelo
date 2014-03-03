@@ -7,6 +7,9 @@ set(TANGELO_VERSION 0.6dev)
 
 mark_as_advanced(CMAKE_INSTALL_PREFIX)
 
+# We will need the Python interpreter to build the package and run the tests.
+find_package(PythonInterp 2.7 REQUIRED)
+
 # Extend cmake module path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -58,6 +61,8 @@ mark_as_advanced(BUILD_TANGELO)
 
 set(BUILD_TANGELO_PYTHON_PACKAGE ON CACHE BOOL "Generate a Python package for Tangelo")
 mark_as_advanced(BUILD_TANGELO_PYTHON_PACKAGE)
+
+set(BUILD_TESTING ON CACHE BOOL "Build the testing tree")
 
 # Whether to build Sphinx documentation.
 set(BUILD_DOCUMENTATION OFF CACHE BOOL "Generate documentation for project.")
@@ -216,9 +221,6 @@ else()
                            TESTING_PORT
     )
 endif()
-
-# We will need the Python interpreter to build the package and run the tests.
-find_package(PythonInterp 2.7 REQUIRED)
 
 # Create a binary directory to hold various timestamps.
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/stamps)
