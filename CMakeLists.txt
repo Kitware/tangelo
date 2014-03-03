@@ -337,7 +337,6 @@ glob_recurse_ungit(TANGELO_MODULE_SOURCES tangelo/tangelo/*)
 set(TANGELO_SOURCES
     ${TANGELO_WEB_SOURCES}
     ${TANGELO_MODULE_SOURCES}
-    tangelo/bin/tangelo
     tangelo/bin/tangelo-passwd
     tangelo/bin/vtkweb-launcher.py
     tangelo/conf/tangelo.conf.global
@@ -348,6 +347,7 @@ set(TANGELO_SOURCES
 
 # Configure setup.py
 configure_file(tangelo/setup.py.in ${CMAKE_BINARY_DIR}/tangelo/setup.py)
+configure_file(tangelo/bin/tangelo.in ${CMAKE_BINARY_DIR}/tangelo/bin/tangelo)
 
 if(${BUILD_TANGELO})
     # Copy package files to build directory.
@@ -356,6 +356,11 @@ if(${BUILD_TANGELO})
         copy_file(${m} ${outfile})
         list(APPEND TANGELO_BUILD_FILES ${outfile})
     endforeach()
+
+    list(APPEND TANGELO_BUILD_FILES
+        ${CMAKE_BINARY_DIR}/tangelo/bin/tangelo
+        ${CMAKE_BINARY_DIR}/tangelo/setup.py
+    )
 
     # Also copy the README file.
     copy_file(README.rst ${CMAKE_BINARY_DIR}/tangelo/README)
@@ -661,6 +666,13 @@ if(${BUILD_TESTING})
             )
         endforeach()
     endif()
+
+    # Other tests.
+    set(TANGELO_VERSION_TEST ${CMAKE_BINARY_DIR}/other-tests/tangelo-version.py)
+    configure_file(testing/other-tests/tangelo-version.py.in ${TANGELO_VERSION_TEST})
+    add_test(other:tangelo-version
+        ${VENV_PYTHON_EXECUTABLE} ${TANGELO_VERSION_TEST}
+    )
 endif()
 
 # The top-level dependency list.
