@@ -190,6 +190,7 @@ if(${BUILD_TESTING})
     set(PY_UNIT_TESTS ON CACHE BOOL "Generate tangelo Python module unit tests.")
     set(WEB_CONTENT_TESTS ON CACHE BOOL "Generate tests for example web appplications.")
     set(PY_COVERAGE_TEST ON CACHE BOOL "Generate Python coverage report.")
+    set(OTHER_TESTS ON CACHE BOOL "Generate miscellaenous other tests.")
     set(TESTING_HOST localhost CACHE STRING "The host to run Tangelo on for the test suite.")
     set(TESTING_PORT 50047 CACHE STRING "The port number to run Tangelo for the test suite.")
 
@@ -337,7 +338,6 @@ glob_recurse_ungit(TANGELO_MODULE_SOURCES tangelo/tangelo/*)
 set(TANGELO_SOURCES
     ${TANGELO_WEB_SOURCES}
     ${TANGELO_MODULE_SOURCES}
-    tangelo/bin/tangelo
     tangelo/bin/tangelo-passwd
     tangelo/bin/vtkweb-launcher.py
     tangelo/conf/tangelo.conf.global
@@ -348,6 +348,7 @@ set(TANGELO_SOURCES
 
 # Configure setup.py
 configure_file(tangelo/setup.py.in ${CMAKE_BINARY_DIR}/tangelo/setup.py)
+configure_file(tangelo/bin/tangelo.in ${CMAKE_BINARY_DIR}/tangelo/bin/tangelo)
 
 if(${BUILD_TANGELO})
     # Copy package files to build directory.
@@ -356,6 +357,11 @@ if(${BUILD_TANGELO})
         copy_file(${m} ${outfile})
         list(APPEND TANGELO_BUILD_FILES ${outfile})
     endforeach()
+
+    list(APPEND TANGELO_BUILD_FILES
+        ${CMAKE_BINARY_DIR}/tangelo/bin/tangelo
+        ${CMAKE_BINARY_DIR}/tangelo/setup.py
+    )
 
     # Also copy the README file.
     copy_file(README.rst ${CMAKE_BINARY_DIR}/tangelo/README)
@@ -660,6 +666,15 @@ if(${BUILD_TESTING})
                 ${PHANTOMJS_EXECUTABLE} ${js_out}
             )
         endforeach()
+    endif()
+
+    # Other tests.
+    if(${OTHER_TESTS})
+        set(TANGELO_VERSION_TEST ${CMAKE_BINARY_DIR}/other-tests/tangelo-version.py)
+        configure_file(testing/other-tests/tangelo-version.py.in ${TANGELO_VERSION_TEST})
+        add_test(other:tangelo-version
+            ${VENV_PYTHON_EXECUTABLE} ${TANGELO_VERSION_TEST}
+        )
     endif()
 endif()
 

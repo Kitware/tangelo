@@ -40,6 +40,7 @@ Optional argument                  Effect
 --attr ATTR                        use with 'status' action to get a single status attribute (available attrs: pid, file, status, interface, config, log, root)
 --clean                            use with 'status' action to remove stale status files for dead processes
 --verbose, -v                      display extra information as Tangelo starts up
+--version                          display Tangelo version number
 =================================  ============================================================================================================================
 
 Example Usage

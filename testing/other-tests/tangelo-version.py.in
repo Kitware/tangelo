@@ -1,0 +1,28 @@
+import os
+import subprocess
+import unittest
+
+import tangelo
+
+
+class Tester(unittest.TestCase):
+    version = "@TANGELO_VERSION@"
+
+    def test_version_string(self):
+        """
+        Verify the version string returned by Tangelo.
+        """
+
+        p = subprocess.Popen([os.path.sep.join([".", "venv", "bin", "tangelo"]), "--version"],
+                             stdout=subprocess.PIPE)
+        (version, _) = p.communicate()
+        version = version.strip()
+
+        print "Expected: %s" % (Tester.version)
+        print "Received: %s" % (version)
+        
+        self.assertEqual(version, Tester.version)
+
+
+if __name__ == "__main__":
+    unittest.main()
