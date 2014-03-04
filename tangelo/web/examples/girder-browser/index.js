@@ -5,5 +5,7 @@
 $(function () {
     "use strict";
 
-    $("#girder-browser").girderBrowser();
+    $("#girder-browser").girderBrowser({
+        label: "Girder"
+    });
 });

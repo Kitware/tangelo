@@ -7,14 +7,33 @@
         return;
     }
 
-    $.fn.girderBrowser = function () {
+    $.fn.girderBrowser = function (cfg) {
         var me,
             menu,
             item,
-            i;
+            i,
+            caret,
+            label;
 
-        // Make a d3 selection out of the target element.
+        // Extract cfg args.
+        cfg = cfg || {};
+        caret = cfg.caret === undefined ? "true" : cfg.caret;
+        label = (cfg.label || "") + (caret ? "<b class=caret></b>" : "");
+
+        // Empty the target element and make a d3 selection from it.
+        $(this[0]).empty();
         me = d3.select(this[0]);
+
+        // Class the target element as a dropdown.
+        me.classed("dropdown", true);
+
+        // Add an anchor tag with the label text.
+        me.append("a")
+            .attr("href", "#")
+            .attr("role", "button")
+            .classed("dropdown-toggle", true)
+            .attr("data-toggle", "dropdown")
+            .html(label);
 
         // Add a few items to the element.
         menu = me.append("ul")
