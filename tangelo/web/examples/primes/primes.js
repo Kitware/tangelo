@@ -19,7 +19,7 @@ $(function () {
             var sel,
                 shift;
 
-            values.push(results.data);
+            values.push(results);
             if (values.length > 5) {
                 values = values.slice(1);
             }
@@ -43,7 +43,7 @@ $(function () {
                 .append("div")
                 .classed("card", true)
                 .style("left", offset + "px")
-                .text(results.data)
+                .text(results)
                 .each(function () {
                     offset += totalWidth(this);
                 });
