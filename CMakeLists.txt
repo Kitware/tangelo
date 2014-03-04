@@ -239,6 +239,7 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/src/js/plugin/dendrogram.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/geodots.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/geonodelink.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/girderBrowser.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/mapdots.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/nodelink.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/svgColorLegend.js
@@ -327,6 +328,7 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/plugin/dendrogram.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/geodots.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/geonodelink.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/girderBrowser.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/mapdots.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/nodelink.js
     ${CMAKE_SOURCE_DIR}/src/js/stream/_package.js
