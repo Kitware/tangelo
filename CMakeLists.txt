@@ -67,7 +67,7 @@ set(BUILD_TANGELO_PYTHON_PACKAGE ON CACHE BOOL "Generate a Python package for Ta
 mark_as_advanced(BUILD_TANGELO_PYTHON_PACKAGE)
 
 # Whether to build Sphinx documentation.
-set(BUILD_DOCUMENTATION OFF CACHE BOOL "Generate documentation for project.")
+set(BUILD_DOCUMENTATION ON CACHE BOOL "Generate documentation for project.")
 
 # We will need Sphinx (for documentation), or the virtual environment in general
 # (for testing).
