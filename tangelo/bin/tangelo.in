@@ -150,19 +150,19 @@ def start():
             # The parent process can now exit, indicating success or failure of
             # the child.
             sys.exit(retval)
-
-    # From this point forward, we are the child process, and can now set up the
-    # server and get it going.
-    #
-    # The child does not make use of the standard streams, so "release" them in
-    # order that any "controlling process" (subsequence pipeline stages on a
-    # command line; CTest) doesn't wait forever on output that isn't coming.
-    stdin = open(os.devnull, "r")
-    stdout = open(os.devnull, "a+")
-    stderr = open(os.devnull, "a+")
-    os.dup2(stdin.fileno(), sys.stdin.fileno())
-    os.dup2(stdout.fileno(), sys.stdout.fileno())
-    os.dup2(stderr.fileno(), sys.stderr.fileno())
+        else:
+            # From this point forward, we are the child process, and can now set
+            # up the server and get it going.
+            #
+            # The child does not make use of the standard streams, so "release" them in
+            # order that any "controlling process" (subsequence pipeline stages on a
+            # command line; CTest) doesn't wait forever on output that isn't coming.
+            stdin = open(os.devnull, "r")
+            stdout = open(os.devnull, "a+")
+            stderr = open(os.devnull, "a+")
+            os.dup2(stdin.fileno(), sys.stdin.fileno())
+            os.dup2(stdout.fileno(), sys.stdout.fileno())
+            os.dup2(stderr.fileno(), sys.stderr.fileno())
 
     # Create a streaming API object.
     stream = tangelo.stream.TangeloStream()
