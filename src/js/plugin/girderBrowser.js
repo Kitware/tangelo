@@ -25,7 +25,7 @@
         api = cfg.api || "/girder/api/v1";
         //click = cfg.click || $.noop;
 
-        findItems = function (el, api, folderId) {
+        findItems = function (el, folderId) {
             var data,
                 wait;
 
@@ -57,7 +57,7 @@
             });
         }
 
-        findFolders = function (el, api, parentType, parentId) {
+        findFolders = function (el, parentType, parentId) {
             var data;
 
             el.append("li")
@@ -89,10 +89,10 @@
                     elem = elem.append("ul")
                         .classed("dropdown-menu", true);
 
-                    findFolders(elem, api, "folder", f._id);
+                    findFolders(elem, "folder", f._id);
                     elem.append("li")
                         .classed("divider", true);
-                    findItems(elem, api, f._id);
+                    findItems(elem, f._id);
                 });
             });
         }
@@ -147,7 +147,7 @@
                     item = item.append("ul")
                         .classed("dropdown-menu", true);
 
-                    findFolders(item, api, "user", user._id);
+                    findFolders(item, "user", user._id);
                 });
             }
 
@@ -172,7 +172,7 @@
                         item = item.append("ul")
                             .classed("dropdown-menu", true);
 
-                        findFolders(item, api, "collection", collection._id);
+                        findFolders(item, "collection", collection._id);
                     });
                 }
             });
