@@ -46,7 +46,10 @@ class Tangelo(object):
 
         # Mount Girder API if available.
         try:
+            import girder.events
             from girder.api import api_main
+            from girder import constants
+            from girder.utility import plugin_utilities, model_importer
 
             cherrypy.config.update({
                 "sessions": {"cookie_lifetime": 180},
@@ -63,11 +66,21 @@ class Tangelo(object):
             class Dummy(object):
                 pass
 
-            cherrypy.tree.mount(api_main.addApiToNode(Dummy()), "/girder", {
+            root = Dummy()
+
+            cherrypy.tree.mount(api_main.addApiToNode(root), "/girder", {
                 '/': {
                     'request.dispatch': cherrypy.dispatch.MethodDispatcher()
                 }
             })
+
+            cherrypy.engine.subscribe('start', girder.events.daemon.start)
+            cherrypy.engine.subscribe('stop', girder.events.daemon.stop)
+
+            plugins = model_importer.ModelImporter().model('setting').get(
+                constants.SettingKey.PLUGINS_ENABLED, default=())
+            plugin_utilities.loadPlugins(plugins, root, {})
+
         except ImportError:
             # Ok, just don't mount it.
             pass
