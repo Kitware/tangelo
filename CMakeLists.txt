@@ -273,6 +273,7 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/testing/web-content-tests/echo-service.js
     ${CMAKE_SOURCE_DIR}/testing/web-content-tests/geodots-match.js
     ${CMAKE_SOURCE_DIR}/testing/web-content-tests/ner-service.js
+    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/primes.js
     ${CMAKE_SOURCE_DIR}/testing/web-content-tests/rest-get.js
     ${CMAKE_SOURCE_DIR}/testing/web-content-tests/rest-implicit-get.js
     ${CMAKE_SOURCE_DIR}/testing/web-content-tests/rest-post.js
@@ -480,6 +481,7 @@ if(${BUILD_TESTING})
         200-ok
         geodots-match
         dynamic-control-panel
+        primes
         service-config
         service-protected
         service-config-protected
