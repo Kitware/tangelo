@@ -54,7 +54,7 @@
 
             if (error) {
                 console.warn(error);
-                tangelo.fatalError("girderBrowser", "could not retrieve top-level users");
+                tangelo.fatalError("girderBrowser", "could not retrieve folders");
             }
 
             $(el.node()).empty();
@@ -122,7 +122,7 @@
 
             if (error) {
                 console.warn(error);
-                tangelo.fatalError("girderBrowser", "could not retrieve top-level users");
+                tangelo.fatalError("girderBrowser", "could not retrieve users");
             }
 
             $(menu.node()).empty();
@@ -149,7 +149,7 @@
             d3.json(api + "/collection", function (error, collections) {
                 if (error) {
                     console.warn(error);
-                    tangelo.fatalError("girderBrowser", "could not retrieve top-level users");
+                    tangelo.fatalError("girderBrowser", "could not retrieve collections");
                 }
 
                 if (collections.length > 0) {
