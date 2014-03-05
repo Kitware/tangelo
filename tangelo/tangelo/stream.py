@@ -76,7 +76,7 @@ class TangeloStream(object):
         self.streams[key] = stream
 
         # Create an object describing the logging of the generator object.
-        result = {"stream_key": key}
+        result = {"key": key}
 
         # Serialize it to JSON.
         return json.dumps(result)
