@@ -59,24 +59,22 @@
 
             $(el.node()).empty();
 
-            if (folders.length > 0) {
-                $.each(folders, function (i, f) {
-                    elem = el.append("li")
-                        .classed("dropdown-submenu", true);
+            $.each(folders, function (i, f) {
+                elem = el.append("li")
+                    .classed("dropdown-submenu", true);
 
-                    elem.append("a")
-                        .attr("href", "#")
-                        .text(f.name);
+                elem.append("a")
+                    .attr("href", "#")
+                    .text(f.name);
 
-                    elem = elem.append("ul")
-                        .classed("dropdown-menu", true);
+                elem = elem.append("ul")
+                    .classed("dropdown-menu", true);
 
-                    findFolders(elem, api, "folder", f._id);
-                    elem.append("li")
-                        .classed("divider", true);
-                    findItems(elem, api, f._id);
-                });
-            }
+                findFolders(elem, api, "folder", f._id);
+                elem.append("li")
+                    .classed("divider", true);
+                findItems(elem, api, f._id);
+            });
         });
     }
 
