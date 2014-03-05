@@ -16,7 +16,10 @@
             api,
             click,
             findItems,
-            findFolders;
+            findFolders,
+            search,
+            input,
+            wait;
 
         // Extract cfg args.
         cfg = cfg || {};
@@ -24,10 +27,10 @@
         label = (cfg.label || "") + (caret ? "<b class=caret></b>" : "");
         api = cfg.api || "/girder/api/v1";
         click = cfg.click || $.noop;
+        search = cfg.search;
 
         findItems = function (el, folderId) {
-            var data,
-                wait;
+            var data;
 
             wait = el.append("li")
                 .append("a")
@@ -61,7 +64,7 @@
                 }
 
             });
-        }
+        };
 
         findFolders = function (el, parentType, parentId) {
             var data;
@@ -101,7 +104,7 @@
                     findItems(elem, f._id);
                 });
             });
-        }
+        };
 
         // Empty the target element and make a d3 selection from it.
         $(this[0]).empty();
@@ -118,11 +121,83 @@
             .attr("data-toggle", "dropdown")
             .html(label);
 
-        // Put down a placeholder "item".
+        // Create the menu list.
         menu = me.append("ul")
             .classed("dropdown-menu", true);
 
-        menu.append("li")
+        // If search mode is enabled, put in a text field.
+        if (search) {
+            input = menu.append("li")
+                .append("input")
+                .attr("type", "text")
+                .attr("placeholder", "Quick search...");
+
+            input.on("click", function () {
+                d3.event.stopPropagation();
+            })
+                .on("keyup", (function () {
+                    var xhr = null,
+                        delayHandle = null,
+                        doSearch;
+
+                    doSearch = function (text, menu) {
+                        var data;
+
+                        if (xhr) {
+                            xhr.abort();
+                        }
+
+                        if (text.length === 0) {
+                            menu.selectAll(".search-result")
+                                .remove();
+
+                            return;
+                        }
+
+                        data = {
+                            q: text,
+                            types: JSON.stringify(["item"])
+                        };
+
+                        xhr = d3.json([api, "resource", "search"].join("/") + "?" + $.param(data), function (error, results) {
+                            xhr = null;
+
+                            if (error) {
+                                console.warn(error);
+                                tangelo.fatalError("girderBrowser", "could not perform search");
+                            }
+
+                            menu.selectAll(".search-result")
+                                .remove();
+
+                            if (results.item.length === 0) {
+                                menu.append("li")
+                                    .classed("search-result", true)
+                                    .html("<em>No search results.</em>");
+                            }
+
+                            menu.selectAll(".search-result")
+                                .data(results.item)
+                                .enter()
+                                .append("li")
+                                .classed("search-result", true)
+                                .text(function (d) {
+                                    return d.name;
+                                });
+                        });
+                    };
+
+                    return function () {
+                        var text = d3.select(this).property("value");
+
+                        window.clearTimeout(delayHandle);
+                        delayHandle = window.setTimeout(doSearch, 200, text, menu);
+                    };
+                }()));
+        }
+
+        // Put down a placeholder "item".
+        wait = menu.append("li")
             .append("a")
             .text("Loading...");
 
@@ -136,7 +211,7 @@
                 tangelo.fatalError("girderBrowser", "could not retrieve users");
             }
 
-            $(menu.node()).empty();
+            wait.remove();
 
             if (users.length > 0) {
                 menu.append("li")

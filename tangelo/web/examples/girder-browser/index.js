@@ -7,6 +7,7 @@ $(function () {
 
     $("#girder-browser").girderBrowser({
         label: "Girder",
+        search: true,
         click: function (item, api) {
             var div = d3.select("#file-info"),
                 link;
