@@ -7,91 +7,95 @@
         return;
     }
 
-    function findItems(el, api, folderId) {
-        var data,
-            wait;
-
-        wait = el.append("li")
-            .append("a")
-            .text("Loading items...");
-
-        data = {
-            folderId: folderId
-        };
-
-        d3.json(api + "/item?" + $.param(data), function (error, items) {
-            if (error) {
-                console.warn(error);
-                tangelo.fatalError("girderBrowser", "could not retrieve items");
-            }
-
-            wait.remove();
-
-            if (items.length > 0) {
-                $.each(items, function (i, item) {
-                    el.append("li")
-                        .append("a")
-                        .text(item.name + " (" + item.size + "B)")
-                        .attr("href", [api, "item", item._id, "download"].join("/"));
-                });
-            }
-
-        });
-    }
-
-    function findFolders(el, api, parentType, parentId) {
-        var data;
-
-        el.append("li")
-            .append("a")
-            .text("Loading folders...");
-
-        data = {
-            parentType: parentType,
-            parentId: parentId
-        };
-        d3.json(api + "/folder?" + $.param(data), function (error, folders) {
-            var elem;
-
-            if (error) {
-                console.warn(error);
-                tangelo.fatalError("girderBrowser", "could not retrieve folders");
-            }
-
-            $(el.node()).empty();
-
-            $.each(folders, function (i, f) {
-                elem = el.append("li")
-                    .classed("dropdown-submenu", true);
-
-                elem.append("a")
-                    .attr("href", "#")
-                    .text(f.name);
-
-                elem = elem.append("ul")
-                    .classed("dropdown-menu", true);
-
-                findFolders(elem, api, "folder", f._id);
-                elem.append("li")
-                    .classed("divider", true);
-                findItems(elem, api, f._id);
-            });
-        });
-    }
-
     $.fn.girderBrowser = function (cfg) {
         var me,
             menu,
             item,
             caret,
             label,
-            api;
+            api,
+            click,
+            findItems,
+            findFolders;
 
         // Extract cfg args.
         cfg = cfg || {};
         caret = cfg.caret === undefined ? "true" : cfg.caret;
         label = (cfg.label || "") + (caret ? "<b class=caret></b>" : "");
         api = cfg.api || "/girder/api/v1";
+        //click = cfg.click || $.noop;
+
+        findItems = function (el, api, folderId) {
+            var data,
+                wait;
+
+            wait = el.append("li")
+                .append("a")
+                .text("Loading items...");
+
+            data = {
+                folderId: folderId
+            };
+
+            d3.json(api + "/item?" + $.param(data), function (error, items) {
+                if (error) {
+                    console.warn(error);
+                    tangelo.fatalError("girderBrowser", "could not retrieve items");
+                }
+
+                wait.remove();
+
+                if (items.length > 0) {
+                    $.each(items, function (i, item) {
+                        el.append("li")
+                            .append("a")
+                            .text(item.name + " (" + item.size + "B)")
+                            .attr("href", [api, "item", item._id, "download"].join("/"));
+                    });
+                }
+
+            });
+        }
+
+        findFolders = function (el, api, parentType, parentId) {
+            var data;
+
+            el.append("li")
+                .append("a")
+                .text("Loading folders...");
+
+            data = {
+                parentType: parentType,
+                parentId: parentId
+            };
+            d3.json(api + "/folder?" + $.param(data), function (error, folders) {
+                var elem;
+
+                if (error) {
+                    console.warn(error);
+                    tangelo.fatalError("girderBrowser", "could not retrieve folders");
+                }
+
+                $(el.node()).empty();
+
+                $.each(folders, function (i, f) {
+                    elem = el.append("li")
+                        .classed("dropdown-submenu", true);
+
+                    elem.append("a")
+                        .attr("href", "#")
+                        .text(f.name);
+
+                    elem = elem.append("ul")
+                        .classed("dropdown-menu", true);
+
+                    findFolders(elem, api, "folder", f._id);
+                    elem.append("li")
+                        .classed("divider", true);
+                    findItems(elem, api, f._id);
+                });
+            });
+        }
 
         // Empty the target element and make a d3 selection from it.
         $(this[0]).empty();
