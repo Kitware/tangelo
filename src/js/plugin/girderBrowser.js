@@ -127,18 +127,49 @@
 
             $(menu.node()).empty();
 
-            $.each(users, function (i, user) {
-                item = menu.append("li")
-                    .classed("dropdown-submenu", true);
+            if (users.length > 0) {
+                menu.append("li")
+                    .html("<strong>Users</strong>");
 
-                item.append("a")
-                    .attr("href", "#")
-                    .text([user.firstName, user.lastName].join(" "));
+                $.each(users, function (i, user) {
+                    item = menu.append("li")
+                        .classed("dropdown-submenu", true);
 
-                item = item.append("ul")
-                    .classed("dropdown-menu", true);
+                    item.append("a")
+                        .attr("href", "#")
+                        .text([user.firstName, user.lastName].join(" "));
 
-                findFolders(item, api, "user", user._id);
+                    item = item.append("ul")
+                        .classed("dropdown-menu", true);
+
+                    findFolders(item, api, "user", user._id);
+                });
+            }
+
+            d3.json(api + "/collection", function (error, collections) {
+                if (error) {
+                    console.warn(error);
+                    tangelo.fatalError("girderBrowser", "could not retrieve top-level users");
+                }
+
+                if (collections.length > 0) {
+                    menu.append("li")
+                        .html("<strong>Collections</strong>");
+
+                    $.each(collections, function (i, collection) {
+                        item = menu.append("li")
+                            .classed("dropdown-submenu", true);
+
+                        item.append("a")
+                            .attr("href", "#")
+                            .text(collection.name);
+
+                        item = item.append("ul")
+                            .classed("dropdown-menu", true);
+
+                        findFolders(item, api, "collection", collection._id);
+                    });
+                }
             });
         });
 
