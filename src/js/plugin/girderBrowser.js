@@ -23,7 +23,7 @@
         caret = cfg.caret === undefined ? "true" : cfg.caret;
         label = (cfg.label || "") + (caret ? "<b class=caret></b>" : "");
         api = cfg.api || "/girder/api/v1";
-        //click = cfg.click || $.noop;
+        click = cfg.click || $.noop;
 
         findItems = function (el, folderId) {
             var data,
@@ -38,6 +38,8 @@
             };
 
             d3.json(api + "/item?" + $.param(data), function (error, items) {
+                var anchor;
+
                 if (error) {
                     console.warn(error);
                     tangelo.fatalError("girderBrowser", "could not retrieve items");
@@ -47,10 +49,14 @@
 
                 if (items.length > 0) {
                     $.each(items, function (i, item) {
-                        el.append("li")
+                        anchor = el.append("li")
                             .append("a")
-                            .text(item.name + " (" + item.size + "B)")
-                            .attr("href", [api, "item", item._id, "download"].join("/"));
+                            .attr("href", "#")
+                            .text(item.name + " (" + item.size + "B)");
+
+                        anchor.on("click", function () {
+                            click(item, api);
+                        });
                     });
                 }
 
