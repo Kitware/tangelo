@@ -31,7 +31,8 @@
                 $.each(items, function (i, item) {
                     el.append("li")
                         .append("a")
-                        .text(item.name + " (" + item.size + "B)");
+                        .text(item.name + " (" + item.size + "B)")
+                        .attr("href", [api, "item", item._id, "download"].join("/"));
                 });
             }
 
