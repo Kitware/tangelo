@@ -1,24 +1,98 @@
 /*jslint browser: true */
 
-(function ($, d3) {
+(function ($, d3, tangelo) {
     "use strict";
 
     if (!($ && d3)) {
         return;
     }
 
+    function findItems(el, api, folderId) {
+        var data,
+            wait;
+
+        wait = el.append("li")
+            .append("a")
+            .text("Loading items...");
+
+        data = {
+            folderId: folderId
+        };
+
+        d3.json(api + "/item?" + $.param(data), function (error, items) {
+            if (error) {
+                console.warn(error);
+                tangelo.fatalError("girderBrowser", "could not retrieve items");
+            }
+
+            wait.remove();
+
+            if (items.length > 0) {
+                $.each(items, function (i, item) {
+                    el.append("li")
+                        .append("a")
+                        .text(item.name + " (" + item.size + "B)");
+                });
+            }
+
+        });
+    }
+
+    function findFolders(el, api, parentType, parentId) {
+        var data;
+
+        el.append("li")
+            .append("a")
+            .text("Loading folders...");
+
+        data = {
+            parentType: parentType,
+            parentId: parentId
+        };
+        d3.json(api + "/folder?" + $.param(data), function (error, folders) {
+            var elem;
+
+            if (error) {
+                console.warn(error);
+                tangelo.fatalError("girderBrowser", "could not retrieve top-level users");
+            }
+
+            $(el.node()).empty();
+
+            if (folders.length > 0) {
+                $.each(folders, function (i, f) {
+                    elem = el.append("li")
+                        .classed("dropdown-submenu", true);
+
+                    elem.append("a")
+                        .attr("href", "#")
+                        .text(f.name);
+
+                    elem = elem.append("ul")
+                        .classed("dropdown-menu", true);
+
+                    findFolders(elem, api, "folder", f._id);
+                    elem.append("li")
+                        .classed("divider", true);
+                    findItems(elem, api, f._id);
+                });
+            }
+        });
+    }
+
     $.fn.girderBrowser = function (cfg) {
         var me,
             menu,
             item,
-            i,
             caret,
-            label;
+            label,
+            api;
 
         // Extract cfg args.
         cfg = cfg || {};
         caret = cfg.caret === undefined ? "true" : cfg.caret;
         label = (cfg.label || "") + (caret ? "<b class=caret></b>" : "");
+        api = cfg.api || "/girder/api/v1";
 
         // Empty the target element and make a d3 selection from it.
         $(this[0]).empty();
@@ -35,39 +109,71 @@
             .attr("data-toggle", "dropdown")
             .html(label);
 
-        // Add a few items to the element.
+        // Put down a placeholder "item".
         menu = me.append("ul")
             .classed("dropdown-menu", true);
 
-        item = menu.append("li")
-            .classed("dropdown-submenu", true);
+        menu.append("li")
+            .append("a")
+            .text("Loading...");
 
-        item.append("a")
-            .attr("href", "#")
-            .text("Submenu");
+        // Query the Girder API for the top level users and collections, and
+        // display them in the top menu level.
+        d3.json(api + "/user", function (error, users) {
+            var i;
 
-        item = item.append("ul")
-            .classed("dropdown-menu", true);
+            if (error) {
+                console.warn(error);
+                tangelo.fatalError("girderBrowser", "could not retrieve top-level users");
+            }
 
-        for (i = 0; i < 3; i += 1) {
-            item.append("li")
+            $(menu.node()).empty();
+
+            $.each(users, function (i, user) {
+                item = menu.append("li")
+                    .classed("dropdown-submenu", true);
+
+                item.append("a")
+                    .attr("href", "#")
+                    .text([user.firstName, user.lastName].join(" "));
+
+                item = item.append("ul")
+                    .classed("dropdown-menu", true);
+
+                findFolders(item, api, "user", user._id);
+            });
+
+            item = menu.append("li")
+                .classed("dropdown-submenu", true);
+
+            item.append("a")
+                .attr("href", "#")
+                .text("Submenu");
+
+            item = item.append("ul")
+                .classed("dropdown-menu", true);
+
+            for (i = 0; i < 3; i += 1) {
+                item.append("li")
+                    .append("a")
+                    .attr("href", "#")
+                    .text("Link " + i);
+            }
+
+            menu.append("li")
+                .classed("roni", true)
                 .append("a")
                 .attr("href", "#")
-                .text("Link " + i);
-        }
+                .text("Second top-level link");
 
-        menu.append("li")
-            .append("a")
-            .attr("href", "#")
-            .text("Second top-level link");
-
-        menu.append("li")
-            .append("a")
-            .attr("href", "#")
-            .text("Third top-level link");
+            menu.append("li")
+                .append("a")
+                .attr("href", "#")
+                .text("Third top-level link");
+        });
 
         // Make the element into a Bootstrap dropdown.
         $(me.select("a").node()).dropdown();
     };
 
-}(window.jQuery, window.d3));
+}(window.jQuery, window.d3, window.tangelo));

@@ -4,8 +4,8 @@
 <title>Girder Browser Plugin</title>
 
 <script src=http://code.jquery.com/jquery-1.8.2.min.js></script>
-<script src=http://d3js.org/d3.v3.min.js charset=utf-8></script>
-<script src=/js/tangelo.min.js></script>
+<script src=http://d3js.org/d3.v3.js charset=utf-8></script>
+<script src=/js/tangelo.js></script>
 <script src=index.js></script>
 
 <link href=http://bootswatch.com/cosmo/bootstrap.min.css rel=stylesheet>
@@ -16,7 +16,14 @@
     body {
         padding-top: 50px;
     }
+.dropdown-submenu{position:relative;}
+.dropdown-submenu>.dropdown-menu{top:0;left:100%;margin-top:-6px;margin-left:-1px;-webkit-border-radius:0 6px 6px 6px;-moz-border-radius:0 6px 6px 6px;border-radius:0 6px 6px 6px;}
+.dropdown-submenu:hover>.dropdown-menu{display:block;}
+.dropdown-submenu>a:after{display:block;content:" ";float:right;width:0;height:0;border-color:transparent;border-style:solid;border-width:5px 0 5px 5px;border-left-color:#cccccc;margin-top:5px;margin-right:-10px;}
+.dropdown-submenu:hover>a:after{border-left-color:#ffffff;}
+.dropdown-submenu.pull-left{float:none;}.dropdown-submenu.pull-left>.dropdown-menu{left:-100%;margin-left:10px;-webkit-border-radius:6px 0 6px 6px;-moz-border-radius:6px 0 6px 6px;border-radius:6px 0 6px 6px;}
 
+/*
 .dropdown-submenu {
     position: relative;
 }
@@ -64,6 +71,7 @@
     -moz-border-radius:6px 0 6px 6px;
     border-radius:6px 0 6px 6px;
 }
+*/
 </style>
 
 <div id=info-panel class="modal fade">
