@@ -28,7 +28,7 @@
                 callback(undefined, jqxhr);
             },
             success: function (data) {
-                callback(data.stream_key);
+                callback(data.key);
             }
         });
     };
