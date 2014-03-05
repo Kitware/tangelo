@@ -140,34 +140,6 @@
 
                 findFolders(item, api, "user", user._id);
             });
-
-            item = menu.append("li")
-                .classed("dropdown-submenu", true);
-
-            item.append("a")
-                .attr("href", "#")
-                .text("Submenu");
-
-            item = item.append("ul")
-                .classed("dropdown-menu", true);
-
-            for (i = 0; i < 3; i += 1) {
-                item.append("li")
-                    .append("a")
-                    .attr("href", "#")
-                    .text("Link " + i);
-            }
-
-            menu.append("li")
-                .classed("roni", true)
-                .append("a")
-                .attr("href", "#")
-                .text("Second top-level link");
-
-            menu.append("li")
-                .append("a")
-                .attr("href", "#")
-                .text("Third top-level link");
         });
 
         // Make the element into a Bootstrap dropdown.
