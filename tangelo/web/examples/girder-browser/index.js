@@ -5,31 +5,43 @@
 $(function () {
     "use strict";
 
+    var selectItem = function (item, api) {
+        var div = d3.select("#file-info"),
+            link;
+
+        div.selectAll("*")
+            .remove();
+
+        div.append("p")
+            .html("<b>Name:</b> " + item.name);
+
+        div.append("p")
+            .html("<b>Created:</b> " + item.created);
+
+        div.append("p")
+            .html("<b>Updated:</b> " + item.updated);
+
+        div.append("p")
+            .html("<b>Size:</b> " + item.size);
+
+        link = [api, "item", item._id, "download"].join("/");
+        div.append("p")
+            .html("<a href=" + link + ">Download</a>");
+    }
+
     $("#girder-browser").girderBrowser({
         label: "Girder",
         search: true,
-        click: function (item, api) {
-            var div = d3.select("#file-info"),
-                link;
+        selectItem: selectItem,
+        selectSearchResult: function (item, api) {
+            d3.json([api, "item", item._id].join("/"), function (error, itemInfo) {
+                if (error) {
+                    console.warn(error);
+                    tangelo.fatalError("could not load item info for " + item._id);
+                }
 
-            div.selectAll("*")
-                .remove();
-
-            div.append("p")
-                .html("<b>Name:</b> " + item.name);
-
-            div.append("p")
-                .html("<b>Created:</b> " + item.created);
-
-            div.append("p")
-                .html("<b>Updated:</b> " + item.updated);
-
-            div.append("p")
-                .html("<b>Size:</b> " + item.size);
-
-            link = [api, "item", item._id, "download"].join("/");
-            div.append("p")
-                .html("<a href=" + link + ">Download</a>");
+                selectItem(itemInfo, api);
+            });
         }
     });
 });

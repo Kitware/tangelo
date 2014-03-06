@@ -46,11 +46,8 @@ class Tangelo(object):
 
         # Mount Girder API if available.
         try:
-            import girder.events
-            from girder.api import api_main
-            from girder import constants
-            from girder.utility import plugin_utilities, model_importer
-
+            # Update the config first, because the girder imports expect this to
+            # be here already.
             cherrypy.config.update({
                 "sessions": {"cookie_lifetime": 180},
                 "server": {"mode": "development"},
@@ -63,6 +60,13 @@ class Tangelo(object):
                 }
             })
 
+            # Import the girder modules.
+            import girder.events
+            from girder.api import api_main
+            from girder import constants
+            from girder.utility import plugin_utilities, model_importer
+
+            # Mount a girder app on the "/girder" Tangelo route.
             class Dummy(object):
                 pass
 
@@ -79,10 +83,11 @@ class Tangelo(object):
 
             plugins = model_importer.ModelImporter().model('setting').get(
                 constants.SettingKey.PLUGINS_ENABLED, default=())
-            plugin_utilities.loadPlugins(plugins, root, {})
+            plugin_utilities.loadPlugins(plugins, root)
 
         except ImportError:
             # Ok, just don't mount it.
+            tangelo.log("could not mount girder", "INFO")
             pass
 
     def cleanup(self):

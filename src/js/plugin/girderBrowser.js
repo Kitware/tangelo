@@ -14,7 +14,8 @@
             caret,
             label,
             api,
-            click,
+            selectItem,
+            selectSearchResult,
             findItems,
             findFolders,
             search,
@@ -26,7 +27,8 @@
         caret = cfg.caret === undefined ? "true" : cfg.caret;
         label = (cfg.label || "") + (caret ? "<b class=caret></b>" : "");
         api = cfg.api || "/girder/api/v1";
-        click = cfg.click || $.noop;
+        selectItem = cfg.selectItem || $.noop;
+        selectSearchResult = cfg.selectSearchResult || $.noop;
         search = cfg.search;
 
         findItems = function (el, folderId) {
@@ -58,7 +60,7 @@
                             .text(item.name + " (" + item.size + "B)");
 
                         anchor.on("click", function () {
-                            click(item, api);
+                            selectItem(item, api);
                         });
                     });
                 }
@@ -181,8 +183,13 @@
                                 .enter()
                                 .append("li")
                                 .classed("search-result", true)
+                                .append("a")
+                                .attr("href", "#")
                                 .text(function (d) {
                                     return d.name;
+                                })
+                                .on("click", function (d) {
+                                    selectSearchResult(d, api);
                                 });
                         });
                     };
