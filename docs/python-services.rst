@@ -81,7 +81,7 @@ are not meant to be visited directly in a web browser; instead, they provide
 data to a web application using Ajax calls to retrieve the data.  Suppose we
 wish to use ``calc.py`` in a web calculator application, which includes an HTML
 file with two fields for the user to type inputs into, and four buttons, one for
-each arithmetic operation.  An associated Javascript file might have code like
+each arithmetic operation.  An associated JavaScript file might have code like
 the following:
 
 .. code-block:: javascript
@@ -137,7 +137,7 @@ Return Types
 The type of the value returned from the ``run()`` function determines how Tangelo creates
 content for the associated web endpoint.  In the example above, the function
 returns a number; Tangelo receives this number and turns it into a string (which
-is then delivered to the ``success`` callback in the Javascript code above).  In
+is then delivered to the ``success`` callback in the JavaScript code above).  In
 general, Tangelo follows this set of steps to determine what to do with the
 returned value from a Python service:
 
