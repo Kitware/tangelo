@@ -12,9 +12,9 @@
     }
 
     tangelo.GoogleMapSVG = function (elem, mapoptions, cfg, cont) {
-        var that,
-            idle,
-            sel;
+        var that;
+            //idle,
+            //sel;
 
         // Obtain a unique id for this class.
         this.id = "gmsvg-" + tangelo.uniqueID();
@@ -75,8 +75,23 @@
         var mattrans;
 
         // Grab the matrix transform from the map div.
-        mattrans = d3.select("#" + this.id + " [style*='webkit-transform: matrix']")
-            .style("-webkit-transform")
+        //mattrans = d3.select("#" + this.id + " [style*='webkit-transform: matrix']")
+        //mattrans = d3.select("#" + this.id + " [style*='transform: matrix']")
+        mattrans = d3.selectAll("#" + this.id + " [style*='transform:']");
+            //.select("[style*='matrix']");
+
+        if (mattrans[0].length === 0) {
+            mattrans = "matrix(1, 0, 0, 1, 0, 0)";
+        } else {
+            mattrans = mattrans.style("transform") ||
+                       mattrans.style("-webkit-transform") ||
+                       mattrans.style("-o-transform") ||
+                       mattrans.style("-moz-transform");
+        }
+
+            //.style("-webkit-transform")
+        mattrans = mattrans
+            //.style("transform")
             .split(" ")
             .map(function (v, i) {
                 var retval;
@@ -172,7 +187,10 @@
 
     tangelo.GoogleMapSVG.prototype.shift = function (what, x, y) {
         d3.select(what)
-            .style("-webkit-transform", "translate(" + x + "px, " + y + "px)");
+            .style("-webkit-transform", "translate(" + x + "px, " + y + "px)")
+            .style("-moz-transform", "translate(" + x + "px, " + y + "px)")
+            .style("-o-transform", "translate(" + x + "px, " + y + "px)")
+            .style("transform", "translate(" + x + "px, " + y + "px)");
     };
 
     // This function is part of the overlay interface - it will be called when a
@@ -193,5 +211,6 @@
 
     // This function has to be defined, but we wish to defer the actual draw
     // action to the user, vis the on() and onceOn() methods.
-    tangelo.GoogleMapSVG.prototype.draw = function () {};
+    //tangelo.GoogleMapSVG.prototype.draw = function () {};
+    tangelo.GoogleMapSVG.prototype.draw = $.noop;
 }(window.tangelo, window.jQuery, window.google, window.d3));
