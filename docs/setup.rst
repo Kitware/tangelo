@@ -177,8 +177,8 @@ with a simple ``tangelo start`` on the command line.
 Preparing Data for the Example Applications
 ===========================================
 
-Tangelo comes with several `example applications
-<http://localhost:8080/examples>`_, some of which require a bit of data setup
+Tangelo comes with several :root:`example applications
+</examples>`, some of which require a bit of data setup
 before they will work.
 
 Named Entities
@@ -203,7 +203,7 @@ as follows::
 Flickr Metadata Maps
 --------------------
 
-The `Flickr Metadata Maps <http://localhost:8080/examples/flickr>`_ application
+The :root:`Flickr Metadata Maps </examples/flickr>` application
 plots publicly available Flickr photo data on a Google map.  The application
 works by retrieving data from a Mongo database server, which by default is
 expected to live at *localhost*.  The steps to getting this application working
@@ -251,7 +251,7 @@ the page and you should be able to explore Paris through photos.
 Enron Email Network
 -------------------
 
-The `Enron Email Network <http://localhost:8080/examples/enron>`_ application
+The :root:`Enron Email Network </examples/enron>` application
 visualizes the `enron email dataset <https://www.cs.cmu.edu/~enron/>`_ as a
 network of communication.  The original data has been processed into graph form,
 in a file hosted `here <http://midas3.kitware.com/midas/download/bitstream/339385/enron_email.json.gz>`_.

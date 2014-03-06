@@ -7,8 +7,8 @@
 Streaming
 =========
 
-It may be necessary to return an immense (or even `infinite
-<http://localhost:8080/examples/primes/>`_) amount of data from a web service to
+It may be necessary to return an immense (or even :root:`infinite
+</examples/primes>`) amount of data from a web service to
 the client.  However, this may take up so much time and memory that dealing with
 it becomes intractable.  In such situations, Tangelo's *Streaming API* may be
 able to help.
@@ -70,7 +70,7 @@ object by engaging the *streaming API*.
 The Streaming REST API
 ----------------------
 
-The streaming API is found at http://localhost:8080/stream.  The API is RESTful
+The streaming API is found at :root:`/stream`.  The API is RESTful
 and uses the following verbs:
 
 * ``GET /stream`` returns a list of all active stream keys.
@@ -127,7 +127,7 @@ alternatively, with the ``--vtkpython`` option set on the command line).
 The VTK Web REST API
 --------------------
 
-The VTK Web API is found at http://localhost:8080/vtkweb.  The API is RESTful
+The VTK Web API is found at :root:`/vtkweb`.  The API is RESTful
 and uses the following verbs:
 
 * ``POST /vtkweb/full/path/to/vtkweb/script.py`` launches the named script
