@@ -261,11 +261,66 @@ common data formats into a common format usable by Tangelo plugins.
             ]
         }
 
-
     :param object spec.data: The array of nodes.
     :param Accessor spec.id: An accessor for the ID of each node in the tree.
     :param Accessor spec.idChild: An accessor for the ID of the elements of the children array.
     :param Accessor spec.children: An accessor to retrieve the array of children for a node.
+
+.. js:function:: tangelo.data.distanceCluster(spec)
+
+    :param object spec.data: The array of nodes.
+    :param number spec.clusterDistance: The radius of each cluster.
+    :param Accessor spec.x: An accessor to the :math:`x`-coordinate of a node.
+    :param Accessor spec.y: An accessor to the :math:`y`-coordinate of a node.
+    :param function spec.metric: A function that returns the distance between two nodes provided
+        as arguments.
+
+    Groups an array of nodes together into clusters based on distance according to some metric.  By
+    default, the 2D Euclidean distance, 
+    :math:`d(a, b) = \sqrt{(a\mathord{.}x - b\mathord{.}x)^2 + (a\mathord{.}y - b\mathord{.}y)^2}`, 
+    will be used.  One can override the accessors to the :math:`x` and :math:`y`-coordinates of the nodes
+    via the `spec` object.  The algorithm supports arbitrary topologies with the presence of a 
+    custom metric.  If a custom metric is provided, the `x`/`y` accessors are ignored.
+
+    For each node, the algorithm searches for a cluster with a distance `spec.clusterDistance`.  If such a 
+    cluster exists, the node is added otherwise a new cluster is created centered at the node.  As implemented,
+    it runs in :math:`\mathcal{O}(nN)` time for :math:`n` nodes and :math:`N` clusters.  If the cluster distance
+    provided is negative, then the algorithm will be skipped and all nodes will be placed in their own cluster group.
+    
+    The data array itself is mutated so that each node will contain a `cluster` property set to an array containing
+    all nodes in the local cluster.  For example, with clustering distance 5 the following data array
+
+    >>> data
+    [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: 10, y: 0 }
+    ]
+
+    will become
+
+    >>> data
+    [
+        { x: 0, y: 0, cluster: c1 },
+        { x: 1, y: 0, cluster: c1 },
+        { x: 10, y: 0, cluster: c2 }
+    ]
+
+    with
+
+    >>> c1
+    [ data[0], data[1] ]
+    >>> c2
+    [ data[2] ]
+
+    In addition, the function returns an object with properties `singlets` and `clusters` containing an array of nodes
+    in their own cluster and an array of all cluster with more than one node, respectively.  As in the previous example,
+
+    >>> tangelo.data.distanceCluster( { data: data, clusterDistance: 5 } )
+    {
+        singlets: [ data[2] ],
+        clusters: [ [ data[0], data[1] ] ]
+    }
 
 .. _streaming-js:
 
