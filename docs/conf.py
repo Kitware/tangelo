@@ -27,7 +27,7 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.todo', 'sphinx.ext.coverage', 'sphinx.ext.mathjax', 'sphinx.ext.ifconfig', 'sphinx.ext.viewcode']
+extensions = ['sphinx.ext.todo', 'sphinx.ext.coverage', 'sphinx.ext.mathjax', 'sphinx.ext.ifconfig', 'sphinx.ext.viewcode', 'sphinx.ext.extlinks']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['templates']
@@ -91,6 +91,12 @@ pygments_style = 'sphinx'
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
+# Define an external link to refer to the base Tangelo installation - this is
+# the actual installation if the docs are built locally, or the default location
+# of localhost, port 80, for the documentation built on readthedocs.
+import os
+on_rtd = os.environ.get("READTHEDOCS", None) == True
+extlinks = {"root": ("http://localhost:8080%s" if on_rtd else "%s", None)}
 
 # -- Options for HTML output ---------------------------------------------------
 

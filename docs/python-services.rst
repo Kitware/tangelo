@@ -51,7 +51,7 @@ Here is a simple example of a web service.  Suppose
 
 This is a Python module named ``calc``, implementing a very rudimentary
 four-function calculator in the ``run()`` function.  Tangelo will respond to a
-request for the URL ``http://localhost:8080/examples/calculator/calc/add?a=33&b=14``
+request for the URL :root:`/examples/calculator/calc/add?a=33&b=14`
 (**without** the trailing ``.py``) by loading ``calc.py`` as a Python module,
 executing its ``run()`` function, and returning the result - in this case, the
 string ``47`` - as the contents of the URL.

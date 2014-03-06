@@ -562,8 +562,8 @@ provide convenient behaviors or to implement common visualization methods.  See
     .. image:: images/geodots-small.png
         :align: center
 
-    For a demonstration of this plugin, see the `geodots example
-    <http://localhost:8080/examples/geodots>`_.
+    For a demonstration of this plugin, see the :root:`geodots example
+    </examples/geodots>`.
 
     :param string spec.worldGeometry: A web path to a GeoJSON file
     :param accessor spec.latitude: An accessor for the latitude component
@@ -596,8 +596,8 @@ provide convenient behaviors or to implement common visualization methods.  See
     .. image:: images/geonodelink-small.png
         :align: center
 
-    For a demonstration of this plugin, see the `geonodelink example
-    <http://localhost:8080/examples/geonodelink>`_.
+    For a demonstration of this plugin, see the :root:`geonodelink example
+    </examples/geonodelink>`.
 
     :param object spec.data: The encoded node-link diagram to plot
     :param string spec.worldGeometry: A web path to a GeoJSON file
@@ -623,8 +623,8 @@ provide convenient behaviors or to implement common visualization methods.  See
     .. image:: images/mapdots-small.png
         :align: center
 
-    For a demonstration of this plugin, see the `mapdots example
-    <http://localhost:8080/examples/mapdots>`_.
+    For a demonstration of this plugin, see the :root:`mapdots example
+    </examples/mapdots>`.
 
     :param object[] spec.data: The list of dots to plot
     :param accessor spec.latitude: An accessor for the latitude component

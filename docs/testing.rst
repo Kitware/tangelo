@@ -141,7 +141,7 @@ would read as follows:
         }
     });
 
-This test loads http://localhost:8080/, then invokes the ``test()`` function,
+This test loads the Tangelo root page, then invokes the ``test()`` function,
 passing it a PhantomJS ``page`` object, and an ``info`` object containing some
 metadata about the URL retrieval.  In this case, the test simply verifies that
 the status code on loading the URL is 200, indicating that the server is
