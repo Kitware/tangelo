@@ -42,6 +42,32 @@ $(function () {
 
                 selectItem(itemInfo, api);
             });
+        },
+        selectFolder: function (folder, api) {
+            var div = d3.select("#file-info"),
+                link;
+
+            div.selectAll("*")
+                .remove();
+
+            div.append("p")
+                .html("<b>Name:</b> " + folder.name);
+
+            div.append("p")
+                .html("<b>Created:</b> " + folder.created);
+
+            div.append("p")
+                .html("<b>Updated:</b> " + folder.updated);
+
+            div.append("p")
+                .html("<b>Size:</b> " + folder.size);
+
+            div.append("p")
+                .html("<b>Description:</b> " + folder.description);
+
+            link = [api, "folder", folder._id, "download"].join("/");
+            div.append("p")
+                .html("<a href=" + link + ">Download</a>");
         }
     });
 });

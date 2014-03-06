@@ -15,6 +15,7 @@
             label,
             api,
             selectItem,
+            selectFolder,
             selectSearchResult,
             findItems,
             findFolders,
@@ -28,6 +29,7 @@
         label = (cfg.label || "") + (caret ? "<b class=caret></b>" : "");
         api = cfg.api || "/girder/api/v1";
         selectItem = cfg.selectItem || $.noop;
+        selectFolder = cfg.selectFolder || $.noop;
         selectSearchResult = cfg.selectSearchResult || $.noop;
         search = cfg.search;
 
@@ -95,7 +97,10 @@
 
                     elem.append("a")
                         .attr("href", "#")
-                        .text(f.name);
+                        .text(f.name)
+                        .on("click", function () {
+                            selectFolder(f, api);
+                        });
 
                     elem = elem.append("ul")
                         .classed("dropdown-menu", true);
