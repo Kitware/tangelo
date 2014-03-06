@@ -95,7 +95,7 @@ pygments_style = 'sphinx'
 # the actual installation if the docs are built locally, or the default location
 # of localhost, port 80, for the documentation built on readthedocs.
 import os
-on_rtd = os.environ.get("READTHEDOCS", None) == True
+on_rtd = os.environ.get("READTHEDOCS", None) is not None
 extlinks = {"root": ("http://localhost:8080%s" if on_rtd else "%s", None)}
 
 # -- Options for HTML output ---------------------------------------------------
