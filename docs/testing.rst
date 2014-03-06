@@ -16,12 +16,12 @@ Test Types
 Because Tangelo brings together multiple technologies into one place, there are
 several types of tests that run on different platforms to test the various
 components.  Tangelo is built up from Python components, forming the server
-infrastructure, and Javascript components, forming the clientside support
+infrastructure, and JavaScript components, forming the clientside support
 libraries.  The standard testing philosophy prescribes *unit tests* for both
 halves, to continuously confirm that low-level pieces (e.g., at the level of
 individual functions) are behaving as expected.
 
-However, because Python and Javascript are both designed to afford maximum
+However, because Python and JavaScript are both designed to afford maximum
 programming flexibility - sometimes at the cost of enforced code quality -
 *style tests* also form an integral part of our testing strategy.  These tests
 use static analysis to enforce certain coding conventions designed to prevent
@@ -37,15 +37,15 @@ an image and comparing it to a baseline, or examining the status code of the
 HTTP request that delivered the page, etc.
 
 Finally, to confirm that our tests are far-reaching enough, we also perform
-*coverage tests* for both the Python and Javascript code.  These tests simply
+*coverage tests* for both the Python and JavaScript code.  These tests simply
 measure how much of each code base is "touched" by the unit and web content
 tests.  Python coverage testing happens via the Coverage program, while
-Blanket.js performs Javascript coverage testing.
+Blanket.js performs JavaScript coverage testing.
 
-Javascript Unit Tests
+JavaScript Unit Tests
 ---------------------
 
-The directory ``testing/js-unit-tests`` contains several Javascript files
+The directory ``testing/js-unit-tests`` contains several JavaScript files
 containing Jasmine tests.  Each file has a single call to the ``describe()``
 function, which declares a test suite.  The second argument is itself a function
 that will run to drive the suite - this function contains calls to the ``it()``
@@ -84,23 +84,23 @@ This turns the file into a standalone script that automatically runs the test
 suite declared therein.  CMake can therefore run this script directly to perform
 the unit test.
 
-Javascript Style Tests
+JavaScript Style Tests
 ----------------------
 
-JSLint is a static analyzer for Javascript that catches many slips of the
+JSLint is a static analyzer for JavaScript that catches many slips of the
 fingers and other bad practices that are allowed by the language but are
 commonly believed to lead to poor, error-prone, debug-resistant code.  It also
 prescribes a strict coding style standard which has been adopted by the Tangelo
 project (see :doc:`coding-style-guide`).
 
-The Javascript style tests work by running JSLint on each Javascript source
+The JavaScript style tests work by running JSLint on each JavaScript source
 file.  Keeping new code up to the JSLint standard by making these tests pass
 helps to inspire confidence in the quality of our code.
 
 Python Style Tests
 ------------------
 
-Similarly to JSLint for Javascript, Pep8 is a Python program that enforces the
+Similarly to JSLint for JavaScript, Pep8 is a Python program that enforces the
 `PEP8 standard <http://legacy.python.org/dev/peps/pep-0008/>`_ for Python code.
 These tests keep the Python code in line with common Python programming idioms,
 and are an easy way to "standardize" code against strange bugs that might
@@ -312,7 +312,7 @@ Another special test, which generates an HTML coverage report, depends in turn
 on each unit test.  This report can be found in the
 ``tangelo/web/tests/python-coverage`` directory within the build directory.
 
-The Javascript unit tests are collected into a single, overarching test suite,
+The JavaScript unit tests are collected into a single, overarching test suite,
 which is run under the supervision of Blanket.js, which generates an HTML
 coverage report, similarly to the Python ``coverage`` program.  This report can
 be found at ``tangelo/web/tests/js-unit-tests/tangelojs-coverage.html`` in the

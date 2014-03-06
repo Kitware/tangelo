@@ -13,7 +13,7 @@ HTML5, CSS, JavaScript, and other web technologies such as jQuery, D3,
 Bootstrap, WebGL, Canvas, and Vega_ to create rich web applications - from traditional,
 static pages, to cutting-edge, visual, dynamic displays.  **Tangelo also lets
 you include Python scripts as part of your application, alongside your HTML and
-Javascript files**, running them on your behalf to do anything from retrieving a
+JavaScript files**, running them on your behalf to do anything from retrieving a
 few database results for display, to engaging with powerful computational
 engines such as Hadoop to compute complex results.
 

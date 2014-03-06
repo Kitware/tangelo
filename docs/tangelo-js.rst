@@ -1,5 +1,5 @@
 ===================================
-    Tangelo Javascript API
+    Tangelo JavaScript API
 ===================================
 
 The Tangelo clientside library (*tangelo.js*) contains many functions to help
@@ -192,7 +192,7 @@ kinds of web applications.
 
     Returns an *accessor function* that behaves according to the accessor
     specification `spec`.  Accessor functions generally take as input a
-    Javascript object, and return some value that may or may not be related to
+    JavaScript object, and return some value that may or may not be related to
     that object.  For instance, ``tangelo.accessor({field: "mass"})`` returns a
     function equivalent to:
 
@@ -283,7 +283,7 @@ See :ref:`streaming` for a full discussion on how streaming works.
 .. js:function:: tangelo.stream.streams(callback)
 
     Asynchronously retrieves a JSON-encoded list of all stream keys, then
-    invokes `callback`, passing the keys in as a Javascript list of strings.
+    invokes `callback`, passing the keys in as a JavaScript list of strings.
 
     :param function(keys) callback: A callback taking one argument of type list
         of strings.
@@ -377,7 +377,7 @@ launch, manage, query, and terminate such processes.
     Retrieves a status report about the VTK Web process keyed by `key`, then
     invokes `callback` with it when it becomes available.
 
-    The report is a Javascript object containing a ``status`` field indicating
+    The report is a JavaScript object containing a ``status`` field indicating
     whether the request succeeded ("complete") or not ("failed").  If the status
     is "failed", the ``reason`` field will explain why.
 
@@ -497,7 +497,7 @@ provide convenient behaviors or to implement common visualization methods.  See
     plots colored SVG dots on it according to `spec.data`.
 
     `spec.worldGeometry` is a web path referencing a GeoJSON file.  `spec.data`
-    is an array of Javascript objects which may encode geodata attributes such
+    is an array of JavaScript objects which may encode geodata attributes such
     as longitude and latitude, and visualization parameters such as size and
     color, while `spec.latitude`, `spec.longitude`, and `spec.size` are accessor
     specifications describing how to derive the respective values from the data
@@ -526,7 +526,7 @@ provide convenient behaviors or to implement common visualization methods.  See
     `spec.worldGeometry` is a web path referencing a GeoJSON file.
 
     `spec.data` is an object containing two fields: ``nodes`` and ``links``.
-    The ``nodes`` field contains an array of Javascript objects of the exact
+    The ``nodes`` field contains an array of JavaScript objects of the exact
     same structure as the `spec.data` array passed to :js:func:`$.geodots`,
     encoding each node's location and visual properties.
 

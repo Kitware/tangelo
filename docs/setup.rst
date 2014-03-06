@@ -20,7 +20,7 @@ will be instructive to track that activity.
 
 Tangelo's runtime behaviors are specified via *configuration file*.  Tangelo
 configuration files are simply `JSON+comments
-<http://blog.getify.com/json-comments/>`_ files containing a single Javascript
+<http://blog.getify.com/json-comments/>`_ files containing a single JavaScript
 object of key-value pairs describing the configuration.  When no configuration
 file is specified on the command line (via the ``-c`` or ``--config`` flags),
 Tangelo will search for one in a sequence of predetermined locations, as

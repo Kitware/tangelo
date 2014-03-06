@@ -86,10 +86,10 @@ documentation).  The "top-level" options are as follows:
     * ``BUILD_TESTING`` - Generates a CTest suite for validating the JavaScript
       code with `JSlint <http://www.jslint.com/>`_, Python code with `pep8
       <https://pypi.python.org/pypi/pep8>`_ and `Pylint
-      <http://www.pylint.org/>`_, running Javascript unit tests with `Jasmine
+      <http://www.pylint.org/>`_, running JavaScript unit tests with `Jasmine
       <http://pivotal.github.io/jasmine/>`_, Python unit tests with the
       `unittest module <http://docs.python.org/2/library/unittest.html>`_,
-      Javascript coverage with `Blanket.js <http://blanketjs.org/>`_, Python
+      JavaScript coverage with `Blanket.js <http://blanketjs.org/>`_, Python
       coverage with the `coverage tool
       <https://pypi.python.org/pypi/coverage>`_, and finally, web-based content
       tests using `PhantomJS <http://phantomjs.org/>`_.
@@ -110,10 +110,10 @@ Hitting ``c`` to configure will cause dependent options to appear.  If
       (in the build directory) intalls of Python packages necessary for
       a testing deployment of Tangelo.
 
-    * ``JS_LINT_TESTS`` - Generates Javascript style validation tests using the
+    * ``JS_LINT_TESTS`` - Generates JavaScript style validation tests using the
       JSLint program (installed via NPM).
 
-    * ``JS_UNIT_TESTS`` - Generates Javascript unit test suites to stress
+    * ``JS_UNIT_TESTS`` - Generates JavaScript unit test suites to stress
       components of ``tangelo.js``.  These tests are carried out via JasmineJS.
 
     * ``PY_LINT_TESTS`` - Generates lint tests for Python source files using
