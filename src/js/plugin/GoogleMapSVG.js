@@ -72,27 +72,27 @@
     };
 
     tangelo.GoogleMapSVG.prototype.computeCBArgs = function () {
-        var mattrans;
+        var el,
+            mattrans,
+            transtext;
 
-        // Grab the matrix transform from the map div.
-        //mattrans = d3.select("#" + this.id + " [style*='webkit-transform: matrix']")
-        //mattrans = d3.select("#" + this.id + " [style*='transform: matrix']")
-        mattrans = d3.selectAll("#" + this.id + " [style*='transform:']");
-            //.select("[style*='matrix']");
+        // Grab the element whose translation vector we need.
+        el = d3.selectAll("#" + this.id + " [style~='cursor:']");
 
-        if (mattrans[0].length === 0) {
-            mattrans = "matrix(1, 0, 0, 1, 0, 0)";
-        } else {
-            mattrans = mattrans.style("transform") ||
-                       mattrans.style("-webkit-transform") ||
-                       mattrans.style("-o-transform") ||
-                       mattrans.style("-moz-transform");
+        // Try to get a matrix transform from it.  If there is none, fake one
+        // with the top and left style properties.
+        transtext = el.style("transform") ||
+            el.style("-webkit-transform") ||
+            el.style("-o-transform") ||
+            el.style("-moz-transform");
+
+        if (!transtext || transtext === "none") {
+            transtext = "matrix(1, 0, 0, 1, " + el.style("left").slice(0,-2) + ", " + el.style("top").slice(0,-2) + ")";
         }
 
-            //.style("-webkit-transform")
-        mattrans = mattrans
-            //.style("transform")
-            .split(" ")
+        // Remove commas and parentheses and whatnot from the array components
+        // after splitting.
+        mattrans = transtext.split(" ")
             .map(function (v, i) {
                 var retval;
 
