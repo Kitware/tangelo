@@ -298,7 +298,16 @@ def stop():
             print >>sys.stderr, "use --pid or --port to select one to stop"
             return 1
     else:
-        pid = running[0]
+        if status_pid is not None and status_pid != running[0]:
+            print >>sys.stderr, "no tangelo instance with pid %d" % (status_pid)
+            return 1
+        elif status_port is not None:
+            pid = tangelo.util.pid_from_port(status_port)
+            if pid is None:
+                print >>sys.stderr, "no tangelo instance running on port %d" % (status_port)
+                return 1
+        else:
+            pid = running[0]
 
     sys.stderr.write("stopping tangelo...")
 
@@ -339,11 +348,8 @@ def stop():
 
 
 def restart():
-    stopval = stop()
-    if stopval == 0:
-        return start()
-    else:
-        return stopval
+    stop()
+    return start()
 
 
 def status(pid, attr=None, clean=False):
