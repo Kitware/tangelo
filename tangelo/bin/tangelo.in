@@ -348,11 +348,8 @@ def stop():
 
 
 def restart():
-    stopval = stop()
-    if stopval == 0:
-        return start()
-    else:
-        return stopval
+    stop()
+    return start()
 
 
 def status(pid, attr=None, clean=False):
