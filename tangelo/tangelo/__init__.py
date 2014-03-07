@@ -16,7 +16,7 @@ def content_type(t=None):
 
 
 def header(h, t=None):
-    r = cherrypy.response.headers[h]
+    r = cherrypy.response.headers.get(h, None)
 
     if t is not None:
         cherrypy.response.headers[h] = t
