@@ -11,11 +11,11 @@ from cherrypy.process.plugins import SimplePlugin
 
 
 class StatusFile(SimplePlugin):
-    fields = ["cfg_file", "logfile", "pidfile", "webroot", "hostname", "port"]
+    fields = ["cfg_file", "logfile", "pidfile", "webroot", "hostname", "port", "version"]
     tmpdir = "/var/tmp"
 
     def __init__(self, bus, cfg_file=None, logfile=None, pidfile=None,
-                 webroot=None, hostname=None, port=None):
+                 webroot=None, hostname=None, port=None, version=None):
         SimplePlugin.__init__(self, bus)
 
         self.finalized = False
