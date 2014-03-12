@@ -2,28 +2,44 @@
 /*globals $, tangelo, d3 */
 
 var app = {};
+app.lyra = null;
+app.loaded = null;
 
 function createNew() {
-    console.log("createNew");
-    launchLyra();
+    launchLyra({
+        editor: true
+    });
 }
 
 function edit() {
-    console.log("edit");
+    launchLyra({
+        editor: true,
+        filename: app.filename
+    });
 }
 
-function launchLyra() {
-    app.lyra = window.open("/lyra/editor.html", "_blank");
+function launchLyra(qargs) {
+    var query = $.param(qargs || {});
+    if (query.length > 0) {
+        query = "?" + query;
+    }
+
+    app.lyra = window.open("/lyra/editor.html" + query, "_blank");
 }
 
 function receiveMessage(e) {
-    console.log(e.data);
-
-    vg.parse.spec(e.data, function (chart) {
+    vg.parse.spec(e.data.vega, function (chart) {
         chart({
             el: "#vega",
             renderer: "svg"
         }).update();
+
+        d3.select("#edit")
+            .attr("disabled", null);
+
+        app.filename = e.data.filename;
+
+        app.lyra = null;
     });
 }
 
