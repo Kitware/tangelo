@@ -25,6 +25,8 @@ import tangelo.util
 import tangelo.vtkweb
 import tangelo.websocket
 
+version = "@TANGELO_VERSION@"
+
 
 def running_pids():
     return map(lambda x: int(x.group(1)), filter(None, map(lambda x: re.search(r"^tangelo\.([0-9]*)$", x), os.walk(tangelo.plugin.StatusFile.tmpdir).next()[2])))
@@ -236,7 +238,7 @@ def start():
 
     # If daemonizing, we need to maintain a status file.
     if daemonize:
-        tangelo.plugin.StatusFile(cherrypy.engine, cfg_file=cfg_file, logfile=logfile, webroot=root, hostname=hostname, port=port).subscribe()
+        tangelo.plugin.StatusFile(cherrypy.engine, cfg_file=cfg_file, logfile=logfile, webroot=root, hostname=hostname, port=port, version=version).subscribe()
 
     # Set up websocket handling.  Use the pass-through subclassed version of the
     # plugin so we can set a priority on it that doesn't conflict with privilege
@@ -390,12 +392,15 @@ def status(pid, attr=None, clean=False):
             print status.get("logfile", "unknown")
         elif attr == "root":
             print status.get("webroot", "unknown")
+        elif attr == "version":
+            print status.get("version", "unknown")
         else:
             print >>sys.stderr, "error: illegal attr '%s' - available attrs are %s" % (attr, attrs)
     else:
         print >>sys.stderr, "process id:  %d" % (pid)
         print >>sys.stderr, "status file: %s" % (status_file)
         print >>sys.stderr, "status:      %s" % ("running" if running else "dead")
+        print >>sys.stderr, "version:     %s" % (status.get("version", "unknown"))
         print >>sys.stderr, "interface:   %s:%s" % (status.get("hostname", "<unknown>"), status.get("port", "<unknown>"))
         print >>sys.stderr, "config file: %s" % (status.get("cfg_file", "unknown"))
         print >>sys.stderr, "log file:    %s" % (status.get("logfile", "unknown"))
@@ -440,7 +445,7 @@ if __name__ == "__main__":
 
     # If version flag is present, print the version number and exit.
     if args.version:
-        print "@TANGELO_VERSION@"
+        print version
         sys.exit(0)
 
     # Make sure user didn't specify conflicting flags.
