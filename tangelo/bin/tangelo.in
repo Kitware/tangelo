@@ -25,7 +25,7 @@ import tangelo.util
 import tangelo.vtkweb
 import tangelo.websocket
 
-version = "@TANGELO_VERSION@"
+tangelo_version = "@TANGELO_VERSION@"
 
 
 def running_pids():
@@ -142,7 +142,7 @@ def start():
                         retval = 0
                         print >>sys.stderr, "success (serving on %s)" % (location)
                         done = True
-                    elif "Error" in line:
+                    elif "Error" in line or "ERROR" in line:
                         retval = 1
                         print >>sys.stderr, "failed (check tangelo.log for reason)"
                         done = True
@@ -238,7 +238,7 @@ def start():
 
     # If daemonizing, we need to maintain a status file.
     if daemonize:
-        tangelo.plugin.StatusFile(cherrypy.engine, cfg_file=cfg_file, logfile=logfile, webroot=root, hostname=hostname, port=port, version=version).subscribe()
+        tangelo.plugin.StatusFile(cherrypy.engine, cfg_file=cfg_file, logfile=logfile, webroot=root, hostname=hostname, port=port, version=tangelo_version).subscribe()
 
     # Set up websocket handling.  Use the pass-through subclassed version of the
     # plugin so we can set a priority on it that doesn't conflict with privilege
@@ -383,7 +383,7 @@ def status(pid, attr=None, clean=False):
     except IOError as e:
         print >>sys.stderr, e.strerror
         return 1
-    except ValueError as v:
+    except ValueError as e:
         print >>sys.stderr, e.message
         return 1
 
@@ -448,7 +448,7 @@ if __name__ == "__main__":
 
     # If version flag is present, print the version number and exit.
     if args.version:
-        print version
+        print tangelo_version
         sys.exit(0)
 
     # Make sure user didn't specify conflicting flags.

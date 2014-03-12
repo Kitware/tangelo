@@ -72,7 +72,7 @@ class StatusFile(SimplePlugin):
             except ValueError as e:
                 if "unpack" in e.message:
                     raise ValueError("fatal error: bad formatting in " +
-                                     "status file %s" % (status_file))
+                                     "status file %s" % (filename))
 
         return status
 
