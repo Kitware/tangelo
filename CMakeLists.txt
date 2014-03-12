@@ -451,14 +451,19 @@ endif()
 
 # Testing
 if(${BUILD_TESTING})
-    # A list of Javascript unit tests - list the base of the filename here.  The
-    # corresponding .js file should appear in testing/js-unit-tests/.
-    set(JS_UNIT_TEST_CASES
-        tangelo-exists
-        isFunction
-        isBoolean
-        accessor
-        distance-clustering
+    # Grab the test filenames from the directory.
+    file(GLOB JS_UNIT_TEST_CASES
+        #RELATIVE ${CMAKE_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/*.js
+    )
+
+    # Add any configured test files here.
+    configure_file(
+        testing/js-unit-tests/tangelo-version.js.in
+        ${CMAKE_BINARY_DIR}/tangelo-version.js
+    )
+    list(APPEND JS_UNIT_TEST_CASES
+        ${CMAKE_BINARY_DIR}/tangelo-version.js
     )
 
     # A list of Tangelo (i.e. Python) unit tests.  The corresponding .py file
@@ -559,8 +564,8 @@ if(${BUILD_TESTING})
         list(APPEND TESTING_DEPENDENCIES ${PHANTOMJS_EXECUTABLE})
 
         # Generate the tests.
-        foreach(f ${JS_UNIT_TEST_CASES})
-            set(js ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/${f}.js)
+        foreach(js ${JS_UNIT_TEST_CASES})
+            get_filename_component(f "${js}" NAME_WE)
             set(html ${CMAKE_BINARY_DIR}/tangelo/web/tests/js-unit-tests/${f}.html)
 
             # Generate the testing HTML file (to be run with phantomjs via a
@@ -569,6 +574,7 @@ if(${BUILD_TESTING})
             add_custom_command(OUTPUT ${html}
                 COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}"
                                          -DSOURCE_DIR="${CMAKE_SOURCE_DIR}"
+                                         -DSOURCE_FILE="${js}"
                                          -P ${CMAKE_SOURCE_DIR}/cmake/configure-js-unit-test.cmake
                 COMMAND ${CMAKE_COMMAND} -E touch ${html}
                 DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/scaffolding/jasmine-scaffold.html.in

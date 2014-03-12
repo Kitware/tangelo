@@ -1,0 +1,15 @@
+/*globals describe, it, expect, tangelo */
+
+describe("Tangelo version", function () {
+    "use strict";
+
+    it("Tangelo version is @TANGELO_VERSION@", function () {
+        var version = tangelo.version();
+
+        console.log("expected: @TANGELO_VERSION@");
+        console.log("received: " + version);
+
+        expect(version)
+            .toBe("@TANGELO_VERSION@");
+    });
+});
