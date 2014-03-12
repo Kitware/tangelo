@@ -368,6 +368,16 @@ def status(pid, attr=None, clean=False):
             print >>sys.stderr, "no tangelo instance with process ID %d" % (pid)
         return 0
 
+    if clean:
+        if not running:
+            try:
+                os.remove(status_file)
+                return 0
+            except OSError:
+                print >>sys.stderr, "error: could not remove file %s" % (status_file)
+                return 1
+        return 0
+
     try:
         status = tangelo.plugin.StatusFile.read_status_file(status_file)
     except IOError as e:
@@ -405,13 +415,6 @@ def status(pid, attr=None, clean=False):
         print >>sys.stderr, "config file: %s" % (status.get("cfg_file", "unknown"))
         print >>sys.stderr, "log file:    %s" % (status.get("logfile", "unknown"))
         print >>sys.stderr, "web root:    %s" % (status.get("webroot", "unknown"))
-
-    if not running and clean:
-        try:
-            os.remove(status_file)
-        except OSError:
-            print >>sys.stderr, "error: could not remove file %s" % (status_file)
-            return 1
 
     return 0
 
@@ -664,7 +667,7 @@ if __name__ == "__main__":
             running = running_pids()
             for i, pid in enumerate(running):
                 status(pid, args.attr, clean=args.clean)
-                if i < len(running) - 1:
+                if not args.clean and i < len(running) - 1:
                     print >>sys.stderr
             code = 0
     else:
