@@ -470,25 +470,12 @@ if(${BUILD_TESTING})
         ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/*.py
     )
 
-    # A list of "web content tests" - that is, these tests will generally
+    # Grab the list of "web content tests" - that is, these tests will generally
     # speaking, retrieve content from a URL, then run a function on the content
     # to determine whether the test passes.  This may be as simple as comparing
     # the content directly against expected output.
-    set(WEB_CONTENT_TEST_CASES
-        echo-service-no-args
-        echo-service
-        rest-implicit-get
-        rest-get
-        rest-post
-        ner-service
-        404-not-found
-        200-ok
-        geodots-match
-        dynamic-control-panel
-        primes
-        service-config
-        service-protected
-        service-config-protected
+    file(GLOB WEB_CONTENT_TEST_CASES
+        ${CMAKE_SOURCE_DIR}/testing/web-content-tests/*.js
     )
 
     # Configure the python test runner.
@@ -656,12 +643,14 @@ if(${BUILD_TESTING})
         list(APPEND TESTING_DEPENDENCIES ${PHANTOMJS_EXECUTABLE})
 
         # Generate the tests.
-        foreach(f ${WEB_CONTENT_TEST_CASES})
-            set(js ${CMAKE_SOURCE_DIR}/testing/web-content-tests/${f}.js)
+        foreach(js ${WEB_CONTENT_TEST_CASES})
+            get_filename_component(f "${js}" NAME_WE)
             set(js_out ${CMAKE_BINARY_DIR}/tangelo/web/tests/web-content-tests/${f}.js)
 
             add_custom_command(OUTPUT ${js_out}
                 COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}"
+                                         -DTEST_SOURCE="${js}"
+                                         -DJS_OUT="${js_out}"
                                          -DTESTING_HOST="${TESTING_HOST}"
                                          -DTESTING_PORT="${TESTING_PORT}"
                                          -DSOURCE_DIR="${CMAKE_SOURCE_DIR}"
