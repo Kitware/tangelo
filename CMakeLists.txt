@@ -451,42 +451,31 @@ endif()
 
 # Testing
 if(${BUILD_TESTING})
-    # A list of Javascript unit tests - list the base of the filename here.  The
-    # corresponding .js file should appear in testing/js-unit-tests/.
-    set(JS_UNIT_TEST_CASES
-        tangelo-exists
-        isFunction
-        isBoolean
-        accessor
-        distance-clustering
+    # Grab the test filenames from the directory.
+    file(GLOB JS_UNIT_TEST_CASES
+        ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/*.js
     )
 
-    # A list of Tangelo (i.e. Python) unit tests.  The corresponding .py file
-    # should appear in testing/py-unit-tests/.
-    set(PY_UNIT_TEST_CASES
-        get_free_port
-        tangelo-types
+    # Add any configured test files here.
+    configure_file(
+        testing/js-unit-tests/tangelo-version.js.in
+        ${CMAKE_BINARY_DIR}/tangelo-version.js
+    )
+    list(APPEND JS_UNIT_TEST_CASES
+        ${CMAKE_BINARY_DIR}/tangelo-version.js
     )
 
-    # A list of "web content tests" - that is, these tests will generally
+    # Grab the test filenames from the Python unit test directory.
+    file(GLOB PY_UNIT_TEST_CASES
+        ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/*.py
+    )
+
+    # Grab the list of "web content tests" - that is, these tests will generally
     # speaking, retrieve content from a URL, then run a function on the content
     # to determine whether the test passes.  This may be as simple as comparing
     # the content directly against expected output.
-    set(WEB_CONTENT_TEST_CASES
-        echo-service-no-args
-        echo-service
-        rest-implicit-get
-        rest-get
-        rest-post
-        ner-service
-        404-not-found
-        200-ok
-        geodots-match
-        dynamic-control-panel
-        primes
-        service-config
-        service-protected
-        service-config-protected
+    file(GLOB WEB_CONTENT_TEST_CASES
+        ${CMAKE_SOURCE_DIR}/testing/web-content-tests/*.js
     )
 
     # Configure the python test runner.
@@ -559,8 +548,8 @@ if(${BUILD_TESTING})
         list(APPEND TESTING_DEPENDENCIES ${PHANTOMJS_EXECUTABLE})
 
         # Generate the tests.
-        foreach(f ${JS_UNIT_TEST_CASES})
-            set(js ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/${f}.js)
+        foreach(js ${JS_UNIT_TEST_CASES})
+            get_filename_component(f "${js}" NAME_WE)
             set(html ${CMAKE_BINARY_DIR}/tangelo/web/tests/js-unit-tests/${f}.html)
 
             # Generate the testing HTML file (to be run with phantomjs via a
@@ -569,6 +558,7 @@ if(${BUILD_TESTING})
             add_custom_command(OUTPUT ${html}
                 COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}"
                                          -DSOURCE_DIR="${CMAKE_SOURCE_DIR}"
+                                         -DSOURCE_FILE="${js}"
                                          -P ${CMAKE_SOURCE_DIR}/cmake/configure-js-unit-test.cmake
                 COMMAND ${CMAKE_COMMAND} -E touch ${html}
                 DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/scaffolding/jasmine-scaffold.html.in
@@ -626,19 +616,22 @@ if(${BUILD_TESTING})
     if(${PY_UNIT_TESTS})
         # Add each test.  Decorate the call with the coverage tool if we're in
         # coverage mode.
-        foreach(f ${PY_UNIT_TEST_CASES})
+        set(UTIL_PY ${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/util.py)
+        set(INIT_PY ${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/__init__.py)
+        foreach(py ${PY_UNIT_TEST_CASES})
+            get_filename_component(f "${py}" NAME_WE)
             set(name unit-test:py:${f})
             if(PY_COVERAGE_TEST)
                 add_test(${name}
                     ${COVERAGE_EXECUTABLE} run --append
-                                           --source=${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/util.py,${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/__init__.py
-                                           --include="*util*" ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/${f}.py
+                                           --source=${UTIL_PY},${INIT_PY}
+                                           --include="*util*" ${py}
                 )
                 set_property(TEST ${name} APPEND PROPERTY DEPENDS coverage:py:reset)
                 set_property(TEST coverage:py APPEND PROPERTY DEPENDS ${name})
             else()
                 add_test(${name}
-                    ${VENV_PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/${f}.py
+                    ${VENV_PYTHON_EXECUTABLE} ${py}
                 )
             endif()
         endforeach()
@@ -650,12 +643,14 @@ if(${BUILD_TESTING})
         list(APPEND TESTING_DEPENDENCIES ${PHANTOMJS_EXECUTABLE})
 
         # Generate the tests.
-        foreach(f ${WEB_CONTENT_TEST_CASES})
-            set(js ${CMAKE_SOURCE_DIR}/testing/web-content-tests/${f}.js)
+        foreach(js ${WEB_CONTENT_TEST_CASES})
+            get_filename_component(f "${js}" NAME_WE)
             set(js_out ${CMAKE_BINARY_DIR}/tangelo/web/tests/web-content-tests/${f}.js)
 
             add_custom_command(OUTPUT ${js_out}
                 COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}"
+                                         -DTEST_SOURCE="${js}"
+                                         -DJS_OUT="${js_out}"
                                          -DTESTING_HOST="${TESTING_HOST}"
                                          -DTESTING_PORT="${TESTING_PORT}"
                                          -DSOURCE_DIR="${CMAKE_SOURCE_DIR}"

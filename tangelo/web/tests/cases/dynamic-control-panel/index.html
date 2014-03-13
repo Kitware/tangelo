@@ -1,0 +1,68 @@
+<!doctype html>
+<meta charset=utf-8>
+
+<title>Application Template</title>
+
+<script src=http://code.jquery.com/jquery-1.8.2.min.js></script>
+<script src=http://d3js.org/d3.v3.min.js charset=utf-8></script>
+<script src=/js/tangelo.min.js></script>
+<script src=index.js></script>
+
+<link href=http://bootswatch.com/cosmo/bootstrap.min.css rel=stylesheet>
+<link href=//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css rel=stylesheet>
+<script src=http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js></script>
+
+<style>
+    body {
+        padding-top: 50px;
+    }
+
+    #control-panel {
+        background-color: lightgray;
+    }
+</style>
+
+<div id=info-panel class="modal fade">
+    <div class=modal-dialog>
+        <div class=modal-content>
+            <div class=modal-header>
+                <h3>Information</h3>
+            </div>
+
+            <div class=modal-body>
+                Information about MyApp.
+            </div>
+
+            <div class=modal-footer>
+                <a class="btn btn-default" data-dismiss=modal>OK</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class=navbar-header>
+        <a class=navbar-brand href=/examples>Tangelo</a>
+    </div>
+
+    <ul class="nav navbar-nav">
+        <li class=active> <a>MyApp</a>
+        <li><a style=cursor:pointer data-toggle=modal data-target=#info-panel><span class="glyphicon glyphicon-info-sign"></span> Info</a>
+    </ul>
+</div>
+
+<h1>Dynamic control panel test</h1>
+
+<a id="addrow" class="btn btn-default">Add row</a>
+
+<div id=before></div>
+
+<div id=after></div>
+
+<div id=control-panel>
+    <div class=container>
+        <div class=row>
+            Control panel element
+        </div>
+    </div>
+</div>

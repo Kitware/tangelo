@@ -2,7 +2,7 @@ set(alljs ${CMAKE_BINARY_DIR}/all-js-unit-tests.js)
 
 file(WRITE ${alljs} "")
 foreach(f IN LISTS JS_UNIT_TEST_CASES)
-    file(READ ${SOURCE_DIR}/testing/js-unit-tests/${f}.js js)
+    file(READ "${f}" js)
     file(APPEND ${alljs} "${js}")
 endforeach()
 
