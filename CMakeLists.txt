@@ -453,7 +453,6 @@ endif()
 if(${BUILD_TESTING})
     # Grab the test filenames from the directory.
     file(GLOB JS_UNIT_TEST_CASES
-        #RELATIVE ${CMAKE_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/*.js
     )
 
@@ -466,11 +465,9 @@ if(${BUILD_TESTING})
         ${CMAKE_BINARY_DIR}/tangelo-version.js
     )
 
-    # A list of Tangelo (i.e. Python) unit tests.  The corresponding .py file
-    # should appear in testing/py-unit-tests/.
-    set(PY_UNIT_TEST_CASES
-        get_free_port
-        tangelo-types
+    # Grab the test filenames from the Python unit test directory.
+    file(GLOB PY_UNIT_TEST_CASES
+        ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/*.py
     )
 
     # A list of "web content tests" - that is, these tests will generally
@@ -632,19 +629,22 @@ if(${BUILD_TESTING})
     if(${PY_UNIT_TESTS})
         # Add each test.  Decorate the call with the coverage tool if we're in
         # coverage mode.
-        foreach(f ${PY_UNIT_TEST_CASES})
+        set(UTIL_PY ${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/util.py)
+        set(INIT_PY ${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/__init__.py)
+        foreach(py ${PY_UNIT_TEST_CASES})
+            get_filename_component(f "${py}" NAME_WE)
             set(name unit-test:py:${f})
             if(PY_COVERAGE_TEST)
                 add_test(${name}
                     ${COVERAGE_EXECUTABLE} run --append
-                                           --source=${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/util.py,${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/__init__.py
-                                           --include="*util*" ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/${f}.py
+                                           --source=${UTIL_PY},${INIT_PY}
+                                           --include="*util*" ${py}
                 )
                 set_property(TEST ${name} APPEND PROPERTY DEPENDS coverage:py:reset)
                 set_property(TEST coverage:py APPEND PROPERTY DEPENDS ${name})
             else()
                 add_test(${name}
-                    ${VENV_PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/${f}.py
+                    ${VENV_PYTHON_EXECUTABLE} ${py}
                 )
             endif()
         endforeach()
