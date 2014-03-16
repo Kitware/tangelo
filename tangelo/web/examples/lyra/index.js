@@ -7,14 +7,16 @@ app.loaded = null;
 
 function createNew() {
     launchLyra({
-        editor: true
+        editor: true,
+        savefile: new Date().toString()
     });
 }
 
 function edit() {
     launchLyra({
         editor: true,
-        filename: app.filename
+        loadfile: app.filename,
+        savefile: new Date().toString()
     });
 }
 
