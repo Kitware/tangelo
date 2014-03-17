@@ -3,20 +3,18 @@
 
 var app = {};
 app.lyra = null;
-app.loaded = null;
+app.timeline = null;
 
 function createNew() {
     launchLyra({
-        editor: true,
-        savefile: new Date().toString()
+        editor: true
     });
 }
 
 function edit() {
     launchLyra({
         editor: true,
-        loadfile: app.filename,
-        savefile: new Date().toString()
+        timeline: JSON.stringify(app.timeline)
     });
 }
 
@@ -30,6 +28,8 @@ function launchLyra(qargs) {
 }
 
 function receiveMessage(e) {
+    app.timeline = e.data.timeline;
+
     vg.parse.spec(e.data.vega, function (chart) {
         chart({
             el: "#vega",
@@ -38,8 +38,6 @@ function receiveMessage(e) {
 
         d3.select("#edit")
             .attr("disabled", null);
-
-        app.filename = e.data.filename;
 
         app.lyra = null;
     });
