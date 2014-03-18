@@ -6,6 +6,7 @@ app.lyra = null;
 app.timeline = null;
 app.data = null;
 app.range = null;
+app.editor = null;
 
 function computeRange(data) {
     "use strict";
@@ -122,4 +123,54 @@ $(function () {
 
     d3.select("#restore")
         .on("click", restore);
+
+    d3.select("#edit-data")
+        .on("click", function () {
+            var el;
+
+            d3.select("#edit-area")
+                .selectAll("*")
+                .remove();
+
+            el = d3.select("#edit-area")
+                .append("div")
+                .attr("id", "ace-editor")
+                .node();
+
+            app.editor = ace.edit(el);
+            app.editor.setTheme("ace/theme/twilight");
+            app.editor.getSession().setMode("ace/mode/javascript");
+
+            app.editor.setValue(JSON.stringify(app.data, null, "    "));
+
+            d3.select("#edit-area")
+                .append("button")
+                .classed("btn", true)
+                .classed("btn-default", true)
+                .text("Save")
+                .on("click", function () {
+                    var newdata,
+                        text = app.editor.getValue();
+                    try {
+                        app.vega.data[0].values = JSON.parse(text);
+                        refresh(app.vega);
+                        d3.select("#edit-area")
+                            .selectAll("*")
+                            .remove();
+                    } catch (e) {
+                        alert("Error!  Couldn't not parse data as JSON: " + e);
+                    }
+                });
+
+            d3.select("#edit-area")
+                .append("button")
+                .classed("btn", true)
+                .classed("btn-default", true)
+                .text("Close")
+                .on("click", function () {
+                    d3.select("#edit-area")
+                    .selectAll("*")
+                    .remove();
+                });
+        });
 });
