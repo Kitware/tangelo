@@ -47,7 +47,7 @@ function createNew() {
 function edit() {
     launchLyra({
         editor: true,
-        timeline: JSON.stringify(app.timeline)
+        timeline: encodeURIComponent(JSON.stringify(app.timeline))
     });
 }
 
