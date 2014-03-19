@@ -56,13 +56,23 @@
 
 <h1>Create/Edit Visualizations with Lyra</h1>
 
+<h2>Data</h2>
+<button id=edit-data class="btn btn-default">Edit Data</button>
+<div class="btn-group">
+  <button id="data-source" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+      [dummy]
+  </button>
+  <ul id="data-sources" class="dropdown-menu" role="menu"></ul>
+</div>
+
+<div id=edit-area>
+</div>
+
+<h2>Visualization</h2>
 <button id=create class="btn btn-default">Create new</button>
 <button id=edit disabled class="btn btn-default">Edit</button>
 <button id=shuffle disabled class="btn btn-default">Shuffle Data</button>
 <button id=restore disabled class="btn btn-default">Restore Data</button>
 
 <div id=vega>
-</div>
-
-<div id=edit-area>
 </div>

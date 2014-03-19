@@ -5,6 +5,7 @@ var app = {};
 app.lyra = null;
 app.timeline = null;
 app.data = null;
+app.datasets = {};
 app.range = null;
 app.editor = null;
 
@@ -39,38 +40,39 @@ function computeRange(data) {
     return range;
 }
 
+function launchLyra(qargs) {
+    "use strict";
+
+    var query = $.param(qargs || {});
+    if (query.length > 0) {
+        query = "?" + query;
+    }
+
+    app.lyra = window.open("/lyra/editor.html" + query, "_blank");
+}
+
 function createNew() {
+    "use strict";
+
     launchLyra({
-        editor: true
+        editor: true,
+        data: encodeURIComponent(JSON.stringify(app.data))
     });
 }
 
 function edit() {
+    "use strict";
+
     launchLyra({
         editor: true,
-        timeline: encodeURIComponent(JSON.stringify(app.timeline))
+        timeline: encodeURIComponent(JSON.stringify(app.timeline)),
+        data: encodeURIComponent(JSON.stringify(app.data))
     });
-}
-
-function shuffle() {
-    var f;
-    $.each(app.vega.data[0].values, function (i, d) {
-        for (f in app.range) {
-            if (app.range.hasOwnProperty(f)) {
-                d[f] = app.range[f].min + Math.random() * (app.range[f].max - app.range[f].min);
-            }
-        }
-    });
-
-    refresh(app.vega);
-}
-
-function restore() {
-    app.vega.data[0].values = $.extend(true, [], app.data);
-    refresh(app.vega);
 }
 
 function refresh(vega) {
+    "use strict";
+
     vg.parse.spec(vega, function (chart) {
         chart({
             el: "#vega",
@@ -88,16 +90,39 @@ function refresh(vega) {
     });
 }
 
-function launchLyra(qargs) {
-    var query = $.param(qargs || {});
-    if (query.length > 0) {
-        query = "?" + query;
-    }
+function shuffle() {
+    "use strict";
 
-    app.lyra = window.open("/lyra/editor.html" + query, "_blank");
+    var f;
+    $.each(app.vega.data[0].values, function (i, d) {
+        for (f in app.range) {
+            if (app.range.hasOwnProperty(f)) {
+                d[f] = app.range[f].min + Math.random() * (app.range[f].max - app.range[f].min);
+            }
+        }
+    });
+
+    refresh(app.vega);
+}
+
+function restore() {
+    "use strict";
+
+    app.vega.data[0].values = $.extend(true, [], app.data);
+    refresh(app.vega);
+}
+
+function loadEditorData(editor, data) {
+    "use strict";
+
+    if (editor) {
+        editor.setValue(JSON.stringify(data, null, "    "));
+    }
 }
 
 function receiveMessage(e) {
+    "use strict";
+
     app.timeline = e.data.timeline;
     app.vega = e.data.vega;
     app.data = $.extend(true, [], e.data.vega.data[0].values);
@@ -141,7 +166,8 @@ $(function () {
             app.editor.setTheme("ace/theme/twilight");
             app.editor.getSession().setMode("ace/mode/javascript");
 
-            app.editor.setValue(JSON.stringify(app.data, null, "    "));
+            //app.editor.setValue(JSON.stringify(app.data, null, "    "));
+            loadEditorData(app.editor, app.data);
 
             d3.select("#edit-area")
                 .append("button")
@@ -149,11 +175,16 @@ $(function () {
                 .classed("btn-default", true)
                 .text("Save")
                 .on("click", function () {
-                    var newdata,
-                        text = app.editor.getValue();
+                    var text = app.editor.getValue();
+
                     try {
-                        app.vega.data[0].values = JSON.parse(text);
-                        refresh(app.vega);
+                        app.data = JSON.parse(text);
+
+                        if (app.vega) {
+                            app.vega.data[0].values = app.data;
+                            refresh(app.vega);
+                        }
+
                         d3.select("#edit-area")
                             .selectAll("*")
                             .remove();
@@ -169,8 +200,61 @@ $(function () {
                 .text("Close")
                 .on("click", function () {
                     d3.select("#edit-area")
-                    .selectAll("*")
-                    .remove();
+                        .selectAll("*")
+                        .remove();
                 });
         });
+
+    d3.select("#data-sources")
+        .selectAll("li")
+        .data(["Manual",
+               "Fizzbin"])
+        .enter()
+        .append("li")
+        .append("a")
+        .classed("data-source", true)
+        .attr("href", "#")
+        .text(function (d) {
+            return d;
+        })
+        .on("click", function (d) {
+            d3.select("#data-source")
+                .html(d + "<span class=\"caret\"></span>");
+
+            app.data = app.datasets[d];
+            loadEditorData(app.editor, app.data);
+        });
+
+    app.datasets = {
+        Fizzbin: [
+            {
+                "foo": 1,
+                "bar": "a"
+            },
+            {
+                "foo": 3,
+                "bar": "b"
+            },
+            {
+                "foo": 2,
+                "bar": "c"
+            },
+            {
+                "foo": 5,
+                "bar": "d"
+            },
+            {
+                "foo": 4,
+                "bar": "e"
+            },
+            {
+                "foo": 7,
+                "bar": "a"
+            },
+        ],
+
+        Manual: null
+    };
+
+    $("a.data-source").get(0).click();
 });
