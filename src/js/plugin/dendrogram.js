@@ -11,7 +11,7 @@
         options: {
             label: tangelo.accessor({value: ""}),
             distance: tangelo.accessor({value: 1}),
-            id: tangelo.accessor({value: 0}),
+            id: tangelo.accessor(),
             margin: {
                 top: 20,
                 right: 120,
@@ -178,6 +178,7 @@
             var nodes = this.tree.nodes(this.options.root).reverse(),
                 links = this.tree.links(nodes),
                 source = this.options.source || this.options.root,
+                index,
                 node,
                 nodeEnter,
                 nodeUpdate,
@@ -211,11 +212,20 @@
             }
             setPosition(this.options.root, 0);
 
+            index = 0;
+            function setIndex(node) {
+                node._index = index;
+                index += 1;
+                if (node.children) {
+                    node.children.forEach(setIndex);
+                }
+            }
+            setIndex(this.options.data);
+
             // Compute the leftmost and rightmost positions in the tree.
             function minmax(node) {
                 var leftmost,
-                    rightmost,
-                    p;
+                    rightmost;
 
                 leftmost = node;
                 while (leftmost.children && leftmost.children[0]) {
@@ -306,7 +316,7 @@
             // Update the nodes…
             node = this.svg.selectAll("g.node")
                 .data(nodes, function (d) {
-                    return that.options.id(d);
+                    return that.options.id.undefined ? d._index : that.options.id(d);
                 });
 
             // Enter any new nodes at the parent's previous position.
@@ -382,7 +392,7 @@
             // Update the links…
             link = this.svg.selectAll("path.link")
                 .data(links, function (d) {
-                    return that.options.id(d.target);
+                    return that.options.id.undefined ? d.target._index : that.options.id(d.target);
                 });
 
             // Enter any new links at the parent's previous position.
