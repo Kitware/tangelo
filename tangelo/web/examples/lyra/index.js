@@ -120,6 +120,43 @@ function loadEditorData(editor, data) {
     }
 }
 
+function getUrls(girderApi, collection, folder, callback) {
+    "use strict";
+
+    var data = {
+        text: collection
+    };
+
+    $.getJSON(girderApi + "/collection", data, function (lyra) {
+        data = {
+            parentType: "collection",
+            parentId: lyra._id,
+            text: folder
+        };
+
+        $.getJSON(girderApi + "/folder", data, function (folder) {
+            if (folder.length === 0) {
+                console.warn("error: no girder path /lyra/" + folder + " found!");
+                return;
+            }
+
+            if (folder.length > 1) {
+                console.warn("error: more than one path /lyra/" + folder + " found!");
+                return;
+            }
+
+            data = {
+                folderId: folder[0]._id
+            };
+
+            $.getJSON(girderApi + "/item", data, function (files) {
+                callback(files);
+            });
+
+        });
+    });
+}
+
 function receiveMessage(e) {
     "use strict";
 
@@ -135,126 +172,100 @@ function receiveMessage(e) {
 $(function () {
     "use strict";
 
-    window.addEventListener("message", receiveMessage, false);
+    tangelo.config("config.json", function (config) {
+        window.addEventListener("message", receiveMessage, false);
 
-    d3.select("#create")
-        .on("click", createNew);
+        d3.select("#create")
+            .on("click", createNew);
 
-    d3.select("#edit")
-        .on("click", edit);
+        d3.select("#edit")
+            .on("click", edit);
 
-    d3.select("#shuffle")
-        .on("click", shuffle);
+        d3.select("#shuffle")
+            .on("click", shuffle);
 
-    d3.select("#restore")
-        .on("click", restore);
+        d3.select("#restore")
+            .on("click", restore);
 
-    d3.select("#edit-data")
-        .on("click", function () {
-            var el;
+        d3.select("#edit-data")
+            .on("click", function () {
+                var el;
 
-            d3.select("#edit-area")
-                .selectAll("*")
-                .remove();
+                d3.select("#edit-area")
+                    .selectAll("*")
+                    .remove();
 
-            el = d3.select("#edit-area")
-                .append("div")
-                .attr("id", "ace-editor")
-                .node();
+                el = d3.select("#edit-area")
+                    .append("div")
+                    .attr("id", "ace-editor")
+                    .node();
 
-            app.editor = ace.edit(el);
-            app.editor.setTheme("ace/theme/twilight");
-            app.editor.getSession().setMode("ace/mode/javascript");
+                app.editor = ace.edit(el);
+                app.editor.setTheme("ace/theme/twilight");
+                app.editor.getSession().setMode("ace/mode/javascript");
 
-            //app.editor.setValue(JSON.stringify(app.data, null, "    "));
-            loadEditorData(app.editor, app.data);
+                //app.editor.setValue(JSON.stringify(app.data, null, "    "));
+                loadEditorData(app.editor, app.data);
 
-            d3.select("#edit-area")
-                .append("button")
-                .classed("btn", true)
-                .classed("btn-default", true)
-                .text("Save")
-                .on("click", function () {
-                    var text = app.editor.getValue();
+                d3.select("#edit-area")
+                    .append("button")
+                    .classed("btn", true)
+                    .classed("btn-default", true)
+                    .text("Save")
+                    .on("click", function () {
+                        var text = app.editor.getValue();
 
-                    try {
-                        app.data = JSON.parse(text);
+                        try {
+                            app.data = JSON.parse(text);
 
-                        if (app.vega) {
-                            app.vega.data[0].values = app.data;
-                            refresh(app.vega);
+                            if (app.vega) {
+                                app.vega.data[0].values = app.data;
+                                refresh(app.vega);
+                            }
+
+                            d3.select("#edit-area")
+                                .selectAll("*")
+                                .remove();
+                        } catch (e) {
+                            alert("Error!  Couldn't not parse data as JSON: " + e);
                         }
+                    });
 
+                d3.select("#edit-area")
+                    .append("button")
+                    .classed("btn", true)
+                    .classed("btn-default", true)
+                    .text("Close")
+                    .on("click", function () {
                         d3.select("#edit-area")
                             .selectAll("*")
                             .remove();
-                    } catch (e) {
-                        alert("Error!  Couldn't not parse data as JSON: " + e);
-                    }
+                    });
+            });
+
+        getUrls(config.girderApi, config.collection, config.dataFolder, function (files) {
+            d3.select("#data-sources")
+                .selectAll("li")
+                .data(files)
+                .enter()
+                .append("li")
+                .append("a")
+                .classed("data-source", true)
+                .attr("href", "#")
+                .text(function (d) {
+                    d.dataName = d.name.split(".")[0];
+                    return d.dataName;
+                })
+                .on("click", function (d) {
+                    d3.select("#data-source")
+                        .html(d.dataName + " <span class=\"caret\"></span>");
+
+                    $.getJSON(config.girderApi + "/item/" + d._id + "/download", function (data)  {
+                        app.data = data;
+                        loadEditorData(app.editor, app.data);
+                    });
                 });
-
-            d3.select("#edit-area")
-                .append("button")
-                .classed("btn", true)
-                .classed("btn-default", true)
-                .text("Close")
-                .on("click", function () {
-                    d3.select("#edit-area")
-                        .selectAll("*")
-                        .remove();
-                });
+            $("a.data-source").get(0).click();
         });
-
-    d3.select("#data-sources")
-        .selectAll("li")
-        .data(["Manual",
-               "Fizzbin"])
-        .enter()
-        .append("li")
-        .append("a")
-        .classed("data-source", true)
-        .attr("href", "#")
-        .text(function (d) {
-            return d;
-        })
-        .on("click", function (d) {
-            d3.select("#data-source")
-                .html(d + "<span class=\"caret\"></span>");
-
-            app.data = app.datasets[d];
-            loadEditorData(app.editor, app.data);
-        });
-
-    app.datasets = {
-        Fizzbin: [
-            {
-                "foo": 1,
-                "bar": "a"
-            },
-            {
-                "foo": 3,
-                "bar": "b"
-            },
-            {
-                "foo": 2,
-                "bar": "c"
-            },
-            {
-                "foo": 5,
-                "bar": "d"
-            },
-            {
-                "foo": 4,
-                "bar": "e"
-            },
-            {
-                "foo": 7,
-                "bar": "a"
-            },
-        ],
-
-        Manual: null
-    };
-
-    $("a.data-source").get(0).click();
+    });
 });

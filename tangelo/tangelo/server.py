@@ -83,7 +83,7 @@ class Tangelo(object):
 
             plugins = model_importer.ModelImporter().model('setting').get(
                 constants.SettingKey.PLUGINS_ENABLED, default=())
-            plugin_utilities.loadPlugins(plugins, root)
+            plugin_utilities.loadPlugins(plugins, root, cherrypy.config)
 
         except ImportError:
             # Ok, just don't mount it.
