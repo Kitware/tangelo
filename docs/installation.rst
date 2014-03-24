@@ -54,6 +54,7 @@ and run Tangelo:
 * CMake
 * Git
 * Python 2.7
+* Node.js
 
 **2. Check out the Tangelo source code**
 
@@ -215,17 +216,21 @@ Download and install the latest version of `CMake
 <http://www.cmake.org/cmake/resources/software.html>`_. Use the link marked
 *Win32 Installer*.
 
-**3. Install Python**
+**3. Install Node.js**
+
+A Windows installer can be found `here <http://nodejs.org/download/>`_.
+
+**4. Install Python**
 
 Download and install `Python 2.7 <http://www.python.org/download/releases/2.7>`_. Use the
 link marked *Windows X86-64 MSI Installer*.
 
-**4. Install Python packages**
+**5. Install Python packages**
 
 Download and install the `Windows Python packages <http://www.lfd.uci.edu/~gohlke/pythonlibs/>`_ for ``pip``, ``pymongo``, and ``twisted``.
 Choose the package links ending in ``amd64-py2.7.exe``.
 
-**5. Clone the Tangelo Repository**
+**6. Clone the Tangelo Repository**
 
 Open the Git Bash shell and execute the following::
 
@@ -235,7 +240,7 @@ Open the Git Bash shell and execute the following::
 This will create a new directory in your home directory called ``tangelo``
 containing the Tangelo sources.
 
-**6. Install Ninja**
+**7. Install Ninja**
 
 Create a build directory::
 
@@ -251,7 +256,7 @@ directory. You can do this all from the Git Bash shell::
     curl -OL https://github.com/martine/ninja/releases/download/v1.4.0/ninja-win.zip
     unzip ninja-win.zip
 
-**7. Configure and build**
+**8. Configure and build**
 
 From the build directory, configure the Tangelo build using CMake::
 
@@ -261,7 +266,7 @@ Then build the project using the ``ninja`` build tool::
 
     ninja
 
-**8. Install the package**
+**9. Install the package**
 
 To install this package into your Python environment, run::
 
@@ -277,7 +282,7 @@ run the following from the build directory::
     /c/Python27/Scripts/pip uninstall tangelo
     /c/Python27/Scripts/pip install dist/Tangelo-[version].tar.gz
 
-**9. Start the server!**
+**10. Start the server!**
 
 The ``tangelo`` program controls startup and
 shutdown of the Tangelo server.  Run::
