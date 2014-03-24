@@ -260,7 +260,7 @@ records to Mongo:
 
    .. code-block:: none
 
-       mongoimport -d tangelo -c flickr_paris --file enron_email.json
+       mongoimport -d tangelo -c enron_email --file enron_email.json
 
 (Note: although ``enron_email.json`` contains one JSON-encoded object per line,
 keep in mind that the file as a whole does **not** constitute a single JSON
