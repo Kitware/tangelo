@@ -406,7 +406,7 @@ function retrieveData(initial) {
                                 cfg = {
                                     html: true,
                                     container: "body",
-                                    placement: "top",
+                                    placement: "right",
                                     trigger: "hover",
                                     content: msg,
                                     delay: {
@@ -414,7 +414,15 @@ function retrieveData(initial) {
                                         hide: 0
                                     }
                                 };
-                                $(this).popover(cfg);
+                                $(this).popover(cfg)
+                                    .on("shown.bs.popover", function () {
+                                        window.setTimeout(function () {
+                                            var top = +$(".popover").css("top").split("px")[0],
+                                                imgHeight = +$(".popover img").height();
+
+                                            $(".popover").css("top", (top - imgHeight/2 + 10) + "px");
+                                        }, 200);
+                                    });
                             });
 
                         // This is to prevent division by zero if there is only one data
