@@ -60,7 +60,7 @@
 <button id=edit-data class="btn btn-default">Edit Data</button>
 <div class="btn-group">
   <button id="data-source" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-      [dummy]
+      <em>(no files)</em> <span class=caret></span>
   </button>
   <ul id="data-sources" class="dropdown-menu" role="menu"></ul>
 </div>
@@ -69,7 +69,14 @@
 </div>
 
 <h2>Visualization</h2>
-<button id=create class="btn btn-default">Create new</button>
+<button id=create class="btn btn-default">New</button>
+<div class="btn-group">
+  <button id="vis-file" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+      <em>(no files)</em> <span class=caret></span>
+  </button>
+  <ul id="vis-files" class="dropdown-menu" role="menu"></ul>
+</div>
+
 <button id=edit disabled class="btn btn-default">Edit</button>
 
 <div id=vega>

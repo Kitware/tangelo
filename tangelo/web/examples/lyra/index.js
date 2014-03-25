@@ -2,10 +2,18 @@
 /*globals $, tangelo, d3 */
 
 var app = {};
+app.vis = {
+    name: null,
+    vega: null,
+    timeline: null
+};
 app.lyra = null;
-app.timeline = null;
 app.data = null;
+app.filelist = [];
 app.editor = null;
+app.unsaved = {};
+app.unsavedIdx = 1;
+app.new = false;
 
 function launchLyra(qargs) {
     "use strict";
@@ -21,6 +29,7 @@ function launchLyra(qargs) {
 function createNew() {
     "use strict";
 
+    app.new = true;
     launchLyra({
         editor: true,
         data: encodeURIComponent(JSON.stringify(app.data))
@@ -32,7 +41,7 @@ function edit() {
 
     launchLyra({
         editor: true,
-        timeline: encodeURIComponent(JSON.stringify(app.timeline)),
+        timeline: encodeURIComponent(JSON.stringify(app.vis.timeline)),
         data: encodeURIComponent(JSON.stringify(app.data))
     });
 }
@@ -99,12 +108,39 @@ function getUrls(girderApi, collection, folder, callback) {
 function receiveMessage(e) {
     "use strict";
 
-    app.timeline = e.data.timeline;
-    app.vega = e.data.vega;
+    app.vis.timeline = e.data.timeline;
+    app.vis.vega = e.data.vega;
     app.data = $.extend(true, [], e.data.vega.data[0].values);
-    app.range = computeRange(app.data);
 
-    refresh(app.vega);
+    if (app.new) {
+        app.vis.name = app.vis.visName = "Unsaved " + app.unsavedIdx;
+
+        app.unsaved[app.vis.name] = $.extend(true, {}, app.vis);
+
+        app.filelist.push($.extend(true, {}, app.vis));
+
+        app.unsavedIdx += 1;
+
+        d3.select("#vis-files")
+            .selectAll("li")
+            .data(app.filelist, function (d) {
+                return d.visName;
+            })
+            .enter()
+            .append("li")
+            .append("a")
+            .classed("vis-file", true)
+            .attr("href", "#")
+            .text(app.vis.visName)
+            .on("click", app.clickVis);
+
+        d3.select("#vis-file")
+            .html(app.vis.visName + " <span class=\"caret\"></span>");
+
+        app.new = false;
+    }
+
+    refresh(app.vis.vega);
     app.lyra = null;
 }
 
@@ -193,12 +229,56 @@ $(function () {
                     d3.select("#data-source")
                         .html(d.dataName + " <span class=\"caret\"></span>");
 
-                    $.getJSON(config.girderApi + "/item/" + d._id + "/download", function (data)  {
+                    $.getJSON(config.girderApi + "/item/" + d._id + "/download", function (data) {
                         app.data = data;
                         loadEditorData(app.editor, app.data);
                     });
                 });
-            $("a.data-source").get(0).click();
+            $("a.data-source").get(0) && $("a.data-source").get(0).click();
+        });
+
+        app.clickVis = function (d) {
+            d3.select("#vis-file")
+                .html(d.visName + " <span class=\"caret\"></span>");
+
+            if (d.visName.lastIndexOf("Unsaved") === 0) {
+                app.vis = app.unsaved[d.visName];
+            } else {
+                $.getJSON(config.girderApi + "/item/" + d._id + "/download", function (data) {
+                    console.log(data);
+                });
+            }
+
+            refresh(app.vis.vega);
+        };
+
+        getUrls(config.girderApi, config.collection, config.visFolder, function (files) {
+            var unsaved = Object.keys(app.unsaved).map(function (x) {
+                return app.unsaved[x];
+            });
+
+            app.filelist = files.concat(unsaved);
+
+            $.each(app.filelist, function (i, v) {
+                v.visName = v.name.split(".")[0];
+            });
+
+            d3.select("#vis-files")
+                .selectAll("li")
+                .data(app.filelist, function (d) {
+                    return d.visName;
+                })
+                .enter()
+                .append("li")
+                .append("a")
+                .classed("vis-file", true)
+                .attr("href", "#")
+                .text(function (d) {
+                    return d.visName;
+                })
+                .on("click", app.clickVis);
+
+            $("a.vis-file").get(0) && ("a.vis-file").get(0).click();
         });
     });
 });
