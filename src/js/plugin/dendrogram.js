@@ -149,6 +149,10 @@
                 .append("g");
         },
 
+        refresh: function () {
+            this._update();
+        },
+
         _update: function () {
             this.width = 1200 - this.options.margin.right - this.options.margin.left;
             this.height = 800 - this.options.margin.top - this.options.margin.bottom;
@@ -361,7 +365,10 @@
                 });
 
             nodeUpdate.select("circle")
-                .attr("r", this.options.nodesize);
+                .attr("r", this.options.nodesize)
+                .style("fill", function (d) {
+                    return (d.collapsed ? that.options.collapsedNodeColor : that.options.nodeColor)(d);
+                });
 
             nodeUpdate.select("text")
                 .text(function (d) {
