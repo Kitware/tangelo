@@ -149,6 +149,10 @@
                 .append("g");
         },
 
+        refresh: function () {
+            this._update();
+        },
+
         _update: function () {
             this.width = 1200 - this.options.margin.right - this.options.margin.left;
             this.height = 800 - this.options.margin.top - this.options.margin.bottom;
