@@ -365,7 +365,10 @@
                 });
 
             nodeUpdate.select("circle")
-                .attr("r", this.options.nodesize);
+                .attr("r", this.options.nodesize)
+                .style("fill", function (d) {
+                    return (d.collapsed ? that.options.collapsedNodeColor : that.options.nodeColor)(d);
+                });
 
             nodeUpdate.select("text")
                 .text(function (d) {
