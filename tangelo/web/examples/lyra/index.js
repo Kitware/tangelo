@@ -15,6 +15,12 @@ app.unsaved = {};
 app.unsavedIdx = 1;
 app.new = false;
 
+function errorReport(selector, message) {
+    $(selector).empty();
+    d3.select(selector)
+        .html(message);
+}
+
 function launchLyra(qargs) {
     "use strict";
 
@@ -48,6 +54,8 @@ function edit() {
 
 function refresh(vega) {
     "use strict";
+
+    $("#vega").empty();
 
     vg.parse.spec(vega, function (chart) {
         chart({
@@ -135,7 +143,7 @@ function receiveMessage(e) {
             .on("click", app.clickVis);
 
         d3.select("#vis-file")
-            .html(app.vis.visName + " <span class=\"caret\"></span>");
+            .html("<em>" + app.vis.visName + "</em> <span class=\"caret\"></span>");
 
         app.new = false;
     }
@@ -187,9 +195,9 @@ $(function () {
                         try {
                             app.data = JSON.parse(text);
 
-                            if (app.vega) {
-                                app.vega.data[0].values = app.data;
-                                refresh(app.vega);
+                            if (app.vis.vega) {
+                                app.vis.vega.data[0].values = app.data;
+                                refresh(app.vis.vega);
                             }
 
                             d3.select("#edit-area")
@@ -238,22 +246,57 @@ $(function () {
         });
 
         app.clickVis = function (d) {
-            d3.select("#vis-file")
-                .html(d.visName + " <span class=\"caret\"></span>");
+            var isUnsaved = d.visName.lastIndexOf("Unsaved") === 0,
+                bookends = ["", ""],
+                response;
 
-            if (d.visName.lastIndexOf("Unsaved") === 0) {
-                app.vis = app.unsaved[d.visName];
-            } else {
-                $.getJSON(config.girderApi + "/item/" + d._id + "/download", function (data) {
-                    console.log(data);
-                });
+            if (isUnsaved) {
+                bookends[0] = "<em>";
+                bookends[1] = "</em>";
             }
 
-            refresh(app.vis.vega);
+            d3.select("#vis-file")
+                .html(bookends[0] + d.visName + bookends[1] + " <span class=\"caret\"></span>");
+
+            if (isUnsaved) {
+                app.vis = app.unsaved[d.visName];
+                refresh(app.vis.vega);
+            } else {
+                $.ajax({
+                    url: config.girderApi + "/item/" + d._id + "/download",
+                    dataType: "text",
+                    success: function (fileContents) {
+                        var spec;
+
+                        // Attempt to parse JSON from the file contents.
+                        try {
+                            spec = JSON.parse(fileContents);
+                        } catch (e) {
+                            errorReport("#vega", "<b>Error parsing Vega spec in file '" + d.visName + "': " + e.message + "</b>");
+                            return;
+                        }
+
+                        // Check for non-object JSON files.
+                        if (!tangelo.isObject(spec)) {
+                            errorReport("#vega", "<b>Error in Vega spec in file '" + d.visName + "': spec is not a JSON object</b>");
+                            return;
+                        }
+
+                        // If all looks good, try to render.
+                        //app.
+                    },
+                    error: function (jqxhr, status, err) {
+                        errorReport("#vega", "<b>Error reading file '" + d.visName + "': " + err + "</b>")
+                    }
+                });
+            }
         };
 
         getUrls(config.girderApi, config.collection, config.visFolder, function (files) {
-            var unsaved = Object.keys(app.unsaved).map(function (x) {
+            var unsaved,
+                visChoices;
+
+            unsaved = Object.keys(app.unsaved).map(function (x) {
                 return app.unsaved[x];
             });
 
@@ -278,7 +321,11 @@ $(function () {
                 })
                 .on("click", app.clickVis);
 
-            $("a.vis-file").get(0) && ("a.vis-file").get(0).click();
+            // If there are some files in the list, select the first one.
+            visChoices = $("a.vis-file");
+            if (visChoices.length > 0) {
+                visChoices.get(0).click();
+            }
         });
     });
 });
