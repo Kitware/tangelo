@@ -57,6 +57,17 @@ class Tangelo(object):
                     "user": "",
                     "password": "",
                     "database": "girder"
+                },
+                "users": {
+                    "email_regex": "^[\w\.\-]*@[\w\.\-]*\.\w+$",
+                    "login_regex": "^[a-z][\da-z\-]{3}[\da-z\-]*$",
+                    "login_description": "Login be at least 4 characters, start with a letter, and may only contain letters, numbers, or dashes.",
+                    "password_regex": ".{6}.*",
+                    "password_description": "Password must be at least 6 characters."
+                },
+                "auth": {
+                    "hash_alg": "bcrypt",
+                    "bcrypt_rounds": 12
                 }
             })
 
