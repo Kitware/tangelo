@@ -43,6 +43,21 @@
     </div>
 </div>
 
+<div id=save-dialog class="modal fade">
+    <div class=modal-dialog>
+        <div class=modal-content>
+            <div class=modal-body>
+                <input id=save-filename type=text class=form-control placeholder="Save filename">
+            </div>
+
+            <div class=modal-footer>
+                <a class="btn btn-default" data-dismiss=modal>Cancel</a>
+                <a id=save-button class="btn btn-success">Save</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="navbar navbar-default navbar-fixed-top">
     <div class=navbar-header>
         <a class=navbar-brand href=/examples>Tangelo</a>
@@ -78,6 +93,7 @@
 </div>
 
 <button id=edit disabled class="btn btn-default">Edit</button>
+<button id=save disabled class="btn btn-default">Save</button>
 
 <div id=vega>
 </div>

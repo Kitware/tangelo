@@ -52,6 +52,49 @@ function edit() {
     });
 }
 
+function save() {
+    "use strict";
+
+    var filename,
+        unsaved,
+        continuation;
+
+    // Get the name of the file to save (stripping off the space that lies
+    // between the filename and the caret symbol in the file selector HTML).
+    filename = d3.select("#vis-file")
+        .text()
+        .slice(0, -1);
+
+    // Define a continuation to invoke immediately, or when the "save" button in
+    // the filename dialog is clicked.
+    continuation = function () {
+        console.log(filename);
+    };
+
+    // If the filename is "Unsaved *", we will need to prompt the user for a
+    // real filename.
+    unsaved = filename.lastIndexOf("Unsaved") === 0;
+    if (unsaved) {
+        d3.select("#save-button")
+            .on("click", function () {
+                filename = d3.select("#save-filename")
+                    .property("value")
+                    .trim();
+
+                if (filename === "" || filename.toLowerCase().lastIndexOf("unsaved") === 0) {
+                    console.warn("bad filename '" + filename + "'");
+                    return;
+                } else {
+                    continuation();
+                }
+            });
+
+        $("#save-dialog").modal("toggle");
+    } else {
+        continuation();
+    }
+}
+
 function refresh(vega) {
     "use strict";
 
@@ -149,6 +192,10 @@ function receiveMessage(e) {
     }
 
     refresh(app.vis.vega);
+
+    d3.select("#save")
+        .attr("disabled", null);
+
     app.lyra = null;
 }
 
@@ -163,6 +210,9 @@ $(function () {
 
         d3.select("#edit")
             .on("click", edit);
+
+        d3.select("#save")
+            .on("click", save);
 
         d3.select("#edit-data")
             .on("click", function () {
