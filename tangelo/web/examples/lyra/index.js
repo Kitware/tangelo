@@ -69,6 +69,7 @@ function save() {
     // the filename dialog is clicked.
     continuation = function () {
         console.log(filename);
+        $("#save-dialog").modal("toggle");
     };
 
     // If the filename is "Unsaved *", we will need to prompt the user for a
@@ -82,8 +83,10 @@ function save() {
                     .trim();
 
                 if (filename === "" || filename.toLowerCase().lastIndexOf("unsaved") === 0) {
-                    console.warn("bad filename '" + filename + "'");
-                    return;
+                    d3.select("#save-alert")
+                        .classed("alert", true)
+                        .classed("alert-danger", true)
+                        .html("<strong>Error!</strong> Bad filename: '" + filename + "'");
                 } else {
                     continuation();
                 }
