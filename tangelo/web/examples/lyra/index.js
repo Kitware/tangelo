@@ -55,7 +55,7 @@ function edit() {
     });
 }
 
-function girderUpload(girderApi, data, filename, folderId) {
+function girderUpload(girderApi, data, filename, folderId, callback) {
     "use strict";
 
     // Start the upload.
@@ -93,7 +93,11 @@ function girderUpload(girderApi, data, filename, folderId) {
                         if (end < data.length) {
                             uploadChunk(uploadId, end, maxChunkSize);
                         } else {
-                            console.log("file successfully uploaded");
+                            if (callback) {
+                                callback();
+                            } else {
+                                console.log("file successfully uploaded");
+                            }
                         }
                     }
                 });
@@ -103,8 +107,6 @@ function girderUpload(girderApi, data, filename, folderId) {
             uploadChunk(upload._id, 0, 64 * 1024 * 1024);
         }
     });
-
-
 }
 
 function saveVis(filename, timeline, vega, girderApi, folderId) {
@@ -118,13 +120,48 @@ function saveVis(filename, timeline, vega, girderApi, folderId) {
     },
         saveText = JSON.stringify(saveObj, null, "    ");
 
-    girderUpload(girderApi, saveText, filename, folderId);
+    girderUpload(girderApi, saveText, filename, folderId, function () {
+        getFiles(girderApi, app.config.visFolderId, function (files) {
+            var unsaved,
+                selection;
+
+            unsaved = Object.keys(app.unsaved).map(function (x) {
+                return app.unsaved[x];
+            });
+
+            app.filelist = files.concat(unsaved);
+
+            $.each(app.filelist, function (i, v) {
+                v.visName = v.name.split(".")[0];
+            });
+
+            selection = d3.select("#vis-files")
+                .selectAll("li")
+                .data(app.filelist, function (d) {
+                    return d.visName;
+                });
+
+            selection.enter()
+                .append("li")
+                .append("a")
+                .classed("vis-file", true)
+                .attr("href", "#")
+                .text(function (d) {
+                    return d.visName;
+                })
+                .on("click", app.clickVis);
+
+            selection.exit()
+                .remove();
+        });
+    });
 }
 
 function save() {
     "use strict";
 
     var filename,
+        oldFilename,
         unsaved;
 
     // Get the name of the file to save (stripping off the space that lies
@@ -137,6 +174,7 @@ function save() {
     // real filename.
     unsaved = filename.lastIndexOf("Unsaved") === 0;
     if (unsaved) {
+        oldFilename = filename;
         d3.select("#save-button")
             .on("click", function () {
                 filename = d3.select("#save-filename")
@@ -149,6 +187,9 @@ function save() {
                         .classed("alert-danger", true)
                         .html("<strong>Error!</strong> Bad filename: '" + filename + "'");
                 } else {
+                    delete app.unsaved[oldFilename];
+                    d3.select("#vis-file")
+                        .html(filename + " <span class=\"caret\"></span>");
                     saveVis(filename, app.vis.timeline, app.vis.vega, app.config.girderApi, app.config.visFolderId);
                 }
 
