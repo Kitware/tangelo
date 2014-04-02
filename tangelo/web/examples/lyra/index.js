@@ -2,6 +2,7 @@
 /*globals $, tangelo, d3 */
 
 var app = {};
+app.config = null;
 app.vis = {
     name: null,
     vega: null,
@@ -16,6 +17,8 @@ app.unsavedIdx = 1;
 app.new = false;
 
 function errorReport(selector, message) {
+    "use strict";
+
     $(selector).empty();
     d3.select(selector)
         .html(message);
@@ -52,6 +55,111 @@ function edit() {
     });
 }
 
+function girderUpload(girderApi, data, filename, folderId) {
+    "use strict";
+
+    // Start the upload.
+    $.ajax({
+        url: girderApi + "/file",
+        type: "POST",
+        data: {
+            "parentType": "folder",
+            "parentId": folderId,
+            "name": filename,
+            "size": data.length
+        },
+        success: function (upload) {
+            var uploadChunk = function (uploadId, start, maxChunkSize) {
+                var end,
+                    blob,
+                    form;
+
+                end = Math.min(start + maxChunkSize, data.length);
+
+                blob = new window.Blob([data.slice(start, end)]);
+
+                form = new window.FormData();
+                form.append("offset", start);
+                form.append("uploadId", upload._id);
+                form.append("chunk", blob);
+
+                $.ajax({
+                    url: girderApi + "/file/chunk",
+                    type: "POST",
+                    data: form,
+                    contentType: false,
+                    processData: false,
+                    success: function () {
+                        if (end < data.length) {
+                            uploadChunk(uploadId, end, maxChunkSize);
+                        } else {
+                            console.log("file successfully uploaded");
+                        }
+                    }
+                });
+
+            };
+
+            uploadChunk(upload._id, 0, 64 * 1024 * 1024);
+        }
+    });
+
+
+}
+
+function saveVis(filename, timeline, vega, girderApi, folderId) {
+    var saveObj = {
+        name: filename,
+        visName: filename,
+        timeline: timeline,
+        vega: vega
+    },
+        saveText = JSON.stringify(saveObj, null, "    ");
+
+    girderUpload(girderApi, saveText, filename, folderId);
+}
+
+function save() {
+    "use strict";
+
+    var filename,
+        unsaved,
+        continuation;
+
+    // Get the name of the file to save (stripping off the space that lies
+    // between the filename and the caret symbol in the file selector HTML).
+    filename = d3.select("#vis-file")
+        .text()
+        .slice(0, -1);
+
+    // If the filename is "Unsaved *", we will need to prompt the user for a
+    // real filename.
+    unsaved = filename.lastIndexOf("Unsaved") === 0;
+    if (unsaved) {
+        d3.select("#save-button")
+            .on("click", function () {
+                filename = d3.select("#save-filename")
+                    .property("value")
+                    .trim();
+
+                if (filename === "" || filename.toLowerCase().lastIndexOf("unsaved") === 0) {
+                    d3.select("#save-alert")
+                        .classed("alert", true)
+                        .classed("alert-danger", true)
+                        .html("<strong>Error!</strong> Bad filename: '" + filename + "'");
+                } else {
+                    saveVis(filename, app.vis.timeline, app.vis.vega, app.config.girderApi, app.config.visFolderId);
+                }
+
+                $("#save-dialog").modal("hide");
+            });
+
+        $("#save-dialog").modal("show");
+    } else {
+        saveVis(filename, app.vis.timeline, app.vis.vega, app.config.girderApi, app.config.visFolderId);
+    }
+}
+
 function refresh(vega) {
     "use strict";
 
@@ -76,40 +184,15 @@ function loadEditorData(editor, data) {
     }
 }
 
-function getUrls(girderApi, collection, folder, callback) {
+function getFiles(girderApi, folderId, callback) {
     "use strict";
 
     var data = {
-        text: collection
+        folderId: folderId
     };
 
-    $.getJSON(girderApi + "/collection", data, function (lyra) {
-        data = {
-            parentType: "collection",
-            parentId: lyra._id,
-            text: folder
-        };
-
-        $.getJSON(girderApi + "/folder", data, function (folder) {
-            if (folder.length === 0) {
-                console.warn("error: no girder path /lyra/" + folder + " found!");
-                return;
-            }
-
-            if (folder.length > 1) {
-                console.warn("error: more than one path /lyra/" + folder + " found!");
-                return;
-            }
-
-            data = {
-                folderId: folder[0]._id
-            };
-
-            $.getJSON(girderApi + "/item", data, function (files) {
-                callback(files);
-            });
-
-        });
+    $.getJSON(girderApi + "/item", data, function (files) {
+        callback(files);
     });
 }
 
@@ -149,6 +232,10 @@ function receiveMessage(e) {
     }
 
     refresh(app.vis.vega);
+
+    d3.select("#save")
+        .attr("disabled", null);
+
     app.lyra = null;
 }
 
@@ -156,13 +243,20 @@ $(function () {
     "use strict";
 
     tangelo.config("config.json", function (config) {
+        var getFolderId;
+
         window.addEventListener("message", receiveMessage, false);
+
+        app.config = config;
 
         d3.select("#create")
             .on("click", createNew);
 
         d3.select("#edit")
             .on("click", edit);
+
+        d3.select("#save")
+            .on("click", save);
 
         d3.select("#edit-data")
             .on("click", function () {
@@ -220,112 +314,148 @@ $(function () {
                     });
             });
 
-        getUrls(config.girderApi, config.collection, config.dataFolder, function (files) {
-            d3.select("#data-sources")
-                .selectAll("li")
-                .data(files)
-                .enter()
-                .append("li")
-                .append("a")
-                .classed("data-source", true)
-                .attr("href", "#")
-                .text(function (d) {
-                    d.dataName = d.name.split(".")[0];
-                    return d.dataName;
-                })
-                .on("click", function (d) {
-                    d3.select("#data-source")
-                        .html(d.dataName + " <span class=\"caret\"></span>");
+        getFolderId = function (girderApi, collection, folder, callback) {
+            var data = {
+                text: collection
+            };
 
-                    $.getJSON(config.girderApi + "/item/" + d._id + "/download", function (data) {
-                        app.data = data;
-                        loadEditorData(app.editor, app.data);
-                    });
-                });
-            $("a.data-source").get(0) && $("a.data-source").get(0).click();
-        });
+            $.getJSON(girderApi + "/collection", data, function (lyra) {
+                data = {
+                    parentType: "collection",
+                    parentId: lyra._id,
+                    text: folder
+                };
 
-        app.clickVis = function (d) {
-            var isUnsaved = d.visName.lastIndexOf("Unsaved") === 0,
-                bookends = ["", ""],
-                response;
-
-            if (isUnsaved) {
-                bookends[0] = "<em>";
-                bookends[1] = "</em>";
-            }
-
-            d3.select("#vis-file")
-                .html(bookends[0] + d.visName + bookends[1] + " <span class=\"caret\"></span>");
-
-            if (isUnsaved) {
-                app.vis = app.unsaved[d.visName];
-                refresh(app.vis.vega);
-            } else {
-                $.ajax({
-                    url: config.girderApi + "/item/" + d._id + "/download",
-                    dataType: "text",
-                    success: function (fileContents) {
-                        var spec;
-
-                        // Attempt to parse JSON from the file contents.
-                        try {
-                            spec = JSON.parse(fileContents);
-                        } catch (e) {
-                            errorReport("#vega", "<b>Error parsing Vega spec in file '" + d.visName + "': " + e.message + "</b>");
-                            return;
-                        }
-
-                        // Check for non-object JSON files.
-                        if (!tangelo.isObject(spec)) {
-                            errorReport("#vega", "<b>Error in Vega spec in file '" + d.visName + "': spec is not a JSON object</b>");
-                            return;
-                        }
-
-                        // If all looks good, try to render.
-                        //app.
-                    },
-                    error: function (jqxhr, status, err) {
-                        errorReport("#vega", "<b>Error reading file '" + d.visName + "': " + err + "</b>")
+                $.getJSON(girderApi + "/folder", data, function (folder) {
+                    if (folder.length === 0) {
+                        console.warn("error: no girder path /lyra/" + folder + " found!");
+                        return;
                     }
+
+                    if (folder.length > 1) {
+                        console.warn("error: more than one path /lyra/" + folder + " found!");
+                        return;
+                    }
+
+                    callback(folder[0]._id);
                 });
-            }
+            });
         };
 
-        getUrls(config.girderApi, config.collection, config.visFolder, function (files) {
-            var unsaved,
-                visChoices;
+        getFolderId(config.girderApi, config.collection, config.dataFolder, function (dataFolderId) {
+            config.dataFolderId = dataFolderId;
 
-            unsaved = Object.keys(app.unsaved).map(function (x) {
-                return app.unsaved[x];
+            getFolderId(config.girderApi, config.collection, config.visFolder, function (visFolderId) {
+                config.visFolderId = visFolderId;
+
+                getFiles(config.girderApi, config.dataFolderId, function (files) {
+                    d3.select("#data-sources")
+                        .selectAll("li")
+                        .data(files)
+                        .enter()
+                        .append("li")
+                        .append("a")
+                        .classed("data-source", true)
+                        .attr("href", "#")
+                        .text(function (d) {
+                            d.dataName = d.name.split(".")[0];
+                            return d.dataName;
+                        })
+                        .on("click", function (d) {
+                            d3.select("#data-source")
+                                .html(d.dataName + " <span class=\"caret\"></span>");
+
+                            $.getJSON(config.girderApi + "/item/" + d._id + "/download", function (data) {
+                                app.data = data;
+                                loadEditorData(app.editor, app.data);
+                            });
+                        });
+                    $("a.data-source").get(0) && $("a.data-source").get(0).click();
+                });
+
+                app.clickVis = function (d) {
+                    var isUnsaved = d.visName.lastIndexOf("Unsaved") === 0,
+                        bookends = ["", ""],
+                        response;
+
+                    if (isUnsaved) {
+                        bookends[0] = "<em>";
+                        bookends[1] = "</em>";
+                    }
+
+                    d3.select("#vis-file")
+                        .html(bookends[0] + d.visName + bookends[1] + " <span class=\"caret\"></span>");
+
+                    if (isUnsaved) {
+                        app.vis = app.unsaved[d.visName];
+                        refresh(app.vis.vega);
+                    } else {
+                        $.ajax({
+                            url: config.girderApi + "/item/" + d._id + "/download",
+                            dataType: "text",
+                            success: function (fileContents) {
+                                var spec;
+
+                                // Attempt to parse JSON from the file contents.
+                                try {
+                                    spec = JSON.parse(fileContents);
+                                } catch (e) {
+                                    errorReport("#vega", "<b>Error parsing Vega spec in file '" + d.visName + "': " + e.message + "</b>");
+                                    return;
+                                }
+
+                                // Check for non-object JSON files.
+                                if (!tangelo.isObject(spec)) {
+                                    errorReport("#vega", "<b>Error in Vega spec in file '" + d.visName + "': spec is not a JSON object</b>");
+                                    return;
+                                }
+
+                                // If all looks good, try to render.
+                                //app.
+                            },
+                            error: function (jqxhr, status, err) {
+                                errorReport("#vega", "<b>Error reading file '" + d.visName + "': " + err + "</b>");
+                            }
+                        });
+                    }
+                };
+
+                getFiles(config.girderApi, config.visFolderId, function (files) {
+                    var unsaved,
+                        visChoices;
+
+                    unsaved = Object.keys(app.unsaved).map(function (x) {
+                        return app.unsaved[x];
+                    });
+
+                    app.filelist = files.concat(unsaved);
+
+                    $.each(app.filelist, function (i, v) {
+                        v.visName = v.name.split(".")[0];
+                    });
+
+                    d3.select("#vis-files")
+                        .selectAll("li")
+                        .data(app.filelist, function (d) {
+                            return d.visName;
+                        })
+                        .enter()
+                        .append("li")
+                        .append("a")
+                        .classed("vis-file", true)
+                        .attr("href", "#")
+                        .text(function (d) {
+                            return d.visName;
+                        })
+                        .on("click", app.clickVis);
+
+                    // If there are some files in the list, select the first one.
+                    visChoices = $("a.vis-file");
+                    if (visChoices.length > 0) {
+                        visChoices.get(0).click();
+                    }
+                });
             });
-
-            app.filelist = files.concat(unsaved);
-
-            $.each(app.filelist, function (i, v) {
-                v.visName = v.name.split(".")[0];
-            });
-
-            d3.select("#vis-files")
-                .selectAll("li")
-                .data(app.filelist, function (d) {
-                    return d.visName;
-                })
-                .enter()
-                .append("li")
-                .append("a")
-                .classed("vis-file", true)
-                .attr("href", "#")
-                .text(function (d) {
-                    return d.visName;
-                })
-                .on("click", app.clickVis);
-
-            // If there are some files in the list, select the first one.
-            visChoices = $("a.vis-file");
-            if (visChoices.length > 0) {
-                visChoices.get(0).click();
-            }
         });
     });
 });
