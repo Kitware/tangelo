@@ -108,6 +108,8 @@ function girderUpload(girderApi, data, filename, folderId) {
 }
 
 function saveVis(filename, timeline, vega, girderApi, folderId) {
+    "use strict";
+
     var saveObj = {
         name: filename,
         visName: filename,
@@ -123,8 +125,7 @@ function save() {
     "use strict";
 
     var filename,
-        unsaved,
-        continuation;
+        unsaved;
 
     // Get the name of the file to save (stripping off the space that lies
     // between the filename and the caret symbol in the file selector HTML).
@@ -394,7 +395,8 @@ $(function () {
                             url: config.girderApi + "/item/" + d._id + "/download",
                             dataType: "text",
                             success: function (fileContents) {
-                                var spec;
+                                var spec,
+                                    missing;
 
                                 // Attempt to parse JSON from the file contents.
                                 try {
@@ -410,8 +412,22 @@ $(function () {
                                     return;
                                 }
 
+                                // Check for required fields in the JSON object.
+                                missing = [];
+                                $.each(["name", "visName", "timeline", "vega"], function (i, v) {
+                                    if (!spec.hasOwnProperty(v)) {
+                                        missing.push(v);
+                                    }
+                                });
+
+                                if (missing.length > 0) {
+                                    errorReport("#vega", "<b>Error in Vega spec in file '" + d.visName + "': spec is missing these fields: " + missing.join(", "));
+                                    return;
+                                }
+
                                 // If all looks good, try to render.
-                                //app.
+                                app.vis = spec;
+                                refresh(app.vis.vega);
                             },
                             error: function (jqxhr, status, err) {
                                 errorReport("#vega", "<b>Error reading file '" + d.visName + "': " + err + "</b>");
