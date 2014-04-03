@@ -27,12 +27,10 @@ function errorReport(selector, message) {
 function launchLyra(qargs) {
     "use strict";
 
-    var query = $.param(qargs || {});
-    if (query.length > 0) {
-        query = "?" + query;
-    }
-
-    app.lyra = window.open("/lyra/editor.html" + query, "_blank");
+    app.lyra = window.open("/lyra/editor.html?editor=true", "_blank");
+    window.setTimeout(function () {
+        app.lyra.postMessage(qargs, window.location.origin);
+    }, 1000);
 }
 
 function createNew() {
