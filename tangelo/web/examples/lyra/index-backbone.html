@@ -17,6 +17,15 @@
 
 <script src=//cdnjs.cloudflare.com/ajax/libs/ace/1.1.01/ace.js></script>
 
+<script type=text/template id=vis-files-view-template>
+    <div class="btn-group">
+      <button id="vis-file" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+          <em>(no files)</em> <span class=caret></span>
+      </button>
+      <ul id="vis-files" class="dropdown-menu" role="menu"></ul>
+    </div>
+</script>
+
 <style>
     body {
         padding-top: 50px;
@@ -88,12 +97,7 @@
 
 <h2>Visualization</h2>
 <button id=create class="btn btn-default">New</button>
-<div class="btn-group">
-  <button id="vis-file" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-      <em>(no files)</em> <span class=caret></span>
-  </button>
-  <ul id="vis-files" class="dropdown-menu" role="menu"></ul>
-</div>
+<span id=vis-files-view></span>
 
 <button id=edit disabled class="btn btn-default">Edit</button>
 <button id=save disabled class="btn btn-default">Save</button>
