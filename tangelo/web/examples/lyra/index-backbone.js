@@ -20,9 +20,9 @@ app.collections.Vis = Backbone.Collection.extend({
         "use strict";
 
         options = options || {};
-        this.folderId = options.folderId;
 
-        console.log(this.folderId);
+        this.url = options.girderApi + "/item?folderId=" + options.folderId;
+        this.fetch();
     }
 });
 
@@ -149,7 +149,7 @@ $(function () {
                                 }
 
                                 // Run the actual application.
-                                main(visFolder[0]._id, dataFolder[0]._id);
+                                main(config, visFolder[0]._id, dataFolder[0]._id);
                             }
                         });
                     }
@@ -159,12 +159,13 @@ $(function () {
         });
 
         // The main application.
-        main = function (visFolderId, dataFolderId) {
+        main = function (config, visFolderId, dataFolderId) {
             var visfiles,
                 visMenu;
 
             // A collection of visualization files residing on Girder.
             visfiles = new app.collections.Vis([], {
+                girderApi: config.girderApi,
                 folderId: visFolderId
             });
 
