@@ -10,11 +10,23 @@ app.views = {};
 
 // A model describing a file that contains a Lyra-edited visualization.
 app.models.Vis = Backbone.Model.extend({
+    initialize: function (options) {
+        options = options || {};
+        this.girderApi = options.girderApi;
+        this.itemId = options.itemId;
+    },
+
+    url: function () {
+        return this.girderApi + "/item/" + this.itemId + "/download";
+    }
 });
+
+// A model describing a file - either a visualization or data.
+app.models.File = Backbone.Model.extend({});
 
 // A collection describing all the Lyra vis files in a Girder instance.
 app.collections.Vis = Backbone.Collection.extend({
-    model: app.models.Vis,
+    model: app.models.File,
 
     initialize: function (models, options) {
         "use strict";
@@ -28,10 +40,32 @@ app.collections.Vis = Backbone.Collection.extend({
 
 // A view that renders a Vega visualization.
 app.views.Vega = Backbone.View.extend({
-});
+    initialize: function (options) {
+        this.model = new app.models.Vis({
+            girderApi: options.girderApi
+        });
+        Backbone.on("select:vis", this.loadVis, this);
+    },
 
-// A model describing a file - either a visualization or data.
-app.models.File = Backbone.Model.extend({
+    loadVis: function (file) {
+        this.model.itemId = file.get("_id");
+        this.model.fetch({
+            success: _.bind(function () {
+                this.render();
+            }, this)
+        });
+    },
+
+    render: function () {
+        var vega = this.model.get("vega");
+
+        vg.parse.spec(vega, _.bind(function (chart) {
+            chart({
+                el: this.el,
+                renderer: "svg"
+            }).update();
+        }, this));
+    }
 });
 
 // A collection describing all the data files in a Girder instance.
@@ -60,7 +94,6 @@ app.views.File = Backbone.View.extend({
     selected: function () {
         "use strict";
 
-        //this.$el.trigger("select:file", this.model);
         Backbone.trigger("select:vis", this.model);
     }
 });
@@ -173,7 +206,8 @@ $(function () {
         // The main application.
         main = function (config, visFolderId, dataFolderId) {
             var visfiles,
-                visMenu;
+                visMenu,
+                vis;
 
             // A collection of visualization files residing on Girder.
             visfiles = new app.collections.Vis([], {
@@ -186,7 +220,12 @@ $(function () {
                 el: "#vis-files-view",
                 collection: visfiles
             });
-        };
 
+            // A Vega view.
+            vis = new app.views.Vega({
+                el: "#vega",
+                girderApi: config.girderApi
+            });
+        };
     });
 });
