@@ -79,12 +79,11 @@ app.views.FileMenu = Backbone.View.extend({
         template = _.template($("#vis-files-view-template").html(), {});
         this.$el.html(template);
 
+        // When the collection gains an item, add it to the dropdown menu.
         this.collection.on("add", this.addItem, this);
 
-        Backbone.on("select:vis", function (f) {
-            this.$el.find("button")
-                .html(f.get("name"));
-        }, this);
+        // When a visualization is selected, change the dropdown menu text.
+        Backbone.on("select:vis", this.setSelected, this);
     },
 
     addItem: function (file) {
@@ -97,6 +96,19 @@ app.views.FileMenu = Backbone.View.extend({
 
         this.$el.find("ul")
             .append(newitem.render().el);
+    },
+
+    setSelected: function (f) {
+        var label = f.get("name");
+
+        if (f.unsaved) {
+            label = "<em>" + label + "</em>";
+        }
+
+        label += " <span class=\"caret\"></span>";
+
+        this.$el.find("button")
+            .html(label);
     }
 });
 
