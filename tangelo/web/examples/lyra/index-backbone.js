@@ -13,11 +13,52 @@ app.models.Vis = Backbone.Model.extend({
     initialize: function (options) {
         options = options || {};
         this.girderApi = options.girderApi;
-        this.itemId = options.itemId;
+        //this.itemId = options.itemId;
     },
 
+    idAttribute: "_id",
+
+    save: function () {
+        var url = this.girderApi + "/file",
+            saveObj;
+
+        if (this.isNew()) {
+            saveObj = {
+                name: this.get("filename"),
+                visName: this.get("visName"),
+                timeline: this.get("timeline"),
+                vega: this.get("vega")
+            };
+
+            Backbone.ajax({
+                url: url,
+                type: "POST",
+                dataType: "json",
+                data: {
+                    parentType: "folder",
+                    parentId: this.folderId,
+                    name: this.get("filename")
+                },
+                success: function (upload) {
+                    this._upload(upload._id, JSON.stringify(saveObj));
+                }
+            });
+        } else {
+        }
+    },
+
+/*    fetch: function () {*/
+    //},
+
+/*    destroy: function () {*/
+    //},
+
+    _upload: function (data) {
+        console.log("saving: " + this.get("filename"));
+    }
+
     url: function () {
-        return this.girderApi + "/item/" + this.itemId + "/download";
+        return this.girderApi + "/item/" + this.get("_id") + "/download";
     }
 });
 
