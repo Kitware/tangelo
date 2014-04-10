@@ -19,10 +19,10 @@
 
 <script type=text/template id=vis-files-view-template>
     <div class="btn-group">
-      <button id="vis-file" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
           <em>Select a File</em> <span class=caret></span>
       </button>
-      <ul id="vis-files" class="dropdown-menu" role="menu"></ul>
+      <ul class="dropdown-menu" role="menu"></ul>
     </div>
 </script>
 
@@ -85,12 +85,7 @@
 
 <h2>Data</h2>
 <button id=edit-data class="btn btn-default">Edit Data</button>
-<div class="btn-group">
-  <button id="data-source" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-      <em>(no files)</em> <span class=caret></span>
-  </button>
-  <ul id="data-sources" class="dropdown-menu" role="menu"></ul>
-</div>
+<span id=data-files-view></span>
 
 <div id=edit-area>
 </div>

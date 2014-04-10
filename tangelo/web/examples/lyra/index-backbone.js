@@ -1,5 +1,5 @@
 /*jslint browser: true */
-/*globals Backbone, $, tangelo */
+/*globals Backbone, $, tangelo, vg, _, d3 */
 
 var app = {};
 
@@ -11,6 +11,8 @@ app.views = {};
 // A model describing a file that contains a Lyra-edited visualization.
 app.models.Vis = Backbone.Model.extend({
     initialize: function (options) {
+        "use strict";
+
         options = options || {};
         this.girderApi = options.girderApi;
         //this.itemId = options.itemId;
@@ -19,6 +21,8 @@ app.models.Vis = Backbone.Model.extend({
     idAttribute: "_id",
 
     save: function () {
+        "use strict";
+
         var url = this.girderApi + "/file",
             saveObj;
 
@@ -54,10 +58,14 @@ app.models.Vis = Backbone.Model.extend({
     //},
 
     _upload: function (data) {
+        "use strict";
+
         console.log("saving: " + this.get("filename"));
-    }
+    },
 
     url: function () {
+        "use strict";
+
         return this.girderApi + "/item/" + this.get("_id") + "/download";
     }
 });
@@ -66,7 +74,7 @@ app.models.Vis = Backbone.Model.extend({
 app.models.File = Backbone.Model.extend({});
 
 // A collection describing all the Lyra vis files in a Girder instance.
-app.collections.Vis = Backbone.Collection.extend({
+app.collections.Folder = Backbone.Collection.extend({
     model: app.models.File,
 
     initialize: function (models, options) {
@@ -82,6 +90,8 @@ app.collections.Vis = Backbone.Collection.extend({
 // A view that renders a Vega visualization.
 app.views.Vega = Backbone.View.extend({
     initialize: function (options) {
+        "use strict";
+
         this.model = new app.models.Vis({
             girderApi: options.girderApi
         });
@@ -89,7 +99,9 @@ app.views.Vega = Backbone.View.extend({
     },
 
     loadVis: function (file) {
-        this.model.itemId = file.get("_id");
+        "use strict";
+
+        this.model.set("_id", file.get("_id"));
         this.model.fetch({
             success: _.bind(function () {
                 this.render();
@@ -98,6 +110,8 @@ app.views.Vega = Backbone.View.extend({
     },
 
     render: function () {
+        "use strict";
+
         var vega = this.model.get("vega");
 
         vg.parse.spec(vega, _.bind(function (chart) {
@@ -115,6 +129,12 @@ app.collections.Data = Backbone.Collection.extend({
 
 // A view that renders a single file as a list item.
 app.views.File = Backbone.View.extend({
+    initialize: function (options) {
+        "use strict";
+
+        this.selectedEvent = options.selectedEvent;
+    },
+
     tagName: "li",
 
     events: {
@@ -135,7 +155,7 @@ app.views.File = Backbone.View.extend({
     selected: function () {
         "use strict";
 
-        Backbone.trigger("select:vis", this.model);
+        Backbone.trigger(this.selectedEvent, this.model);
     }
 });
 
@@ -148,7 +168,8 @@ app.views.FileMenu = Backbone.View.extend({
 
         var template;
 
-        this.options = options || {};
+        //this.options = options || {};
+        this.selectedEvent = options.selectedEvent;
 
         template = _.template($("#vis-files-view-template").html(), {});
         this.$el.html(template);
@@ -157,7 +178,7 @@ app.views.FileMenu = Backbone.View.extend({
         this.collection.on("add", this.addItem, this);
 
         // When a visualization is selected, change the dropdown menu text.
-        Backbone.on("select:vis", this.setSelected, this);
+        Backbone.on(this.selectedEvent, this.setSelected, this);
     },
 
     addItem: function (file) {
@@ -165,7 +186,8 @@ app.views.FileMenu = Backbone.View.extend({
 
         var newitem = new app.views.File({
             className: "file",
-            model: file
+            model: file,
+            selectedEvent: this.selectedEvent
         });
 
         this.$el.find("ul")
@@ -173,6 +195,8 @@ app.views.FileMenu = Backbone.View.extend({
     },
 
     setSelected: function (f) {
+        "use strict";
+
         var label = f.get("name");
 
         if (f.unsaved) {
@@ -248,18 +272,87 @@ $(function () {
         main = function (config, visFolderId, dataFolderId) {
             var visfiles,
                 visMenu,
-                vis;
+                vis,
+                datafiles,
+                dataMenu,
+                f;
 
-            // A collection of visualization files residing on Girder.
-            visfiles = new app.collections.Vis([], {
+            f = {};
+
+            // A function that launches a Lyra editor window.
+            f.launchLyra = function (qargs) {
+                var lyra = window.open("/lyra/editor.html?editor=true", "_blank");
+                lyra.onload = function () {
+                    lyra.postMessage(qargs, window.location.origin);
+                };
+            };
+
+            f.createNew = function () {
+                f.launchLyra({
+                    new: true,
+                    timeline: null,
+                    data: encodeURIComponent(JSON.stringify(dataMenu.getSelectedData()))
+                });
+            };
+
+            f.edit = function () {
+                f.launchLyra({
+                    new: false,
+                    timeline: encodeURIComponent(JSON.stringify(visMenu.getSelectedVis().timeline)),
+                    data: encodeURIComponent(JSON.stringify(dataMenu.getSelectedData()))
+                });
+            };
+
+            f.receiveMessage = function (e) {
+                var model,
+                    newname;
+
+                if (e.data.new) {
+                    newname = "Unsaved " + _.uniqueId();
+
+                    // Construct a new Vis model to represent the newly created
+                    // Vega visualization.
+                    model = new app.models.Vis({
+                        name: newname,
+                        visName: newname,
+                        timeline: e.data.timeline,
+                        vega: e.data.vega
+                    });
+
+                    visfiles.add(model);
+                } else {
+                    console.log("incoming message");
+                    console.log(e.data);
+                }
+            };
+
+            // The "New" button.
+            d3.select("#create")
+                .on("click", f.createNew);
+
+            // A collection of visualization files residing on Girder, and a
+            // dropdown menu to select them.
+            visfiles = new app.collections.Folder([], {
                 girderApi: config.girderApi,
                 folderId: visFolderId
             });
 
-            // A dropdown menu allowing the user to select a visualization.
             visMenu = new app.views.FileMenu({
                 el: "#vis-files-view",
-                collection: visfiles
+                collection: visfiles,
+                selectedEvent: "select:vis"
+            });
+
+            // The same, but for the data files.
+            datafiles = new app.collections.Folder([], {
+                girderApi: config.girderApi,
+                folderId: dataFolderId
+            });
+
+            dataMenu = new app.views.FileMenu({
+                el: "#data-files-view",
+                collection: datafiles,
+                selectedEvent: "select:data"
             });
 
             // A Vega view.
