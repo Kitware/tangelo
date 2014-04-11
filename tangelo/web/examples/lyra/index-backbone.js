@@ -135,6 +135,7 @@ app.views.Vega = Backbone.View.extend({
             this.model.set("_id", file.get("_id"));
             this.model.fetch({
                 success: _.bind(function () {
+                    this.model.on("change", this.render, this);
                     this.render();
                 }, this)
             });
@@ -372,25 +373,28 @@ $(function () {
             };
 
             f.edit = function () {
+                var model = vis.model;
+
                 f.launchLyra({
                     new: false,
-                    timeline: encodeURIComponent(JSON.stringify(visMenu.getSelectedVis().timeline)),
-                    data: encodeURIComponent(JSON.stringify(dataMenu.getSelectedData()))
+                    name: model.get("name"),
+                    timeline: encodeURIComponent(JSON.stringify(model.get("timeline"))),
+                    data: encodeURIComponent(JSON.stringify(model.get("vega").data[0].values))
                 });
             };
 
             f.receiveMessage = function (e) {
                 var model,
-                    newname;
+                    name;
 
                 if (e.data.new) {
-                    newname = "Unsaved " + _.uniqueId();
+                    name = "Unsaved " + _.uniqueId();
 
                     // Construct a new Vis model to represent the newly created
                     // Vega visualization.
                     model = new app.models.Vis({
-                        name: newname,
-                        visName: newname,
+                        name: name,
+                        visName: name,
                         timeline: e.data.timeline,
                         vega: e.data.vega
                     });
@@ -401,14 +405,19 @@ $(function () {
                     visfiles.add(model);
                     Backbone.trigger("select:vis", model);
                 } else {
-                    console.log("incoming message");
-                    console.log(e.data);
+                    vis.model.set({
+                        "timeline": e.data.timeline,
+                        "vega": e.data.vega
+                    });
                 }
             };
 
             // The "New" button.
             d3.select("#create")
                 .on("click", f.createNew);
+
+            d3.select("#edit")
+                .on("click", f.edit);
 
             // Set up to receive messages.
             window.addEventListener("message", f.receiveMessage, false);
