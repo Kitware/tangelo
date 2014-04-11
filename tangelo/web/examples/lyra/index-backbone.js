@@ -1,6 +1,8 @@
 /*jslint browser: true */
 /*globals Backbone, $, tangelo, vg, _, d3 */
 
+var visfiles;
+
 var app = {};
 
 // Tables of Backbone objects.
@@ -70,6 +72,30 @@ app.models.Vis = Backbone.Model.extend({
     }
 });
 
+app.models.Data = Backbone.Model.extend({
+    initialize: function (options) {
+        "use strict";
+
+        options = options || {};
+        this.girderApi = options.girderApi;
+        //this.itemId = options.itemId;
+    },
+
+    idAttribute: "_id",
+
+    url: function () {
+        "use strict";
+
+        return this.girderApi + "/item/" + this.get("_id") + "/download";
+    },
+
+    parse: function (response) {
+        return {
+            data: response
+        };
+    }
+});
+
 // A model describing a file - either a visualization or data.
 app.models.File = Backbone.Model.extend({});
 
@@ -92,21 +118,30 @@ app.views.Vega = Backbone.View.extend({
     initialize: function (options) {
         "use strict";
 
-        this.model = new app.models.Vis({
-            girderApi: options.girderApi
-        });
+/*        this.model = new app.models.Vis({*/
+            //girderApi: options.girderApi
+        /*});*/
+        this.girderApi = options.girderApi;
         Backbone.on("select:vis", this.loadVis, this);
     },
 
     loadVis: function (file) {
         "use strict";
 
-        this.model.set("_id", file.get("_id"));
-        this.model.fetch({
-            success: _.bind(function () {
-                this.render();
-            }, this)
-        });
+        if (file.has("_id")) {
+            this.model = new app.models.Vis({
+                girderApi: this.girderApi
+            });
+            this.model.set("_id", file.get("_id"));
+            this.model.fetch({
+                success: _.bind(function () {
+                    this.render();
+                }, this)
+            });
+        } else {
+            this.model = file;
+            this.render();
+        }
     },
 
     render: function () {
@@ -120,6 +155,40 @@ app.views.Vega = Backbone.View.extend({
                 renderer: "svg"
             }).update();
         }, this));
+    }
+});
+
+// A view to "render" a dataset (using a read-only ACE editor instance).
+app.views.Data = Backbone.View.extend({
+    initialize: function (options) {
+        "use strict";
+
+        this.model = new app.models.Data({
+            girderApi: options.girderApi
+        });
+
+        Backbone.on("select:data", this.loadData, this);
+    },
+
+    loadData: function (file) {
+        "use strict";
+
+        this.model.set("_id", file.get("_id"));
+        this.model.fetch({
+            success: _.bind(function () {
+                this.render();
+            }, this)
+        });
+    },
+
+    render: function () {
+        "use strict";
+
+        console.log(this.model);
+    },
+
+    getData: function () {
+        return this.model.get("data");
     }
 });
 
@@ -197,6 +266,8 @@ app.views.FileMenu = Backbone.View.extend({
     setSelected: function (f) {
         "use strict";
 
+        this.selectedModel = f;
+
         var label = f.get("name");
 
         if (f.unsaved) {
@@ -207,6 +278,10 @@ app.views.FileMenu = Backbone.View.extend({
 
         this.$el.find("button")
             .html(label);
+    },
+
+    getSelected: function () {
+        return this.selectedModel;
     }
 });
 
@@ -270,11 +345,12 @@ $(function () {
 
         // The main application.
         main = function (config, visFolderId, dataFolderId) {
-            var visfiles,
+            var //visfiles,
                 visMenu,
                 vis,
                 datafiles,
                 dataMenu,
+                data,
                 f;
 
             f = {};
@@ -291,7 +367,7 @@ $(function () {
                 f.launchLyra({
                     new: true,
                     timeline: null,
-                    data: encodeURIComponent(JSON.stringify(dataMenu.getSelectedData()))
+                    data: encodeURIComponent(JSON.stringify(data.getData()))
                 });
             };
 
@@ -330,6 +406,9 @@ $(function () {
             d3.select("#create")
                 .on("click", f.createNew);
 
+            // Set up to receive messages.
+            window.addEventListener("message", f.receiveMessage, false);
+
             // A collection of visualization files residing on Girder, and a
             // dropdown menu to select them.
             visfiles = new app.collections.Folder([], {
@@ -358,6 +437,12 @@ $(function () {
             // A Vega view.
             vis = new app.views.Vega({
                 el: "#vega",
+                girderApi: config.girderApi
+            });
+
+            // A data view.
+            data = new app.views.Data({
+                el: "#edit-area",
                 girderApi: config.girderApi
             });
         };
