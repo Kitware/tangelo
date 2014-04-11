@@ -395,7 +395,11 @@ $(function () {
                         vega: e.data.vega
                     });
 
+                    // Add the model to the vis files list, and simulate its
+                    // selection (so that the menu will show it as active, and
+                    // it will be rendered to the Vega view).
                     visfiles.add(model);
+                    Backbone.trigger("select:vis", model);
                 } else {
                     console.log("incoming message");
                     console.log(e.data);
