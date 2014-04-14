@@ -17,7 +17,8 @@ app.models.Vis = Backbone.Model.extend({
 
         options = options || {};
         this.girderApi = options.girderApi;
-        //this.itemId = options.itemId;
+
+        this.set("lyra", null);
     },
 
     idAttribute: "_id",
@@ -28,33 +29,23 @@ app.models.Vis = Backbone.Model.extend({
         var url = this.girderApi + "/file",
             saveObj;
 
-        if (this.isNew()) {
-            saveObj = {
-                name: this.get("filename"),
-                visName: this.get("visName"),
-                timeline: this.get("timeline"),
-                vega: this.get("vega")
-            };
+    fetch: function (options) {
+        var url = this.girderApi + "/item/" + this.id + "/download",
+            success = options.success || $.noop,
+            error = options.error || $.noop;
 
-            Backbone.ajax({
-                url: url,
-                type: "POST",
-                dataType: "json",
-                data: {
-                    parentType: "folder",
-                    parentId: this.folderId,
-                    name: this.get("filename")
-                },
-                success: function (upload) {
-                    this._upload(upload._id, JSON.stringify(saveObj));
-                }
-            });
-        } else {
-        }
+        Backbone.ajax({
+            url: url,
+            dataType: "json",
+            success: _.bind(function (lyra) {
+                this.set("lyra", lyra);
+                success(this, vega, options);
+            }, this),
+            error: _.bind(function (jqxhr) {
+                error(this, jqxhr, options);
+            }, this)
+        });
     },
-
-/*    fetch: function () {*/
-    //},
 
 /*    destroy: function () {*/
     //},
@@ -96,12 +87,9 @@ app.models.Data = Backbone.Model.extend({
     }
 });
 
-// A model describing a file - either a visualization or data.
-app.models.File = Backbone.Model.extend({});
-
 // A collection describing all the Lyra vis files in a Girder instance.
 app.collections.Folder = Backbone.Collection.extend({
-    model: app.models.File,
+    model: app.models.Vis,
 
     initialize: function (models, options) {
         "use strict";
@@ -109,7 +97,13 @@ app.collections.Folder = Backbone.Collection.extend({
         options = options || {};
 
         this.url = options.girderApi + "/item?folderId=" + options.folderId;
-        this.fetch();
+        this.fetch({
+            success: function (models) {
+                models.forEach(function (m) {
+                    m.girderApi = options.girderApi;
+                });
+            }
+        });
     }
 });
 
@@ -128,29 +122,25 @@ app.views.Vega = Backbone.View.extend({
     loadVis: function (file) {
         "use strict";
 
-        if (file.has("_id")) {
-            this.model = new app.models.Vis({
-                girderApi: this.girderApi
-            });
-            this.model.set("_id", file.get("_id"));
-            this.model.fetch({
-                success: _.bind(function () {
-                    this.model.on("change", this.render, this);
-                    this.render();
-                }, this)
-            });
-        } else {
-            this.model = file;
+        var render = _.bind(function () {
             this.render();
+        }, this);
+
+        this.model = file;
+
+        if (file.get("lyra")) {
+            render();
+        } else {
+            file.fetch({
+                success: render
+            });
         }
     },
 
     render: function () {
         "use strict";
 
-        var vega = this.model.get("vega");
-
-        vg.parse.spec(vega, _.bind(function (chart) {
+        vg.parse.spec(this.model.get("lyra").vega, _.bind(function (chart) {
             chart({
                 el: this.el,
                 renderer: "svg"
@@ -379,7 +369,7 @@ $(function () {
                     new: false,
                     name: model.get("name"),
                     timeline: encodeURIComponent(JSON.stringify(model.get("timeline"))),
-                    data: encodeURIComponent(JSON.stringify(model.get("vega").data[0].values))
+                    data: encodeURIComponent(JSON.stringify(model.get("lyra").vega.data[0].values))
                 });
             };
 
@@ -395,8 +385,10 @@ $(function () {
                     model = new app.models.Vis({
                         name: name,
                         visName: name,
-                        timeline: e.data.timeline,
-                        vega: e.data.vega
+                        lyra: {
+                            timeline: e.data.timeline,
+                            vega: e.data.vega
+                        }
                     });
 
                     // Add the model to the vis files list, and simulate its
@@ -406,8 +398,10 @@ $(function () {
                     Backbone.trigger("select:vis", model);
                 } else {
                     vis.model.set({
-                        "timeline": e.data.timeline,
-                        "vega": e.data.vega
+                        lyra: {
+                            timeline: e.data.timeline,
+                            vega: e.data.vega
+                        }
                     });
                 }
             };
