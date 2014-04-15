@@ -17,19 +17,85 @@ app.models.Vis = Backbone.Model.extend({
 
         options = options || {};
         this.girderApi = options.girderApi;
-
-        this.set("lyra", null);
+        this.folderId = options.folderId;
     },
 
     idAttribute: "_id",
 
+    _upload: function () {
+        "use strict";
+
+        var data = JSON.stringify(this.get("lyra")),
+            uploadChunks;
+
+        var d = {
+                "parentType": "folder",
+                "parentId": this.folderId,
+                "name": this.get("name"),
+                "size": data.length
+            };
+
+        console.log(d);
+
+        uploadChunks = _.bind(function (upload) {
+            var uploadChunk = _.bind(function (start, maxChunkSize) {
+                var end,
+                    blob,
+                    form;
+
+                end = Math.min(start + maxChunkSize, data.length);
+
+                blob = new window.Blob([data.slice(start, end)]);
+
+                form = new window.FormData();
+                form.append("offset", start);
+                form.append("uploadId", upload._id);
+                form.append("chunk", blob);
+
+                Backbone.ajax({
+                    url: this.girderApi + "/file/chunk",
+                    type: "POST",
+                    data: form,
+                    contentType: false,
+                    processData: false,
+                    success: function () {
+                        if (end < data.length) {
+                            uploadChunk(end, maxChunkSize);
+                        }
+                    }
+                });
+            }, this);
+
+            uploadChunk(0, 64 * 1024 * 1024);
+        }, this);
+
+        Backbone.ajax({
+            url: this.girderApi + "/file",
+            type: "POST",
+            data: d,
+            success: uploadChunks
+        });
+    },
+
     save: function () {
         "use strict";
 
-        var url = this.girderApi + "/file",
-            saveObj;
+        if (!this.isNew()) {
+            // Delete the file from the server, before reuploading the current
+            // spec.
+            Backbone.ajax({
+                url: this.girderApi + "/item/" + this.id,
+                method: "DELETE",
+                success: _.bind(this._upload, this)
+            });
+        } else {
+            this._upload();
+        }
+    },
 
     fetch: function (options) {
+        "use strict";
+
         var url = this.girderApi + "/item/" + this.id + "/download",
             success = options.success || $.noop,
             error = options.error || $.noop;
@@ -39,28 +105,13 @@ app.models.Vis = Backbone.Model.extend({
             dataType: "json",
             success: _.bind(function (lyra) {
                 this.set("lyra", lyra);
-                success(this, vega, options);
+                success(this, lyra, options);
             }, this),
             error: _.bind(function (jqxhr) {
                 error(this, jqxhr, options);
             }, this)
         });
     },
-
-/*    destroy: function () {*/
-    //},
-
-    _upload: function (data) {
-        "use strict";
-
-        console.log("saving: " + this.get("filename"));
-    },
-
-    url: function () {
-        "use strict";
-
-        return this.girderApi + "/item/" + this.get("_id") + "/download";
-    }
 });
 
 app.models.Data = Backbone.Model.extend({
@@ -69,7 +120,6 @@ app.models.Data = Backbone.Model.extend({
 
         options = options || {};
         this.girderApi = options.girderApi;
-        //this.itemId = options.itemId;
     },
 
     idAttribute: "_id",
@@ -81,6 +131,8 @@ app.models.Data = Backbone.Model.extend({
     },
 
     parse: function (response) {
+        "use strict";
+
         return {
             data: response
         };
@@ -95,6 +147,7 @@ app.collections.Folder = Backbone.Collection.extend({
         "use strict";
 
         options = options || {};
+        this.folderId = options.folderId;
 
         this.url = options.girderApi + "/item?folderId=" + options.folderId;
         this.fetch({
@@ -112,10 +165,9 @@ app.views.Vega = Backbone.View.extend({
     initialize: function (options) {
         "use strict";
 
-/*        this.model = new app.models.Vis({*/
-            //girderApi: options.girderApi
-        /*});*/
+        options = options || {};
         this.girderApi = options.girderApi;
+
         Backbone.on("select:vis", this.loadVis, this);
     },
 
@@ -179,6 +231,8 @@ app.views.Data = Backbone.View.extend({
     },
 
     getData: function () {
+        "use strict";
+
         return this.model.get("data");
     }
 });
@@ -215,7 +269,9 @@ app.views.File = Backbone.View.extend({
     selected: function () {
         "use strict";
 
-        Backbone.trigger(this.selectedEvent, this.model);
+        if (this.selectedEvent) {
+            Backbone.trigger(this.selectedEvent, this.model);
+        }
     }
 });
 
@@ -228,7 +284,7 @@ app.views.FileMenu = Backbone.View.extend({
 
         var template;
 
-        //this.options = options || {};
+        options = options || {};
         this.selectedEvent = options.selectedEvent;
 
         template = _.template($("#vis-files-view-template").html(), {});
@@ -272,6 +328,8 @@ app.views.FileMenu = Backbone.View.extend({
     },
 
     getSelected: function () {
+        "use strict";
+
         return this.selectedModel;
     }
 });
@@ -373,6 +431,10 @@ $(function () {
                 });
             };
 
+            f.save = function () {
+                vis.model.save();
+            };
+
             f.receiveMessage = function (e) {
                 var model,
                     name;
@@ -383,6 +445,8 @@ $(function () {
                     // Construct a new Vis model to represent the newly created
                     // Vega visualization.
                     model = new app.models.Vis({
+                        girderApi: config.girderApi,
+                        folderId: visFolderId,
                         name: name,
                         visName: name,
                         lyra: {
@@ -412,6 +476,9 @@ $(function () {
 
             d3.select("#edit")
                 .on("click", f.edit);
+
+            d3.select("#save")
+                .on("click", f.save);
 
             // Set up to receive messages.
             window.addEventListener("message", f.receiveMessage, false);
