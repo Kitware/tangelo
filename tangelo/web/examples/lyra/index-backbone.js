@@ -448,7 +448,6 @@ $(function () {
                         girderApi: config.girderApi,
                         folderId: visFolderId,
                         name: name,
-                        visName: name,
                         lyra: {
                             timeline: e.data.timeline,
                             vega: e.data.vega
