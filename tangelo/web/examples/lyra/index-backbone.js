@@ -28,15 +28,6 @@ app.models.Vis = Backbone.Model.extend({
         var data = JSON.stringify(this.get("lyra")),
             uploadChunks;
 
-        var d = {
-                "parentType": "folder",
-                "parentId": this.folderId,
-                "name": this.get("name"),
-                "size": data.length
-            };
-
-        console.log(d);
-
         uploadChunks = _.bind(function (upload) {
             var uploadChunk = _.bind(function (start, maxChunkSize) {
                 var end,
@@ -58,11 +49,17 @@ app.models.Vis = Backbone.Model.extend({
                     data: form,
                     contentType: false,
                     processData: false,
-                    success: function () {
+                    success: _.bind(function (upload) {
                         if (end < data.length) {
                             uploadChunk(end, maxChunkSize);
+                        } else {
+                            this.set("_id", upload.itemId);
+                            if (this.get("newName")) {
+                                this.set("name", this.get("newName"));
+                                this.unset("newName");
+                            }
                         }
-                    }
+                    }, this)
                 });
             }, this);
 
@@ -72,7 +69,12 @@ app.models.Vis = Backbone.Model.extend({
         Backbone.ajax({
             url: this.girderApi + "/file",
             type: "POST",
-            data: d,
+            data: {
+                "parentType": "folder",
+                "parentId": this.folderId,
+                "name": this.get("name"),
+                "size": data.length
+            },
             success: uploadChunks
         });
     },
@@ -89,7 +91,7 @@ app.models.Vis = Backbone.Model.extend({
                 success: _.bind(this._upload, this)
             });
         } else {
-            this._upload();
+            $("#save-dialog").modal("show");
         }
     },
 
@@ -247,6 +249,8 @@ app.views.File = Backbone.View.extend({
         "use strict";
 
         this.selectedEvent = options.selectedEvent;
+
+        this.model.on("change:name", this.render, this);
     },
 
     tagName: "li",
@@ -258,10 +262,20 @@ app.views.File = Backbone.View.extend({
     render: function () {
         "use strict";
 
-        d3.select(this.el)
-            .append("a")
+        var me = d3.select(this.el),
+            bookends = ["", ""];
+
+        me.selectAll("*")
+            .remove();
+
+        if (this.model.isNew()) {
+            bookends[0] = "<em>";
+            bookends[1] = "</em>";
+        }
+
+        me.append("a")
             .attr("href", "#")
-            .html(this.model.get("name"));
+            .html(bookends[0] + this.model.get("name") + bookends[1]);
 
         return this;
     },
@@ -310,21 +324,29 @@ app.views.FileMenu = Backbone.View.extend({
             .append(newitem.render().el);
     },
 
+    setLabel: function () {
+        var name = this.selectedModel.get("name");
+
+        if (this.selectedModel.isNew()) {
+            name = "<em>" + name + "</em>";
+        }
+
+        name += " <span class=\"caret\"></span>";
+
+        this.$el.find("button")
+            .html(name);
+    },
+
     setSelected: function (f) {
         "use strict";
 
-        this.selectedModel = f;
-
-        var label = f.get("name");
-
-        if (f.unsaved) {
-            label = "<em>" + label + "</em>";
+        if (this.selectedModel) {
+            this.selectedModel.off("change:name", this.setLabel, this);
         }
+        this.selectedModel = f;
+        this.selectedModel.on("change:name", this.setLabel, this);
 
-        label += " <span class=\"caret\"></span>";
-
-        this.$el.find("button")
-            .html(label);
+        this.setLabel();
     },
 
     getSelected: function () {
@@ -517,6 +539,35 @@ $(function () {
             data = new app.views.Data({
                 el: "#edit-area",
                 girderApi: config.girderApi
+            });
+
+            // The modal dialog
+            d3.select("#save-button")
+                .on("click", function () {
+                    var filename = d3.select("#save-filename")
+                        .property("value")
+                        .trim();
+
+                    if (filename === "" || filename.toLowerCase().lastIndexOf("unsaved") === 0) {
+                        d3.select("#save-alert")
+                            .classed("alert", true)
+                            .classed("alert-danger", true)
+                            .html("<strong>Error!</strong> Bad filename: '" + filename + "'");
+                    } else {
+                        vis.model.set("newName", filename);
+                        $("#save-dialog").modal("hide");
+                        vis.model._upload();
+                    }
+                });
+
+            $("#save-dialog").on("hidden.bs.modal", function () {
+                d3.select("#save-filename")
+                    .property("value", "");
+
+                d3.select("#save-alert")
+                    .classed("alert", false)
+                    .classed("alert-danger", false)
+                    .html("");
             });
         };
     });
