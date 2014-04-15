@@ -87,7 +87,7 @@ app.models.Vis = Backbone.Model.extend({
             // spec.
             Backbone.ajax({
                 url: this.girderApi + "/item/" + this.id,
-                method: "DELETE",
+                type: "DELETE",
                 success: _.bind(this._upload, this)
             });
         } else {
@@ -448,7 +448,7 @@ $(function () {
                 f.launchLyra({
                     new: false,
                     name: model.get("name"),
-                    timeline: encodeURIComponent(JSON.stringify(model.get("timeline"))),
+                    timeline: encodeURIComponent(JSON.stringify(model.get("lyra").timeline)),
                     data: encodeURIComponent(JSON.stringify(model.get("lyra").vega.data[0].values))
                 });
             };
@@ -488,6 +488,7 @@ $(function () {
                             vega: e.data.vega
                         }
                     });
+                    vis.render();
                 }
             };
 
