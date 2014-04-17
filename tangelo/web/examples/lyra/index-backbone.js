@@ -114,6 +114,13 @@ app.models.Vis = Backbone.Model.extend({
             }, this)
         });
     },
+
+    sync: function (method, model, options) {
+        if (method === "delete") {
+            options.url = this.girderApi + "/item/" + this.id;
+            return Backbone.sync.call(model, method, model, options);
+        }
+    },
 });
 
 app.models.Data = Backbone.Model.extend({
@@ -182,6 +189,8 @@ app.views.Vega = Backbone.View.extend({
 
         this.model = file;
 
+        this.model.on("destroy", this.clear, this);
+
         if (file.get("lyra")) {
             render();
         } else {
@@ -200,6 +209,12 @@ app.views.Vega = Backbone.View.extend({
                 renderer: "svg"
             }).update();
         }, this));
+    },
+
+    clear: function () {
+        "use strict";
+
+        this.$el.empty();
     }
 });
 
@@ -307,8 +322,14 @@ app.views.FileMenu = Backbone.View.extend({
         // When the collection gains an item, add it to the dropdown menu.
         this.collection.on("add", this.addItem, this);
 
+        // When the collection loses an item, remove it from the dropdown menu.
+        this.collection.on("remove", this.removeItem, this);
+
         // When a visualization is selected, change the dropdown menu text.
         Backbone.on(this.selectedEvent, this.setSelected, this);
+
+        // A table of individual file views.
+        this.views = {};
     },
 
     addItem: function (file) {
@@ -322,12 +343,25 @@ app.views.FileMenu = Backbone.View.extend({
 
         this.$el.find("ul")
             .append(newitem.render().el);
+
+        this.views[file.get("name")] = newitem;
+    },
+
+    removeItem: function (file) {
+        var name = file.get("name");
+
+        this.views[name].$el.remove();
+        delete this.views[name];
+
+        this.selectedModel = null;
+        this.setLabel();
     },
 
     setLabel: function () {
-        var name = this.selectedModel.get("name");
+        var name = this.selectedModel && this.selectedModel.get("name") || "Select a File",
+            isNew = this.selectedModel && this.selectedModel.isNew() || true;
 
-        if (this.selectedModel.isNew()) {
+        if (isNew) {
             name = "<em>" + name + "</em>";
         }
 
@@ -457,6 +491,10 @@ $(function () {
                 vis.model.save();
             };
 
+            f.delete = function () {
+                vis.model.destroy();
+            };
+
             f.receiveMessage = function (e) {
                 var model,
                     name;
@@ -501,6 +539,10 @@ $(function () {
 
             d3.select("#save")
                 .on("click", f.save);
+
+            // The delete button.
+            d3.select("#delete")
+                .on("click", f.delete);
 
             // Set up to receive messages.
             window.addEventListener("message", f.receiveMessage, false);
