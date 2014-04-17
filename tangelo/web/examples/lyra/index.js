@@ -1,73 +1,35 @@
 /*jslint browser: true */
-/*globals $, tangelo, d3 */
+/*globals Backbone, $, tangelo, vg, _, d3 */
+
+var visfiles;
 
 var app = {};
-app.config = null;
-app.vis = {
-    name: null,
-    vega: null,
-    timeline: null
-};
-app.lyra = null;
-app.data = null;
-app.filelist = [];
-app.editor = null;
-app.unsaved = {};
-app.unsavedIdx = 1;
-app.new = false;
 
-function errorReport(selector, message) {
-    "use strict";
+// Tables of Backbone objects.
+app.models = {};
+app.collections = {};
+app.views = {};
 
-    $(selector).empty();
-    d3.select(selector)
-        .html(message);
-}
+// A model describing a file that contains a Lyra-edited visualization.
+app.models.Vis = Backbone.Model.extend({
+    initialize: function (options) {
+        "use strict";
 
-function launchLyra(qargs) {
-    "use strict";
+        options = options || {};
+        this.girderApi = options.girderApi;
+        this.folderId = options.folderId;
+    },
 
-    app.lyra = window.open("/lyra/editor.html?editor=true", "_blank");
-    window.setTimeout(function () {
-        app.lyra.postMessage(qargs, window.location.origin);
-    }, 1000);
-}
+    idAttribute: "_id",
 
-function createNew() {
-    "use strict";
+    _upload: function () {
+        "use strict";
 
-    app.new = true;
-    launchLyra({
-        editor: true,
-        data: encodeURIComponent(JSON.stringify(app.data))
-    });
-}
+        var data = JSON.stringify(this.get("lyra")),
+            uploadChunks;
 
-function edit() {
-    "use strict";
-
-    launchLyra({
-        editor: true,
-        timeline: encodeURIComponent(JSON.stringify(app.vis.timeline)),
-        data: encodeURIComponent(JSON.stringify(app.data))
-    });
-}
-
-function girderUpload(girderApi, data, filename, folderId, callback) {
-    "use strict";
-
-    // Start the upload.
-    $.ajax({
-        url: girderApi + "/file",
-        type: "POST",
-        data: {
-            "parentType": "folder",
-            "parentId": folderId,
-            "name": filename,
-            "size": data.length
-        },
-        success: function (upload) {
-            var uploadChunk = function (uploadId, start, maxChunkSize) {
+        uploadChunks = _.bind(function (upload) {
+            var uploadChunk = _.bind(function (start, maxChunkSize) {
                 var end,
                     blob,
                     form;
@@ -81,436 +43,613 @@ function girderUpload(girderApi, data, filename, folderId, callback) {
                 form.append("uploadId", upload._id);
                 form.append("chunk", blob);
 
-                $.ajax({
-                    url: girderApi + "/file/chunk",
+                Backbone.ajax({
+                    url: this.girderApi + "/file/chunk",
                     type: "POST",
                     data: form,
                     contentType: false,
                     processData: false,
-                    success: function () {
+                    success: _.bind(function (upload) {
                         if (end < data.length) {
-                            uploadChunk(uploadId, end, maxChunkSize);
+                            uploadChunk(end, maxChunkSize);
                         } else {
-                            if (callback) {
-                                callback();
-                            } else {
-                                console.log("file successfully uploaded");
+                            this.set("_id", upload.itemId);
+                            if (this.get("newName")) {
+                                this.set("name", this.get("newName"));
+                                this.unset("newName");
                             }
                         }
-                    }
+                    }, this)
                 });
+            }, this);
 
-            };
+            uploadChunk(0, 64 * 1024 * 1024);
+        }, this);
 
-            uploadChunk(upload._id, 0, 64 * 1024 * 1024);
-        }
-    });
-}
-
-function saveVis(filename, timeline, vega, girderApi, folderId) {
-    "use strict";
-
-    var saveObj = {
-        name: filename,
-        visName: filename,
-        timeline: timeline,
-        vega: vega
-    },
-        saveText = JSON.stringify(saveObj, null, "    ");
-
-    girderUpload(girderApi, saveText, filename, folderId, function () {
-        getFiles(girderApi, app.config.visFolderId, function (files) {
-            var unsaved,
-                selection;
-
-            unsaved = Object.keys(app.unsaved).map(function (x) {
-                return app.unsaved[x];
-            });
-
-            app.filelist = files.concat(unsaved);
-
-            $.each(app.filelist, function (i, v) {
-                v.visName = v.name.split(".")[0];
-            });
-
-            selection = d3.select("#vis-files")
-                .selectAll("li")
-                .data(app.filelist, function (d) {
-                    return d.visName;
-                });
-
-            selection.enter()
-                .append("li")
-                .append("a")
-                .classed("vis-file", true)
-                .attr("href", "#")
-                .text(function (d) {
-                    return d.visName;
-                })
-                .on("click", app.clickVis);
-
-            selection.exit()
-                .remove();
+        Backbone.ajax({
+            url: this.girderApi + "/file",
+            type: "POST",
+            data: {
+                "parentType": "folder",
+                "parentId": this.folderId,
+                "name": this.get("name"),
+                "size": data.length
+            },
+            success: uploadChunks
         });
-    });
-}
+    },
 
-function save() {
-    "use strict";
+    save: function () {
+        "use strict";
 
-    var filename,
-        oldFilename,
-        unsaved;
-
-    // Get the name of the file to save (stripping off the space that lies
-    // between the filename and the caret symbol in the file selector HTML).
-    filename = d3.select("#vis-file")
-        .text()
-        .slice(0, -1);
-
-    // If the filename is "Unsaved *", we will need to prompt the user for a
-    // real filename.
-    unsaved = filename.lastIndexOf("Unsaved") === 0;
-    if (unsaved) {
-        oldFilename = filename;
-        d3.select("#save-button")
-            .on("click", function () {
-                filename = d3.select("#save-filename")
-                    .property("value")
-                    .trim();
-
-                if (filename === "" || filename.toLowerCase().lastIndexOf("unsaved") === 0) {
-                    d3.select("#save-alert")
-                        .classed("alert", true)
-                        .classed("alert-danger", true)
-                        .html("<strong>Error!</strong> Bad filename: '" + filename + "'");
-                } else {
-                    delete app.unsaved[oldFilename];
-                    d3.select("#vis-file")
-                        .html(filename + " <span class=\"caret\"></span>");
-                    saveVis(filename, app.vis.timeline, app.vis.vega, app.config.girderApi, app.config.visFolderId);
-                }
-
-                $("#save-dialog").modal("hide");
+        if (!this.isNew()) {
+            // Delete the file from the server, before reuploading the current
+            // spec.
+            Backbone.ajax({
+                url: this.girderApi + "/item/" + this.id,
+                type: "DELETE",
+                success: _.bind(this._upload, this)
             });
+        } else {
+            $("#save-dialog").modal("show");
+        }
+    },
 
-        $("#save-dialog").modal("show");
-    } else {
-        saveVis(filename, app.vis.timeline, app.vis.vega, app.config.girderApi, app.config.visFolderId);
+    fetch: function (options) {
+        "use strict";
+
+        var url = this.girderApi + "/item/" + this.id + "/download",
+            success = options.success || $.noop,
+            error = options.error || $.noop;
+
+        Backbone.ajax({
+            url: url,
+            dataType: "json",
+            success: _.bind(function (lyra) {
+                this.set("lyra", lyra);
+                success(this, lyra, options);
+            }, this),
+            error: _.bind(function (jqxhr) {
+                error(this, jqxhr, options);
+            }, this)
+        });
+    },
+
+    sync: function (method, model, options) {
+        if (method === "delete") {
+            options.url = this.girderApi + "/item/" + this.id;
+            return Backbone.sync.call(model, method, model, options);
+        }
+    },
+});
+
+app.models.Data = Backbone.Model.extend({
+    initialize: function (options) {
+        "use strict";
+
+        options = options || {};
+        this.girderApi = options.girderApi;
+    },
+
+    idAttribute: "_id",
+
+    url: function () {
+        "use strict";
+
+        return this.girderApi + "/item/" + this.get("_id") + "/download";
+    },
+
+    parse: function (response) {
+        "use strict";
+
+        return {
+            data: response
+        };
     }
-}
+});
 
-function refresh(vega) {
-    "use strict";
+// A collection describing all the Lyra vis files in a Girder instance.
+app.collections.Folder = Backbone.Collection.extend({
+    model: app.models.Vis,
 
-    $("#vega").empty();
+    initialize: function (models, options) {
+        "use strict";
 
-    vg.parse.spec(vega, function (chart) {
-        chart({
-            el: "#vega",
-            renderer: "svg"
-        }).update();
+        options = options || {};
+        this.folderId = options.folderId;
 
-        d3.select("#edit")
-            .attr("disabled", null);
-    });
-}
-
-function loadEditorData(editor, data) {
-    "use strict";
-
-    if (editor) {
-        editor.setValue(JSON.stringify(data, null, "    "));
+        this.url = options.girderApi + "/item?folderId=" + options.folderId;
+        this.fetch({
+            success: function (models) {
+                models.forEach(function (m) {
+                    m.girderApi = options.girderApi;
+                });
+            }
+        });
     }
-}
+});
 
-function getFiles(girderApi, folderId, callback) {
-    "use strict";
+// A view that renders a Vega visualization.
+app.views.Vega = Backbone.View.extend({
+    initialize: function (options) {
+        "use strict";
 
-    var data = {
-        folderId: folderId
-    };
+        options = options || {};
+        this.girderApi = options.girderApi;
 
-    $.getJSON(girderApi + "/item", data, function (files) {
-        callback(files);
-    });
-}
+        Backbone.on("select:vis", this.loadVis, this);
+    },
 
-function receiveMessage(e) {
-    "use strict";
+    loadVis: function (file) {
+        "use strict";
 
-    app.vis.timeline = e.data.timeline;
-    app.vis.vega = e.data.vega;
-    app.data = $.extend(true, [], e.data.vega.data[0].values);
+        var render = _.bind(function () {
+            this.render();
+        }, this);
 
-    if (app.new) {
-        app.vis.name = app.vis.visName = "Unsaved " + app.unsavedIdx;
+        this.model = file;
 
-        app.unsaved[app.vis.name] = $.extend(true, {}, app.vis);
+        this.model.on("destroy", this.clear, this);
 
-        app.filelist.push($.extend(true, {}, app.vis));
+        if (file.get("lyra")) {
+            render();
+        } else {
+            file.fetch({
+                success: render
+            });
+        }
+    },
 
-        app.unsavedIdx += 1;
+    render: function () {
+        "use strict";
 
-        d3.select("#vis-files")
-            .selectAll("li")
-            .data(app.filelist, function (d) {
-                return d.visName;
-            })
-            .enter()
-            .append("li")
-            .append("a")
-            .classed("vis-file", true)
+        vg.parse.spec(this.model.get("lyra").vega, _.bind(function (chart) {
+            chart({
+                el: this.el,
+                renderer: "svg"
+            }).update();
+        }, this));
+    },
+
+    clear: function () {
+        "use strict";
+
+        this.$el.empty();
+    }
+});
+
+// A view to "render" a dataset (using a read-only ACE editor instance).
+app.views.Data = Backbone.View.extend({
+    initialize: function (options) {
+        "use strict";
+
+        this.model = new app.models.Data({
+            girderApi: options.girderApi
+        });
+
+        Backbone.on("select:data", this.loadData, this);
+
+        this.div = d3.select(this.el)
+            .append("div")
+            .attr("id", "ace-editor")
+            .node();
+
+        this.ace = ace.edit(this.div);
+        this.ace.setTheme("ace/theme/twilight");
+        this.ace.getSession().setMode("ace/mode/javascript");
+        this.ace.setReadOnly(true);
+     },
+
+    loadData: function (file) {
+        "use strict";
+
+        this.model.set("_id", file.get("_id"));
+        this.model.fetch({
+            success: _.bind(this.render, this)
+        });
+    },
+
+    render: function () {
+        "use strict";
+
+        this.ace.setValue(JSON.stringify(this.model.get("data"), null, "    "));
+    },
+
+    getData: function () {
+        "use strict";
+
+        return this.model.get("data");
+    },
+
+    show: function () {
+        d3.select(this.div)
+            .style("display", null);
+    },
+
+    hide: function () {
+        d3.select(this.div)
+            .style("display", "none");
+    }
+});
+
+// A collection describing all the data files in a Girder instance.
+app.collections.Data = Backbone.Collection.extend({
+});
+
+// A view that renders a single file as a list item.
+app.views.File = Backbone.View.extend({
+    initialize: function (options) {
+        "use strict";
+
+        this.selectedEvent = options.selectedEvent;
+
+        this.model.on("change:name", this.render, this);
+    },
+
+    tagName: "li",
+
+    events: {
+        click: "selected"
+    },
+
+    render: function () {
+        "use strict";
+
+        var me = d3.select(this.el),
+            bookends = ["", ""];
+
+        me.selectAll("*")
+            .remove();
+
+        if (this.model.isNew()) {
+            bookends[0] = "<em>";
+            bookends[1] = "</em>";
+        }
+
+        me.append("a")
             .attr("href", "#")
-            .text(app.vis.visName)
-            .on("click", app.clickVis);
+            .html(bookends[0] + this.model.get("name") + bookends[1]);
 
-        d3.select("#vis-file")
-            .html("<em>" + app.vis.visName + "</em> <span class=\"caret\"></span>");
+        return this;
+    },
 
-        app.new = false;
+    selected: function () {
+        "use strict";
+
+        if (this.selectedEvent) {
+            Backbone.trigger(this.selectedEvent, this.model);
+        }
     }
+});
 
-    refresh(app.vis.vega);
+// A view that renders a list of files.
+app.views.FileMenu = Backbone.View.extend({
+    tagName: "div",
 
-    d3.select("#save")
-        .attr("disabled", null);
+    initialize: function (options) {
+        "use strict";
 
-    app.lyra = null;
-}
+        var template;
+
+        options = options || {};
+        this.selectedEvent = options.selectedEvent;
+
+        template = _.template($("#vis-files-view-template").html(), {});
+        this.$el.html(template);
+
+        // When the collection gains an item, add it to the dropdown menu.
+        this.collection.on("add", this.addItem, this);
+
+        // When the collection loses an item, remove it from the dropdown menu.
+        this.collection.on("remove", this.removeItem, this);
+
+        // When a visualization is selected, change the dropdown menu text.
+        Backbone.on(this.selectedEvent, this.setSelected, this);
+
+        // A table of individual file views.
+        this.views = {};
+    },
+
+    addItem: function (file) {
+        "use strict";
+
+        var newitem = new app.views.File({
+            className: "file",
+            model: file,
+            selectedEvent: this.selectedEvent
+        });
+
+        this.$el.find("ul")
+            .append(newitem.render().el);
+
+        this.views[file.get("name")] = newitem;
+    },
+
+    removeItem: function (file) {
+        var name = file.get("name");
+
+        this.views[name].$el.remove();
+        delete this.views[name];
+
+        this.selectedModel = null;
+        this.setLabel();
+    },
+
+    setLabel: function () {
+        var name = this.selectedModel && this.selectedModel.get("name") || "Select a File",
+            isNew = this.selectedModel && this.selectedModel.isNew() || true;
+
+        if (isNew) {
+            name = "<em>" + name + "</em>";
+        }
+
+        name += " <span class=\"caret\"></span>";
+
+        this.$el.find("button")
+            .html(name);
+    },
+
+    setSelected: function (f) {
+        "use strict";
+
+        if (this.selectedModel) {
+            this.selectedModel.off("change:name", this.setLabel, this);
+        }
+        this.selectedModel = f;
+        this.selectedModel.on("change:name", this.setLabel, this);
+
+        this.setLabel();
+    },
+
+    getSelected: function () {
+        "use strict";
+
+        return this.selectedModel;
+    }
+});
 
 $(function () {
     "use strict";
 
     tangelo.config("config.json", function (config) {
-        var getFolderId;
+        var main;
 
-        window.addEventListener("message", receiveMessage, false);
+        // Issue ajax calls to get the Lyra collection in girder, and then both
+        // the visualization and data folders therein.
+        $.ajax({
+            url: config.girderApi + "/collection",
+            type: "GET",
+            dataType: "json",
+            data: {
+                text: config.collection
+            },
+            success: function (lyraCollection) {
+                // Now find the visualizations folder.
+                $.ajax({
+                    url: config.girderApi + "/folder",
+                    type: "GET",
+                    dataType: "json",
+                    data: {
+                        parentType: "collection",
+                        parentId: lyraCollection._id,
+                        text: config.visFolder
+                    },
+                    success: function (visFolder) {
+                        // Make sure there is a result.
+                        if (visFolder.length === 0) {
+                            console.warn("No folder '" + config.visFolder + "' found in collection '" + config.collection + "'");
+                        }
 
-        app.config = config;
+                        // Find the data folder.
+                        $.ajax({
+                            url: config.girderApi + "/folder",
+                            type: "GET",
+                            dataType: "json",
+                            data: {
+                                parentType: "collection",
+                                parentId: lyraCollection._id,
+                                text: config.dataFolder
+                            },
+                            success: function (dataFolder) {
+                                // Make sure there is a result.
+                                if (dataFolder.length === 0) {
+                                    console.warn("No folder '" + config.dataFolder + "' found in collection '" + config.collection + "'");
+                                }
 
-        d3.select("#create")
-            .on("click", createNew);
-
-        d3.select("#edit")
-            .on("click", edit);
-
-        d3.select("#save")
-            .on("click", save);
-
-        d3.select("#edit-data")
-            .on("click", function () {
-                var el;
-
-                d3.select("#edit-area")
-                    .selectAll("*")
-                    .remove();
-
-                el = d3.select("#edit-area")
-                    .append("div")
-                    .attr("id", "ace-editor")
-                    .node();
-
-                app.editor = ace.edit(el);
-                app.editor.setTheme("ace/theme/twilight");
-                app.editor.getSession().setMode("ace/mode/javascript");
-
-                //app.editor.setValue(JSON.stringify(app.data, null, "    "));
-                loadEditorData(app.editor, app.data);
-
-                d3.select("#edit-area")
-                    .append("button")
-                    .classed("btn", true)
-                    .classed("btn-default", true)
-                    .text("Save")
-                    .on("click", function () {
-                        var text = app.editor.getValue();
-
-                        try {
-                            app.data = JSON.parse(text);
-
-                            if (app.vis.vega) {
-                                app.vis.vega.data[0].values = app.data;
-                                refresh(app.vis.vega);
+                                // Run the actual application.
+                                main(config, visFolder[0]._id, dataFolder[0]._id);
                             }
+                        });
+                    }
+                });
+            }
 
-                            d3.select("#edit-area")
-                                .selectAll("*")
-                                .remove();
-                        } catch (e) {
-                            alert("Error!  Couldn't not parse data as JSON: " + e);
+        });
+
+        // The main application.
+        main = function (config, visFolderId, dataFolderId) {
+            var //visfiles,
+                visMenu,
+                vis,
+                datafiles,
+                dataMenu,
+                data,
+                f;
+
+            f = {};
+
+            // A function that launches a Lyra editor window.
+            f.launchLyra = function (qargs) {
+                var lyra = window.open("/lyra/editor.html?editor=true", "_blank");
+                lyra.onload = function () {
+                    lyra.postMessage(qargs, window.location.origin);
+                };
+            };
+
+            f.new = function () {
+                if (!data.getData()) {
+                    $("#no-data-dialog").modal("show");
+                    return;
+                }
+
+                f.launchLyra({
+                    new: true,
+                    timeline: null,
+                    data: encodeURIComponent(JSON.stringify(data.getData()))
+                });
+            };
+
+            f.edit = function () {
+                var model = vis.model;
+
+                f.launchLyra({
+                    new: false,
+                    name: model.get("name"),
+                    timeline: encodeURIComponent(JSON.stringify(model.get("lyra").timeline)),
+                    data: encodeURIComponent(JSON.stringify(model.get("lyra").vega.data[0].values))
+                });
+            };
+
+            f.save = function () {
+                vis.model.save();
+            };
+
+            f.delete = function () {
+                vis.model.destroy();
+            };
+
+            f.receiveMessage = function (e) {
+                var model,
+                    name;
+
+                if (e.data.new) {
+                    name = "Unsaved " + _.uniqueId();
+
+                    // Construct a new Vis model to represent the newly created
+                    // Vega visualization.
+                    model = new app.models.Vis({
+                        girderApi: config.girderApi,
+                        folderId: visFolderId,
+                        name: name,
+                        lyra: {
+                            timeline: e.data.timeline,
+                            vega: e.data.vega
                         }
                     });
 
-                d3.select("#edit-area")
-                    .append("button")
-                    .classed("btn", true)
-                    .classed("btn-default", true)
-                    .text("Close")
-                    .on("click", function () {
-                        d3.select("#edit-area")
-                            .selectAll("*")
-                            .remove();
+                    // Add the model to the vis files list, and simulate its
+                    // selection (so that the menu will show it as active, and
+                    // it will be rendered to the Vega view).
+                    visfiles.add(model);
+                    Backbone.trigger("select:vis", model);
+                } else {
+                    vis.model.set({
+                        lyra: {
+                            timeline: e.data.timeline,
+                            vega: e.data.vega
+                        }
                     });
-            });
-
-        getFolderId = function (girderApi, collection, folder, callback) {
-            var data = {
-                text: collection
+                    vis.render();
+                }
             };
 
-            $.getJSON(girderApi + "/collection", data, function (lyra) {
-                data = {
-                    parentType: "collection",
-                    parentId: lyra._id,
-                    text: folder
-                };
+            // The "New" button.
+            d3.select("#create")
+                .on("click", f.new);
 
-                $.getJSON(girderApi + "/folder", data, function (folder) {
-                    if (folder.length === 0) {
-                        console.warn("error: no girder path /lyra/" + folder + " found!");
-                        return;
+            d3.select("#edit")
+                .on("click", f.edit);
+
+            d3.select("#save")
+                .on("click", f.save);
+
+            // The delete button.
+            d3.select("#delete")
+                .on("click", f.delete);
+
+            // The show/hide data button.
+            d3.select("#show-data")
+                .on("click", function () {
+                    var me = d3.select(this),
+                        text = me.text();
+
+                    if (text === "Show") {
+                        data.show();
+                        me.text("Hide");
+                    } else {
+                        data.hide();
+                        me.text("Show");
                     }
-
-                    if (folder.length > 1) {
-                        console.warn("error: more than one path /lyra/" + folder + " found!");
-                        return;
-                    }
-
-                    callback(folder[0]._id);
                 });
+
+            // Set up to receive messages.
+            window.addEventListener("message", f.receiveMessage, false);
+
+            // A collection of visualization files residing on Girder, and a
+            // dropdown menu to select them.
+            visfiles = new app.collections.Folder([], {
+                girderApi: config.girderApi,
+                folderId: visFolderId
+            });
+
+            visMenu = new app.views.FileMenu({
+                el: "#vis-files-view",
+                collection: visfiles,
+                selectedEvent: "select:vis"
+            });
+
+            // The same, but for the data files.
+            datafiles = new app.collections.Folder([], {
+                girderApi: config.girderApi,
+                folderId: dataFolderId
+            });
+
+            dataMenu = new app.views.FileMenu({
+                el: "#data-files-view",
+                collection: datafiles,
+                selectedEvent: "select:data"
+            });
+
+            // A Vega view.
+            vis = new app.views.Vega({
+                el: "#vega",
+                girderApi: config.girderApi
+            });
+
+            // A data view.
+            data = new app.views.Data({
+                el: "#ace",
+                girderApi: config.girderApi
+            });
+
+            // The modal dialog
+            d3.select("#save-button")
+                .on("click", function () {
+                    var filename = d3.select("#save-filename")
+                        .property("value")
+                        .trim();
+
+                    if (filename === "" || filename.toLowerCase().lastIndexOf("unsaved") === 0) {
+                        d3.select("#save-alert")
+                            .classed("alert", true)
+                            .classed("alert-danger", true)
+                            .html("<strong>Error!</strong> Bad filename: '" + filename + "'");
+                    } else {
+                        vis.model.set("newName", filename);
+                        $("#save-dialog").modal("hide");
+                        vis.model._upload();
+                    }
+                });
+
+            $("#save-dialog").on("hidden.bs.modal", function () {
+                d3.select("#save-filename")
+                    .property("value", "");
+
+                d3.select("#save-alert")
+                    .classed("alert", false)
+                    .classed("alert-danger", false)
+                    .html("");
             });
         };
-
-        getFolderId(config.girderApi, config.collection, config.dataFolder, function (dataFolderId) {
-            config.dataFolderId = dataFolderId;
-
-            getFolderId(config.girderApi, config.collection, config.visFolder, function (visFolderId) {
-                config.visFolderId = visFolderId;
-
-                getFiles(config.girderApi, config.dataFolderId, function (files) {
-                    d3.select("#data-sources")
-                        .selectAll("li")
-                        .data(files)
-                        .enter()
-                        .append("li")
-                        .append("a")
-                        .classed("data-source", true)
-                        .attr("href", "#")
-                        .text(function (d) {
-                            d.dataName = d.name.split(".")[0];
-                            return d.dataName;
-                        })
-                        .on("click", function (d) {
-                            d3.select("#data-source")
-                                .html(d.dataName + " <span class=\"caret\"></span>");
-
-                            $.getJSON(config.girderApi + "/item/" + d._id + "/download", function (data) {
-                                app.data = data;
-                                loadEditorData(app.editor, app.data);
-                            });
-                        });
-                    $("a.data-source").get(0) && $("a.data-source").get(0).click();
-                });
-
-                app.clickVis = function (d) {
-                    var isUnsaved = d.visName.lastIndexOf("Unsaved") === 0,
-                        bookends = ["", ""],
-                        response;
-
-                    if (isUnsaved) {
-                        bookends[0] = "<em>";
-                        bookends[1] = "</em>";
-                    }
-
-                    d3.select("#vis-file")
-                        .html(bookends[0] + d.visName + bookends[1] + " <span class=\"caret\"></span>");
-
-                    if (isUnsaved) {
-                        app.vis = app.unsaved[d.visName];
-                        refresh(app.vis.vega);
-                    } else {
-                        $.ajax({
-                            url: config.girderApi + "/item/" + d._id + "/download",
-                            dataType: "text",
-                            success: function (fileContents) {
-                                var spec,
-                                    missing;
-
-                                // Attempt to parse JSON from the file contents.
-                                try {
-                                    spec = JSON.parse(fileContents);
-                                } catch (e) {
-                                    errorReport("#vega", "<b>Error parsing Vega spec in file '" + d.visName + "': " + e.message + "</b>");
-                                    return;
-                                }
-
-                                // Check for non-object JSON files.
-                                if (!tangelo.isObject(spec)) {
-                                    errorReport("#vega", "<b>Error in Vega spec in file '" + d.visName + "': spec is not a JSON object</b>");
-                                    return;
-                                }
-
-                                // Check for required fields in the JSON object.
-                                missing = [];
-                                $.each(["name", "visName", "timeline", "vega"], function (i, v) {
-                                    if (!spec.hasOwnProperty(v)) {
-                                        missing.push(v);
-                                    }
-                                });
-
-                                if (missing.length > 0) {
-                                    errorReport("#vega", "<b>Error in Vega spec in file '" + d.visName + "': spec is missing these fields: " + missing.join(", "));
-                                    return;
-                                }
-
-                                // If all looks good, try to render.
-                                app.vis = spec;
-                                refresh(app.vis.vega);
-                            },
-                            error: function (jqxhr, status, err) {
-                                errorReport("#vega", "<b>Error reading file '" + d.visName + "': " + err + "</b>");
-                            }
-                        });
-                    }
-                };
-
-                getFiles(config.girderApi, config.visFolderId, function (files) {
-                    var unsaved,
-                        visChoices;
-
-                    unsaved = Object.keys(app.unsaved).map(function (x) {
-                        return app.unsaved[x];
-                    });
-
-                    app.filelist = files.concat(unsaved);
-
-                    $.each(app.filelist, function (i, v) {
-                        v.visName = v.name.split(".")[0];
-                    });
-
-                    d3.select("#vis-files")
-                        .selectAll("li")
-                        .data(app.filelist, function (d) {
-                            return d.visName;
-                        })
-                        .enter()
-                        .append("li")
-                        .append("a")
-                        .classed("vis-file", true)
-                        .attr("href", "#")
-                        .text(function (d) {
-                            return d.visName;
-                        })
-                        .on("click", app.clickVis);
-
-                    // If there are some files in the list, select the first one.
-                    visChoices = $("a.vis-file");
-                    if (visChoices.length > 0) {
-                        visChoices.get(0).click();
-                    }
-                });
-            });
-        });
     });
 });

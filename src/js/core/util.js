@@ -12,9 +12,17 @@
         });
     } else {
         tangelo.config = function (inputfile, callback) {
+            var path = window.location.pathname;
+
+            // If the current location ends in a filename, compute the
+            // containing directory before appending the input file name.
+            if (path.slice(-1) !== "/") {
+                path = window.location.pathname.split("/").slice(0, -1).join("/");
+            }
+
             if (inputfile.length > 0) {
                 if (inputfile[0] !== "/" && inputfile[0] !== "~") {
-                    inputfile = window.location.pathname + "/" + inputfile;
+                    inputfile = path + "/" + inputfile;
                 }
             }
 
