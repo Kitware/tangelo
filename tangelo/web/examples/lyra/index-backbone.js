@@ -228,29 +228,47 @@ app.views.Data = Backbone.View.extend({
         });
 
         Backbone.on("select:data", this.loadData, this);
-    },
+
+        this.div = d3.select(this.el)
+            .append("div")
+            .attr("id", "ace-editor")
+            .node();
+
+        this.ace = ace.edit(this.div);
+        this.ace.setTheme("ace/theme/twilight");
+        this.ace.getSession().setMode("ace/mode/javascript");
+        this.ace.setReadOnly(true);
+     },
 
     loadData: function (file) {
         "use strict";
 
         this.model.set("_id", file.get("_id"));
         this.model.fetch({
-            success: _.bind(function () {
-                this.render();
-            }, this)
+            success: _.bind(this.render, this)
         });
     },
 
     render: function () {
         "use strict";
 
-        console.log(this.model);
+        this.ace.setValue(JSON.stringify(this.model.get("data"), null, "    "));
     },
 
     getData: function () {
         "use strict";
 
         return this.model.get("data");
+    },
+
+    show: function () {
+        d3.select(this.div)
+            .style("display", null);
+    },
+
+    hide: function () {
+        d3.select(this.div)
+            .style("display", "none");
     }
 });
 
@@ -544,6 +562,21 @@ $(function () {
             d3.select("#delete")
                 .on("click", f.delete);
 
+            // The show/hide data button.
+            d3.select("#show-data")
+                .on("click", function () {
+                    var me = d3.select(this),
+                        text = me.text();
+
+                    if (text === "Show") {
+                        data.show();
+                        me.text("Hide");
+                    } else {
+                        data.hide();
+                        me.text("Show");
+                    }
+                });
+
             // Set up to receive messages.
             window.addEventListener("message", f.receiveMessage, false);
 
@@ -580,7 +613,7 @@ $(function () {
 
             // A data view.
             data = new app.views.Data({
-                el: "#edit-area",
+                el: "#ace",
                 girderApi: config.girderApi
             });
 
