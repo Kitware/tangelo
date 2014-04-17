@@ -57,6 +57,10 @@
 <div id=save-dialog class="modal fade">
     <div class=modal-dialog>
         <div class=modal-content>
+            <div class=modal-header>
+                <h4>Save Visualization</h4>
+            </div>
+
             <div class=modal-body>
                 <input id=save-filename type=text class=form-control placeholder="Save filename">
                 <div id=save-alert></div>
@@ -65,6 +69,25 @@
             <div class=modal-footer>
                 <a class="btn btn-default" data-dismiss=modal>Cancel</a>
                 <a id=save-button class="btn btn-success">Save</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id=no-data-dialog class="modal fade">
+    <div class=modal-dialog>
+        <div class=modal-content>
+            <div class=modal-header>
+                <h4>Error: No Data Set Selected</h4>
+            </div>
+
+            <div class=modal-body>
+                <div class="alert alert-danger">Plase select a dataset from the data
+                    menu before creating a new Lyra visualization</div>
+            </div>
+
+            <div class=modal-footer>
+                <a class="btn btn-default" data-dismiss=modal>OK</a>
             </div>
         </div>
     </div>

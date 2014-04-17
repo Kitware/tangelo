@@ -486,7 +486,12 @@ $(function () {
                 };
             };
 
-            f.createNew = function () {
+            f.new = function () {
+                if (!data.getData()) {
+                    $("#no-data-dialog").modal("show");
+                    return;
+                }
+
                 f.launchLyra({
                     new: true,
                     timeline: null,
@@ -550,7 +555,7 @@ $(function () {
 
             // The "New" button.
             d3.select("#create")
-                .on("click", f.createNew);
+                .on("click", f.new);
 
             d3.select("#edit")
                 .on("click", f.edit);
