@@ -78,14 +78,27 @@ class Tangelo(object):
             from girder.utility import plugin_utilities, model_importer
 
             # Mount a girder app on the "/girder" Tangelo route.
-            class Dummy(object):
-                pass
+            class Webroot(object):
+                """
+                The webroot endpoint simply serves the main index.html file.
+                """
+                exposed = True
 
-            root = Dummy()
+                def GET(self):
+                    return cherrypy.lib.static.serve_file(
+                        os.path.join(constants.ROOT_DIR, 'clients', 'web', 'static',
+                                     'built', 'index.html'), content_type='text/html')
+
+            root = Webroot()
 
             cherrypy.tree.mount(api_main.addApiToNode(root), "/girder", {
                 '/': {
-                    'request.dispatch': cherrypy.dispatch.MethodDispatcher()
+                    'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
+                    'tools.staticdir.root': constants.ROOT_DIR
+                },
+                '/static': {
+                    'tools.staticdir.on': 'True',
+                    'tools.staticdir.dir': 'clients/web/static'
                 }
             })
 
