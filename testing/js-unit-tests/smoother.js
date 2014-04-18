@@ -28,7 +28,7 @@ describe('tangelo.data.smoother', function () {
             expect(smoother({})).toEqual([]);
             expect(smoother({data: []})).toEqual([]);
         });
-        it('non positive width', function () {
+        it('non positive radius', function () {
             var data = makeData(10);
             var values = [];
             data.forEach(function (d) {
@@ -36,7 +36,7 @@ describe('tangelo.data.smoother', function () {
             });
             smoother({
                     data: data,
-                    width: -1
+                    radius: -1
             }).forEach(function (d) {
                 expect(values.indexOf(d) >= 0).toBe(true);
             });
@@ -67,7 +67,7 @@ describe('tangelo.data.smoother', function () {
             mean = mean/n;
             values = smoother({
                 data: data,
-                width: 0
+                radius: 0
             });
             values.forEach(function (d) {
                 expect(Math.abs(d - mean)).toBeLessThan(1e-10);
@@ -83,7 +83,7 @@ describe('tangelo.data.smoother', function () {
             expect(smoother({
                 data: data,
                 sorted: false,
-                width: 0
+                radius: 0
             })).toEqual(values);
         });
     });
@@ -100,7 +100,7 @@ describe('tangelo.data.smoother', function () {
             smoother({
                 data: data,
                 kernel: 'box',
-                width: 10
+                radius: 10
             }).forEach(function (d) {
                 expect(Math.abs(d - mean)).toBeLessThan(1e-10);
             });
@@ -118,7 +118,7 @@ describe('tangelo.data.smoother', function () {
             smoother({
                 data: data,
                 kernel: 'box',
-                width: 1.5,
+                radius: 1.5,
                 absolute: true
             }).forEach(function (d, i) {
                 var v;
@@ -147,7 +147,7 @@ describe('tangelo.data.smoother', function () {
             smoother({
                 data: data,
                 kernel: 'gaussian',
-                width: 100
+                radius: 100
             }).forEach(function (d) {
                 expect(Math.abs(d - mean)/mean).toBeLessThan(1e-4);
             });
@@ -168,7 +168,7 @@ describe('tangelo.data.smoother', function () {
             data[50].y = 1;
             smoother({
                 kernel: 'gaussian',
-                width: sigma * 3,
+                radius: sigma * 3,
                 absolute: true,
                 data: data,
                 set: function (v, d) {
@@ -189,8 +189,8 @@ describe('tangelo.data.smoother', function () {
     });
 
     describe('custom kernel', function () {
-        var width = 5,
-            alpha = width/3,
+        var radius = 5,
+            alpha = radius/3,
             n = 101,
             data = [],
             i;
@@ -210,7 +210,7 @@ describe('tangelo.data.smoother', function () {
 
         smoother({
             kernel: expKernel,
-            width: width,
+            radius: radius,
             absolute: true,
             data: data,
             set: function (v, d) {
@@ -222,7 +222,7 @@ describe('tangelo.data.smoother', function () {
 
         data.forEach(function (d, i) {
             var v;
-            if (i < 50 - width || i > 50 + width) {
+            if (i < 50 - radius || i > 50 + radius) {
                 expect(d.y).toBe(0);
             } else {
                 v = expKernel(data[50].x, d.x);

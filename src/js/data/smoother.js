@@ -21,8 +21,8 @@
  *          (only needed for mutating the data array,
  *          smoothed values are always returned)
  *     kernel: 'box', 'gaussian', or a custom kernel function
- *     width: the bandwidth of the convolution
- *     absolute: whether the width is specified in absolute or
+ *     radius: the bandwidth of the convolution
+ *     absolute: whether the radius is specified in absolute or
  *               relative coordinates
  *     sorted: whether the input data is sorted by x or not
  *     normalize: whether or not to normalize the kernel to sum to 1
@@ -32,7 +32,7 @@
  *   if spec.set was defined
  *
  * WARNING: This performs a naive convolution with n^2 performance for large
- *          kernel widths.  Should replace with an FFT implementation in the
+ *          kernel radii.  Should replace with an FFT implementation in the
  *          future.
  */
 
@@ -47,9 +47,9 @@
                     return 1;
                 };
             },
-            // gaussian kernel with sigma = width / 3
-            gaussian: function (width) {
-                var sigma = width / 3,
+            // gaussian kernel with sigma = radius / 3
+            gaussian: function (radius) {
+                var sigma = radius / 3,
                     c = 1.0 / (sigma * Math.sqrt(2.0 * Math.PI)),
                     s2 = sigma * sigma;
                 return function (xi, xj) {
@@ -64,7 +64,7 @@
             y = tangelo.accessor(spec.y || {field: 'y'}),
             set = spec.set,
             kernel = spec.kernel || 'box',
-            width = spec.width !== undefined ? spec.width : 0.05,
+            radius = spec.radius !== undefined ? spec.radius : 0.05,
             absolute = spec.absolute !== undefined ? spec.absolute : false,
             sorted = spec.sorted !== undefined ? spec.sorted : true,
             normalize = spec.normalize !== undefined ? spec.normalize : true,
@@ -85,27 +85,27 @@
             });
         }
 
-        // if the width is not absolute compute the absolute width
+        // if the radius is not absolute compute the absolute radius
         // from the extent of the data
         if (!absolute) {
             w = x(data[N - 1]) - x(data[0]);
             if (w < 0) {
                 tangelo.fatalError('Unsorted input detected.  Try spec.sorted=false');
             }
-            width = width * w;
+            radius = radius * w;
         }
 
         // get the predefined kernel if the kernel option is a string
         if (typeof kernel === 'string') {
-            kernel = kernels[kernel](width);
+            kernel = kernels[kernel](radius);
             if (!kernel) {
                 tangelo.fatalError('Unknown kernel "' + kernel + '"');
             }
         }
 
-        // if width is negative no smoothing is done
+        // if radius is negative no smoothing is done
         // just set values array and return
-        if (width < 0) {
+        if (radius < 0) {
             data.forEach(function (d, i) {
                 values[i] = y(d);
                 if (set) {
@@ -131,17 +131,17 @@
             xi = x(data[i]);
             yi = 0;
 
-            for (j = iStart; j < N; j += 1) { // loop over data inside convolution width
+            for (j = iStart; j < N; j += 1) { // loop over data inside convolution radius
 
                 // get the x and y values at j
                 xj = x(data[j]);
                 yj = copy[j];
 
-                if (xj > xi + width) {
+                if (xj > xi + radius) {
                     // we have finished the local convolution
                     break;
                 }
-                if (xj < xi - width) {
+                if (xj < xi - radius) {
                     // istart was too small
                     // update rolling start index
                     iStart = j + 1;
