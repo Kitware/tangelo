@@ -329,8 +329,8 @@ common data formats into a common format usable by Tangelo plugins.
     :param Accessor spec.y: An accessor to the dependent variable.
     :param function spec.set: A function to set the dependent variable of a data object.
     :param string spec.kernel: A string denoting a predefined kernel or a function computing a custom kernel.
-    :param number spec.width: The radius of the convolution.
-    :param bool spec.absolute: Whether the width is given in absolute coordinates or relative to the data extent.
+    :param number spec.radius: The radius of the convolution.
+    :param bool spec.absolute: Whether the radius is given in absolute coordinates or relative to the data extent.
     :param bool spec.sorted: Whether the data is presorted by independent variable, if not the data will be sorted internally.
     :param bool spec.normalize: Whether or not to normalize the kernel to 1.
 
@@ -339,10 +339,10 @@ common data formats into a common format usable by Tangelo plugins.
 
     .. math:: y_i \leftarrow \sum_{\left|x_i - x_j\right|<R} K\left(x_i,x_j\right)y_j
 
-    for :math:`R=` **spec.width** and :math:`K=` **spec.kernel**.  Predefined kernels can be specified as strings,
+    for :math:`R=` **spec.radius** and :math:`K=` **spec.kernel**.  Predefined kernels can be specified as strings,
     this include:
         * *box*: simple moving average (default),
-        * *gaussian*: gaussian with standard deviation **spec.width**/3.
+        * *gaussian*: gaussian with standard deviation **spec.radius**/3.
     
     The function returns an array of numbers representing the smoothed dependent variables.  In addition 
     if **spec.set** was given, the input data object is modified as well.  The set method is called after
@@ -372,7 +372,7 @@ common data formats into a common format usable by Tangelo plugins.
         smoother({
             data: data,
             kernel: 'gaussian',
-            width: 3,
+            radius: 3,
             absolute: true,
             sorted: false
         })
