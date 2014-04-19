@@ -59,7 +59,7 @@
             }
         };
 
-    tangelo.data.smoother = function (spec) {
+    tangelo.data.smooth = function (spec) {
         var x = tangelo.accessor(spec.x || {field: 'x'}),
             y = tangelo.accessor(spec.y || {field: 'y'}),
             set = spec.set,

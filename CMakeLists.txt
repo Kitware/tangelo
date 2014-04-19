@@ -234,7 +234,7 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/src/js/data/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/data/tree.js
     ${CMAKE_SOURCE_DIR}/src/js/data/distanceCluster.js
-    ${CMAKE_SOURCE_DIR}/src/js/data/smoother.js
+    ${CMAKE_SOURCE_DIR}/src/js/data/smooth.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/GoogleMapSVG.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/controlPanel.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/dendrogram.js
@@ -340,7 +340,7 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/data/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/data/tree.js
     ${CMAKE_SOURCE_DIR}/src/js/data/distanceCluster.js
-    ${CMAKE_SOURCE_DIR}/src/js/data/smoother.js
+    ${CMAKE_SOURCE_DIR}/src/js/data/smooth.js
 )
 
 # These files should be copied to the build directory.

@@ -322,7 +322,7 @@ common data formats into a common format usable by Tangelo plugins.
         clusters: [ [ data[0], data[1] ] ]
     }
 
-.. js:function:: tangelo.data.smoother(spec)
+.. js:function:: tangelo.data.smooth(spec)
 
     :param object spec.data: An array of data objects.
     :param Accessor spec.x: An accessor to the independent variable.
@@ -362,14 +362,14 @@ common data formats into a common format usable by Tangelo plugins.
 
     .. code-block:: javascript
         
-        smoother({ data: data })
+        smooth({ data: data })
     
     will perform a simple moving average of the data over a window that
     is of radius :math:`0.05` times the data extent.  A more advanced example
 
     .. code-block:: javascript
 
-        smoother({
+        smooth({
             data: data,
             kernel: 'gaussian',
             radius: 3,

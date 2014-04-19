@@ -1,10 +1,10 @@
 /*jslint unparam: true*/
 /*globals describe, it, expect, tangelo */
 
-describe('tangelo.data.smoother', function () {
+describe('tangelo.data.smooth', function () {
     'use strict';
 
-    var smoother = tangelo.data.smoother;
+    var smooth = tangelo.data.smooth;
 
     function makeData(n, x, y, xf) {
         var i, data = [], d;
@@ -25,8 +25,8 @@ describe('tangelo.data.smoother', function () {
 
     describe('edge cases', function () {
         it('empty data', function () {
-            expect(smoother({})).toEqual([]);
-            expect(smoother({data: []})).toEqual([]);
+            expect(smooth({})).toEqual([]);
+            expect(smooth({data: []})).toEqual([]);
         });
         it('non positive radius', function () {
             var data = makeData(10);
@@ -34,7 +34,7 @@ describe('tangelo.data.smoother', function () {
             data.forEach(function (d) {
                 values.push(d.y);
             });
-            smoother({
+            smooth({
                     data: data,
                     radius: -1
             }).forEach(function (d) {
@@ -44,7 +44,7 @@ describe('tangelo.data.smoother', function () {
         it('test in place data mutation', function () {
             var data = makeData(25),
                 obj = {};
-            smoother({
+            smooth({
                 data: data,
                 set: function (val, d, i) {
                     this[i]._obj1 = obj;
@@ -65,7 +65,7 @@ describe('tangelo.data.smoother', function () {
                 mean += d.y;
             });
             mean = mean/n;
-            values = smoother({
+            values = smooth({
                 data: data,
                 radius: 0
             });
@@ -80,7 +80,7 @@ describe('tangelo.data.smoother', function () {
                 values.push(d.y);
             });
             data.reverse();
-            expect(smoother({
+            expect(smooth({
                 data: data,
                 sorted: false,
                 radius: 0
@@ -97,7 +97,7 @@ describe('tangelo.data.smoother', function () {
                 mean += d.y;
             });
             mean = mean / n;
-            smoother({
+            smooth({
                 data: data,
                 kernel: 'box',
                 radius: 10
@@ -115,7 +115,7 @@ describe('tangelo.data.smoother', function () {
                     y: i
                 });
             }
-            smoother({
+            smooth({
                 data: data,
                 kernel: 'box',
                 radius: 1.5,
@@ -144,7 +144,7 @@ describe('tangelo.data.smoother', function () {
                 mean += d.y;
             });
             mean = mean / n;
-            smoother({
+            smooth({
                 data: data,
                 kernel: 'gaussian',
                 radius: 100
@@ -166,7 +166,7 @@ describe('tangelo.data.smoother', function () {
                 });
             }
             data[50].y = 1;
-            smoother({
+            smooth({
                 kernel: 'gaussian',
                 radius: sigma * 3,
                 absolute: true,
@@ -208,7 +208,7 @@ describe('tangelo.data.smoother', function () {
 
         data[50].y = 1;
 
-        smoother({
+        smooth({
             kernel: expKernel,
             radius: radius,
             absolute: true,
@@ -236,7 +236,7 @@ describe('tangelo.data.smoother', function () {
             data = makeData(n),
             xCount = 0, yCount = 0;
 
-        smoother({
+        smooth({
             data: data,
             x: function (d) {
                 xCount += 1;
