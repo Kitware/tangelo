@@ -49,5 +49,5 @@ distutils.core.setup(name="tangelo",
                      "with the power of Python",
                      license="Apache License, Version 2.0",
                      platforms=["Linux", "OS X", "Windows"],
-                     install_requires=["cherrypy >= 3.2",
+                     install_requires=["cherrypy == 3.2.4",
                                        "Twisted >= 13.2"])
