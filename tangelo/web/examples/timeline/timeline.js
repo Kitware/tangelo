@@ -56,7 +56,7 @@ window.onload = function () {
     smooth(radii[iRadius]);
     draw();
     $(window).resize(draw);
-    $('body').click(function () {
+    $('#next').click(function () {
         var t = 500;
         iRadius = (iRadius + 1) % radii.length;
         if (iRadius === 0) {
