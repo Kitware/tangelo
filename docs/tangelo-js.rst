@@ -322,6 +322,63 @@ common data formats into a common format usable by Tangelo plugins.
         clusters: [ [ data[0], data[1] ] ]
     }
 
+.. js:function:: tangelo.data.smooth(spec)
+
+    :param object spec.data: An array of data objects.
+    :param Accessor spec.x: An accessor to the independent variable.
+    :param Accessor spec.y: An accessor to the dependent variable.
+    :param function spec.set: A function to set the dependent variable of a data object.
+    :param string spec.kernel: A string denoting a predefined kernel or a function computing a custom kernel.
+    :param number spec.radius: The radius of the convolution.
+    :param bool spec.absolute: Whether the radius is given in absolute coordinates or relative to the data extent.
+    :param bool spec.sorted: Whether the data is presorted by independent variable, if not the data will be sorted internally.
+    :param bool spec.normalize: Whether or not to normalize the kernel to 1.
+
+    Performs 1-D smoothing on a dataset by convolution with a kernel function.  The mathematical operation performed is as
+    follows:
+
+    .. math:: y_i \leftarrow \sum_{\left|x_i - x_j\right|<R} K\left(x_i,x_j\right)y_j
+
+    for :math:`R=` **spec.radius** and :math:`K=` **spec.kernel**.  Predefined kernels can be specified as strings,
+    this include:
+        * *box*: simple moving average (default),
+        * *gaussian*: gaussian with standard deviation **spec.radius**/3.
+    
+    The function returns an array of numbers representing the smoothed dependent variables.  In addition 
+    if **spec.set** was given, the input data object is modified as well.  The set method is called after
+    smoothing as follows:
+
+    .. code-block:: javascript
+
+        set.call(data, y(data[i]), data[i], i),
+
+    and the kernel is called as:
+
+    .. code-block:: javascript
+
+        kernel.call(data, x(data[i]), x(data[j]), i, j).
+
+    The default options called by
+
+    .. code-block:: javascript
+        
+        smooth({ data: data })
+    
+    will perform a simple moving average of the data over a window that
+    is of radius :math:`0.05` times the data extent.  A more advanced example
+
+    .. code-block:: javascript
+
+        smooth({
+            data: data,
+            kernel: 'gaussian',
+            radius: 3,
+            absolute: true,
+            sorted: false
+        })
+
+    will sort the input data and perform a gaussian smooth with standard deviation equal to :math:`1`.
+
 .. _streaming-js:
 
 Streaming API
