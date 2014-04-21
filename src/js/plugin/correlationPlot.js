@@ -270,6 +270,10 @@
 
     }
 
+    if (!$ || !$.widget) {
+        return;
+    }
+
     tangelo.widget('tangelo.correlationPlot', {
         options: {
             variables: [],
