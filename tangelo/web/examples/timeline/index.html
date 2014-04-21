@@ -1,0 +1,91 @@
+<!doctype html>
+<meta charset=utf-8>
+
+<title>timeline</title>
+
+<style>
+    html, body {
+        height: 100%;
+    }
+
+    body {
+        padding-top: 50px;
+    }
+
+    .axis path, .axis line {
+        fill: none;
+        stroke: black;
+        stroke-width: 1px;
+        shape-rendering: crispEdges;
+    }
+
+    .axis text {
+        font-family: sans-serif;
+        font-size: 11px;
+    }
+
+    .plot path {
+        fill: none;
+        stroke: steelblue;
+        stroke-width: 1.5px;
+    }
+</style>
+
+<link href=http://code.jquery.com/ui/1.9.1/themes/smoothness/jquery-ui.css rel=stylesheet>
+<link href=http://bootswatch.com/cosmo/bootstrap.min.css rel=stylesheet type=text/css>
+<link href=//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css rel=stylesheet>
+<script src=https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false></script>
+<script src=http://d3js.org/d3.v3.min.js></script>
+<script src=http://d3js.org/topojson.v1.min.js></script>
+<script src=http://trifacta.github.io/vega/releases/v1.3.3/vega.min.js></script>
+<script src=http://code.jquery.com/jquery-1.8.2.min.js></script>
+<script src=http://code.jquery.com/ui/1.9.1/jquery-ui.min.js></script>
+<script src=http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js></script>
+<script src=/js/tangelo.js></script>
+<script src=timeline.js></script>
+
+<div id=info-panel class="modal fade">
+    <div class=modal-dialog>
+        <div class=modal-content>
+            <div class=modal-header>
+                <h3>Information</h3>
+            </div>
+
+            <div class=modal-body>
+                <p>The timeline plugin, which allows you to create smoothed
+                timeline plots.</p>
+
+                <p>On display are two charts plotting the same data but with
+                different smoothing kernels.  Click the button to change the
+                smoothing radius and see how the plot is affected.</p>
+            </div>
+
+            <div class=modal-footer>
+                <a class="btn btn-default" data-dismiss=modal>OK</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class=navbar-header>
+        <a class=navbar-brand href=/examples>Tangelo</a>
+    </div>
+
+    <ul class="nav navbar-nav">
+        <li class=active> <a>Timeline</a>
+        <li><a style=cursor:pointer data-toggle=modal data-target=#info-panel><span class="glyphicon glyphicon-info-sign"></span> Info</a>
+    </ul>
+</div>
+
+<div class=container>
+    <div class=row>
+        <div id=next class='btn btn-success col-md-2 col-md-offset-5'>Change smoothing radius</div>
+    </div>
+</div>
+
+<div id=textBox style='text-align: right'></div>
+<div style='text-align: center'>Box kernel</div>
+<div id=content1 class=content style="height: 45%"></div>
+<div style='text-align: center'>Gaussian kernel</div>
+<div id=content2 class=content style="height: 45%"></div>
