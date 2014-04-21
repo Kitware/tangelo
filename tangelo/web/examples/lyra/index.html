@@ -1,0 +1,139 @@
+<!doctype html>
+<meta charset=utf-8>
+
+<title>Lyra Editor</title>
+
+<script src=http://code.jquery.com/jquery-1.8.2.min.js></script>
+<script src=http://d3js.org/d3.v3.min.js charset=utf-8></script>
+<script src=/js/tangelo.min.js></script>
+<script src=http://trifacta.github.io/vega/vega.min.js></script>
+<script src=//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js></script>
+<script src=//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js></script>
+<script src=index-backbone.js></script>
+
+<link href=http://bootswatch.com/cosmo/bootstrap.min.css rel=stylesheet>
+<link href=//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css rel=stylesheet>
+<script src=http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js></script>
+
+<script src=//cdnjs.cloudflare.com/ajax/libs/ace/1.1.01/ace.js></script>
+
+<script type=text/template id=vis-files-view-template>
+    <div class="btn-group">
+      <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+          <em>Select a File</em> <span class=caret></span>
+      </button>
+      <ul class="dropdown-menu" role="menu"></ul>
+    </div>
+</script>
+
+<style>
+    body {
+        padding-top: 50px;
+    }
+
+    #ace-editor {
+        height: 400px;
+    }
+</style>
+
+<div id=info-panel class="modal fade">
+    <div class=modal-dialog>
+        <div class=modal-content>
+            <div class=modal-header>
+                <h3>Information</h3>
+            </div>
+
+            <div class=modal-body>
+                <p>This application demonstrates how to integrate <a
+                    href=http://idl.cs.washington.edu/projects/lyra/>Lyra</a>
+                into a Tangelo application.
+
+                <p>Select a data set from the data menu.  You can inspect this
+                data set in the ACE editor if you like.  Next, click the "New"
+                button to launch Lyra in a new browser tab.  Your selected data
+                set will be available for use while designing your
+                visualization.  When you are done, click the "Finish Editing"
+                button (in the "Share" icon menu at the bottom).  Lyra will send
+                your visualization back to this page, where it will be rendered,
+                and placed in the visualization selection menu.
+
+                <p>The other buttons in the visualization section behave as you
+                would expect, persisting your work to a Girder server.</p>
+            </div>
+
+            <div class=modal-footer>
+                <a class="btn btn-default" data-dismiss=modal>OK</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id=save-dialog class="modal fade">
+    <div class=modal-dialog>
+        <div class=modal-content>
+            <div class=modal-header>
+                <h4>Save Visualization</h4>
+            </div>
+
+            <div class=modal-body>
+                <input id=save-filename type=text class=form-control placeholder="Save filename">
+                <div id=save-alert></div>
+            </div>
+
+            <div class=modal-footer>
+                <a class="btn btn-default" data-dismiss=modal>Cancel</a>
+                <a id=save-button class="btn btn-success">Save</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id=no-data-dialog class="modal fade">
+    <div class=modal-dialog>
+        <div class=modal-content>
+            <div class=modal-header>
+                <h4>Error: No Data Set Selected</h4>
+            </div>
+
+            <div class=modal-body>
+                <div class="alert alert-danger">Plase select a dataset from the data
+                    menu before creating a new Lyra visualization</div>
+            </div>
+
+            <div class=modal-footer>
+                <a class="btn btn-default" data-dismiss=modal>OK</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class=navbar-header>
+        <a class=navbar-brand href=/examples>Tangelo</a>
+    </div>
+
+    <ul class="nav navbar-nav">
+        <li class=active> <a>Lyra/Tangelo Integration</a>
+        <li><a style=cursor:pointer data-toggle=modal data-target=#info-panel><span class="glyphicon glyphicon-info-sign"></span> Info</a>
+    </ul>
+</div>
+
+<h1>Create/Edit Visualizations with Lyra</h1>
+
+<h2>Data</h2>
+<span id=data-files-view></span>
+<button id=show-data class="btn btn-default">Hide</button>
+
+<div id=ace>
+</div>
+
+<h2>Visualization</h2>
+<button id=create class="btn btn-default">New</button>
+<span id=vis-files-view></span>
+
+<button id=edit class="btn btn-default">Edit</button>
+<button id=save class="btn btn-default">Save</button>
+<button id=delete class="btn btn-danger">Delete</button>
+
+<div id=vega>
+</div>

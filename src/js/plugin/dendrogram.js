@@ -203,7 +203,7 @@
                 if (!node.parent) {
                     node.parent = node;
                 }
-                if (node.children) {
+                if (node.children && node.children.length) {
                     node.children.forEach(function (d) {
                         d.parent = node;
                         setPosition(d, pos + 10 * that.options.distance(d));
