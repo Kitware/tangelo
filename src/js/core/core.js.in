@@ -104,7 +104,7 @@ var tangelo = {};
         //
         // Negative numbers and non-number strings are not allowed in the
         // version number components.
-        tangelo.parse = function (s) {
+        parse = function (s) {
             var parts,
                 ver,
                 tag,
@@ -159,8 +159,8 @@ var tangelo = {};
 
         // Parse out the structures of the required version string, and the
         // current Tangelo version string.
-        reqv = tangelo.parse(reqvstr);
-        tanv = tangelo.parse(tangelo.version());
+        reqv = parse(reqvstr);
+        tanv = parse(tangelo.version());
 
         // If either of them fails to parse, raise a fatal error.
         if (!tanv) {

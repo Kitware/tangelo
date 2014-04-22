@@ -9,8 +9,7 @@ declareTest({
         "use strict";
 
         var screencap,
-            ground,
-            diff;
+            ground;
 
         screencap = page.evaluate(function () {
             var canvas = $("canvas")[0],

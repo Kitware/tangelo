@@ -9,8 +9,6 @@ $(function () {
             arr,
             main,
             controls,
-            addButton,
-            removeButton,
             elements;
 
         spec = spec || {};
@@ -19,14 +17,14 @@ $(function () {
         main = d3.select(spec.parent).append("div").style("background-color", "rgba(150,150,150,0.1)").attr("class", "row");
         elements = main.append("div");
         controls = main.append("div").attr("class", "btn-group");
-        addButton = controls.append("button")
+        controls.append("button")
             .classed("btn", true)
             .classed("btn-default", true)
             .text("Add")
             .on("click", function () {
                 arr.push(spec.element.editor(spec.element));
             });
-        removeButton = controls.append("button")
+        controls.append("button")
             .classed("btn", true)
             .classed("btn-default", true)
             .text("Remove")
@@ -138,35 +136,36 @@ $(function () {
         that = {};
 
         that.value = function (v) {
-            var d, val = {};
+            var dd,
+                val = {};
 
             if (v === undefined) {
-                for (d in obj) {
-                    if (obj.hasOwnProperty(d)) {
-                        if (obj[d].active) {
-                            val[d] = obj[d].value();
+                for (dd in obj) {
+                    if (obj.hasOwnProperty(dd)) {
+                        if (obj[dd].active) {
+                            val[dd] = obj[dd].value();
                         }
                     }
                 }
                 return val;
             }
 
-            for (d in obj) {
-                if (obj.hasOwnProperty(d)) {
-                    obj[d].active = false;
-                    obj[d].check.property("checked", false);
-                    $(obj[d].parent).hide("fast");
+            for (dd in obj) {
+                if (obj.hasOwnProperty(dd)) {
+                    obj[dd].active = false;
+                    obj[dd].check.property("checked", false);
+                    $(obj[dd].parent).hide("fast");
                 }
             }
-            for (d in v) {
-                if (v.hasOwnProperty(d)) {
-                    if (obj.hasOwnProperty(d)) {
-                        obj[d].value(v[d]);
-                        obj[d].active = true;
-                        obj[d].check.property("checked", true);
-                        $(obj[d].parent).show("fast");
+            for (dd in v) {
+                if (v.hasOwnProperty(dd)) {
+                    if (obj.hasOwnProperty(dd)) {
+                        obj[dd].value(v[dd]);
+                        obj[dd].active = true;
+                        obj[dd].check.property("checked", true);
+                        $(obj[dd].parent).show("fast");
                     } else {
-                        console.log("warning: unknown property encountered: " + d);
+                        console.log("warning: unknown property encountered: " + dd);
                     }
                 }
             }
@@ -331,8 +330,6 @@ $(function () {
         that = {};
 
         that.value = function (v) {
-            var values;
-
             if (v === undefined) {
                 return select.property("value");
             }
@@ -446,9 +443,11 @@ $(function () {
         }
     });
 
+    /*jslint unparam: true */
     d3.json("arc.json", function (error, spec) {
         editor.value(spec);
     });
+    /*jslint unparam: false */
 
     window.setInterval(function () {
         var spec = editor.value();

@@ -75,7 +75,7 @@ class TangeloVtkweb(object):
             # Make a report to the user.
             return json.dumps(response)
         elif method == "POST":
-            #if len(pargs) == 0:
+            # if len(pargs) == 0:
             if progpath is None or len(progpath) == 0:
                 return json.dumps(
                     {"status": "incomplete",

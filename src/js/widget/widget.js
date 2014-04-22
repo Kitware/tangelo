@@ -1,4 +1,4 @@
-/*jslint browser: true, nomen: true */
+/*jslint browser: true, nomen: true, todo: true */
 
 (function (tangelo, $) {
     "use strict";
@@ -32,11 +32,10 @@
                 this._update();
             },
 
-            _update: function () {
-                // This function intentionally does nothing.  It is here as a
-                // placeholder to avoid an error in case a child widget does not
-                // supply an _update() method for some reason.
-            }
+            // This function intentionally does nothing.  It is here as a
+            // placeholder to avoid an error in case a child widget does not
+            // supply an _update() method for some reason.
+            _update: $.noop
         });
 
         tangelo.widget = function (name, spec) {

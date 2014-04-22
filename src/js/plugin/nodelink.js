@@ -124,7 +124,7 @@
                     .text(this.options.nodeLabel);
             }
 
-            this.force.on("tick", function () { that._tick.call(that); });
+            this.force.on("tick", function () { that._tick(that); });
 
             this.force.resume();
         },

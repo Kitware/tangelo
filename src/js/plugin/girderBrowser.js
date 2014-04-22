@@ -1,4 +1,4 @@
-/*jslint browser: true */
+/*jslint browser: true, nomen: true */
 
 (function ($, d3, tangelo) {
     "use strict";
@@ -55,6 +55,7 @@
                 wait.remove();
 
                 if (items.length > 0) {
+                    /*jslint unparam: true */
                     $.each(items, function (i, item) {
                         anchor = el.append("li")
                             .append("a")
@@ -65,6 +66,7 @@
                             selectItem(item, api);
                         });
                     });
+                    /*jslint unparam: false */
                 }
 
             });
@@ -91,6 +93,7 @@
 
                 $(el.node()).empty();
 
+                /*jslint unparam: true */
                 $.each(folders, function (i, f) {
                     elem = el.append("li")
                         .classed("dropdown-submenu", true);
@@ -110,6 +113,7 @@
                         .classed("divider", true);
                     findItems(elem, f._id);
                 });
+                /*jslint unparam: false */
             });
         };
 
@@ -216,8 +220,6 @@
         // Query the Girder API for the top level users and collections, and
         // display them in the top menu level.
         d3.json(api + "/user", function (error, users) {
-            var i;
-
             if (error) {
                 console.warn(error);
                 tangelo.fatalError("girderBrowser", "could not retrieve users");
@@ -229,6 +231,7 @@
                 menu.append("li")
                     .html("<strong>Users</strong>");
 
+                /*jslint unparam: true */
                 $.each(users, function (i, user) {
                     item = menu.append("li")
                         .classed("dropdown-submenu", true);
@@ -242,6 +245,7 @@
 
                     findFolders(item, "user", user._id);
                 });
+                /*jslint unparam: false */
             }
 
             d3.json(api + "/collection", function (error, collections) {
@@ -254,6 +258,7 @@
                     menu.append("li")
                         .html("<strong>Collections</strong>");
 
+                    /*jslint unparam: true */
                     $.each(collections, function (i, collection) {
                         item = menu.append("li")
                             .classed("dropdown-submenu", true);
@@ -267,6 +272,7 @@
 
                         findFolders(item, "collection", collection._id);
                     });
+                    /*jslint unparam: false */
                 }
             });
         });

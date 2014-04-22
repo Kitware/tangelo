@@ -166,7 +166,7 @@
             return temp;
         };
 
-        if (spec === undefined || tangelo.isObject(spec) && Object.keys(spec).length === 0) {
+        if (spec === undefined || (tangelo.isObject(spec) && Object.keys(spec).length === 0)) {
             func = function () {
                 tangelo.fatalError("tangelo.accessor()", "I am an undefined accessor - you shouldn't be calling me!");
             };
@@ -176,7 +176,9 @@
         } else if (spec.hasOwnProperty("value")) {
             func = function () { return spec.value; };
         } else if (spec.hasOwnProperty("index")) {
+            /*jslint unparam: true */
             func = function (d, i) { return i; };
+            /*jslint unparam: false */
         } else if (spec.hasOwnProperty("field")) {
             if (spec.field === ".") {
                 func = function (d) {

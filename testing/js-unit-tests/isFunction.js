@@ -4,7 +4,7 @@ describe("isFunction()", function () {
     "use strict";
 
     it("Test 1 - function", function () {
-        expect(tangelo.isFunction(function () {}))
+        expect(tangelo.isFunction(tangelo.isFunction))
             .toBe(true);
     });
 
