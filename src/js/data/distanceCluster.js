@@ -61,7 +61,7 @@
                 by = yAcc(b),
                 x = (ax - bx),
                 y = (ay - by);
-            return Math.sqrt( x * x + y * y );
+            return Math.sqrt(x * x + y * y);
         };
     }
 
@@ -78,26 +78,33 @@
         c.children = [];
         return c;
     }
-    
+
     // main clustering function
     function cluster(spec) {
-        spec = spec || {};
+        // extract components from the argument using defaults if unspecified
+        var xAcc,
+            yAcc,
+            metric,
+            data,
+            dist,
+            clusters = [],
+            c = [],
+            i,
+            j,
+            added,
+            singlets = [],
+            groups = [];
 
-        // extract components from the argument
-        // using defaults if unspecified
-        var xAcc, yAcc, metric, data, dist;
+        spec = spec || {};
 
         xAcc = spec.x || tangelo.accessor({field: 'x'});
         yAcc = spec.y || tangelo.accessor({field: 'y'});
         metric = spec.metric || defaultMetric(xAcc, yAcc);
         dist = spec.clusterDistance || 20;
         data = spec.data || [];
-        
-        // local variables
-        var clusters = [], c = [], i, j, added, singlets = [], groups = [];
-        
-        // Here we provide a way to short circuit the clustering algorithm 
-        // by providing a negative distance.  Return all data as singlets.
+
+        // Here we provide a way to short circuit the clustering algorithm by
+        // providing a negative distance.  Return all data as singlets.
         if (dist < 0) {
             return {
                 singlets: data.slice(),
@@ -106,15 +113,15 @@
         }
 
         // loop over all data elements
-        for (i = 0; i < data.length; i++) {
+        for (i = 0; i < data.length; i += 1) {
             added = false;
 
             // loop over all clusters
-            for (j = 0; j < clusters.length; j++) {
+            for (j = 0; j < clusters.length; j += 1) {
                 c = clusters[j];
-                
+
                 // if this cluster is within the clustering distance add the element
-                if ( metric(data[i], c.center()) < dist ) {
+                if (metric(data[i], c.center()) < dist) {
                     c.push(data[i]);
                     added = true;
                     break;
@@ -128,7 +135,7 @@
                 clusters.push(c);
             }
         }
-        
+
         // remove all clusters with only one element 
         // and add them to the singlets array
         clusters.forEach(function (d) {

@@ -76,7 +76,7 @@ page.open(url, function (status) {
                 return document.body.querySelector('#blanket-main') !== null;
             });
         }, function () {
-            var pct = page.evaluate(function () {
+            var percent = page.evaluate(function () {
                 var el = document.querySelector(".blanket.bl-error .bl-cl.rs"),
                     text,
                     pct;
@@ -96,11 +96,11 @@ page.open(url, function (status) {
                 return pct;
             });
 
-            if (pct === null) {
+            if (percent === null) {
                 phantom.exit(1);
             } else {
-                console.log("coverage is " + pct + "%, threshold for passing is " + threshold + "%");
-                phantom.exit(pct < threshold);
+                console.log("coverage is " + percent + "%, threshold for passing is " + threshold + "%");
+                phantom.exit(percent < threshold);
             }
         });
     }

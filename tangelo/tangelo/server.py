@@ -308,7 +308,7 @@ class Tangelo(object):
             reqpath = reqpath[:-1]
         files = filter(lambda x: len(x) > 0 and x[0] != ".",
                        os.listdir(dirpath))
-        #filespec = ["Type", "Name", "Last modified", "Size"]
+        # filespec = ["Type", "Name", "Last modified", "Size"]
         filespec = []
         for f in files:
             p = dirpath + os.path.sep + f

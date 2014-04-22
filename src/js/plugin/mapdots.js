@@ -20,9 +20,9 @@
 
         _create: function () {
             var el = this.element.get(0),
-                that = this,
-                overlay,
-                options;
+                that = this;
+                //overlay,
+                //options;
 
             this.map = new google.maps.Map(el, {
                 zoom: 2,
@@ -43,7 +43,7 @@
 
             // Add the container when the overlay is added to the map.
             this.overlay.onAdd = function () {
-                var sizeScale;
+                //var sizeScale;
 
                 that.layer = d3.select(this.getPanes().overlayMouseTarget)
                     .append("div")
@@ -98,7 +98,7 @@
                         .remove();
                 };
 
-                this.onRemove = function () {};
+                this.onRemove = $.noop;
             };
 
             this.overlay.setMap(this.map);

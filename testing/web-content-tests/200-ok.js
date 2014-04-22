@@ -1,4 +1,4 @@
-/*jslint browser: true */
+/*jslint browser: true, unparam: true */
 /*globals declareTest, compareImages, toImageData */
 
 declareTest({

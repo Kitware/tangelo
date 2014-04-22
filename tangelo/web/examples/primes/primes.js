@@ -5,8 +5,7 @@
 $(function () {
     "use strict";
 
-    var primes_key,
-        values = [];
+    var values = [];
 
     tangelo.stream.start("primes", function (primes_key) {
         var offset = 0;

@@ -117,7 +117,7 @@ def treat_url():
     else:
         service_path = None
         pargs = None
-        #for i, comp in enumerate(pathcomp):
+        # for i, comp in enumerate(pathcomp):
         for i in range(len(pathcomp)):
             service_path = os.path.sep.join(pathcomp[:(i + 1)]) + ".py"
             if os.path.exists(service_path):

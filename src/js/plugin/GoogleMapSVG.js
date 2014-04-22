@@ -1,4 +1,4 @@
-/*jslint browser: true */
+/*jslint browser: true, todo: true */
 
 (function (tangelo, $, google, d3) {
     "use strict";
@@ -87,7 +87,7 @@
             el.style("-moz-transform");
 
         if (!transtext || transtext === "none") {
-            transtext = "matrix(1, 0, 0, 1, " + el.style("left").slice(0,-2) + ", " + el.style("top").slice(0,-2) + ")";
+            transtext = "matrix(1, 0, 0, 1, " + el.style("left").slice(0, -2) + ", " + el.style("top").slice(0, -2) + ")";
         }
 
         // Remove commas and parentheses and whatnot from the array components
@@ -138,9 +138,11 @@
             attacher;
 
         if (Object.prototype.toString.call(eventType) === "[object Array]") {
+            /*jslint unparam: true */
             $.each(eventType, function (i, v) {
                 that.attachListener(v, callback, how);
             });
+            /*jslint unparam: false */
             return;
         }
 

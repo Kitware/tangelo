@@ -1,6 +1,6 @@
 /*jslint browser: true */
 
-(function (tangelo, $, d3) {
+(function ($, d3) {
     "use strict";
 
     if (!($ && d3)) {
@@ -64,6 +64,7 @@
             .style("fill", "white")
             .style("opacity", 0.7);
 
+        /*jslint unparam: true */
         $.each(categories, function (i, d) {
             legend.append("rect")
                 .classed("colorbox", true)
@@ -87,6 +88,7 @@
                 maxheight = bbox.height;
             }
         });
+        /*jslint unparam: false */
 
         // Compute the height and width of each color swatch.
         height = maxheight + height_padding;
@@ -109,9 +111,11 @@
             .attr("width", left + totalwidth + right)
             .attr("height", top + totalheight + bottom);
 
+        /*jslint unparam: true */
         heightfunc = function (d, i) {
             return yoffset + i * height;
         };
+        /*jslint unparam: false */
 
         legend.selectAll(".colorbox")
             .attr("width", height)
@@ -125,4 +129,4 @@
                 return text_spacing + heightfunc(d, i);
             });
     };
-}(window.tangelo, window.jQuery, window.d3));
+}(window.jQuery, window.d3));

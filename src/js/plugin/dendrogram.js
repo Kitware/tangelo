@@ -278,44 +278,44 @@
                 links = filteredLinks;
             }
 
-            function firstChild(d) {
-                if (d.children) {
-                    return firstChild(d.children[0]);
-                }
-                if (d._children) {
-                    return firstChild(d._children[0]);
-                }
-                return d;
-            }
+/*            function firstChild(d) {*/
+                //if (d.children) {
+                    //return firstChild(d.children[0]);
+                //}
+                //if (d._children) {
+                    //return firstChild(d._children[0]);
+                //}
+                //return d;
+            //}
 
-            function lastChild(d) {
-                if (d.children) {
-                    return lastChild(d.children[d.children.length - 1]);
-                }
-                if (d._children) {
-                    return lastChild(d._children[d._children.length - 1]);
-                }
-                return d;
-            }
+            //function lastChild(d) {
+                //if (d.children) {
+                    //return lastChild(d.children[d.children.length - 1]);
+                //}
+                //if (d._children) {
+                    //return lastChild(d._children[d._children.length - 1]);
+                //}
+                //return d;
+            //}
 
-            function leafCount(d) {
-                var children = d.children,
-                    sum = 0;
-                if (!children) {
-                    children = d._children;
-                }
+            //function leafCount(d) {
+                //var children = d.children,
+                    //sum = 0;
+                //if (!children) {
+                    //children = d._children;
+                //}
 
-                // I am an internal node, so total the leaves of the children
-                if (children) {
-                    children.forEach(function (child) {
-                        sum += leafCount(child);
-                    });
-                    return sum;
-                }
+                //// I am an internal node, so total the leaves of the children
+                //if (children) {
+                    //children.forEach(function (child) {
+                        //sum += leafCount(child);
+                    //});
+                    //return sum;
+                //}
 
-                // I am a leaf
-                return 1;
-            }
+                //// I am a leaf
+                //return 1;
+            //}
 
             // Update the nodes…
             node = this.svg.selectAll("g.node")
