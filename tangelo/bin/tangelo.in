@@ -314,8 +314,8 @@ def stop():
     sys.stderr.write("stopping tangelo...")
 
     try:
-        # Try to kill the process, but bail out with a failure message if the
-        # process is not dead in 10 seconds.
+        # Try to kill the process nicely; send SIGKILL after 10 seconds and wash
+        # our hands of it.
         class Timeout:
             pass
 
@@ -334,8 +334,9 @@ def stop():
                 else:
                     raise Exit
     except Timeout:
-        print >>sys.stderr, "failed (timed out)"
-        return 1
+        print >>sys.stderr, "timed out, sending SIGKILL (you may want to clean up after this process using 'tangelo status --clean')"
+        os.kill(pid, signal.SIGKILL)
+        return 0
     except Exit:
         pass
     except OSError as e:
