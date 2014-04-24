@@ -77,7 +77,7 @@ def pid_from_port(port):
     # Find the file for the process running on the specified port.
     for f in status_files:
         pstatus = tangelo.plugin.StatusFile.read_status_file(f)
-        if pstatus["port"] == str(port):
+        if pstatus["port"] == str(port) and live_pid(int(pstatus["pid"])):
             break
         pstatus = None
 
