@@ -1,4 +1,4 @@
-/*jslint browser: true, unparam: true, nomen: true */
+/*jslint browser: true, unparam: true, nomen: true, white: true */
 
 (function (tangelo, $, d3) {
     "use strict";
@@ -7,519 +7,409 @@
         return;
     }
 
+    if (!d3.selection.prototype.moveToFront) {
+        d3.selection.prototype.moveToFront = function () {
+            return this.each(function (){
+                this.parentNode.appendChild(this);
+            });
+        };
+    }
+
+    var _id = 0,
+        toggleExpand = function (d) {
+        d.collapse = !d.collapse;
+    },
+        getChildren = function (d) {
+        if (!d.collapse) {
+            return d._children;
+        }
+        return [];
+    },
+        getID = function (d) {
+        if (!d._treeID) {
+            _id += 1;
+            d._treeID = _id;
+        }
+        return d._treeID;
+    },
+        each = function (selection, f) {
+        if (f) {
+            selection.each(f);
+        }
+        return selection;
+    };
+
+    function findSource(d) {
+        if (!d.parent || !d._treeNew) {
+            return d;
+        }
+        return findSource(d.parent);
+    }
+
+    function findSink(d) {
+        if (!d.parent || !d._treeOld) {
+            return d;
+        }
+        return findSink(d.parent);
+    }
+
     tangelo.widget("tangelo.dendrogram", {
         options: {
+            // accessor to the node label
             label: tangelo.accessor({value: ""}),
-            distance: tangelo.accessor({value: 1}),
-            id: tangelo.accessor(),
+            // accessor to a unique node id
+            id: getID,
+            // margin spacing
             margin: {
-                top: 20,
-                right: 120,
-                bottom: 20,
-                left: 120
+                top: 35,
+                right: 25,
+                bottom: 25,
+                left: 25
             },
-            nodeLimit: null,
+            // graph size in pixels or null to use the element size
+            width: null,
+            height: null,
+            // transition duration
             duration: 750,
-            root: null,
-            source: null,
-            data: null,
-            mode: "hide",
-            nodesize: 7.5,
-            textsize: 10,
-            orientation: "horizontal",
-            lineStyle: "curved",
-            nodeColor: tangelo.accessor({value: "lightsteelblue"}),
-            nodeOpacity: tangelo.accessor({value: 1}),
-            hoverNodeColor: tangelo.accessor({value: "green"}),
-            hoverNodeOpacity: tangelo.accessor({value: 1}),
-            selectedNodeColor: tangelo.accessor({value: "firebrick"}),
-            selectedNodeOpacity: tangelo.accessor({value: 1}),
-            collapsedNodeColor: tangelo.accessor({value: "blue"}),
-            collapsedNodeOpacity: tangelo.accessor({value: 1}),
-            onNodeCreate: null,
-            onNodeDestroy: null
+            // the tree root
+            data: {},
+            // accessor to node colors
+            nodeColor: tangelo.accessor({'value': 'lightsteelblue'}),
+            // accessor to font size of the labels
+            labelSize: tangelo.accessor({'value': '14px'}),
+            // accessor to line stroke width
+            lineWidth: tangelo.accessor({'value': 1}),
+            // accessor to line stroke color
+            lineColor: tangelo.accessor({'value': 'black'}),
+            // accessor to node circle radius
+            nodeSize: tangelo.accessor({'value': 5}),
+            // functions to call on the selection before
+            // various steps in the construction
+            before: {
+                labelAdd: null,
+                labelRemove: null,
+                labelUpdate: null,
+                lineAdd: null,
+                lineRemove: null,
+                lineUpdate: null,
+                nodeAdd: null,
+                nodeRemove: null,
+                nodeUpdate: null
+            },
+            // functions to call on the selection after
+            // various steps in the construction
+            after: {
+                labelAdd: null,
+                labelRemove: null,
+                labelUpdate: null,
+                lineAdd: null,
+                lineRemove: null,
+                lineUpdate: null,
+                nodeAdd: null,
+                nodeRemove: null,
+                nodeUpdate: null
+            },
+            // event callbacks
+            on: {
+                'click': function () { return true; }
+            },
+            // accessor telling if the given node should be expanded
+            // or collapsed
+            expanded: function (d) {
+                return !d.collapse;
+            },
+            // accessor to the label position
+            // should return 'above' or 'below'
+            labelPosition: tangelo.accessor({'value': 'above'}),
+            // graph orientation: 'vertical' or 'horizontal'
+            orientation: 'vertical'
         },
-
-        _actions: {
-            collapse: null
-        },
-
-        action: function (which) {
-            return this._actions[which];
-        },
-
-        orientation: {
-            abscissa: "y",
-            ordinate: "x",
-            heightvar: "height",
-            widthvar: "width",
-            xfunc: function (_, v) {
-                return v;
-            }
-        },
-
-        _lineStyle: function (s, t) {
-            return this.line({
-                source: s,
-                target: t
+        walk: function (f, root, all) {
+            // call the function 'f' on all nodes starting from root
+            // root defaults to the tree root
+            // if all === true, then traverse all nodes, not just the visible nodes
+            var children, that = this;
+            root = root || this.options.data;
+            f(root);
+            children = all ? root._children : root.children;
+            children.forEach(function (c) {
+                if (c) { // make sure we don't end up in an infinite loop
+                    that.walk(f, c, all);
+                }
             });
         },
-
         _create: function () {
-            var that = this;
-
-            this._actions.collapse = function (d) {
-                if (that.options.mode === "hide") {
-                    if (d.children) {
-                        d._children = d.children;
-                        d.children = null;
-                        d.collapsed = true;
-                        d3.select(this)
-                            .select("circle")
-                            .style("fill", that.options.collapsedNodeColor)
-                            .style("opacity", that.options.collapsedNodeOpacity)
-                            .classed("children-hidden", true);
-                    } else {
-                        d.children = d._children;
-                        d._children = null;
-                        d.collapsed = false;
-                        d3.select(this)
-                            .select("circle")
-                            .style("fill", that.options.nodeColor)
-                            .style("opacity", that.options.nodeOpacity)
-                            .classed("children-hidden", false);
-                    }
-                } else if (that.options.mode === "focus") {
-                    that.options.root = d;
-                } else if (that.options.mode === "label") {
-                    d.showLabel = d.showLabel ? false : true;
-                }
-                //that._update({source: d});
-                that._setOptions({source: d});
-            };
-
-            if (this.options.orientation === "vertical") {
-                this.orientation = {
-                    abscissa: "x",
-                    ordinate: "y",
-                    heightvar: "width",
-                    widthvar: "height",
-                    xfunc: function (that, v) {
-                        // This function flips a vertical tree about its
-                        // midline.
-                        var center = (that.xminmax[0] + that.xminmax[1]) / 2;
-                        return 2 * center - v;
-                    }
-                };
-            } else if (this.options.orientation !== "horizontal") {
-                tangelo.fatalError("$.dendrogram()", "illegal option for 'orientation': " + this.options.orientation);
-            }
-
-            this.tree = d3.layout.partition()
-                .value(function () { return 1; })
-                .sort(d3.ascending);
-
-            // Create a d3 line drawer, including an abstracted method that can
-            // call the specific line function the right way.
-            this.line = null;
-            if (this.options.lineStyle === "curved") {
-                this.line = d3.svg.diagonal()
-                    .projection(function (d) {
-                        return [that.orientation.xfunc(that, d[that.orientation.abscissa]), d[that.orientation.ordinate]];
-                    });
-            } else if (this.options.lineStyle === "axisAligned") {
-                this.line = d3.svg.line()
-                    .interpolate("step-before")
-                    .x(function (d) {
-                        return that.orientation.xfunc(that, d[that.orientation.abscissa]);
-                    })
-                    .y(function (d) {
-                        return d[that.orientation.ordinate];
-                    });
-
-                this._lineStyle = function (s, t) {
-                    return that.line([s, t]);
-                };
-            } else {
-                tangelo.fatalError("$.dendrogram()", "illegal option for 'lineStyle': " + this.options.lineStyle);
-            }
-
-            this.svg = d3.select(this.element.get(0))
-                .append("svg")
-                .append("g");
-        },
-
-        refresh: function () {
+            this.svg = d3.select(this.element.get(0)).append('svg');
+            this.group = this.svg.append('g');
             this._update();
         },
-
+        _destroy: function () {
+            this.svg.remove();
+        },
+        _transition: function (selection) {
+            // helper function to apply a transition to the
+            // selection if duration is truthy
+            if (this.options.duration) {
+                selection = selection.transition()
+                                .duration(this.options.duration);
+            }
+            return selection;
+        },
+        resize: function () {
+            // resize the svg, temporarily turns of transitions
+            // then calls update
+            var duration = this.options.duration;
+            this.options.duration = null;
+            this._update();
+            this.options.duration = duration;
+        },
         _update: function () {
-            this.width = 1200 - this.options.margin.right - this.options.margin.left;
-            this.height = 800 - this.options.margin.top - this.options.margin.bottom;
+            var that = this, width, height, sw, sh,
+                tree = d3.layout.tree(),
+                diagonal = d3.svg.diagonal(),
+                id = tangelo.accessor(this.options.id),
+                selection, enter, exit, nodes, vert = this.options.orientation === 'vertical',
+                rotString = '', tmp, h,
+                ml = this.options.margin.left, mt = this.options.margin.top,
+                mr = this.options.margin.right, mb = this.options.margin.bottom;
 
-            if (!this.options.root) {
-                this.options.root = this.options.data;
+            // get the total size of the content
+            width = (this.options.width || this.element.width());
+            height = (this.options.height || this.element.height());
+            sw = width;
+            sh = height;
+
+            if ( !vert ) {
+                // for horizontal layout, we apply a rotation
+                // to the main svg group
+                h = height - mb;
+                tmp = width;
+                width = height;
+                height = tmp;
+                rotString = 'translate(' + ml + ',' + h + ') '
+                          + 'rotate(-90) ';
+                mt = this.options.margin.right;
+                mb = this.options.margin.left;
+                ml = this.options.margin.top;
+                mr = this.options.margin.bottom;
+            } else {
+                rotString = 'translate(' + ml + ',' + mt + ')';
             }
 
-            if (!this.options.mode) {
-                this.options.mode = "hide";
-            }
+            // set the svg size
+            this.svg.attr('width', sw)
+                    .attr('height', sh);
 
-            this.tree.size([this.height, this.width]);
+            // get size without margins
+            width -= ml + mr;
+            height -= mt + mb;
 
-            d3.select(this.element.get(0))
-                .select("svg")
-                .attr("width", this[this.orientation.widthvar] + this.options.margin.right + this.options.margin.left)
-                .attr("height", this[this.orientation.heightvar] + this.options.margin.top + this.options.margin.bottom)
-                .select("g")
-                .attr("transform", "translate(" + this.options.margin.left + "," + this.options.margin.top + ")");
+            // apply rotations/translations
+            this.group.attr('transform', rotString);
 
-            //this.options.root.x0 = this.height / 2;
-            this.options.root.x0 = this[this.orientation.heightvar] / 2;
-            this.options.root.y0 = 0;
+            // save the old children array and positions for all nodes
+            this.walk(function (d) {
+                d._children = (d._children || d.children) || [];
+                d.x0 = d.x === undefined ? width/2 : d.x;
+                d.y0 = d.y === undefined ? height/2 : d.y;
+            }, this.options.data, true);
 
-            // Compute the new tree layout.
-            var nodes = this.tree.nodes(this.options.root).reverse(),
-                links = this.tree.links(nodes),
-                source = this.options.source || this.options.root,
-                index,
-                node,
-                nodeEnter,
-                nodeUpdate,
-                nodeExit,
-                link,
-                maxY,
-                visibleLeaves,
-                filteredNodes,
-                filteredLinks,
-                evttype,
-                that = this;
+            // set the graph size and children accessor
+            tree.size([width, height])
+                .children(getChildren);
 
-            visibleLeaves = 0;
-            function setPosition(node, pos) {
-                var xSum = 0;
-                node.y = pos;
-                node.x = node.x + node.dx / 2;
-                if (!node.parent) {
-                    node.parent = node;
-                }
-                if (node.children && node.children.length) {
-                    node.children.forEach(function (d) {
-                        d.parent = node;
-                        setPosition(d, pos + 10 * that.options.distance(d));
-                        xSum += d.x;
-                    });
-                    node.x = xSum / node.children.length;
-                } else {
-                    visibleLeaves += 1;
-                }
-            }
-            setPosition(this.options.root, 0);
+            nodes = tree(this.options.data);
 
-            index = 0;
-            function setIndex(node) {
-                node._index = index;
-                index += 1;
-                if (node.children) {
-                    node.children.forEach(setIndex);
-                }
-            }
-            setIndex(this.options.data);
+            // select the node links
+            selection = this.group.selectAll('.line')
+                                .data(tree.links(nodes), function (d) {
+                                    return id(d.target);
+                                });
 
-            // Compute the leftmost and rightmost positions in the tree.
-            function minmax(node) {
-                var leftmost,
-                    rightmost;
+            enter = selection.enter();
+            exit = selection.exit();
 
-                leftmost = node;
-                while (leftmost.children && leftmost.children[0]) {
-                    leftmost = leftmost.children[0];
-                }
+            each(enter, this.options.before.lineAdd);
 
-                rightmost = node;
-                while (rightmost.children && rightmost.children[1]) {
-                    rightmost = rightmost.children[1];
-                }
-
-                return [leftmost.x, rightmost.x];
-            }
-            this.xminmax = minmax(this.options.root);
-
-            // Normalize Y to fill space
-            maxY = d3.extent(nodes, function (d) {
-                return d.y;
-            })[1];
-            nodes.forEach(function (d) {
-                d.y = d.y / maxY * (that.width - 150);
+            // Reset flags that keep track of which nodes
+            // are new in this selection, and which are
+            // being removed.  These flags determine the
+            // source and sink values for transition effects.
+            selection.each(function (d) {
+                d.target._treeOld = false;
+                d.target._treeNew = false;
+            });
+            exit.each(function (d) {
+                d.target._treeOld = true;
             });
 
-            if (this.options.nodeLimit && nodes.length > this.options.nodeLimit) {
-                // Filter out everything beyond parent y-position to keep things interactive
-                nodes.sort(function (a, b) {
-                    return d3.ascending(a.parent.y, b.parent.y);
-                });
-                nodes.forEach(function (d, i) {
-                    d.index = i;
-                });
-                filteredNodes = nodes.slice(0, this.options.nodeLimit);
-                maxY = filteredNodes[filteredNodes.length - 1].parent.y;
-                filteredNodes.forEach(function (d) {
-                    d.y = d.y > maxY ? maxY : d.y;
-                });
+            // append new paths
+            enter.append('path')
+                .attr('class', 'line tree')
+                .each(function (d) {
+                    d.target._treeNew = true;
+                })
+                .attr('d', function (d) {
+                    var s = findSource(d.target),
+                        t = {x: s.x0, y: s.y0};
+                    return diagonal({
+                        source: t,
+                        target: t
+                    });
+                })
+                .style('stroke-opacity', 1e-6)
+                .style('stroke', this.options.lineColor)
+                .style('stroke-width', this.options.lineWidth)
+                .style('fill', 'none');
+            each(enter, this.options.after.lineAdd);
 
-                // Filter the links based on visible nodes
-                filteredLinks = [];
-                links.forEach(function (d) {
-                    if (d.source.index < this.options.nodeLimit && d.target.index < this.options.nodeLimit) {
-                        filteredLinks.push(d);
-                    }
-                });
-                nodes = filteredNodes;
-                links = filteredLinks;
+            each(exit, this.options.before.lineRemove);
+            exit = this._transition(exit);
+            exit
+                .attr('d', function (d) {
+                    var s = findSink(d.target);
+                    return diagonal({
+                        source: s,
+                        target: s
+                    });
+                })
+                .style('stroke-opacity', 1e-6)
+                .remove();
+            each(exit, this.options.after.lineRemove);
+
+            each(selection, this.options.before.lineUpdate);
+            selection = this._transition(selection);
+            selection
+                .attr('d', diagonal)
+                .style('stroke-opacity', 1)
+                .style('stroke', this.options.lineColor)
+                .style('stroke-width', this.options.lineWidth);
+            each(selection, this.options.after.lineUpdate);
+
+            // determine if we need to rotate the labels or not
+            // according to the tree orientation
+            rotString = '';
+            if (!vert) {
+                rotString = 'rotate(90)';
             }
 
-/*            function firstChild(d) {*/
-                //if (d.children) {
-                    //return firstChild(d.children[0]);
-                //}
-                //if (d._children) {
-                    //return firstChild(d._children[0]);
-                //}
-                //return d;
-            //}
+            // select the node labels
+            selection = this.group.selectAll('.label')
+                                .data(nodes, id);
+            enter = selection.enter();
+            exit = selection.exit();
 
-            //function lastChild(d) {
-                //if (d.children) {
-                    //return lastChild(d.children[d.children.length - 1]);
-                //}
-                //if (d._children) {
-                    //return lastChild(d._children[d._children.length - 1]);
-                //}
-                //return d;
-            //}
-
-            //function leafCount(d) {
-                //var children = d.children,
-                    //sum = 0;
-                //if (!children) {
-                    //children = d._children;
-                //}
-
-                //// I am an internal node, so total the leaves of the children
-                //if (children) {
-                    //children.forEach(function (child) {
-                        //sum += leafCount(child);
-                    //});
-                    //return sum;
-                //}
-
-                //// I am a leaf
-                //return 1;
-            //}
-
-            // Update the nodes…
-            node = this.svg.selectAll("g.node")
-                .data(nodes, function (d) {
-                    return that.options.id.undefined ? d._index : that.options.id(d);
-                });
-
-            // Enter any new nodes at the parent's previous position.
-            nodeEnter = node.enter()
-                .append("g")
-                .classed("node", true)
-                .attr("transform", function () {
-                    return "translate(" + that.orientation.xfunc(that, source[that.orientation.abscissa + "0"]) + "," + source[that.orientation.ordinate + "0"] + ")";
-                });
-
-            nodeEnter.append("circle")
-                .attr("r", 1e-6)
-                .classed("node", true)
-                .style("fill", this.options.nodeColor)
-                .style("opacity", this.options.nodeOpacity)
-                .style("stroke", "black")
-                .style("stroke-width", "1px")
-                .on("mouseenter.tangelo", function () {
-                    d3.select(this)
-                        .style("fill", that.options.hoverNodeColor)
-                        .style("opacity", that.options.hoverNodeOpacity);
+            each(enter, this.options.before.labelAdd);
+            enter.append('text')
+                .attr('class', 'label tree')
+                .attr('dy', function (d, i) {
+                    var pos = that.options.labelPosition(d, i),
+                        val;
+                    if (pos === 'above') {
+                        val = '-0.8em';
+                    } else if (pos === 'below') {
+                        val = '1.35em';
+                    }
+                    else {
+                        tangelo.fatalError('dendrogram', 'Invalid labelPosition');
+                    }
+                    return val;
                 })
-                .on("mouseleave.tangelo", function (d) {
-                    d3.select(this)
-                        .style("fill", d.collapsed ? that.options.collapsedNodeColor : that.options.nodeColor)
-                        .style("opacity", d.collapsed ? that.options.collapsedNodeOpacity : that.options.nodeOpacity);
-                });
+                .attr('transform', function (d) {
+                    var s = findSource(d);
+                    return 'translate(' + s.x0 + ',' + s.y0 + ')' + rotString;
+                })
+                .attr('text-anchor', 'middle')
+                .attr('font-size', this.options.labelSize)
+                .style('fill-opacity', 1e-6)
+                .text(this.options.label);
+            each(enter, this.options.after.labelAdd);
 
-            nodeEnter.append("text")
-                .attr("x", 10)
-                .attr("dy", ".35em")
-                .attr("text-anchor", "start")
-                .style("font-size", this.options.textsize + "px")
+            each(exit, this.options.before.labelRemove);
+            exit = this._transition(exit);
+            exit
+                .attr('transform', function (d) {
+                    var s = findSink(d);
+                    return 'translate(' + s.x + ',' + s.y + ')' + rotString;
+                })
+                .style('fill-opacity', 1e-6)
+                .attr('font-size', this.options.labelSize)
                 .text(this.options.label)
-                .style("fill-opacity", 1e-6);
+                .remove();
+            each(exit, this.options.after.labelRemove);
 
-            // Transition nodes to their new position.
-            nodeUpdate = node.transition()
-                .duration(this.options.duration)
-                .attr("transform", function (d) {
-                    return "translate(" + that.orientation.xfunc(that, d[that.orientation.abscissa]) + "," + d[that.orientation.ordinate] + ")";
-                });
+            each(selection, this.options.before.labelUpdate);
+            selection = this._transition(selection);
+            selection
+                .attr('transform', function (d) {
+                    return 'translate(' + d.x + ',' + d.y + ')' + rotString;
+                })
+                .attr('font-size', this.options.labelSize)
+                .style('fill-opacity', 1)
+                .text(this.options.label);
+            each(selection, this.options.after.labelUpdate);
 
-            nodeUpdate.select("circle")
-                .attr("r", this.options.nodesize)
-                .style("fill", function (d) {
-                    return (d.collapsed ? that.options.collapsedNodeColor : that.options.nodeColor)(d);
-                });
+            // select the nodes
+            selection = this.group.selectAll('.node')
+                                .data(nodes, id);
 
-            nodeUpdate.select("text")
-                .text(function (d) {
-                    var label = that.options.label(d);
-                    if (visibleLeaves < that.height / (0.8 * that.options.textsize)) {
-                        return label;
+            enter = selection.enter();
+            exit = selection.exit();
+
+            each(enter, this.options.before.nodeAdd);
+            enter.append('circle')
+                .attr('class', 'node tree')
+                .attr('cx', function (d) {
+                    return findSource(d).x0;
+                })
+                .attr('cy', function (d) {
+                    return findSource(d).y0;
+                })
+                .attr('r', this.options.nodeSize)
+                .style('fill', this.options.nodeColor)
+                .style('fill-opacity', 1e-6)
+                .style('stroke-opacity', 1e-6)
+                .on('click', function (d) {
+                    that.options.sinkNode = {'value': d};
+                    that.options.sourceNode = {'value': d};
+                    if (that.options.on.click.apply(this, arguments)) {
+                        toggleExpand.apply(this, arguments);
                     }
-                    return "";
-                })
-                .style("fill-opacity", 1);
+                    that._update();
+                });
+            each(enter, this.options.after.nodeAdd);
 
-            // Transition exiting nodes to the parent's new position.
-            nodeExit = node
-                .exit()
-                .transition()
-                .duration(this.options.duration)
-                .attr("transform", function () {
-                    return "translate(" + that.orientation.xfunc(that, source[that.orientation.abscissa]) + "," + source[that.orientation.ordinate] + ")";
+            each(exit, this.options.before.nodeRemove);
+            exit = this._transition(exit);
+            exit
+                .attr('cx', function (d) {
+                    return findSink(d).x;
                 })
+                .attr('cy', function (d) {
+                    return findSink(d).y;
+                })
+                .attr('r', this.options.nodeSize)
+                .style('fill-opacity', 1e-6)
+                .style('stroke-opacity', 1e-6)
                 .remove();
+            each(exit, this.options.after.nodeRemove);
 
-            nodeExit.select("circle")
-                .attr("r", 1e-6);
-
-            nodeExit.select("text")
-                .style("fill-opacity", 1e-6);
-
-            // Update the links…
-            link = this.svg.selectAll("path.link")
-                .data(links, function (d) {
-                    return that.options.id.undefined ? d.target._index : that.options.id(d.target);
-                });
-
-            // Enter any new links at the parent's previous position.
-            link.enter()
-                .insert("path", "g")
-                .classed("link", true)
-                .style("stroke", "black")
-                .style("stroke-width", "1px")
-                .style("fill", "none")
-                .attr("d", function () {
-                    var o = {x: source.x0, y: source.y0};
-                    return that._lineStyle(o, o);
-                });
-
-            // Transition links to their new position.
-            link.transition()
-                .duration(this.options.duration)
-                .attr("d", function (d) {
-                    return that._lineStyle(d.source, d.target);
-                });
-
-            // Transition exiting nodes to the parent's new position.
-            link.exit()
-                .transition()
-                .duration(this.options.duration)
-                .attr("d", function () {
-                    var o = {x: source.x, y: source.y};
-                    return that._lineStyle(o, o);
+            // bring the nodes in front of the links
+            selection.moveToFront();
+            each(selection, this.options.before.nodeUpdate);
+            selection = this._transition(selection);
+            selection
+                .attr('cx', function (d) {
+                    return d.x;
                 })
-                .remove();
-
-            // Stash the old positions for transition.
-            nodes.forEach(function (d) {
-                d.x0 = d.x;
-                d.y0 = d.y;
-            });
-
-            if (this.options.onNodeDestroy) {
-                nodeExit.each(this.options.onNodeDestroy);
-            }
-
-            if (this.options.onNodeCreate) {
-                nodeEnter.each(this.options.onNodeCreate);
-            }
-
-            // If there are event handlers installed, replicate them onto the
-            // new nodes.
-            for (evttype in this._eventHandlers) {
-                if (this._eventHandlers.hasOwnProperty(evttype)) {
-                    this.on(evttype, this._eventHandlers[evttype]);
-                }
-            }
-        },
-
-        on: function (evttype, callback) {
-            var that = this;
-
-            // Install/remove a handler.
-            that.svg.selectAll("g.node")
-                .selectAll("circle")
-                .on(evttype, callback ? function (d, i) {
-                    // Call the callback with the dendrogram as the "this"
-                    // context, passing in the datum and index, but also the
-                    // current DOM element expclitly as well.
-                    callback.call(that, d, i, this);
-                } : null);
-
-            // Record/erase a record about this event type.
-            if (callback !== null) {
-                this._eventHandlers[evttype] = callback;
-            } else {
-                delete this._eventHandlers[evttype];
-            }
-        },
-
-        _eventHandlers: {},
-
-        download: function (format) {
-            var node,
-                s,
-                d,
-                str;
-
-            if (format === "pdf") {
-                node = this.svg
-                    .selectAll("g.node")
-                    .select("circle")
-                    .attr("r", function (d) {
-                        return d._children ? this.options.nodesize : 0;
-                    });
-                s = new window.XMLSerializer();
-                d = d3.select("svg").node();
-                str = s.serializeToString(d);
-
-                // Change back to normal
-                node.attr("r", this.options.nodesize);
-
-                d3.json("/service/svg2pdf")
-                    .send("POST", str, function (error, data) {
-                        window.location = "/service/svg2pdf?id=" + data.result;
-                    });
-            } else {
-                window.alert("Unsupported export format type: " + format);
-            }
-        },
-
-        reset: function () {
-            function unhideAll(d) {
-                if (!d.children) {
-                    d.children = d._children;
-                    d._children = null;
-                }
-                if (d.children) {
-                    d.children.forEach(unhideAll);
-                }
-            }
-            unhideAll(this.options.data);
-            this._setOptions({
-                root: this.options.data
-            });
+                .attr('cy', function (d) {
+                    return d.y;
+                })
+                .attr('r', this.options.nodeSize)
+                .style('fill-opacity', 1)
+                .style('stroke-opacity', 1)
+                .style('fill', this.options.nodeColor);
+            each(selection, this.options.after.nodeUpdate);
         }
     });
 }(window.tangelo, window.jQuery, window.d3));
