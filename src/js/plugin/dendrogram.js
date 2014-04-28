@@ -31,12 +31,6 @@
             d._treeID = _id;
         }
         return d._treeID;
-    },
-        each = function (selection, f) {
-        if (f) {
-            selection.each(f);
-        }
-        return selection;
     };
 
     function findSource(d) {
@@ -83,32 +77,6 @@
             lineColor: tangelo.accessor({'value': 'black'}),
             // accessor to node circle radius
             nodeSize: tangelo.accessor({'value': 5}),
-            // functions to call on the selection before
-            // various steps in the construction
-            before: {
-                labelAdd: null,
-                labelRemove: null,
-                labelUpdate: null,
-                lineAdd: null,
-                lineRemove: null,
-                lineUpdate: null,
-                nodeAdd: null,
-                nodeRemove: null,
-                nodeUpdate: null
-            },
-            // functions to call on the selection after
-            // various steps in the construction
-            after: {
-                labelAdd: null,
-                labelRemove: null,
-                labelUpdate: null,
-                lineAdd: null,
-                lineRemove: null,
-                lineUpdate: null,
-                nodeAdd: null,
-                nodeRemove: null,
-                nodeUpdate: null
-            },
             // event callbacks
             on: {
                 'click': function () { return true; }
@@ -229,8 +197,6 @@
             enter = selection.enter();
             exit = selection.exit();
 
-            each(enter, this.options.before.lineAdd);
-
             // Reset flags that keep track of which nodes
             // are new in this selection, and which are
             // being removed.  These flags determine the
@@ -261,9 +227,7 @@
                 .style('stroke', this.options.lineColor)
                 .style('stroke-width', this.options.lineWidth)
                 .style('fill', 'none');
-            each(enter, this.options.after.lineAdd);
 
-            each(exit, this.options.before.lineRemove);
             exit = this._transition(exit);
             exit
                 .attr('d', function (d) {
@@ -275,16 +239,13 @@
                 })
                 .style('stroke-opacity', 1e-6)
                 .remove();
-            each(exit, this.options.after.lineRemove);
 
-            each(selection, this.options.before.lineUpdate);
             selection = this._transition(selection);
             selection
                 .attr('d', diagonal)
                 .style('stroke-opacity', 1)
                 .style('stroke', this.options.lineColor)
                 .style('stroke-width', this.options.lineWidth);
-            each(selection, this.options.after.lineUpdate);
 
             // determine if we need to rotate the labels or not
             // according to the tree orientation
@@ -299,7 +260,6 @@
             enter = selection.enter();
             exit = selection.exit();
 
-            each(enter, this.options.before.labelAdd);
             enter.append('text')
                 .attr('class', 'label tree')
                 .attr('dy', function (d, i) {
@@ -323,9 +283,7 @@
                 .attr('font-size', this.options.labelSize)
                 .style('fill-opacity', 1e-6)
                 .text(this.options.label);
-            each(enter, this.options.after.labelAdd);
 
-            each(exit, this.options.before.labelRemove);
             exit = this._transition(exit);
             exit
                 .attr('transform', function (d) {
@@ -336,9 +294,7 @@
                 .attr('font-size', this.options.labelSize)
                 .text(this.options.label)
                 .remove();
-            each(exit, this.options.after.labelRemove);
 
-            each(selection, this.options.before.labelUpdate);
             selection = this._transition(selection);
             selection
                 .attr('transform', function (d) {
@@ -347,7 +303,6 @@
                 .attr('font-size', this.options.labelSize)
                 .style('fill-opacity', 1)
                 .text(this.options.label);
-            each(selection, this.options.after.labelUpdate);
 
             // select the nodes
             selection = this.group.selectAll('.node')
@@ -356,7 +311,6 @@
             enter = selection.enter();
             exit = selection.exit();
 
-            each(enter, this.options.before.nodeAdd);
             enter.append('circle')
                 .attr('class', 'node tree')
                 .attr('cx', function (d) {
@@ -377,9 +331,7 @@
                     }
                     that._update();
                 });
-            each(enter, this.options.after.nodeAdd);
 
-            each(exit, this.options.before.nodeRemove);
             exit = this._transition(exit);
             exit
                 .attr('cx', function (d) {
@@ -392,11 +344,9 @@
                 .style('fill-opacity', 1e-6)
                 .style('stroke-opacity', 1e-6)
                 .remove();
-            each(exit, this.options.after.nodeRemove);
 
             // bring the nodes in front of the links
             selection.moveToFront();
-            each(selection, this.options.before.nodeUpdate);
             selection = this._transition(selection);
             selection
                 .attr('cx', function (d) {
@@ -409,7 +359,6 @@
                 .style('fill-opacity', 1)
                 .style('stroke-opacity', 1)
                 .style('fill', this.options.nodeColor);
-            each(selection, this.options.after.nodeUpdate);
         }
     });
 }(window.tangelo, window.jQuery, window.d3));
