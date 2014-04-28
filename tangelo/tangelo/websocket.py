@@ -68,7 +68,10 @@ def WebSocketRelay(hostname, port, key):
         def __init__(self, *pargs, **kwargs):
             tangelo.ws4py.websocket.WebSocket.__init__(self, *pargs, **kwargs)
 
-            url = "ws://%s:%d/ws" % (hostname, port)
+            scheme = "ws"
+            if cherrypy.config.get("server.ssl_private_key"):
+                scheme = "wss"
+            url = "%s://%s:%d/ws" % (scheme, hostname, port)
 
             tangelo.log("websocket created at %s:%d/%s (proxy to %s)" %
                         (hostname, port, key, url))

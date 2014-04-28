@@ -117,14 +117,23 @@ class TangeloVtkweb(object):
                 # On launch failure, report the failure to the user.
                 return json.dumps({"status": "failed", "reason": msg})
 
+            # Detect http vs. https
+            scheme = "ws"
+            ssl_key = cherrypy.config.get("server.ssl_private_key")
+            ssl_cert = cherrypy.config.get("server.ssl_certificate")
+
+            # Generate command line.
+            cmdline = [self.vtkpython,
+                       self.weblauncher,
+                       progfile,
+                       "--port", str(port)] + userargs
+            if ssl_key and ssl_cert:
+                scheme = "wss"
+                cmdline.extend(["--sslKey", ssl_key, "--sslCert", ssl_cert])
+
             # Launch the requested process.
+            tangelo.log("starting a vtkweb process: %s" % (" ".join(cmdline)))
             try:
-                cmdline = [self.vtkpython,
-                           self.weblauncher,
-                           progfile,
-                           "--port", str(port)] + userargs
-                tangelo.log("starting a vtkweb process: %s" %
-                            (" ".join(cmdline)))
                 process = subprocess.Popen(cmdline,
                                            stdout=subprocess.PIPE,
                                            stderr=subprocess.PIPE)
@@ -208,7 +217,7 @@ class TangeloVtkweb(object):
 
             # Form the websocket URL from the hostname/port used in the
             # request, and the newly generated key.
-            url = "ws://%s/%s/ws" % (cherrypy.request.base.split("//")[1], key)
+            url = "%s://%s/%s/ws" % (scheme, cherrypy.request.base.split("//")[1], key)
             return json.dumps({"status": "complete", "key": key, "url": url})
         elif method == "DELETE":
             # TODO(choudhury): shut down a vtkweb process by key after a given
