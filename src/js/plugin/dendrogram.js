@@ -1,4 +1,4 @@
-/*jslint browser: true, unparam: true, nomen: true, white: true */
+/*jslint browser: true, nomen: true */
 
 (function (tangelo, $, d3) {
     "use strict";
@@ -9,7 +9,7 @@
 
     if (!d3.selection.prototype.moveToFront) {
         d3.selection.prototype.moveToFront = function () {
-            return this.each(function (){
+            return this.each(function () {
                 this.parentNode.appendChild(this);
             });
         };
@@ -17,21 +17,21 @@
 
     var _id = 0,
         toggleExpand = function (d) {
-        d.collapse = !d.collapse;
-    },
+            d.collapse = !d.collapse;
+        },
         getChildren = function (d) {
-        if (!d.collapse) {
-            return d._children;
-        }
-        return [];
-    },
+            if (!d.collapse) {
+                return d._children;
+            }
+            return [];
+        },
         getID = function (d) {
-        if (!d._treeID) {
-            _id += 1;
-            d._treeID = _id;
-        }
-        return d._treeID;
-    };
+            if (!d._treeID) {
+                _id += 1;
+                d._treeID = _id;
+            }
+            return d._treeID;
+        };
 
     function findSource(d) {
         if (!d.parent || !d._treeNew) {
@@ -149,7 +149,7 @@
             sw = width;
             sh = height;
 
-            if ( !vert ) {
+            if (!vert) {
                 // for horizontal layout, we apply a rotation
                 // to the main svg group
                 h = height - mb;
@@ -180,8 +180,8 @@
             // save the old children array and positions for all nodes
             this.walk(function (d) {
                 d._children = (d._children || d.children) || [];
-                d.x0 = d.x === undefined ? width/2 : d.x;
-                d.y0 = d.y === undefined ? height/2 : d.y;
+                d.x0 = d.x === undefined ? width / 2 : d.x;
+                d.y0 = d.y === undefined ? height / 2 : d.y;
             }, this.options.data, true);
 
             // set the graph size and children accessor
@@ -192,9 +192,9 @@
 
             // select the node links
             selection = this.group.selectAll('.line')
-                                .data(tree.links(nodes), function (d) {
-                                    return id(d.target);
-                                });
+                .data(tree.links(nodes), function (d) {
+                    return id(d.target);
+                });
 
             enter = selection.enter();
             exit = selection.exit();
@@ -286,8 +286,7 @@
                         val = '-0.8em';
                     } else if (pos === 'below') {
                         val = '1.35em';
-                    }
-                    else {
+                    } else {
                         tangelo.fatalError('$.dendrogram()', 'Invalid labelPosition');
                     }
                     return val;
