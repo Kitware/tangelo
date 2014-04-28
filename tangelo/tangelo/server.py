@@ -23,9 +23,10 @@ class Tangelo(object):
     # An in-band signal to treat HTML error messages as literal strings.
     literal = "literal:::"
 
-    def __init__(self, vtkweb=None, stream=None):
+    def __init__(self, vtkweb=None, stream=None, girder=None):
         self.vtkweb = vtkweb
         self.stream = stream
+        self.girder = girder
 
         # A dict containing information about imported modules.
         self.modules = {}
@@ -44,75 +45,15 @@ class Tangelo(object):
         if self.vtkweb is not None:
             cherrypy.tree.mount(self.vtkweb, "/vtkweb")
 
-        # Mount Girder API if available.
-        try:
-            # Update the config first, because the girder imports expect this to
-            # be here already.
-            cherrypy.config.update({
-                "sessions": {"cookie_lifetime": 180},
-                "server": {"mode": "development"},
-                "database": {
-                    "host": "localhost",
-                    "port": 27017,
-                    "user": "",
-                    "password": "",
-                    "database": "girder"
-                },
-                "users": {
-                    "email_regex": "^[\w\.\-]*@[\w\.\-]*\.\w+$",
-                    "login_regex": "^[a-z][\da-z\-]{3}[\da-z\-]*$",
-                    "login_description": "Login be at least 4 characters, start with a letter, and may only contain letters, numbers, or dashes.",
-                    "password_regex": ".{6}.*",
-                    "password_description": "Password must be at least 6 characters."
-                },
-                "auth": {
-                    "hash_alg": "bcrypt",
-                    "bcrypt_rounds": 12
-                }
-            })
-
-            # Import the girder modules.
-            import girder.events
-            from girder.api import api_main
-            from girder import constants
-            from girder.utility import plugin_utilities, model_importer
-
-            # Mount a girder app on the "/girder" Tangelo route.
-            class Webroot(object):
-                """
-                The webroot endpoint simply serves the main index.html file.
-                """
-                exposed = True
-
-                def GET(self):
-                    return cherrypy.lib.static.serve_file(
-                        os.path.join(constants.ROOT_DIR, 'clients', 'web', 'static',
-                                     'built', 'index.html'), content_type='text/html')
-
-            root = Webroot()
-
-            cherrypy.tree.mount(api_main.addApiToNode(root), "/girder", {
-                '/': {
-                    'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
-                    'tools.staticdir.root': constants.ROOT_DIR
-                },
-                '/static': {
-                    'tools.staticdir.on': 'True',
-                    'tools.staticdir.dir': 'clients/web/static'
-                }
-            })
-
-            cherrypy.engine.subscribe('start', girder.events.daemon.start)
-            cherrypy.engine.subscribe('stop', girder.events.daemon.stop)
-
-            plugins = model_importer.ModelImporter().model('setting').get(
-                constants.SettingKey.PLUGINS_ENABLED, default=())
-            plugin_utilities.loadPlugins(plugins, root, cherrypy.config)
-
-        except ImportError:
-            # Ok, just don't mount it.
-            tangelo.log("could not mount girder", "INFO")
-            pass
+        # Mount a Girder API if requested.
+        if self.girder is not None:
+            # TODO(choudhury): would be great if the third argument (the config)
+            # could be moved to the TangeloGirder object itself, but I can't
+            # figure out how to do it.
+            cherrypy.tree.mount(self.girder, "/girder", {"/": {"request.dispatch": cherrypy.dispatch.MethodDispatcher(),
+                                                               "tools.staticdir.root": self.girder.root_dir},
+                                                         "/static": {"tools.staticdir.on": "True",
+                                                                     "tools.staticdir.dir": "clients/web/static"}})
 
     def cleanup(self):
         if self.vtkweb:

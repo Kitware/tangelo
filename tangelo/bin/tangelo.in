@@ -17,6 +17,7 @@ import re
 
 import tangelo
 from tangelo.minify_json import json_minify
+import tangelo.girder
 import tangelo.plugin
 import tangelo.server
 import tangelo.stream
@@ -175,8 +176,13 @@ def start():
     else:
         vtkweb = None
 
+    # Create a Girder API object.
+    #
+    # TODO: do this only if requested in configuration, etc.
+    girder = tangelo.girder.TangeloGirder()
+
     # Create an instance of the main handler object.
-    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(vtkweb=vtkweb, stream=stream), "/")
+    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(vtkweb=vtkweb, stream=stream, girder=girder), "/")
     cherrypy.tree.mount(tangelo.server.cpserver, config={"/": {"tools.auth_update.on": access_auth,
                                                                "tools.treat_url.on": True},
                                                          "/favicon.ico": {"tools.staticfile.on": True,
