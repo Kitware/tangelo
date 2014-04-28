@@ -249,6 +249,12 @@ class WebSocketManager(threading.Thread):
             if not self.running:
                 break
 
+            # workaround wss + cherrypy bug
+            import itertools
+            for ws in self.websockets.itervalues():
+                if hasattr(ws.sock, 'pending') and ws.sock.pending() != 0:
+                    polled = itertools.chain(polled, [ws.sock.fileno()])
+
             for fd in polled:
                 if not self.running:
                     break

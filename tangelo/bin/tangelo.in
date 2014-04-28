@@ -445,6 +445,8 @@ if __name__ == "__main__":
     p.add_argument("--verbose", "-v", action="store_true", help="display extra information as Tangelo starts up")
     p.add_argument("--version", action="store_true", help="display Tangelo version number")
     p.add_argument("action", nargs="?", metavar="<start|stop|restart|status>", help="perform this action for the current Tangelo instance.")
+    p.add_argument("--key", type=str, default=None, metavar="FILE", help="the path to the SSL key.  You must also specify --cert to serve content over https.")
+    p.add_argument("--cert", type=str, default=None, metavar="FILE", help="the path to the SSL certificate.  You must also specify --key to serve content over https.")
     args = p.parse_args()
 
     # If version flag is present, print the version number and exit.
@@ -589,6 +591,23 @@ if __name__ == "__main__":
     vtkpython = args.vtkpython or config.get("vtkpython")
     if vtkpython is not None:
         vtkpython = tangelo.util.expandpath(vtkpython)
+
+    # HTTPS support
+    use_ssl = False
+    ssl_key = args.key or config.get("key")
+    if ssl_key is not None:
+        ssl_key = tangelo.util.expandpath(ssl_key)
+
+    ssl_cert = args.cert or config.get("cert")
+    if ssl_cert is not None:
+        ssl_cert = tangelo.util.expandpath(ssl_cert)
+
+    if ssl_key is not None and ssl_cert is not None:
+        use_ssl = True
+        cherrypy.config.update({
+            "server.ssl_module": "pyopenssl",
+            "server.ssl_certificate": ssl_cert,
+            "server.ssl_private_key": ssl_key})
 
     # If we are starting a Tangelo server, we need a web root - use the
     # installed example web directory as a fallback.  This might be found in a
