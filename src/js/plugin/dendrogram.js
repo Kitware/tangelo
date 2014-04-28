@@ -75,6 +75,8 @@
             lineWidth: tangelo.accessor({'value': 1}),
             // accessor to line stroke color
             lineColor: tangelo.accessor({'value': 'black'}),
+            // line style: curved or axisAligned
+            lineStyle: 'curved',
             // accessor to node circle radius
             nodeSize: tangelo.accessor({'value': 5}),
             // event callbacks
@@ -134,7 +136,7 @@
         _update: function () {
             var that = this, width, height, sw, sh,
                 tree = d3.layout.tree(),
-                diagonal = d3.svg.diagonal(),
+                line,
                 id = tangelo.accessor(this.options.id),
                 selection, enter, exit, nodes, vert = this.options.orientation === 'vertical',
                 rotString = '', tmp, h,
@@ -209,6 +211,21 @@
                 d.target._treeOld = true;
             });
 
+            // create the line generator according to the line style
+            if (this.options.lineStyle === 'curved') {
+                line = d3.svg.diagonal();
+            } else if (this.options.lineStyle === 'axisAligned') {
+                line = function (obj) {
+                    var l = d3.svg.line().interpolate('step-before')
+                                .x(tangelo.accessor({'field': 'x'}))
+                                .y(tangelo.accessor({'field': 'y'}));
+                    return l([obj.source, obj.target]);
+                };
+            } else {
+                tangelo.fatalError('$.dendrogram()', 'illegal option for lineStyle: '
+                                    + this.options.lineStyle);
+            }
+
             // append new paths
             enter.append('path')
                 .attr('class', 'line tree')
@@ -218,7 +235,7 @@
                 .attr('d', function (d) {
                     var s = findSource(d.target),
                         t = {x: s.x0, y: s.y0};
-                    return diagonal({
+                    return line({
                         source: t,
                         target: t
                     });
@@ -232,7 +249,7 @@
             exit
                 .attr('d', function (d) {
                     var s = findSink(d.target);
-                    return diagonal({
+                    return line({
                         source: s,
                         target: s
                     });
@@ -242,7 +259,7 @@
 
             selection = this._transition(selection);
             selection
-                .attr('d', diagonal)
+                .attr('d', line)
                 .style('stroke-opacity', 1)
                 .style('stroke', this.options.lineColor)
                 .style('stroke-width', this.options.lineWidth);
@@ -271,7 +288,7 @@
                         val = '1.35em';
                     }
                     else {
-                        tangelo.fatalError('dendrogram', 'Invalid labelPosition');
+                        tangelo.fatalError('$.dendrogram()', 'Invalid labelPosition');
                     }
                     return val;
                 })
