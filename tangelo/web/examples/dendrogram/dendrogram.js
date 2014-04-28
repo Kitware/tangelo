@@ -43,4 +43,7 @@ $(function () {
         id: {field: "name"},
         label: {field: "name"}
     });
+    $(window).resize(function () {
+        $("#content").dendrogram("resize");
+    });
 });
