@@ -593,21 +593,28 @@ if __name__ == "__main__":
         vtkpython = tangelo.util.expandpath(vtkpython)
 
     # HTTPS support
-    use_ssl = False
+    #
+    # Grab the ssl key file.
     ssl_key = args.key or config.get("key")
     if ssl_key is not None:
         ssl_key = tangelo.util.expandpath(ssl_key)
 
+    # Grab the cert file.
     ssl_cert = args.cert or config.get("cert")
     if ssl_cert is not None:
         ssl_cert = tangelo.util.expandpath(ssl_cert)
 
+    # In order to enable HTTPS, *both* the key and cert must be specified.  If
+    # only one or the other is specified, this is considered an error, because
+    # we don't want to serve what the user is considering sensitive content over
+    # HTTP by default.
     if ssl_key is not None and ssl_cert is not None:
-        use_ssl = True
-        cherrypy.config.update({
-            "server.ssl_module": "pyopenssl",
-            "server.ssl_certificate": ssl_cert,
-            "server.ssl_private_key": ssl_key})
+        cherrypy.config.update({"server.ssl_module": "pyopenssl",
+                                "server.ssl_certificate": ssl_cert,
+                                "server.ssl_private_key": ssl_key})
+    elif not (ssl_key is None and ssl_cert is None):
+        print >>sys.stderr, "error: SSL key or SSL cert missing"
+        sys.exit(1)
 
     # If we are starting a Tangelo server, we need a web root - use the
     # installed example web directory as a fallback.  This might be found in a
