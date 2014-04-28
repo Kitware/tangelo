@@ -48,6 +48,7 @@
                 var width = $(node).width(),
                     height = $(node).height();
                 that.map.resize(0, 0, width, height);
+                $(node).trigger('draw');
             }
 
             resize();
