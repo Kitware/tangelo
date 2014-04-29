@@ -340,7 +340,7 @@ common data formats into a common format usable by Tangelo plugins.
     .. math:: y_i \leftarrow \sum_{\left|x_i - x_j\right|<R} K\left(x_i,x_j\right)y_j
 
     for :math:`R=` **spec.radius** and :math:`K=` **spec.kernel**.  Predefined kernels can be specified as strings,
-    this include:
+    these include:
         * *box*: simple moving average (default),
         * *gaussian*: gaussian with standard deviation **spec.radius**/3.
     
@@ -577,31 +577,31 @@ provide convenient behaviors or to implement common visualization methods.  See
 .. js:function:: $.dendrogram(spec)
 
     :param object spec.data: A nested tree object where child nodes are stored in the `children` attribute.
-    :param Accessor spec.label: The accessor for displaying tree node labels.
-    :param Accessor spec.distance: The accessor for the numeric value of each node to its parent (default: 1).
-    :param Accessor spec.id: The accessor for the node ID.
-    :param int spec.nodeLimit: The maximum number of nodes to display in the dendrogram.
-        If there are more nodes in the current display, the view will hide nodes with the highest
-        distance from the root.
-    :param object spec.root: The root of the subtree in the current display (default: `spec.data`, the full tree).
-    :param string spec.mode: The current interaction mode of the tree. The ``"hide"`` mode will alternately
-        collapse or expand clicked subtrees. The ``"focus"`` mode will set the currently displayed root
-        to the clicked node. The ``"label"`` mode will toggle the label visibility for the clicked node.
+    :param accessor spec.label: The accessor for displaying tree node labels.
+    :param accessor spec.id: The accessor for the node ID.
+    :param accessor spec.nodeColor: The accessor for the color of the nodes.
+    :param accessor spec.labelSize: The accessor for the font size of the labels.
+    :param accessor spec.lineWidth: The accessor for the stroke width of the node links.
+    :param accessor spec.lineColor: The accessor for the stroke color of the node links.
+    :param accessor spec.nodeSize: The accessor for the radius of the nodes.
+    :param accessor spec.labelPosition: The accessor for the label position relative to
+        the node.  Valid return values are `'above'` and `'below'`.
+    :param accessor spec.expanded: The accessor to a boolean value that determines whether
+        the given node is expanded or not.
+    :param string spec.lineStyle: The node link style: `'curved'` or `'axisAligned'`.
+    :param string spec.orientation: The graph orientation: `'vertical'` or `'horizontal'`.
+    :param number spec.duration: The transition animation duration.
+    :param object spec.on: An object of event handlers.  The handler receives the data
+        element as an argument and the dom node as `this`.  If the function returns
+        `true`, the default action is perfomed after the handler, otherwise it is
+        prevented.  Currently, only the `'click'` event handler is exposed.
 
     Constructs an interactive dendrogram.
 
-    .. js:function:: update(spec)
+    .. js:function:: resize()
 
-        Updates the dendrogram attributes based on the attributes set in `spec`. The possible content of `spec`
-        matches the constructor options.
-
-    .. js:function:: reset()
-
-        Resets the view by expanding all collapsed nodes and resetting the root to the full tree.
-
-    .. js:function:: download(format)
-
-        Downloads the view in the specified `format`. Currently only the ``"pdf"`` format is supported.
+        Temporarily turns transitions off and resizes the dendrogram.  Should be
+        called whenever the containing dom element changes size.
 
 .. js:function:: $.geodots(spec)
 
@@ -721,6 +721,50 @@ provide convenient behaviors or to implement common visualization methods.  See
     :param accessor spec.linkTarget: An accessor to derive the target node of
         each link
 
+.. js:function:: $.correlationPlot(spec)
+
+    Constructs a grid of scatter plots that are designed to show the relationship
+    between different variables or properties in a dataset.
+
+    :param object[] spec.variables: An array of functions representing variables or properties
+        of the dataset.  Each of these functions takes a data element as
+        an argument and returns a number between 0 and 1.  In addition, the functions
+        should have a `label` attribute whose value is the string used for the
+        axis labels.
+    :param object[] spec.data: An array of data elements that will be plotted.
+    :param accessor spec.color: An accessor for the color of each marker.
+    :param bool spec.full: Whether to show a full plot layout or not.  See the
+        images below for an example.  This value cannot currently be changed after the
+        creation of the plot.
+
+    .. figure:: images/correlationPlotFull.png
+        :align: center
+        :alt: Full correlation plot layout
+
+        An example of a full correlation plot layout.  All variables are shown on the
+        horizontal and vertical axes.
+
+    .. figure:: images/correlationPlotHalf.png
+        :align: center
+        :alt: Half correlation plot layout
+
+        An example of a half correlation plot layout.  Only the upper left corner of the
+        full layout are displayed.
+
+.. js:function:: $.timeline(spec)
+
+    Constructs a line plot with time on the x-axis and an arbitrary numerical value on the
+    y-axis.
+
+    :param object[] spec.data: An array of data objects from which the timeline will be derived.
+    :param accessor spec.x: An accessor for the time of the data.
+    :param accessor spec.y: An accessor for the value of the data.
+    :param number spec.transition: The duration of the transition animation in milliseconds, or
+        false to turn off transitions.
+
+    .. image:: images/timeline.png
+        :align: center
+        :alt: An example timeline plot
 .. .. js:class:: tangelo.GoogleMapSVG(elem, mapoptions, cfg, cont)
 
 .. todo::

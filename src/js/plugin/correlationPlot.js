@@ -150,8 +150,8 @@
         // the main draw function
         this.draw = function () {
             if (!that.variables.length) { return; }
-            var full = options.full(),
-                padding = options.padding() || 10,
+            var full = options.full,
+                padding = options.padding || 10,
                 offset = 15,
                 oWidth = that.width || $(node).width(),
                 oHeight = that.height || $(node).height(),
@@ -278,9 +278,9 @@
         options: {
             variables: [],
             data: [],
-            padding: tangelo.accessor({value: 10}),
+            padding: 10,
             color: tangelo.accessor({value: "steelblue"}),
-            full: tangelo.accessor({value: false})
+            full: false
         },
         _create: function () {
             this.obj = new CorrelationPlotter($.extend({'node': this.element.get(0)}, this.options));
