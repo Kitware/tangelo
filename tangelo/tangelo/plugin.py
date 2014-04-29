@@ -22,11 +22,9 @@ class StatusFile(SimplePlugin):
         self.pid = os.getpid()
         self.filename = StatusFile.status_filename(self.pid)
 
-        tangelo.log("here")
         self.status = {k: str(v) for k, v in
                        zip(StatusFile.fields, map(eval, StatusFile.fields))}
         self.status["pid"] = str(self.pid)
-        tangelo.log("there")
 
         for k, v in self.status.iteritems():
             if v is None:
