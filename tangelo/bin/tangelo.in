@@ -191,9 +191,9 @@ def start():
 
     # Mount the root application object.
     cherrypy.tree.mount(rootapp, config={"/": {"tools.auth_update.on": access_auth,
-                                              "tools.treat_url.on": True},
-                                        "/favicon.ico": {"tools.staticfile.on": True,
-                                                         "tools.staticfile.filename": sys.prefix + "/share/tangelo/tangelo.ico"}})
+                                               "tools.treat_url.on": True},
+                                         "/favicon.ico": {"tools.staticfile.on": True,
+                                                          "tools.staticfile.filename": sys.prefix + "/share/tangelo/tangelo.ico"}})
 
     # Try to drop privileges if requested, since we've bound to whatever port
     # superuser privileges were needed for already.
