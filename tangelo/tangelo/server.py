@@ -13,8 +13,6 @@ import tangelo
 from tangelo.minify_json import json_minify
 import tangelo.util
 
-cpserver = None
-
 
 class Tangelo(object):
     # An HTML parser for use in the error_page handler.
