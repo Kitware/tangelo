@@ -23,8 +23,7 @@ class Tangelo(object):
     # An in-band signal to treat HTML error messages as literal strings.
     literal = "literal:::"
 
-    def __init__(self, vtkweb=None, stream=None):
-        self.vtkweb = vtkweb
+    def __init__(self, stream=None):
         self.stream = stream
 
         # A dict containing information about imported modules.
@@ -36,17 +35,6 @@ class Tangelo(object):
         # user.
         if self.stream:
             cherrypy.tree.mount(stream, "/stream")
-
-        # Mount a VTKWeb API if requested.
-        #
-        # TODO(choudhury): make the mounting directory configurable by the
-        # user.
-        if self.vtkweb is not None:
-            cherrypy.tree.mount(self.vtkweb, "/vtkweb")
-
-    def cleanup(self):
-        if self.vtkweb:
-            self.vtkweb.shutdown_all()
 
     @staticmethod
     def error_page(status, message, traceback, version):

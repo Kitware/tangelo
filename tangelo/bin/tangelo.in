@@ -28,6 +28,8 @@ import tangelo.websocket
 
 tangelo_version = "@TANGELO_VERSION@"
 
+vtkweb = None
+
 
 def running_pids():
     return map(lambda x: int(x.group(1)), filter(None, map(lambda x: re.search(r"^tangelo\.([0-9]*)$", x), os.walk(tangelo.plugin.StatusFile.tmpdir).next()[2])))
@@ -71,7 +73,8 @@ def shutdown(signum, frame):
 
     # Perform (1) vtkweb process cleanup, (2) twisted reactor cleanup and quit,
     # (3) CherryPy shutdown, and (4) CherryPy exit.
-    tangelo.server.cpserver.root.cleanup()
+    if vtkweb:
+        vtkweb.shutdown_all()
     reactor.stop()
     cherrypy.engine.stop()
     cherrypy.engine.exit()
@@ -170,21 +173,23 @@ def start():
     # Create a streaming API object.
     stream = tangelo.stream.TangeloStream()
 
-    # Create a VTKWeb API object if requested.
+    # Create an instance of the main handler object.
+    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(stream=stream), "/")
+
+    # Create a VTKWeb API object if requested, and mount it.
+    vtkweb = None
     if vtkpython is not None:
         vtkweb = tangelo.vtkweb.TangeloVtkweb(vtkpython=vtkpython, weblauncher=invocation_dir + "/bin/vtkweb-launcher.py")
-    else:
-        vtkweb = None
+        cherrypy.tree.mount(vtkweb, "/vtkweb")
 
-    # Create an instance of the main handler object.
-    tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(vtkweb=vtkweb, stream=stream), "/")
-
-    # Create a Girder API object if requested.
+    # Create a Girder API object if requested, and mount it at the requested
+    # path.
     girder = None
     if girderconf["path"]:
         girder = tangelo.girder.TangeloGirder(girderconf["host"], girderconf["port"])
         cherrypy.tree.mount(girder, girderconf["path"], girder.config)
 
+    # Mount the root application object.
     cherrypy.tree.mount(tangelo.server.cpserver, config={"/": {"tools.auth_update.on": access_auth,
                                                                "tools.treat_url.on": True},
                                                          "/favicon.ico": {"tools.staticfile.on": True,
