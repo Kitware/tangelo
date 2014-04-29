@@ -63,7 +63,7 @@ window.onload = function () {
         ],
         data: data,
         color: tangelo.accessor(c),
-        full: tangelo.accessor({value: true})
+        full: true
     }).trigger('draw');
     $("#content2").correlationPlot({
         variables: [
@@ -75,7 +75,7 @@ window.onload = function () {
         ],
         data: data,
         color: tangelo.accessor(c),
-        full: tangelo.accessor({value: false})
+        full: false
     }).trigger('draw');
     
     $(window).resize(function () {
