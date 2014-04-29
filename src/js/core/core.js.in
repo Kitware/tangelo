@@ -1,9 +1,9 @@
 /*jslint browser: true */
 
 // Export a global module.
-var tangelo = {};
+window.tangelo = {};
 
-(function () {
+(function (tangelo) {
     "use strict";
 
     // Tangelo version number.
@@ -189,4 +189,4 @@ var tangelo = {};
 
         return compatible;
     };
-}(window.$));
+}(window.tangelo));
