@@ -13,8 +13,6 @@ import tangelo
 from tangelo.minify_json import json_minify
 import tangelo.util
 
-cpserver = None
-
 
 class Tangelo(object):
     # An HTML parser for use in the error_page handler.
@@ -23,10 +21,8 @@ class Tangelo(object):
     # An in-band signal to treat HTML error messages as literal strings.
     literal = "literal:::"
 
-    def __init__(self, vtkweb=None, stream=None, girder=None):
-        self.vtkweb = vtkweb
+    def __init__(self, stream=None):
         self.stream = stream
-        self.girder = girder
 
         # A dict containing information about imported modules.
         self.modules = {}
@@ -37,27 +33,6 @@ class Tangelo(object):
         # user.
         if self.stream:
             cherrypy.tree.mount(stream, "/stream")
-
-        # Mount a VTKWeb API if requested.
-        #
-        # TODO(choudhury): make the mounting directory configurable by the
-        # user.
-        if self.vtkweb is not None:
-            cherrypy.tree.mount(self.vtkweb, "/vtkweb")
-
-        # Mount a Girder API if requested.
-        if self.girder is not None:
-            # TODO(choudhury): would be great if the third argument (the config)
-            # could be moved to the TangeloGirder object itself, but I can't
-            # figure out how to do it.
-            cherrypy.tree.mount(self.girder, "/girder", {"/": {"request.dispatch": cherrypy.dispatch.MethodDispatcher(),
-                                                               "tools.staticdir.root": self.girder.root_dir},
-                                                         "/static": {"tools.staticdir.on": "True",
-                                                                     "tools.staticdir.dir": "clients/web/static"}})
-
-    def cleanup(self):
-        if self.vtkweb:
-            self.vtkweb.shutdown_all()
 
     @staticmethod
     def error_page(status, message, traceback, version):

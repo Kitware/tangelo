@@ -11,10 +11,10 @@ from cherrypy.process.plugins import SimplePlugin
 
 
 class StatusFile(SimplePlugin):
-    fields = ["cfg_file", "logfile", "pidfile", "webroot", "hostname", "port", "version"]
+    fields = ["cfg_file", "logfile", "webroot", "hostname", "port", "version"]
     tmpdir = "/var/tmp"
 
-    def __init__(self, bus, cfg_file=None, logfile=None, pidfile=None,
+    def __init__(self, bus, cfg_file=None, logfile=None,
                  webroot=None, hostname=None, port=None, version=None):
         SimplePlugin.__init__(self, bus)
 
@@ -22,11 +22,9 @@ class StatusFile(SimplePlugin):
         self.pid = os.getpid()
         self.filename = StatusFile.status_filename(self.pid)
 
-        tangelo.log("here")
         self.status = {k: str(v) for k, v in
                        zip(StatusFile.fields, map(eval, StatusFile.fields))}
         self.status["pid"] = str(self.pid)
-        tangelo.log("there")
 
         for k, v in self.status.iteritems():
             if v is None:
