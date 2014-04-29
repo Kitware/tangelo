@@ -6,7 +6,7 @@ import os
 class TangeloGirder(object):
     exposed = True
 
-    def __init__(self, host, port, mountpoint):
+    def __init__(self, host, port):
         # The girder module expects these cherrypy config options to be set
         # already by the time it's imported.
         cherrypy.config.update({
@@ -51,9 +51,6 @@ class TangeloGirder(object):
             constants.SettingKey.PLUGINS_ENABLED, default=())
         plugin_utilities.loadPlugins(plugins, self, cherrypy.config)
 
-        # These two properties are useful to simplifying the mounting code in
-        # server.py.
-        self.mount = mountpoint
         self.config = {"/": {"request.dispatch": cherrypy.dispatch.MethodDispatcher(),
                              "tools.staticdir.root": self.root_dir},
                        "/static": {"tools.staticdir.on": "True",
