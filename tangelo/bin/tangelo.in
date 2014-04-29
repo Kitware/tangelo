@@ -176,10 +176,10 @@ def start():
     else:
         vtkweb = None
 
-    # Create a Girder API object.
-    #
-    # TODO: do this only if requested in configuration, etc.
-    girder = tangelo.girder.TangeloGirder()
+    # Create a Girder API object if requested.
+    girder = None
+    if girderconf["path"]:
+        girder = tangelo.girder.TangeloGirder(girderconf["host"], girderconf["port"], girderconf["path"])
 
     # Create an instance of the main handler object.
     tangelo.server.cpserver = cherrypy.Application(tangelo.server.Tangelo(vtkweb=vtkweb, stream=stream, girder=girder), "/")
@@ -453,6 +453,9 @@ if __name__ == "__main__":
     p.add_argument("action", nargs="?", metavar="<start|stop|restart|status>", help="perform this action for the current Tangelo instance.")
     p.add_argument("--key", type=str, default=None, metavar="FILE", help="the path to the SSL key.  You must also specify --cert to serve content over https.")
     p.add_argument("--cert", type=str, default=None, metavar="FILE", help="the path to the SSL certificate.  You must also specify --key to serve content over https.")
+    p.add_argument("--girder-host", type=str, default=None, metavar="HOST", help="the hostname running Girder")
+    p.add_argument("--girder-port", type=int, default=None, metavar="PORT", help="the port on which Girder is running")
+    p.add_argument("--girder-path", type=str, default=None, metavar="PATH", help="the path on which to mount a Girder API")
     args = p.parse_args()
 
     # If version flag is present, print the version number and exit.
@@ -597,6 +600,13 @@ if __name__ == "__main__":
     vtkpython = args.vtkpython or config.get("vtkpython")
     if vtkpython is not None:
         vtkpython = tangelo.util.expandpath(vtkpython)
+
+    # Girder options.  If no girder path is specified, we take this to mean we
+    # should NOT mount a Girder API.
+    girderconf = {}
+    girderconf["host"] = args.girder_host or config.get("girder-host") or "localhost"
+    girderconf["port"] = args.girder_port or config.get("girder-port") or 27017
+    girderconf["path"] = args.girder_path or config.get("girder-path")
 
     # HTTPS support
     #
