@@ -47,13 +47,7 @@ class Tangelo(object):
 
         # Mount a Girder API if requested.
         if self.girder is not None:
-            # TODO(choudhury): would be great if the third argument (the config)
-            # could be moved to the TangeloGirder object itself, but I can't
-            # figure out how to do it.
-            cherrypy.tree.mount(self.girder, self.girder.mount, {"/": {"request.dispatch": cherrypy.dispatch.MethodDispatcher(),
-                                                                       "tools.staticdir.root": self.girder.root_dir},
-                                                                 "/static": {"tools.staticdir.on": "True",
-                                                                             "tools.staticdir.dir": "clients/web/static"}})
+            cherrypy.tree.mount(self.girder, self.girder.mount, self.girder.config)
 
     def cleanup(self):
         if self.vtkweb:

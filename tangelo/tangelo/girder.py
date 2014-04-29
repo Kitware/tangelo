@@ -51,7 +51,13 @@ class TangeloGirder(object):
             constants.SettingKey.PLUGINS_ENABLED, default=())
         plugin_utilities.loadPlugins(plugins, self, cherrypy.config)
 
+        # These two properties are useful to simplifying the mounting code in
+        # server.py.
         self.mount = mountpoint
+        self.config = {"/": {"request.dispatch": cherrypy.dispatch.MethodDispatcher(),
+                             "tools.staticdir.root": self.root_dir},
+                       "/static": {"tools.staticdir.on": "True",
+                                   "tools.staticdir.dir": "clients/web/static"}}
 
     def GET(self):
         return cherrypy.lib.static.serve_file(
