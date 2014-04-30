@@ -690,6 +690,69 @@ provide convenient behaviors or to implement common visualization methods.  See
     :param accessor spec.color: An accessor for the colormap category for each
         plotted circle
 
+.. js:function:: $.geojsMap(spec)
+
+    This plugin provides a low level interface to the
+    `geojs <https://github.com/OpenGeoscience/geojs>`_ mapping library.
+    For a simple example of using this plugin, see the :root:`geojsMap example
+    </examples/geojsMap>`.
+
+    :param integer spec.zoom: The initial zoom level of the map.
+
+    The widget also contains the following public methods for drawing on the
+    map.
+
+    .. js:function:: latlng2display(points)
+
+        Converts a point or points in latitude/longitude coordinates into screen pixel
+        coordinates.  This function takes in either a `geo.latlng` object or
+        an array of such objects.  It always returns an array of objects with
+        properties:
+            * `x` the horizontal pixel coordinate
+            * `y` the vertical pixel coordinate
+
+        :param geo.latlng point: The world coordinate(s) to be converted
+
+    .. js:function:: display2latlng(points)
+
+        This is the inverse of `latlng2display` returning an array of
+        `geo.latlng` objects.
+
+        :param object point: The world coordinate(s) to be converted
+
+    .. js:function:: svg()
+
+        Returns an svg DOM element contained in the geojs map.  This
+        element directly receives mouse events from the browser, so
+        you can attach event handlers to svg elements as if the map
+        were not present.  You can call stopPropagation to customize
+        user intaraction and to prevent mouse events from reaching the map.
+
+    .. js:function:: map()
+
+        Returns the geojs `map` object for advanced customization.
+
+    Users of this plugin should attach a handler to the `draw` event that
+    recomputes the pixel coordinates and redraws the svg elements.  The
+    plugin will trigger this event whenever the map is panned, zoomed, or
+    resized.
+
+
+.. js:function:: $.geojsdots(spec)
+
+    This plugin is similar to :js:func:`$.mapdots`, but plots the dots
+    using the geojsMap plugin.
+
+    For a demonstration of this plugin, see the :root:`geojsdots example
+    </examples/geojsdots>`.
+
+    :param object[] spec.data: The list of dots to plot
+    :param accessor spec.latitude: An accessor for the latitude component
+    :param accessor spec.longitude: An accessor for the longitude component
+    :param accessor spec.size: An accessor for the size of each plotted circle
+    :param accessor spec.color: An accessor for the colormap category for each
+        plotted circle
+
 .. js:function:: $.nodelink(spec)
 
     Constructs an interactive node-link diagram.  `spec.data` is an object with

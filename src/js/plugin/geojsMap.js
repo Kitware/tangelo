@@ -11,7 +11,7 @@
             // baseLayer,
             // initial center,
             // etc.
-            zoom: tangelo.accessor({value: 3})
+            zoom: 3
         },
         latlng2display: function (pt) {
             return this.map.gcsToDisplay(pt);
@@ -32,7 +32,7 @@
             var that = this,
                 node = this.element.get(0),
                 opts = {
-                    zoom: this.options.zoom(),
+                    zoom: this.options.zoom,
                     node: node
                 };
             this.map = geo.map(opts);
