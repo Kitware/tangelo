@@ -38,24 +38,35 @@
             _update: $.noop
         });
 
-        tangelo.widget = function (name, spec) {
+        tangelo.widget = function (name, spec1, spec2) {
             var key,
-                ptype = {
-                    _defaults: spec.options || {},
+                ptype,
+                spec,
+                superWidget;
 
-                    _create: function () {
-                        this.options = $.extend({}, this._defaults, this.options);
+            if (spec1.prototype instanceof $.tangelo.widget) {
+                spec = spec2;
+                superWidget = spec1;
+            } else {
+                spec = spec1;
+                superWidget = $.tangelo.widget;
+            }
+            ptype = {
+                _defaults: spec.options || {},
 
-                        if (spec._create) {
-                            spec._create.apply(this, arguments);
-                        }
+                _create: function () {
+                    this.options = $.extend({}, this._defaults, this.options);
 
-                        // TODO: reduce _defaults down to a map to bool, then rename it
-                        // to _accessor.
-
-                        this._setOptions(this.options);
+                    if (spec._create) {
+                        spec._create.apply(this, arguments);
                     }
-                };
+
+                    // TODO: reduce _defaults down to a map to bool, then rename it
+                    // to _accessor.
+
+                    this._setOptions(this.options);
+                }
+            };
 
             for (key in spec) {
                 if (spec.hasOwnProperty(key)) {
@@ -67,7 +78,7 @@
                 }
             }
 
-            $.widget(name, $.tangelo.widget, ptype);
+            $.widget(name, superWidget, ptype);
         };
     }
 }(window.tangelo, window.jQuery));
