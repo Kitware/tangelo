@@ -1,4 +1,4 @@
-/*jslint browser: true, unparam: true, nomen: true*/
+/*jslint browser: true, unparam: true, nomen: true, white: true*/
 
 (function (tangelo, $, d3, geo) {
     'use strict';
@@ -7,7 +7,7 @@
         return;
     }
 
-    tangelo.widget('tangelo.geojsdots', {
+    tangelo.widget('tangelo.geojsdots', $.tangelo.geojsMap, {
         options: {
             latitude: tangelo.accessor({value: 0}),
             longitude: tangelo.accessor({value: 0}),
@@ -18,12 +18,9 @@
 
         _create: function () {
             var that = this;
+            this._super();
             this.size = tangelo.accessor(this.options.size);
             this.color = tangelo.accessor(this.options.color);
-            this.lat = tangelo.accessor(this.options.latitude);
-            this.lng = tangelo.accessor(this.options.longitude);
-            this.element.geojsMap();
-            this.svg = this.element.geojsMap('svg');
             this._update();
             this.element.on('draw', function () {
                 that._update();
@@ -31,16 +28,16 @@
         },
 
         _update: function () {
-            var svg = this.svg,
+            var svg = this.svg(),
                 that = this,
-                lat = this.lat,
-                lng = this.lng,
+                lat = tangelo.accessor(this.options.latitude),
+                lng = tangelo.accessor(this.options.longitude),
                 pt, selection, enter, exit;
 
             if (this.options.data) {
                 this.options.data.forEach(function (d) {
                     pt = geo.latlng(lat(d), lng(d));
-                    d._georef = that.element.geojsMap('latlng2display', pt)[0];
+                    d._georef = that.latlng2display(pt)[0];
                 });
                 selection = d3.select(svg).selectAll('.point').data(this.options.data);
                 enter = selection.enter();

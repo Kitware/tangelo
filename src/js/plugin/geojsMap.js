@@ -2,7 +2,7 @@
 
 (function (tangelo, geo, d3, $) {
     'use strict';
-    
+
     if (!($ && $.widget && d3 && geo)) {
         return;
     }
