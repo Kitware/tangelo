@@ -1,7 +1,7 @@
 <!doctype html>
 <meta charset=utf-8>
 
-<title>geodots</title>
+<title>geojsdots</title>
 
 <link href=http://code.jquery.com/ui/1.9.1/themes/smoothness/jquery-ui.css rel=stylesheet>
 <link href=http://bootswatch.com/cosmo/bootstrap.min.css rel=stylesheet>
@@ -21,7 +21,7 @@
 <script src=geojsDots.js></script>
 
 <style>
-    html, body, #content {
+    html, body {
         height: 100%;
     }
 
@@ -38,8 +38,8 @@
             </div>
 
             <div class=modal-body>
-                <p>A simple plugin that allows for placing colored dots over a
-                GeoJSON-encoded world map.</p>
+                <p>A simple plugin that allows for placing colored dots over a geojs
+                   map in the same style as mapdots and geodots.</p>
             </div>
 
             <div class=modal-footer>
@@ -55,9 +55,9 @@
     </div>
 
     <ul class="nav navbar-nav">
-        <li class=active> <a>Geodots</a>
+        <li class=active> <a>Geojsdots</a>
         <li><a style=cursor:pointer data-toggle=modal data-target=#info-panel><span class="glyphicon glyphicon-info-sign"></span> Info</a>
     </ul>
 </div>
 
-<div id=content></div>
+<div id=content style="position: relative; height: 100%"></div>
