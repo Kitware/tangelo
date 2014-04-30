@@ -246,6 +246,8 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/src/js/plugin/svgColorLegend.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/correlationPlot.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/timeline.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/geojsMap.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/geojsdots.js
     ${CMAKE_SOURCE_DIR}/src/js/stream/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/stream/stream.js
     ${CMAKE_SOURCE_DIR}/src/js/vega/_package.js
@@ -337,6 +339,8 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/plugin/nodelink.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/correlationPlot.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/timeline.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/geojsMap.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/geojsdots.js
     ${CMAKE_SOURCE_DIR}/src/js/stream/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/stream/stream.js
     ${CMAKE_SOURCE_DIR}/src/js/data/_package.js
