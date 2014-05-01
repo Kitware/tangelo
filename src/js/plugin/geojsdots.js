@@ -1,4 +1,4 @@
-/*jslint browser: true, unparam: true, nomen: true, white: true*/
+/*jslint browser: true, unparam: true, nomen: true */
 
 (function (tangelo, $, d3, geo) {
     'use strict';
@@ -32,7 +32,10 @@
                 that = this,
                 lat = tangelo.accessor(this.options.latitude),
                 lng = tangelo.accessor(this.options.longitude),
-                pt, selection, enter, exit;
+                pt,
+                selection,
+                enter,
+                exit;
 
             if (this.options.data) {
                 this.options.data.forEach(function (d) {

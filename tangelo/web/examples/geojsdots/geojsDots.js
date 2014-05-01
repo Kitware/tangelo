@@ -4,7 +4,10 @@
 $(function () {
     "use strict";
 
-    var data = [
+    var data,
+        color;
+
+    data = [
         {lat: 0,  lon: 0,   value: 5,  group: 'a'},
         {lat: 5,  lon: -5,  value: 6,  group: 'a'},
         {lat: 10, lon: -10, value: 7,  group: 'a'},
