@@ -240,6 +240,12 @@ class WebSocket(object):
         if self.terminated or self.sock is None:
             raise RuntimeError("Cannot send on a terminated websocket")
 
+        # This fixes an error in the ws4py package - not yet in the upstream
+        # package.
+        #
+        # blocking mode, never throw WantWriteError
+        self.sock.setblocking(1)
+
         self.sock.sendall(b)
 
     def send(self, payload, binary=False):
