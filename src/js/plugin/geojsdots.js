@@ -19,9 +19,7 @@
         _create: function () {
             var that = this;
             this._super();
-            this.size = tangelo.accessor(this.options.size);
-            this.color = tangelo.accessor(this.options.color);
-            this._update();
+            this.colorScale = d3.scale.category10();
             this.element.on('draw', function () {
                 that._update();
             });
@@ -37,6 +35,10 @@
                 enter,
                 exit;
 
+            if (!this.colorScale) {
+                return;
+            }
+
             if (this.options.data) {
                 this.options.data.forEach(function (d) {
                     pt = geo.latlng(lat(d), lng(d));
@@ -45,18 +47,19 @@
                 selection = d3.select(svg).selectAll('.point').data(this.options.data);
                 enter = selection.enter();
                 exit = selection.exit();
-                
+
                 enter.append('circle')
                         .attr('class', 'point');
 
                 selection.attr('cx', tangelo.accessor({'field': '_georef.x'}))
-                         .attr('cy', tangelo.accessor({'field': '_georef.y'}))
-                         .attr('r', this.size)
-                         .style('fill', this.color);
+                    .attr('cy', tangelo.accessor({'field': '_georef.y'}))
+                    .attr('r', this.options.size)
+                    .style('fill', function (d) {
+                        return that.colorScale(that.options.color(d));
+                    });
 
                 exit.remove();
             }
         }
     });
-
 }(window.tangelo, window.jQuery, window.d3, window.geo));

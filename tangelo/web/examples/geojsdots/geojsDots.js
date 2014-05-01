@@ -24,14 +24,12 @@ $(function () {
         {lat: 65, lon: -65, value: 18, group: 'e'},
         {lat: 70, lon: -70, value: 19, group: 'e'}
     ];
-    
-    var color = d3.scale.category10()
-                    .domain(['a', 'b', 'c', 'd', 'e']);
+
     $("#content").geojsdots({
         data: data,
         latitude: {field: "lat"},
         longitude: {field: "lon"},
         size: {field: "value"},
-        color: function (d) { return color(d.group); }
+        color: {field: "group"}
     });
 });
