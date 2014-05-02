@@ -18,8 +18,8 @@
 
         _create: function () {
             var that = this;
-            this._super();
             this.colorScale = d3.scale.category10();
+            this._super();
             this.element.on('draw', function () {
                 that._update();
             });
@@ -34,10 +34,6 @@
                 selection,
                 enter,
                 exit;
-
-            if (!this.colorScale) {
-                return;
-            }
 
             if (this.options.data) {
                 this.options.data.forEach(function (d) {
