@@ -249,6 +249,9 @@ class WebSocketManager(threading.Thread):
             if not self.running:
                 break
 
+            # This fixes an error in the ws4py package - not yet in the upstream
+            # package. --Kitware
+            #
             # workaround wss + cherrypy bug
             import itertools
             for ws in self.websockets.itervalues():

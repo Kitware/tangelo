@@ -241,7 +241,7 @@ class WebSocket(object):
             raise RuntimeError("Cannot send on a terminated websocket")
 
         # This fixes an error in the ws4py package - not yet in the upstream
-        # package.
+        # package. --Kitware
         #
         # blocking mode, never throw WantWriteError
         self.sock.setblocking(1)
