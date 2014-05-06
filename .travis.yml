@@ -1,10 +1,12 @@
-language: cpp
+language: python
 
-#install: true
+python:
+    - 2.7
 
 script:
     - mkdir build
     - cd build
+    - pip install virtualenv
     - cmake ..
     - make
     - ctest
