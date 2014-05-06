@@ -1,5 +1,9 @@
 language: cpp
 
-install: true
+#install: true
 
-script: ctest
+script:
+    - mkdir build
+    - cd build
+    - cmake ..
+    - ctest
