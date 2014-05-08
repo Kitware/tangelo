@@ -20,7 +20,9 @@
             x: tangelo.accessor({'field': 'time'}),
             y: tangelo.accessor({'field': 'value'}),
             padding: 30,
-            transition: 0
+            transition: 0,
+            width: null,
+            height: null
         },
 
         _create: function () {
@@ -40,8 +42,8 @@
                 padding = this.options.padding,
                 xAcc = tangelo.accessor(this.options.x),
                 yAcc = tangelo.accessor(this.options.y),
-                width = this.element.width() - 2 * padding - axisPadding,
-                height = this.element.height() - 2 * padding - axisPadding,
+                width = (this.options.width || this.element.width()) - 2 * padding - axisPadding,
+                height = (this.options.height || this.element.height()) - 2 * padding - axisPadding,
                 data = this.options.data,
                 x = d3.time.scale()
                     .domain(d3.extent(data, xAcc))

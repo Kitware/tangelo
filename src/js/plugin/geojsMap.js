@@ -11,13 +11,15 @@
             // baseLayer,
             // initial center,
             // etc.
-            zoom: 3
+            zoom: 3,
+            width: null,
+            heigth: null
         },
         latlng2display: function (pt) {
-            return this.map.gcsToDisplay(pt);
+            return this._map.gcsToDisplay(pt);
         },
         display2latlng: function (pt) {
-            return this.map.displayToGcs(pt);
+            return this._map.displayToGcs(pt);
         },
         svg: function () { // interactive svg layer
             return this.svgGroup;
@@ -26,36 +28,48 @@
             throw 'Legend layer not yet implemented';
         },
         map: function () { // return the geojs map object
-            return this.map;
+            return this._map;
         },
         _create: function () {
-            var that = this,
-                node = this.element.get(0),
+            var node = this.element.get(0),
                 opts = {
                     zoom: this.options.zoom,
                     node: node
-                };
-            this.map = geo.map(opts);
-            this.map.addLayer(
+                },
+                that = this;
+            this._map = geo.map(opts);
+            this._map.addLayer(
                 geo.osmLayer({'renderer': 'vglRenderer'}).referenceLayer(true)
             );
             this.svgLayer = geo.featureLayer({'renderer': 'd3Renderer'});
-            this.map.addLayer(this.svgLayer);
+            this._map.addLayer(this.svgLayer);
             this.svgContext = this.svgLayer.renderer().canvas();
             this.svgGroup = this.svgContext.append('g').node();
 
-            function resize() {
-                var width = $(node).width(),
-                    height = $(node).height();
-                that.map.resize(0, 0, width, height);
-                $(node).trigger('draw');
-            }
-
-            resize();
-            $(window).resize(resize);
-            this.map.on([geo.event.pan, geo.event.zoom], function () {
+            this._resize();
+            $(window).resize(function () {
+                that._resize();
+            });
+            this._map.on([geo.event.pan, geo.event.zoom], function () {
                 $(node).trigger('draw');
             });
+        },
+        _update: $.noop,
+        _resize: function () {
+            var w = this.options.width ||
+                    this.element.width(),
+                h = this.options.height ||
+                    this.element.height();
+            if (!this._map) { return; }
+            this._map.resize(0, 0, w, h);
+            this.element.trigger('draw');
+        },
+        _setOption: function (key, value) {
+            this.options[key] = value;
+            if (key === 'width' || key === 'height') {
+                this._resize();
+            }
+            this._update();
         }
     });
     /*
