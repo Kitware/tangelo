@@ -71,7 +71,9 @@ function declareTest(cfg) {
 // Global functions that will be available to the testing function.
 var toImageData;
 var compareImages;
-var dumpImage;
+var saveImage;
+var computeDiffImage;
+var cdashReport;
 
 // ---user test suite code begin---
 @TEST_SUITE@
@@ -171,6 +173,22 @@ var runner = function () {
         });
     };
 
+    computeDiffImage = function (data1, data2) {
+        var ctx = document.createElement("canvas").getContext("2d"),
+            diff = ctx.createImageData(data1.width, data1.height),
+            i;
+
+        for (i = 0; i < data1.data.length; i += 1) {
+            if (i % 4 == 3) {
+                diff[i] = 255;
+            } else {
+                diff[i] = Math.abs(data1.data[i] - data2.data[i]);
+            }
+        }
+
+        return diff;
+    };
+
     compareImages = function (data1, data2, comparator) {
         return new Promise(function (deliver) {
             var promise1 = toImageData(data1),
@@ -180,6 +198,7 @@ var runner = function () {
                 promise2.then(function (png2) {
                     var diff,
                         val,
+                        passing,
                         i;
 
                     if (comparator) {
@@ -189,6 +208,7 @@ var runner = function () {
                         // the match.
                         if (png1.width !== png2.width || png1.height !== png2.height) {
                             console.log("image dimensions do not match");
+                            saveImage(png2, info.testName + ".png");
                             deliver(false);
                         } else {
                             // Otherwise, compute the L2 difference between the
@@ -198,11 +218,23 @@ var runner = function () {
                                 val = png1.data[i] - png2.data[i];
                                 diff += val * val;
                             }
+                            diff = Math.sqrt(diff);
 
                             console.log("L2 diff: " + diff);
                             console.log("threshold: " + info.threshold);
 
-                            deliver(Math.sqrt(diff) <= info.threshold);
+                            passing = Math.sqrt(diff) <= info.threshold;
+                            if (!passing) {
+                                console.log("1");
+                                info.testImage = info.testName.replace(/ /g, "");
+                                console.log("2");
+                                console.log(info.testImage);
+                                saveImage(png2, info.testImage + ".png");
+                                console.log("3");
+                                saveImage(computeDiffImage(png1, png2), info.testImage + "-diff.png");
+                            }
+
+                            deliver(passing);
                         }
                     }
                 });
@@ -210,9 +242,34 @@ var runner = function () {
         });
     };
 
-    dumpImage = function (imgdata, filename) {
-        var png = window.atob(imgdata);
-        fs.write(filename, png, "wb");
+    saveImage = function (imgdata, filename) {
+        var canvas = document.createElement("canvas"),
+            ctx = canvas.getContext("2d"),
+            b64;
+
+        canvas.width = imgdata.width;
+        canvas.height = imgdata.height;
+        ctx.putImageData(imgdata, 0, 0);
+        b64 = canvas.toDataURL().split(",")[1];
+
+        fs.write(filename, window.atob(b64), "wb");
+    };
+
+/*    saveImage = function (imgdata, filename) {*/
+        //console.log("4");
+        //var png = window.atob(imgdata);
+        //console.log("5");
+        //fs.write(filename, png, "wb");
+    //};
+
+    cdashReport = function (testimage_, groundtruth_, diffimage_) {
+        var testimage = fs.absolute(testimage_),
+            groundtruth = fs.absolute(groundtruth_),
+            diffimage = fs.absolute(diffimage_);
+
+        console.log('<DartMeasurementFile name="TestImage" type="image/png">' + testimage + '</DartMeasurementFile>');
+        console.log('<DartMeasurementFile name="DifferenceImage" type="image/png">' + diffimage + '</DartMeasurementFile>');
+        console.log('<DartMeasurementFile name="ValidImage" type="image/png">' + groundtruth + '</DartMeasurementFile>');
     };
 
     // Invoke the test runner.
@@ -231,6 +288,11 @@ var runner = function () {
     // testing system (i.e., CTest).
     function report(passed) {
         console.log(passed ? "PASSED" : "FAILED");
+
+        if (!passed && info.imageFile) {
+            cdashReport(info.testImage + ".png", info.imageFile, info.testImage + "-diff.png");
+        }
+
         phantom.exit(!passed);
     }
 };
