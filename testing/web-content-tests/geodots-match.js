@@ -3,26 +3,20 @@
 
 declareTest({
     name: "Geodots - ground truth match",
-    //url: "/examples/geodots",
-    url: "/examples/geonodelink",
+    url: "/examples/geodots",
     imageFiles: {
         geodots: "${CMAKE_BINARY_DIR}/tangelo/web/examples/geodots/geodots.png"
     },
-    test: function (page, info) {
+    test: function (info) {
         "use strict";
 
         var screencap,
             screenCanvas,
             ground;
 
-/*        screenCanvas = page.evaluate(function () {*/
-            ////return $("canvas").get(0);
-            //return document.getElementsByTagName("canvas")[0];
-        //});
-
         screenCanvas = $("canvas").get(0);
         screencap = new CanvasImage();
-        //screencap.loadCanvas($("canvas").get(0));
+        screencap.drawFromElement(screenCanvas);
         //screencap.savePNG("roni.png");
 
         //ground = info.imageData;

@@ -9,6 +9,7 @@ var fs = require("fs");
 var page = require('webpage').create();
 
 var testingParams = {
+    protocol: "http",
     cmakeBinaryDir: "@CMAKE_BINARY_DIR@",
     cmakeSourceDir: "@CMAKE_SOURCE_DIR@",
     host: "@TESTING_HOST@",
@@ -49,6 +50,17 @@ function declareTest(cfg) {
     var filename,
         name;
 
+    // Test name.
+    info.name = cfg.name;
+
+    // Set the url.
+    info.url = testingParams.protocol + "://" + testingParams.host + ":" + testingParams.port + cfg.url;
+    info.method = cfg.method;
+    info.data = cfg.data;
+
+    // The (optional) image test threshold.
+    info.threshold = cfg.threshold;
+
     // Record the requested width and height.
     info.width = (cfg.size && cfg.size.width) || 1024;
     info.height = (cfg.size && cfg.size.height) || 768;
@@ -59,10 +71,10 @@ function declareTest(cfg) {
         height: info.height
     };
 
-    // Capture the list of requested baseline images.
+    // Capture the table of requested image data (read from disk now, in base64
+    // encoding, before we lose this ability inside the evaluate() sandbox).
     cfg.imageFiles = cfg.imageFiles || {};
     info.image = {};
-
     for (name in cfg.imageFiles) {
         if (cfg.imageFiles.hasOwnProperty(name)) {
             filename = cfg.imageFiles[name]
@@ -332,37 +344,9 @@ var runner = function () {
                     name,
                     i;
 
-                info = {
-                    testName: "",
-
-                    url: null,
-                    method: null,
-                    data: null,
-
-                    status: null,
-                    statusText: null,
-
-                    image: {},
-                    threshold: 0.0,
-
-                    size: {
-                        width: 1024,
-                        height: 768
-                    }
-                };
-
+                // Need to capture the test function here, as functions are not
+                // JSON-serializable (for passing into the sandbox).
                 function declareTest(cfg) {
-                    info.name = cfg.name;
-                    info.url = "http://" + testingParams.host + ":" + testingParams.port + cfg.url;
-
-                    if (cfg.threshold) {
-                        info.threshold = cfg.threshold;
-                    }
-
-                    info.method = cfg.method;
-
-                    info.data = cfg.data;
-
                     test = cfg.test;
                 }
 
