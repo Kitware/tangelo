@@ -7,22 +7,28 @@ declareTest({
     imageFiles: {
         geodots: "${CMAKE_BINARY_DIR}/tangelo/web/examples/geodots/geodots.png"
     },
+    threshold: 1e-8,
     test: function (info) {
         "use strict";
 
         var screencap,
-            screenCanvas,
-            ground;
+            diff,
+            diffMag;
 
-        screenCanvas = $("canvas").get(0);
+        // Get a screenshot of the canvas element.
         screencap = new CanvasImage();
-        screencap.drawFromElement(screenCanvas);
-        //screencap.savePNG("roni.png");
+        screencap.drawFromElement($("canvas").get(0));
+        screencap.savePNG("geodots-test.png");
 
-        //ground = info.imageData;
+        // Compute a diff image against the baseline.
+        diff = diffImage(screencap, info.image.geodots);
+        diff.savePNG("geodots-diff.png");
+        diffMag = L2(diff);
 
-        //return compareImages(screencap, ground);
-        //return L2(diffImage(screencap, info.baseline)) < info.threshold;
-        return false;
+        // Print the L2 difference.
+        console.log("image difference (L2): " + diffMag);
+
+        // Compare the diff magnitude to the tolerance.
+        return diffMag < info.threshold;
     }
 });
