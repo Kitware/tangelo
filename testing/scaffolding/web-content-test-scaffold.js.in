@@ -1,3 +1,6 @@
+/*jslint browser: true */
+/*globals phantom */
+
 // This is a script for PhantomJS to run.  It fetches a webpage and renders it
 // either as HTML or as plain text, depending on the second parameter.
 
@@ -5,10 +8,12 @@ var system = require('system');
 var fs = require("fs");
 var page = require('webpage').create();
 
-var cmakeBinaryDir = "@CMAKE_BINARY_DIR@";
-var cmakeSourceDir = "@CMAKE_SOURCE_DIR@";
-var testingHost = "@TESTING_HOST@";
-var testingPort = "@TESTING_PORT@";
+var testingParams = {
+    cmakeBinaryDir: "@CMAKE_BINARY_DIR@",
+    cmakeSourceDir: "@CMAKE_SOURCE_DIR@",
+    host: "@TESTING_HOST@",
+    port: "@TESTING_PORT@"
+};
 
 // A promise-type object that can be used to abstract away asynchrounous calls
 // made during the test function (e.g., image object construction in the
@@ -26,74 +31,52 @@ function Promise(callback) {
 // An object that will contain useful metadata to be passed to the test
 // function.
 var info = {
-    testName: "",
-
     url: null,
-    method: null,
-    data: null,
-
     status: null,
     statusText: null,
-
-    imageFile: null,
-    imageData: null,
-    threshold: 0.0,
 
     size: {
         width: 1024,
         height: 768
-    }
-};
+    },
 
-var test;
+    image: {}
+};
 
 function declareTest(cfg) {
     "use strict";
 
-    info.testName = cfg.name;
-    info.url = "http://" + testingHost + ":" + testingPort + cfg.url;
-    if (cfg.imageFile) {
-        info.imageFile = cfg.imageFile
-            .replace("${CMAKE_BINARY_DIR}", cmakeBinaryDir)
-            .replace("${CMAKE_SOURCE_DIR}", cmakeSourceDir);
+    var filename,
+        name;
+
+    // Record the requested width and height.
+    info.width = (cfg.size && cfg.size.width) || 1024;
+    info.height = (cfg.size && cfg.size.height) || 768;
+
+    // Set the PhantomJS page size.
+    page.viewportSize = {
+        width: info.width,
+        height: info.height
+    };
+
+    // Capture the list of requested baseline images.
+    cfg.imageFiles = cfg.imageFiles || {};
+    info.image = {};
+
+    for (name in cfg.imageFiles) {
+        if (cfg.imageFiles.hasOwnProperty(name)) {
+            filename = cfg.imageFiles[name]
+                .replace("${CMAKE_BINARY_DIR}", testingParams.cmakeBinaryDir)
+                .replace("${CMAKE_SOURCE_DIR}", testingParams.cmakeSourceDir);
+            info.image[name] = "data:image/png;base64," + window.btoa(fs.open(filename, "rb").read());
+        }
     }
-    if (cfg.threshold) {
-        info.threshold = cfg.threshold;
-    }
-    info.method = cfg.method;
-    info.data = cfg.data;
-    if (cfg.size) {
-        info.size = cfg.size;
-    }
-    test = cfg.test;
 }
 
-// Global functions that will be available to the testing function.
-var toImageData;
-var compareImages;
-var saveImage;
-var computeDiffImage;
-var cdashReport;
 
-// ---user test suite code begin---
+// Interpolate the user's test declaration to extract the information above
+// (page size, list of image files).
 @TEST_SUITE@
-// ---user test suite code end---
-
-// Print information about this test to the console.
-console.log("url: " + info.url);
-if (info.method) {
-    console.log("method: " + info.method);
-}
-if (info.data) {
-    console.log("data: " + JSON.stringify(info.data, null, 4));
-}
-if (info.imageFile) {
-    console.log("image file: " + info.imageFile);
-}
-console.log("");
-
-// Set the PhantomJS page size.
-page.viewportSize = info.size;
 
 // Route "console.log()" calls from within the Page context to the main Phantom
 // context (i.e. current "this")
@@ -132,156 +115,312 @@ page.onResourceReceived = function (response) {
 var runner = function () {
     "use strict";
 
-    var i,
-        f,
-        passed = 0,
-        failed = 0,
-        total,
-        pending = 0,
-        ready,
-        pass;
+    var waittime,
+        totalwait,
+        test;
 
-    // If there is an image file, read it in as base64.
-    if (info.imageFile) {
-        try {
-            f = fs.open(info.imageFile, "rb");
-            info.imageData = window.btoa(f.read());
-        } catch (e) {
-            console.log("error reading " + info.imageFile + ": " + e);
-            phantom.exit(1);
-        }
-    }
+    // Process the image files.
+    page.evaluate(function (imageData) {
+        var name,
+            div,
+            img;
 
-    // Define toImageData() and compareImages() here, as they make use of the
-    // browser context (Image, document, etc.) that will be available to the
-    // test runner when it is invoked below.
-    toImageData = function (pngData) {
-        var img,
-            c,
-            ctx;
+        div = document.createElement("div");
+        div.setAttribute("id", "phantomtestdiv");
+        div.setAttribute("style", "display:none");
+        document.body.appendChild(div);
 
-        return new Promise(function (deliver) {
-            img = new Image();
-            img.onload = function () {
-                c = document.createElement("canvas");
-                ctx = c.getContext("2d");
-                ctx.drawImage(img, 0, 0);
-
-                deliver(ctx.getImageData(0, 0, img.width, img.height));
-            };
-            img.src = "data:image/png;base64," + pngData;
-        });
-    };
-
-    computeDiffImage = function (data1, data2) {
-        var ctx = document.createElement("canvas").getContext("2d"),
-            diff = ctx.createImageData(data1.width, data1.height),
-            i;
-
-        for (i = 0; i < data1.data.length; i += 1) {
-            if (i % 4 == 3) {
-                diff[i] = 255;
-            } else {
-                diff[i] = Math.abs(data1.data[i] - data2.data[i]);
+        for (name in imageData) {
+            if (imageData.hasOwnProperty(name)) {
+                img = new Image();
+                img.setAttribute("id", name);
+                img.src = imageData[name];
+                div.appendChild(img);
             }
         }
+    }, info.image);
 
-        return diff;
-    };
+    // Wait for all the images to load.
+    waittime = 500;
+    totalwait = 0;
+    window.setInterval(function () {
+        var complete;
 
-    compareImages = function (data1, data2, comparator) {
-        return new Promise(function (deliver) {
-            var promise1 = toImageData(data1),
-                promise2 = toImageData(data2);
+        if (totalwait > 10000) {
+            console.log("error: timed out waiting for all baseline images to load");
+            phantom.exit(1);
+        }
 
-            promise1.then(function (png1) {
-                promise2.then(function (png2) {
+        // Check the page to see if all the images are loaded, and abort if
+        // not.
+        complete = page.evaluate(function () {
+            var div = document.getElementById("phantomtestdiv"),
+                child,
+                i;
+
+            for (i = 0; i < div.children.length; i += 1) {
+                child = div.children[i];
+                if (!child.complete) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        if (!complete) {
+            console.log("incomplete");
+            return;
+        }
+
+        // Launch a page.evaluate() context, create CanvasImages from the hidden
+        // image tags, delete the hidden div, and run the user test function.
+        page.includeJs("http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js", function () {
+            var result = page.evaluate(function (info, testingParams) {
+                // A canvas abstraction object, meant to make it easier to
+                // manipulate images in JavaScript.
+                function CanvasImage(width, height) {
+                    var otherImage,
+                        canvas,
+                        ctx;
+
+                    // Initialize a new canvas element.
+                    canvas = document.createElement("canvas");
+                    ctx = canvas.getContext("2d");
+
+                    // Interpret the arguments, if there are any.  If not, just use the defaults
+                    // (the user may wish to load a PNG file in later, for example).
+                    if (typeof width === "object") {
+                        otherImage = width;
+                        width = otherImage.width();
+                        height = otherImage.height();
+                    } else {
+                        width = width || 300;
+                        height = height || 150;
+                    }
+
+                    // Set the initial dimensions of the canvas element.
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    // If this was initialized with another CanvasImage object, copy its image
+                    // into this object.
+                    if (otherImage) {
+                        ctx.drawImage(otherImage.canvas, 0, 0);
+                    }
+
+                    // The interface object.
+                    return {
+                        getPixels: function () {
+                            console.log(canvas.width);
+                            console.log(canvas.height);
+                            return ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        },
+
+                        clearPixels: function () {
+                            var pels = this.getPixels(),
+                                i;
+
+                            // Set all pixels to black, with an alpha of 1.0.
+                            for (i = 0; i < pels.length / 4; i += 1) {
+                                pels[4 * i + 0] = 0;
+                                pels[4 * i + 1] = 0;
+                                pels[4 * i + 2] = 0;
+                                pels[4 * i + 3] = 255;
+                            }
+                        },
+
+                        getWidth: function () {
+                            return canvas.width;
+                        },
+
+                        setWidth: function (w) {
+                            canvas.width = w;
+                        },
+
+                        getHeight: function () {
+                            return canvas.h;
+                        },
+
+                        setHeight: function (h) {
+                            canvas.height = h;
+                        },
+
+            /*            loadPNG: function (filename) {*/
+                            //var that = this;
+
+                            //return new Promise(function (deliver) {
+                                //var img = new Image();
+
+                                //console.log("3");
+
+                                //// Set the base64 encdoded PNG data as the image source,
+                                //// then copy it into the canvas object.
+                                //img.onload = function () {
+                                    //that.setWidth(img.width);
+                                    //that.setHeight(img.height);
+
+                                    //ctx.drawImage(img, 0, 0);
+
+                                    //deliver();
+                                //};
+                                //console.log("4");
+                                //img.src = "data:image/png;base64," + window.btoa(fs.open(filename, "rb").read());
+                            //});
+                        //},
+
+            /*            savePNG: function (filename) {*/
+                            //var b64;
+
+                            //b64 = canvas.toDataURL().split(",")[1];
+                            //fs.write(filename, window.atob(b64), "wb");
+                        //},
+
+                        drawFromElement: function (elem) {
+                            canvas.width = elem.width;
+                            canvas.height = elem.height;
+                            ctx.drawImage(elem, 0, 0);
+                        }
+                    };
+                }
+
+                function diffImage(img1, img2) {
                     var diff,
-                        val,
-                        passing,
+                        i,
+                        pels = [null, null, null];
+
+                    if (img1.getWidth() !== img2.getWidth() || img1.getHeight() !== img2.getHeight()) {
+                        return null;
+                    }
+
+                    // Create a new CanvasImage object of the same dimension as the input
+                    // images.
+                    diff = new CanvasImage(img1);
+                    diff.clearPixels();
+
+                    // Loop through the pixels and compute the RGB difference (but set the alpha
+                    // to 1.0).
+                    pels[0] = diff.getPixels();
+                    pels[1] = img1.getPixels();
+                    pels[2] = img2.getPixels();
+                    for (i = 0; i < pels[0].length / 4; i += 1) {
+                        pels[0][4 * i + 0] = Math.abs(pels[1][4 * i + 0] - pels[1][4 * i + 0]);
+                        pels[0][4 * i + 1] = Math.abs(pels[1][4 * i + 1] - pels[1][4 * i + 1]);
+                        pels[0][4 * i + 2] = Math.abs(pels[1][4 * i + 2] - pels[1][4 * i + 2]);
+                        pels[0][4 * i + 3] = 255;
+                    }
+
+                    return diff;
+                }
+
+                function L2(img) {
+                    var pels = img.getPixels(),
+                        mag = 0.0,
                         i;
 
-                    if (comparator) {
-                        deliver(comparator(png1, png2));
-                    } else {
-                        // If image dimensions do not match exactly, then reject
-                        // the match.
-                        if (png1.width !== png2.width || png1.height !== png2.height) {
-                            console.log("image dimensions do not match");
-                            saveImage(png2, info.testName + ".png");
-                            deliver(false);
-                        } else {
-                            // Otherwise, compute the L2 difference between the
-                            // images.
-                            diff = 0.0;
-                            for (i = 0; i < png1.data.length; i += 1) {
-                                val = png1.data[i] - png2.data[i];
-                                diff += val * val;
-                            }
-                            diff = Math.sqrt(diff);
-
-                            console.log("L2 diff: " + diff);
-                            console.log("threshold: " + info.threshold);
-
-                            passing = Math.sqrt(diff) <= info.threshold;
-                            if (!passing) {
-                                console.log("1");
-                                info.testImage = info.testName.replace(/ /g, "");
-                                console.log("2");
-                                console.log(info.testImage);
-                                saveImage(png2, info.testImage + ".png");
-                                console.log("3");
-                                saveImage(computeDiffImage(png1, png2), info.testImage + "-diff.png");
-                            }
-
-                            deliver(passing);
+                    for (i = 0; i < pels.length; i += 1) {
+                        if (i % 4 !== 3) {
+                            mag += pels[i] * pels[i];
                         }
                     }
-                });
-            });
+
+                    return Math.sqrt(mag);
+                }
+
+                var div = document.getElementById("phantomtestdiv"),
+                    child,
+                    name,
+                    i;
+
+                info = {
+                    testName: "",
+
+                    url: null,
+                    method: null,
+                    data: null,
+
+                    status: null,
+                    statusText: null,
+
+                    image: {},
+                    threshold: 0.0,
+
+                    size: {
+                        width: 1024,
+                        height: 768
+                    }
+                };
+
+                function declareTest(cfg) {
+                    info.name = cfg.name;
+                    info.url = "http://" + testingParams.host + ":" + testingParams.port + cfg.url;
+
+                    if (cfg.threshold) {
+                        info.threshold = cfg.threshold;
+                    }
+
+                    info.method = cfg.method;
+
+                    info.data = cfg.data;
+
+                    test = cfg.test;
+                }
+
+                // Repeat this interpolation here to capture the testing function,
+                // etc., within the webpage context.
+                @TEST_SUITE@
+
+                // Print information about this test to the console.
+                console.log("url: " + info.url);
+                if (info.method) {
+                    console.log("method: " + info.method);
+                }
+                if (info.data) {
+                    console.log("data: " + JSON.stringify(info.data, null, 4));
+                }
+                if (info.imageFile) {
+                    console.log("image file: " + info.imageFile);
+                }
+                console.log("");
+
+                // Prepare the CanvasImages.
+                for (i = 0; i < div.children.length; i += 1) {
+                    child = div.children[i];
+                    name = child.getAttribute("id");
+
+                    info.image[name] = new CanvasImage();
+                    info.image[name].drawFromElement(child);
+                }
+
+                // Remove the phantom div from the DOM.
+                document.body.removeChild(div);
+
+                // Run the test function and return whatever it returns.  The value
+                // can't be processed here because we are still inside the webpage
+                // sandbox.
+                return test(info);
+            }, info, testingParams);
+
+            // Make sure the test returned a boolean value.
+            if (result !== true && result !== false) {
+                console.log("error: test function did not return a boolean value!");
+                console.log(result);
+                phantom.exit(2);
+            }
+
+            // Exit with an appropriate code.
+            phantom.exit(result ? 0 : 1);
         });
-    };
+    }, waittime);
 
-    saveImage = function (imgdata, filename) {
-        var canvas = document.createElement("canvas"),
-            ctx = canvas.getContext("2d"),
-            b64;
-
-        canvas.width = imgdata.width;
-        canvas.height = imgdata.height;
-        ctx.putImageData(imgdata, 0, 0);
-        b64 = canvas.toDataURL().split(",")[1];
-
-        fs.write(filename, window.atob(b64), "wb");
-    };
-
-/*    saveImage = function (imgdata, filename) {*/
-        //console.log("4");
-        //var png = window.atob(imgdata);
-        //console.log("5");
-        //fs.write(filename, png, "wb");
-    //};
-
-    cdashReport = function (testimage_, groundtruth_, diffimage_) {
-        var testimage = fs.absolute(testimage_),
-            groundtruth = fs.absolute(groundtruth_),
-            diffimage = fs.absolute(diffimage_);
+    function cdashReport(testimage, groundtruth, diffimage) {
+        testimage = fs.absolute(testimage);
+        groundtruth = fs.absolute(groundtruth);
+        diffimage = fs.absolute(diffimage);
 
         console.log('<DartMeasurementFile name="TestImage" type="image/png">' + testimage + '</DartMeasurementFile>');
         console.log('<DartMeasurementFile name="DifferenceImage" type="image/png">' + diffimage + '</DartMeasurementFile>');
         console.log('<DartMeasurementFile name="ValidImage" type="image/png">' + groundtruth + '</DartMeasurementFile>');
-    };
-
-    // Invoke the test runner.
-    console.log("Running test: " + info.testName);
-    pass = test(page, info);
-
-    // Analyze the test's return value (i.e., if it is a promise, extract the
-    // result first, before sending it to the reporting function).
-    if (pass.then) {
-        pass.then(report);
-    } else {
-        report(pass);
     }
 
     // Print a success/failure message, and return an appropriate code to the
