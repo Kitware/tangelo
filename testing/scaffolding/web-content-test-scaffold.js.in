@@ -188,7 +188,16 @@ var runner = function () {
         // Launch a page.evaluate() context, create CanvasImages from the hidden
         // image tags, delete the hidden div, and run the user test function.
         page.includeJs("http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js", function () {
-            var result = page.evaluate(function (info, testingParams) {
+            var savelist,
+                i,
+                result;
+
+            result = page.evaluate(function (info, testingParams) {
+                var div = $("#phantomtestdiv").get(0),
+                    child,
+                    name,
+                    i;
+
                 // A canvas abstraction object, meant to make it easier to
                 // manipulate images in JavaScript.
                 function CanvasImage(width, height) {
@@ -224,8 +233,6 @@ var runner = function () {
                     // The interface object.
                     return {
                         getPixels: function () {
-                            console.log(canvas.width);
-                            console.log(canvas.height);
                             return ctx.getImageData(0, 0, canvas.width, canvas.height);
                         },
 
@@ -258,35 +265,23 @@ var runner = function () {
                             canvas.height = h;
                         },
 
-            /*            loadPNG: function (filename) {*/
-                            //var that = this;
+                        savePNG: function (filename) {
+                            var node;
 
-                            //return new Promise(function (deliver) {
-                                //var img = new Image();
+                            // Make a copy of the canvas element (to preserve
+                            // the image across possible changes to the source).
+                            node = document.createElement("canvas");
+                            node.width = canvas.width;
+                            node.height = canvas.height;
+                            node.getContext("2d").drawImage(canvas, 0, 0);
 
-                                //console.log("3");
-
-                                //// Set the base64 encdoded PNG data as the image source,
-                                //// then copy it into the canvas object.
-                                //img.onload = function () {
-                                    //that.setWidth(img.width);
-                                    //that.setHeight(img.height);
-
-                                    //ctx.drawImage(img, 0, 0);
-
-                                    //deliver();
-                                //};
-                                //console.log("4");
-                                //img.src = "data:image/png;base64," + window.btoa(fs.open(filename, "rb").read());
-                            //});
-                        //},
-
-            /*            savePNG: function (filename) {*/
-                            //var b64;
-
-                            //b64 = canvas.toDataURL().split(",")[1];
-                            //fs.write(filename, window.atob(b64), "wb");
-                        //},
+                            // Deposit the canvas element in the hidden DOM
+                            // element with an attribute describing the
+                            // requested filename.
+                            node.setAttribute("filename", filename);
+                            node.setAttribute("savePNG", "true");
+                            div.appendChild(node);
+                        },
 
                         drawFromElement: function (elem) {
                             canvas.width = elem.width;
@@ -339,11 +334,6 @@ var runner = function () {
                     return Math.sqrt(mag);
                 }
 
-                var div = document.getElementById("phantomtestdiv"),
-                    child,
-                    name,
-                    i;
-
                 // Need to capture the test function here, as functions are not
                 // JSON-serializable (for passing into the sandbox).
                 function declareTest(cfg) {
@@ -367,23 +357,57 @@ var runner = function () {
                 }
                 console.log("");
 
-                // Prepare the CanvasImages.
+                // Prepare the CanvasImages, and remove the image elements as we
+                // copy them.
                 for (i = 0; i < div.children.length; i += 1) {
                     child = div.children[i];
                     name = child.getAttribute("id");
 
                     info.image[name] = new CanvasImage();
                     info.image[name].drawFromElement(child);
+
+                    div.removeChild(child);
                 }
 
-                // Remove the phantom div from the DOM.
-                document.body.removeChild(div);
-
-                // Run the test function and return whatever it returns.  The value
-                // can't be processed here because we are still inside the webpage
+                // Capture the test function result.  The value can't be
+                // processed here because we are still inside the webpage
                 // sandbox.
                 return test(info);
             }, info, testingParams);
+
+            // Save to disk any images that were marked for saving during the
+            // test function run.
+            //
+            // First retrieve the filenames and base64 data to save.
+            savelist = page.evaluate(function () {
+                var div = document.getElementById("phantomtestdiv"),
+                    i,
+                    child,
+                    savelist = [];
+
+                for (i = 0; i < div.children.length; i += 1) {
+                    child = div.children[i];
+
+                    if (child.getAttribute("savePNG") === "true") {
+                        savelist.push({
+                            name: child.getAttribute("filename"),
+                            data: child.toDataURL().split(",")[1]
+                        });
+                    }
+                }
+
+                return savelist;
+            });
+
+            for (i = 0; i < savelist.length; i += 1) {
+                fs.write(savelist[i].name, window.atob(savelist[i].data), "wb");
+
+                if (savelist[i].name === "geodots.png") {
+                    fs.write("blah.b64", savelist[i].data, "wb");
+                }
+            }
+
+            page.render("page.png");
 
             // Make sure the test returned a boolean value.
             if (result !== true && result !== false) {
