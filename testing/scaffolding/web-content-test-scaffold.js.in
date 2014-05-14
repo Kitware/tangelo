@@ -383,6 +383,32 @@ var runner = function () {
                 return Math.sqrt(mag);
             }
 
+            function compareImages(testElem, baseline, basename, threshold) {
+                var testImage = new CanvasImage(),
+                    diff,
+                    diffMag;
+
+                // Load the test image from the specified element.
+                testImage.drawFromElement(testElem);
+                testImage.savePNG(basename + "-test.png");
+
+                // Compute the difference image.
+                diff = diffImage(testImage, info.image[baseline]);
+                diff.savePNG(basename + "-diff.png");
+
+                // Compute the diff image magnitude.
+                diffMag = L2(diff);
+                console.log("L2 magnitude of difference image: " + diffMag);
+
+                // Emit a cdash report.
+                cdashImage("TestImage", basename + "-test.png");
+                cdashImage("DifferenceImage", basename + "-diff.png");
+                cdashImage("ValidImage", info.imageFiles[baseline]);
+
+                // Compare against the threshold and return the result.
+                return diffMag < threshold;
+            }
+
             // This function can be called to place a marker in the hidden
             // control div to emit XML information to CDash (after the test
             // is run, and only if the test fails).
