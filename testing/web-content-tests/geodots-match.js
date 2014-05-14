@@ -7,7 +7,6 @@ declareTest({
     imageFiles: {
         geodots: "${CMAKE_BINARY_DIR}/tangelo/web/examples/geodots/geodots.png"
     },
-    threshold: 1e-8,
     test: function (info) {
         "use strict";
 
@@ -33,6 +32,6 @@ declareTest({
         cdashImage("ValidImage", info.imageFiles.geodots);
 
         // Compare the diff magnitude to the tolerance.
-        return diffMag < info.threshold;
+        return diffMag < 1e-8;
     }
 });
