@@ -383,10 +383,14 @@ var runner = function () {
                 return Math.sqrt(mag);
             }
 
-            function compareImages(testElem, baseline, basename, threshold) {
+            function compareImages(cfg){
                 var testImage = new CanvasImage(),
                     diff,
-                    diffMag;
+                    diffMag,
+                    testElem = cfg.testElement,
+                    baseline = cfg.baselineName,
+                    basename = cfg.filenameBase,
+                    threshold = cfg.threshold;
 
                 // Load the test image from the specified element.
                 testImage.drawFromElement(testElem);

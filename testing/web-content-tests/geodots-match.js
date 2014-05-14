@@ -10,6 +10,11 @@ declareTest({
     test: function (info) {
         "use strict";
 
-        return compareImages(document.getElementsByTagName("canvas")[0], "geodots", "geodots", 1e-8);
+        return compareImages({
+            testElement: document.getElementsByTagName("canvas")[0],
+            baselineName: "geodots",
+            filenameBase: "geodots",
+            threshold: 1e-8
+        });
     }
 });
