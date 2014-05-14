@@ -465,7 +465,7 @@ var runner = function () {
             // processed here because we are still inside the webpage
             // sandbox.
             return {
-                outcome: test(info),
+                outcome: test(),
                 png: png,
                 cdash: cdash
             };

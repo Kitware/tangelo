@@ -1,5 +1,5 @@
 /*jslint browser: true */
-/*globals declareTest, compareImages, toImageData, $ */
+/*globals declareTest, compareImages */
 
 declareTest({
     name: "Geodots - ground truth match",
@@ -7,7 +7,7 @@ declareTest({
     imageFiles: {
         geodots: "${CMAKE_BINARY_DIR}/tangelo/web/examples/geodots/geodots.png"
     },
-    test: function (info) {
+    test: function () {
         "use strict";
 
         return compareImages({
