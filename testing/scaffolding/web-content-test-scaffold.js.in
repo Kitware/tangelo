@@ -41,6 +41,7 @@ var info = {
         height: 768
     },
 
+    imageFiles: {},
     image: {}
 };
 
@@ -80,6 +81,7 @@ function declareTest(cfg) {
             filename = cfg.imageFiles[name]
                 .replace("${CMAKE_BINARY_DIR}", testingParams.cmakeBinaryDir)
                 .replace("${CMAKE_SOURCE_DIR}", testingParams.cmakeSourceDir);
+            info.imageFiles[name] = filename;
             info.image[name] = "data:image/png;base64," + window.btoa(fs.open(filename, "rb").read());
         }
     }
@@ -320,7 +322,7 @@ var runner = function () {
                             // element with an attribute describing the
                             // requested filename.
                             node.setAttribute("filename", filename);
-                            node.setAttribute("savePNG", "true");
+                            node.setAttribute("type", "savePNG");
                             div.appendChild(node);
                         },
 
@@ -375,6 +377,23 @@ var runner = function () {
                     return Math.sqrt(mag);
                 }
 
+                // This function can be called to place a marker in the hidden
+                // control div to emit XML information to CDash (after the test
+                // is run, and only if the test fails).
+                //
+                // TODO: use a parameter to control whether the XML is emitted
+                // only when the test fails, passes, or always.
+                function cdashImage(name, file) {
+                    var div = document.getElementById("phantomtestdiv"),
+                        node = document.createElement("div");
+
+                    node.setAttribute("name", name);
+                    node.setAttribute("file", file);
+                    node.setAttribute("type", "cdash");
+
+                    div.appendChild(node);
+                }
+
                 // Need to capture the test function here, as functions are not
                 // JSON-serializable (for passing into the sandbox).
                 function declareTest(cfg) {
@@ -424,15 +443,25 @@ var runner = function () {
                 var div = document.getElementById("phantomtestdiv"),
                     i,
                     child,
-                    savelist = [];
+                    type,
+                    savelist = {
+                        png: [],
+                        cdash: []
+                    };
 
                 for (i = 0; i < div.children.length; i += 1) {
                     child = div.children[i];
+                    type = child.getAttribute("type");
 
-                    if (child.getAttribute("savePNG") === "true") {
-                        savelist.push({
+                    if (type === "savePNG") {
+                        savelist.png.push({
                             name: child.getAttribute("filename"),
                             data: child.toDataURL().split(",")[1]
+                        });
+                    } else if (type === "cdash") {
+                        savelist.cdash.push({
+                            name: child.getAttribute("name"),
+                            file: child.getAttribute("file")
                         });
                     }
                 }
@@ -440,15 +469,17 @@ var runner = function () {
                 return savelist;
             });
 
-            for (i = 0; i < savelist.length; i += 1) {
-                fs.write(savelist[i].name, window.atob(savelist[i].data), "wb");
-
-                if (savelist[i].name === "geodots.png") {
-                    fs.write("blah.b64", savelist[i].data, "wb");
-                }
+            // Now write the data out to disk.
+            for (i = 0; i < savelist.png.length; i += 1) {
+                fs.write(savelist.png[i].name, window.atob(savelist.png[i].data), "wb");
             }
 
-            page.render("page.png");
+            // Emit cdash xml if requested.
+            if (!result) {
+                for (i = 0; i < savelist.cdash.length; i += 1) {
+                    console.log('<DartMeasurementFile name="' + savelist.cdash[i].name + '" type="image/png">' + fs.absolute(savelist.cdash[i].file) + '</DartMeasurementFile>');
+                }
+            }
 
             // Make sure the test returned a boolean value.
             if (result !== true && result !== false) {
@@ -461,16 +492,6 @@ var runner = function () {
             phantom.exit(result ? 0 : 1);
         });
     }, waittime);
-
-    function cdashReport(testimage, groundtruth, diffimage) {
-        testimage = fs.absolute(testimage);
-        groundtruth = fs.absolute(groundtruth);
-        diffimage = fs.absolute(diffimage);
-
-        console.log('<DartMeasurementFile name="TestImage" type="image/png">' + testimage + '</DartMeasurementFile>');
-        console.log('<DartMeasurementFile name="DifferenceImage" type="image/png">' + diffimage + '</DartMeasurementFile>');
-        console.log('<DartMeasurementFile name="ValidImage" type="image/png">' + groundtruth + '</DartMeasurementFile>');
-    }
 
     // Print a success/failure message, and return an appropriate code to the
     // testing system (i.e., CTest).

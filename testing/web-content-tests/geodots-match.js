@@ -28,6 +28,10 @@ declareTest({
         // Print the L2 difference.
         console.log("image difference (L2): " + diffMag);
 
+        cdashImage("TestImage", "geodots-test.png");
+        cdashImage("DifferenceImage", "geodots-diff.png");
+        cdashImage("ValidImage", info.imageFiles.geodots);
+
         // Compare the diff magnitude to the tolerance.
         return diffMag < info.threshold;
     }
