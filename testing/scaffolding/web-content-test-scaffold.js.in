@@ -4,7 +4,6 @@
 // This is a script for PhantomJS to run.  It fetches a webpage and renders it
 // either as HTML or as plain text, depending on the second parameter.
 
-//var system = require('system');
 var fs = require("fs");
 var page = require('webpage').create();
 
@@ -156,7 +155,6 @@ var runner = function () {
     totalwait = 0;
     window.setInterval(function () {
         var complete,
-            savelist,
             i,
             result;
 
@@ -200,6 +198,8 @@ var runner = function () {
             var div = document.getElementById("phantomtestdiv"),
                 child,
                 name,
+                png = [],
+                cdash = [],
                 i;
 
             // A canvas abstraction object, meant to make it easier to
@@ -311,21 +311,10 @@ var runner = function () {
                     },
 
                     savePNG: function (filename) {
-                        var node;
-
-                        // Make a copy of the canvas element (to preserve
-                        // the image across possible changes to the source).
-                        node = document.createElement("canvas");
-                        node.width = canvas.width;
-                        node.height = canvas.height;
-                        node.getContext("2d").drawImage(canvas, 0, 0);
-
-                        // Deposit the canvas element in the hidden DOM
-                        // element with an attribute describing the
-                        // requested filename.
-                        node.setAttribute("type", "savePNG");
-                        node.setAttribute("filename", filename);
-                        div.appendChild(node);
+                        png.push({
+                            filename: filename,
+                            data: canvas.toDataURL().split(",")[1]
+                        });
                     },
 
                     drawFromElement: function (elem) {
@@ -401,14 +390,10 @@ var runner = function () {
             // TODO: use a parameter to control whether the XML is emitted
             // only when the test fails, passes, or always.
             function cdashImage(name, file) {
-                var div = document.getElementById("phantomtestdiv"),
-                    node = document.createElement("div");
-
-                node.setAttribute("name", name);
-                node.setAttribute("file", file);
-                node.setAttribute("type", "cdash");
-
-                div.appendChild(node);
+                cdash.push({
+                    name: name,
+                    file: file,
+                });
             }
 
             // Need to capture the test function here, as functions are not
@@ -443,71 +428,35 @@ var runner = function () {
 
                 info.image[name] = new CanvasImage();
                 info.image[name].drawFromElement(child);
-
-                div.removeChild(child);
             }
+            document.body.removeChild(div);
 
             // Capture the test function result.  The value can't be
             // processed here because we are still inside the webpage
             // sandbox.
-            return test(info);
+            return {
+                outcome: test(info),
+                png: png,
+                cdash: cdash
+            };
         }, info, testingParams);
 
-        // Save to disk any images that were marked for saving during the
-        // test function run.
-        //
-        // First retrieve the filenames and base64 data to save.
-        savelist = page.evaluate(function () {
-            var div = document.getElementById("phantomtestdiv"),
-                i,
-                child,
-                type,
-                savelist = {
-                    png: [],
-                    cdash: []
-                };
-
-            // Loop through the signal elements and extract a description of
-            // the requested action from each.
-            for (i = 0; i < div.children.length; i += 1) {
-                child = div.children[i];
-                type = child.getAttribute("type");
-
-                // This is a table of possible actions...
-                if (type === "savePNG") {
-                    // ...save an image to disk.
-                    savelist.png.push({
-                        name: child.getAttribute("filename"),
-                        data: child.toDataURL().split(",")[1]
-                    });
-                } else if (type === "cdash") {
-                    // ...emit CDash xml.
-                    savelist.cdash.push({
-                        name: child.getAttribute("name"),
-                        file: child.getAttribute("file")
-                    });
-                }
-            }
-
-            return savelist;
-        });
-
         // Make sure the test returned a boolean value.
-        if (result !== true && result !== false) {
+        if (result.outcome !== true && result.outcome !== false) {
             console.log("error: test function did not return a boolean value!");
-            console.log(result);
+            console.log(result.outcome);
             phantom.exit(2);
         }
 
         // Now write the images out to disk.
-        for (i = 0; i < savelist.png.length; i += 1) {
-            fs.write(savelist.png[i].name, window.atob(savelist.png[i].data), "wb");
+        for (i = 0; i < result.png.length; i += 1) {
+            fs.write(result.png[i].filename, window.atob(result.png[i].data), "wb");
         }
 
-        // Emit cdash xml if requested.
-        if (!result) {
-            for (i = 0; i < savelist.cdash.length; i += 1) {
-                console.log('<DartMeasurementFile name="' + savelist.cdash[i].name + '" type="image/png">' + fs.absolute(savelist.cdash[i].file) + '</DartMeasurementFile>');
+        // And emit cdash xml if requested.
+        if (!result.outcome) {
+            for (i = 0; i < result.cdash.length; i += 1) {
+                console.log('<DartMeasurementFile name="' + result.cdash[i].name + '" type="image/png">' + fs.absolute(result.cdash[i].file) + '</DartMeasurementFile>');
             }
         }
 
@@ -519,11 +468,6 @@ var runner = function () {
     // testing system (i.e., CTest).
     function report(passed) {
         console.log(passed ? "PASSED" : "FAILED");
-
-        if (!passed && info.imageFile) {
-            cdashReport(info.testImage + ".png", info.imageFile, info.testImage + "-diff.png");
-        }
-
         phantom.exit(!passed);
     }
 };
