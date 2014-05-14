@@ -219,9 +219,9 @@ This default function may not be appropriate for most comparison tasks, but it
 is the simplest possible reasonable function for image comparison.  In general,
 you may want to specify your own.
 
-.. js:function:: dumpImage(imgData, filename)
+.. js:function:: saveImage(imgData, filename)
 
-A debugging function that takes a pixel array `imgData` (as returned by, e.g.,
+A function that takes a pixel array `imgData` (as returned by, e.g.,
 :js:func:`toImageData`) and writes out a PNG file `filename`.  It is possible
 that this function will fail, e.g., if the user that is running Tangelo does not
 have write permission in the directory where this function is invoked.
