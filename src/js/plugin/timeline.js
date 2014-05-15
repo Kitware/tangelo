@@ -35,37 +35,46 @@
                             .attr('class', 'y-axis axis');
             this.path = this.plot.append('path')
                             .attr('class', 'path');
+            this._x = null;
+            this._y = null;
         },
 
         _update: function () {
-            var axisPadding = 15,
+            var that = this,
+                axisPadding = 15,
                 padding = this.options.padding,
                 xAcc = tangelo.accessor(this.options.x),
                 yAcc = tangelo.accessor(this.options.y),
                 width = (this.options.width || this.element.width()) - 2 * padding - axisPadding,
                 height = (this.options.height || this.element.height()) - 2 * padding - axisPadding,
                 data = this.options.data,
-                x = d3.time.scale()
-                    .domain(d3.extent(data, xAcc))
-                    .range([0, width])
-                    .nice(),
-                y = d3.scale.linear()
-                    .domain(d3.extent(data, yAcc))
-                    .range([height, 0])
-                    .nice(),
-                xaxis = d3.svg.axis()
-                    .scale(x)
-                    .orient('bottom'),
-                yaxis = d3.svg.axis()
-                    .scale(y)
-                    .orient('left'),
-                line = d3.svg.line()
-                    .x(function (d) {
-                        return x(xAcc(d));
-                    })
-                    .y(function (d) {
-                        return y(yAcc(d));
-                    });
+                xaxis,
+                yaxis,
+                line;
+
+            this._x = d3.time.scale()
+                .domain(d3.extent(data, xAcc))
+                .range([0, width])
+                .nice();
+            this._y = d3.scale.linear()
+                .domain(d3.extent(data, yAcc))
+                .range([height, 0])
+                .nice();
+
+            xaxis = d3.svg.axis()
+                .scale(this._x)
+                .orient('bottom');
+            yaxis = d3.svg.axis()
+                .scale(this._y)
+                .orient('left');
+
+            line = d3.svg.line()
+                .x(function (d) {
+                    return that._x(xAcc(d));
+                })
+                .y(function (d) {
+                    return that._y(yAcc(d));
+                });
 
             // resize svg
             this.svg
@@ -84,8 +93,15 @@
             // generate the plot
             applyTransition(this.path, this.options.transition)
                 .attr('d', line(this.options.data));
-        }
+        },
 
+        xScale: function () {
+            return this._x;
+        },
+
+        yScale: function () {
+            return this._y;
+        }
     });
 
 }(window.tangelo, window.jQuery, window.d3));

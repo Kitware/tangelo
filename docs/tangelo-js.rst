@@ -825,6 +825,14 @@ provide convenient behaviors or to implement common visualization methods.  See
     :param number spec.transition: The duration of the transition animation in milliseconds, or
         false to turn off transitions.
 
+    .. js:function:: xScale()
+    .. js:function:: yScale()
+
+        These return a d3 linear scale representing the transformation from plot coordinates to
+        screen pixel coordinates.  They make it possible to add custom annotations to
+        the plot by appending an svg element to the `d3.select('.plot')` selection at the coordinates
+        returned by the scales.
+
     .. image:: images/timeline.png
         :align: center
         :alt: An example timeline plot
