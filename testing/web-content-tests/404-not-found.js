@@ -4,7 +4,7 @@
 declareTest({
     name: "404 - nonexistent page should return a 404 error",
     url: "/doesntexist",
-    test: function (page, info) {
+    test: function () {
         "use strict";
 
         console.log("expected status code: 404");

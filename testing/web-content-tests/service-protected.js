@@ -4,7 +4,7 @@
 declareTest({
     name: "service source code should be forbidden",
     url: "/service/test/configured.py",
-    test: function (page, info) {
+    test: function () {
         "use strict";
 
         console.log("expected status code: 403");

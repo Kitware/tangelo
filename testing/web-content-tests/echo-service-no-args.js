@@ -4,14 +4,15 @@
 declareTest({
     name: "echo test service, no arguments - correctness",
     url: "/service/test/echo",
-    test: function (page) {
+    test: function () {
         "use strict";
 
-        var expected = "(No arguments passed)";
+        var expected = "(No arguments passed)",
+            actual = document.body.textContent;
 
         console.log("expected: " + expected);
-        console.log("received: " + page.plainText);
+        console.log("received: " + actual);
 
-        return page.plainText === expected;
+        return actual === expected;
     }
 });

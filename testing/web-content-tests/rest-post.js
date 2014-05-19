@@ -7,12 +7,13 @@ declareTest({
     test: function (page) {
         "use strict";
 
-        var expected = "POST: one two three {'foo': u'bar', 'that': u'telling'}";
+        var expected = "POST: one two three {'foo': u'bar', 'that': u'telling'}",
+            actual = document.body.textContent;
 
         console.log("expected: " + expected);
-        console.log("received: " + page.plainText);
+        console.log("received: " + actual);
 
-        return page.plainText === expected;
+        return actual === expected;
     },
     method: "POST",
     data: {
