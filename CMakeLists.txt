@@ -609,36 +609,29 @@ if(${BUILD_TESTING})
         )
     endif()
 
-    # Python coverage testing setup.
-    if(PY_COVERAGE_TEST)
-        add_test(coverage:py:reset
-            ${COVERAGE_EXECUTABLE} erase
-        )
-
-        add_test(coverage:py
-            ${COVERAGE_EXECUTABLE} html -d ${CMAKE_BINARY_DIR}/tangelo/web/tests/python-coverage --fail-under=100
-        )
-
-        list(APPEND TESTING_DEPENDENCIES ${COVERAGE_EXECUTABLE})
-    endif()
-
     # Unit tests for tangelo Python module.
     if(${PY_UNIT_TESTS})
         # Add each test.  Decorate the call with the coverage tool if we're in
         # coverage mode.
         set(UTIL_PY ${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/util.py)
         set(INIT_PY ${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/__init__.py)
-        foreach(py ${PY_UNIT_TEST_CASES})
-            get_filename_component(f "${py}" NAME_WE)
+        foreach(src ${PY_UNIT_TEST_CASES})
+            # Get the test's basename.
+            get_filename_component(f "${src}" NAME_WE)
+
+            # Name the testing file.
+            set(py ${CMAKE_BINARY_DIR}/py-unit-tests/${f}.py)
+
+            # Configure the testing code into the test scaffold.
+            file(READ ${src} UNIT_TEST_CODE)
+            configure_file(testing/scaffolding/unittest-scaffold.py.in ${py})
+
+            # Name and create the test.
             set(name unit-test:py:${f})
             if(PY_COVERAGE_TEST)
                 add_test(${name}
-                    ${COVERAGE_EXECUTABLE} run --append
-                                           --source=${UTIL_PY},${INIT_PY}
-                                           --include="*util*" ${py}
+                    ${VENV_PYTHON_EXECUTABLE} -m trace --count -C . -m ${py}
                 )
-                set_property(TEST ${name} APPEND PROPERTY DEPENDS coverage:py:reset)
-                set_property(TEST coverage:py APPEND PROPERTY DEPENDS ${name})
             else()
                 add_test(${name}
                     ${VENV_PYTHON_EXECUTABLE} ${py}
