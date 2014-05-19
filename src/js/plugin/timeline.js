@@ -19,10 +19,17 @@
             data: [],
             x: tangelo.accessor({'field': 'time'}),
             y: tangelo.accessor({'field': 'value'}),
-            padding: 30,
+            margin: {
+                top: 10,
+                bottom: 30,
+                left: 30,
+                right: 10
+            },
             transition: 0,
             width: null,
-            height: null
+            height: null,
+            xTicks: 10,
+            yTicks: 10
         },
 
         _create: function () {
@@ -42,11 +49,13 @@
         _update: function () {
             var that = this,
                 axisPadding = 15,
-                padding = this.options.padding,
+                margin = this.options.margin,
                 xAcc = tangelo.accessor(this.options.x),
                 yAcc = tangelo.accessor(this.options.y),
-                width = (this.options.width || this.element.width()) - 2 * padding - axisPadding,
-                height = (this.options.height || this.element.height()) - 2 * padding - axisPadding,
+                width = (this.options.width || this.element.width()) -
+                    margin.left - margin.right - axisPadding,
+                height = (this.options.height || this.element.height()) -
+                    margin.top - margin.bottom - axisPadding,
                 data = this.options.data,
                 xaxis,
                 yaxis,
@@ -64,9 +73,11 @@
             xaxis = d3.svg.axis()
                 .scale(this._x)
                 .orient('bottom');
+            xaxis.ticks(this.options.xTicks);
             yaxis = d3.svg.axis()
                 .scale(this._y)
                 .orient('left');
+            yaxis.ticks(this.options.yTicks);
 
             line = d3.svg.line()
                 .x(function (d) {
@@ -78,10 +89,10 @@
 
             // resize svg
             this.svg
-                .attr('width', width + 2 * padding + axisPadding)
-                .attr('height', height + 2 * padding + axisPadding);
+                .attr('width', width + margin.left + margin.right + axisPadding)
+                .attr('height', height + margin.top + margin.bottom + axisPadding);
             this.main
-                .attr('transform', 'translate(' + (padding + axisPadding) + ',' + padding + ')');
+                .attr('transform', 'translate(' + (margin.left + axisPadding) + ',' + margin.top + ')');
 
             // generate axes
             applyTransition(this.xaxis, this.options.transition)
