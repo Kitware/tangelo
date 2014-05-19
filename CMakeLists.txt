@@ -609,12 +609,16 @@ if(${BUILD_TESTING})
         )
     endif()
 
+    # Configure the gcov impersonator script.
+    configure_file(
+        testing/py-coverage/cover2gcov.py.in
+        cover2gcov.py
+    )
+
     # Unit tests for tangelo Python module.
     if(${PY_UNIT_TESTS})
         # Add each test.  Decorate the call with the coverage tool if we're in
         # coverage mode.
-        set(UTIL_PY ${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/util.py)
-        set(INIT_PY ${CMAKE_BINARY_DIR}/venv/lib/python2.7/site-packages/tangelo/__init__.py)
         foreach(src ${PY_UNIT_TEST_CASES})
             # Get the test's basename.
             get_filename_component(f "${src}" NAME_WE)
@@ -630,7 +634,7 @@ if(${BUILD_TESTING})
             set(name unit-test:py:${f})
             if(PY_COVERAGE_TEST)
                 add_test(${name}
-                    ${VENV_PYTHON_EXECUTABLE} -m trace --count -C . -m ${py}
+                    ${VENV_PYTHON_EXECUTABLE} -m trace --count -C CMakeFiles/tangelo-all.dir -m ${py}
                 )
             else()
                 add_test(${name}
@@ -638,6 +642,26 @@ if(${BUILD_TESTING})
                 )
             endif()
         endforeach()
+
+        if(PY_COVERAGE_TEST)
+            # If performing Python coverage, we need to drop fake .gcda files in
+            # a place where CTest will find them, in order to trigger the
+            # analysis of the .cover files.
+            function(signal_gcda name)
+                set(fullpath "${CMAKE_BINARY_DIR}/CMakeFiles/tangelo-all.dir/${name}.gcda")
+                add_custom_command(
+                    OUTPUT ${fullpath}
+                    COMMAND ${CMAKE_COMMAND} -E touch "${fullpath}"
+                    COMMENT "Generating ${name}.gcda (signal file)"
+                )
+                list(APPEND GCDA_FILES "${fullpath}")
+                set(GCDA_FILES "${GCDA_FILES}" PARENT_SCOPE)
+            endfunction()
+
+            signal_gcda("tangelo.__init__")
+            signal_gcda("tangelo.plugin")
+            signal_gcda("tangelo.util")
+        endif()
     endif()
 
     # Web content tests.
@@ -687,6 +711,7 @@ set(TOP_LEVEL_DEPENDENCIES
     ${ALL_COPIED_FILES}
     ${MIN_JS_FILE}
     ${JS_FILE}
+    ${GCDA_FILES}
 )
 
 if(${BUILD_DOCUMENTATION})
