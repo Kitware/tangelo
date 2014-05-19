@@ -1,25 +1,20 @@
 /*jslint browser: true */
-/*globals declareTest, compareImages, toImageData, $ */
+/*globals declareTest, compareImages */
 
 declareTest({
     name: "Geodots - ground truth match",
     url: "/examples/geodots",
-    imageFile: "${CMAKE_BINARY_DIR}/tangelo/web/examples/geodots/geodots.png",
-    test: function (page, info) {
+    imageFiles: {
+        geodots: "${CMAKE_BINARY_DIR}/tangelo/web/examples/geodots/geodots.png"
+    },
+    test: function () {
         "use strict";
 
-        var screencap,
-            ground;
-
-        screencap = page.evaluate(function () {
-            var canvas = $("canvas")[0],
-                b64 = canvas.toDataURL().split(",")[1];
-
-            return b64;
+        return compareImages({
+            testElement: document.getElementsByTagName("canvas")[0],
+            baselineName: "geodots",
+            filenameBase: "geodots",
+            threshold: 1e-8
         });
-
-        ground = info.imageData;
-
-        return compareImages(screencap, ground);
     }
 });

@@ -1,0 +1,12 @@
+import unittest
+@UNIT_TEST_CODE@
+
+class Module(object):
+    pass
+
+if __name__ == "__main__":
+    module = Module()
+    for k, v in locals().items():
+        setattr(module, k, v)
+
+    unittest.main(module)

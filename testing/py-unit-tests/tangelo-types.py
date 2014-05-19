@@ -1,6 +1,5 @@
 import bson.json_util
 import json
-import unittest
 
 import tangelo
 
@@ -97,7 +96,3 @@ class Tester(unittest.TestCase):
         self.assertTrue(isinstance(result, tangelo.HTTPStatusCode))
         self.assertEqual(result.code, "500 Return Value Conversion Failed")
         self.assertEqual(result.msg, msg)
-
-
-if __name__ == "__main__":
-    unittest.main()

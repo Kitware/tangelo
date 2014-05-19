@@ -1,0 +1,77 @@
+#!@VENV_PYTHON_EXECUTABLE@
+
+import os
+import sys
+
+def emit(count, line_no, text, f=sys.stdout):
+    f.write("%s:%s:%s" % (format(count, " >9"), format(line_no, " >5"), text))
+
+def process_gcda(fname):
+    fdir, fname = os.path.split(fname)
+    fname = ".".join(fname.split(".")[:-1]) + ".cover"
+    return os.path.join(fdir, fname)
+
+def main():
+    infile = sys.argv[1]
+    if infile == "-o":
+        infile = process_gcda(sys.argv[3])
+
+    with open(infile) as f:
+        lines = f.readlines()
+
+    basefile = os.path.basename(infile)
+    basename = ".".join(basefile.split(".")[:-1])
+
+    source = basename + ".py"
+    outfile = source + ".gcov"
+
+    venv_dir = "@VENV_DIR@/lib/python2.7/site-packages/"
+
+    total = 0
+    covered = 0
+    with open(outfile, "w") as f:
+        emit("-", 0, "Source:%s\n" % (venv_dir + "/".join(basename.split(".")) + ".py"), f)
+        emit("-", 0, "Graph:%s\n" % (basename + ".gcno"), f)
+        emit("-", 0, "Data:%s\n" % (basename + ".gcda"), f)
+        emit("-", 0, "Runs:1\n", f)
+        emit("-", 0, "Programs:1\n", f)
+
+        for i, line in enumerate(lines):
+            # The line number is 1-indexed whereas the array is 0-indexed.
+            line_no = i + 1
+
+            if len(line) == 0:
+                # Blank lines should be marked as not needed to be covered (with a
+                # hyphen).
+                code_text = ""
+                count = "-"
+            else:
+                # Split off the first six characters; these encode the number of
+                # times the line has been executed.
+                prefix = line[:6]
+                code_text = line[6:]
+
+                # A line marked as uncoverable is a blank prefix; an unexecuted line
+                # is all right-angle-brackets; executed lines show the actual number
+                # followed by a colon.
+                if prefix == "      ":
+                    count = "-"
+                elif prefix == ">>>>>>":
+                    count = "#####"
+                else:
+                    count = int(prefix[:-1])
+
+                if count != "-":
+                    total += 1
+
+                    if count != "#####":
+                        covered += 1
+
+            emit(count, line_no, code_text, f)
+
+    print "File '%s'" % (venv_dir + "/".join(basename.split(".")) + ".py")
+    print "Lines executed:%.02f%% of %d" % (covered * 100. / total, total)
+    print "Creating '%s'" % (outfile)
+
+if __name__ == "__main__":
+    sys.exit(main())
