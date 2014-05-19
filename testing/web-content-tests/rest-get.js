@@ -4,15 +4,16 @@
 declareTest({
     name: "restful test service, GET - correctness",
     url: "/service/test/restful/one/two/three?foo=bar&that=telling",
-    test: function (page) {
+    test: function () {
         "use strict";
 
-        var expected = "GET: one two three {'foo': u'bar', 'that': u'telling'}";
+        var expected = "GET: one two three {'foo': u'bar', 'that': u'telling'}",
+            actual = document.body.textContent;
 
         console.log("expected: " + expected);
-        console.log("received: " + page.plainText);
+        console.log("received: " + actual);
 
-        return page.plainText === expected;
+        return actual === expected;
     },
     method: "GET"
 });

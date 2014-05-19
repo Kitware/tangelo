@@ -4,7 +4,7 @@
 declareTest({
     name: "service configuration should be forbidden",
     url: "/service/test/configured.json",
-    test: function (page, info) {
+    test: function () {
         "use strict";
 
         console.log("expected status code: 403");

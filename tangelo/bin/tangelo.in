@@ -407,7 +407,7 @@ def status(pid, attr=None, clean=False):
         elif attr == "file":
             print status_file
         elif attr == "status":
-            print ("running" if running else "dead")
+            print "running" if running else "dead"
         elif attr == "interface":
             print "%s:%s" % (status.get("hostname", "<unknown>"), status.get("port", "<unknown>"))
         elif attr == "config":
