@@ -1,10 +1,10 @@
 /*jslint browser: true */
-/*globals declareTest, compareImages, toImageData */
+/*globals declareTest */
 
 declareTest({
     name: "restful test service, POST - correctness",
     url: "/service/test/restful/one/two/three?foo=bar&that=telling",
-    test: function (page) {
+    test: function () {
         "use strict";
 
         var expected = "POST: one two three {'foo': u'bar', 'that': u'telling'}",

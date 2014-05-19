@@ -1,5 +1,5 @@
-/*jslint browser: true, unparam: true */
-/*globals declareTest, compareImages, toImageData */
+/*jslint browser: true */
+/*globals declareTest, info */
 
 declareTest({
     name: "200 - existing page should return a 200 OK message",
