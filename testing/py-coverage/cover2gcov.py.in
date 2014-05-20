@@ -1,7 +1,13 @@
 #!@VENV_PYTHON_EXECUTABLE@
 
 import os
+import urllib
+import subprocess
 import sys
+
+venv_dir = "@VENV_DIR@/lib/python2.7/site-packages/"
+build_dir = "@CMAKE_BINARY_DIR@"
+source_dir = "@CMAKE_SOURCE_DIR@"
 
 def emit(count, line_no, text, f=sys.stdout):
     f.write("%s:%s:%s" % (format(count, " >9"), format(line_no, " >5"), text))
@@ -9,14 +15,16 @@ def emit(count, line_no, text, f=sys.stdout):
 def process_gcda(fname):
     fdir, fname = os.path.split(fname)
     basename = fname.split(".")
-    ext = basename[-1]
-    basename = ".".join(basename[:-1])
+    ext = basename[-2]
+    basename = ".".join(basename[:-2])
     fname = basename + ".cover"
     return ext, os.path.join(fdir, fname)
 
-def handle_blanket_report():
-    print "undefined"
-    return 1
+def handle_blanket_report(url):
+    return subprocess.call([build_dir + "/node_modules/phantomjs/bin/phantomjs",
+                            source_dir + "/testing/py-coverage/blanket-gcov.js",
+                            url,
+                            build_dir]);
 
 def handle_cover_file(infile):
     with open(infile) as f:
@@ -27,8 +35,6 @@ def handle_cover_file(infile):
 
     source = basename + ".py"
     outfile = source + ".gcov"
-
-    venv_dir = "@VENV_DIR@/lib/python2.7/site-packages/"
 
     total = 0
     covered = 0
@@ -50,9 +56,11 @@ def handle_cover_file(infile):
                 count = "-"
             else:
                 # Split off the first six characters; these encode the number of
-                # times the line has been executed.
+                # times the line has been executed.  Skip one character when
+                # grabbing the program text, because .cover files interpolate a
+                # space here.
                 prefix = line[:6]
-                code_text = line[6:]
+                code_text = line[7:]
 
                 # A line marked as uncoverable is a blank prefix; an unexecuted line
                 # is all right-angle-brackets; executed lines show the actual number
@@ -98,7 +106,11 @@ def main():
     if ext == "py":
         return handle_cover_file(infile)
     elif ext == "js":
-        return handle_blanket_report()
+        protocol = "http"
+        host = "@TESTING_HOST@"
+        port = "@TESTING_PORT@"
+        url = "%s://%s:%s/tests/js-coverage/tangelojs-coverage.html" % (protocol, host, port)
+        return handle_blanket_report(url)
     else:
         sys.stderr.write("usage: cover2gcov.py [-o <dir> <inputfile>] [<inputfile> <py|js>]\n")
         return 1

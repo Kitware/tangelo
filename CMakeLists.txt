@@ -654,9 +654,10 @@ if(${BUILD_TESTING})
                 set(GCDA_FILES "${GCDA_FILES}" PARENT_SCOPE)
             endfunction()
 
-            signal_gcda("tangelo.__init__")
-            signal_gcda("tangelo.plugin")
-            signal_gcda("tangelo.util")
+            signal_gcda("tangelo.__init__.py")
+            signal_gcda("tangelo.plugin.py")
+            signal_gcda("tangelo.util.py")
+            signal_gcda("tangelo.js")
         endif()
     endif()
 
