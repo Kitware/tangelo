@@ -1,21 +1,32 @@
 #!@VENV_PYTHON_EXECUTABLE@
 
 import os
+import urllib
+import subprocess
 import sys
+
+venv_dir = "@VENV_DIR@/lib/python2.7/site-packages/"
+build_dir = "@CMAKE_BINARY_DIR@"
+source_dir = "@CMAKE_SOURCE_DIR@"
 
 def emit(count, line_no, text, f=sys.stdout):
     f.write("%s:%s:%s" % (format(count, " >9"), format(line_no, " >5"), text))
 
 def process_gcda(fname):
     fdir, fname = os.path.split(fname)
-    fname = ".".join(fname.split(".")[:-1]) + ".cover"
-    return os.path.join(fdir, fname)
+    basename = fname.split(".")
+    ext = basename[-2]
+    basename = ".".join(basename[:-2])
+    fname = basename + ".cover"
+    return ext, os.path.join(fdir, fname)
 
-def main():
-    infile = sys.argv[1]
-    if infile == "-o":
-        infile = process_gcda(sys.argv[3])
+def handle_blanket_report(url):
+    return subprocess.call([build_dir + "/node_modules/phantomjs/bin/phantomjs",
+                            source_dir + "/testing/py-coverage/blanket-gcov.js",
+                            url,
+                            build_dir]);
 
+def handle_cover_file(infile):
     with open(infile) as f:
         lines = f.readlines()
 
@@ -24,8 +35,6 @@ def main():
 
     source = basename + ".py"
     outfile = source + ".gcov"
-
-    venv_dir = "@VENV_DIR@/lib/python2.7/site-packages/"
 
     total = 0
     covered = 0
@@ -47,9 +56,11 @@ def main():
                 count = "-"
             else:
                 # Split off the first six characters; these encode the number of
-                # times the line has been executed.
+                # times the line has been executed.  Skip one character when
+                # grabbing the program text, because .cover files interpolate a
+                # space here.
                 prefix = line[:6]
-                code_text = line[6:]
+                code_text = line[7:]
 
                 # A line marked as uncoverable is a blank prefix; an unexecuted line
                 # is all right-angle-brackets; executed lines show the actual number
@@ -72,6 +83,37 @@ def main():
     print "File '%s'" % (venv_dir + "/".join(basename.split(".")) + ".py")
     print "Lines executed:%.02f%% of %d" % (covered * 100. / total, total)
     print "Creating '%s'" % (outfile)
+
+    return 0
+
+def main():
+    # Grab the input filename from the arguments.
+    #
+    # CTest runs "gcov" programs with "-o <directory> inputfile" as its
+    # arguments, so we have to watch for -o as the first argument.
+    #
+    # If the first argument is not -o, then the first two arguments are taken to
+    # be the input file and the file type (py or js).
+    infile = sys.argv[1]
+    ext = None
+
+    if infile == "-o":
+        ext, infile = process_gcda(sys.argv[3])
+
+    if ext is None:
+        ext = sys.argv[2]
+    
+    if ext == "py":
+        return handle_cover_file(infile)
+    elif ext == "js":
+        protocol = "http"
+        host = "@TESTING_HOST@"
+        port = "@TESTING_PORT@"
+        url = "%s://%s:%s/tests/js-coverage/tangelojs-coverage.html" % (protocol, host, port)
+        return handle_blanket_report(url)
+    else:
+        sys.stderr.write("usage: cover2gcov.py [-o <dir> <inputfile>] [<inputfile> <py|js>]\n")
+        return 1
 
 if __name__ == "__main__":
     sys.exit(main())
