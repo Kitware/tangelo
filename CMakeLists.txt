@@ -276,16 +276,16 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/tangelo-exists.js
     ${CMAKE_SOURCE_DIR}/testing/phantomjs/blanket-test.js
     ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/200-ok.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/404-not-found.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/echo-service-no-args.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/echo-service.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/geodots-match.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/ner-service.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/primes.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/rest-get.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/rest-implicit-get.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/rest-post.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/200-ok.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/404-not-found.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/echo-service-no-args.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/echo-service.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/geodots-match.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/ner-service.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/primes.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/rest-get.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/rest-implicit-get.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/rest-post.js
 )
 
 # These files should be validated with pep8.
@@ -318,7 +318,7 @@ set(PEP8_FILES
     ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/exceptional.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/restful.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/testapp.py
-    ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/get_free_port.py
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/py-unit-tests/get_free_port.py
 )
 
 # These files should be uglified and concatenated.
@@ -466,12 +466,12 @@ endif()
 if(${BUILD_TESTING})
     # Grab the test filenames from the directory.
     file(GLOB JS_UNIT_TEST_CASES
-        ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/*.js
+        ${CMAKE_SOURCE_DIR}/testing/test-cases/js-unit-tests/*.js
     )
 
     # Add any configured test files here.
     configure_file(
-        testing/js-unit-tests/tangelo-version.js.in
+        testing/test-cases/js-unit-tests/tangelo-version.js.in
         ${CMAKE_BINARY_DIR}/tangelo-version.js
     )
     list(APPEND JS_UNIT_TEST_CASES
@@ -480,7 +480,7 @@ if(${BUILD_TESTING})
 
     # Grab the test filenames from the Python unit test directory.
     file(GLOB PY_UNIT_TEST_CASES
-        ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/*.py
+        ${CMAKE_SOURCE_DIR}/testing/test-cases/py-unit-tests/*.py
     )
 
     # Grab the list of "web content tests" - that is, these tests will generally
@@ -488,7 +488,7 @@ if(${BUILD_TESTING})
     # to determine whether the test passes.  This may be as simple as comparing
     # the content directly against expected output.
     file(GLOB WEB_CONTENT_TEST_CASES
-        ${CMAKE_SOURCE_DIR}/testing/web-content-tests/*.js
+        ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/*.js
     )
 
     # Configure the python test runner.
@@ -695,7 +695,7 @@ if(${BUILD_TESTING})
     # Other tests.
     if(${OTHER_TESTS})
         set(TANGELO_VERSION_TEST ${CMAKE_BINARY_DIR}/other-tests/tangelo-version.py)
-        configure_file(testing/other-tests/tangelo-version.py.in ${TANGELO_VERSION_TEST})
+        configure_file(testing/test-cases/other-tests/tangelo-version.py.in ${TANGELO_VERSION_TEST})
         add_test(other:tangelo-version
             ${VENV_PYTHON_EXECUTABLE} ${TANGELO_VERSION_TEST}
         )
