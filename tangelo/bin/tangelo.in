@@ -31,6 +31,7 @@ tangelo_version = "@TANGELO_VERSION@"
 vtkweb = None
 
 
+
 def running_pids():
     return map(lambda x: int(x.group(1)), filter(None, map(lambda x: re.search(r"^tangelo\.([0-9]*)$", x), os.walk(tangelo.plugin.StatusFile.tmpdir).next()[2])))
 
