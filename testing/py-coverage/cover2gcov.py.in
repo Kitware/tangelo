@@ -2,6 +2,7 @@
 
 import os
 import urllib
+import SimpleHTTPServer
 import subprocess
 import sys
 
@@ -20,11 +21,16 @@ def process_gcda(fname):
     fname = basename + ".cover"
     return ext, os.path.join(fdir, fname)
 
-def handle_blanket_report(url):
-    return subprocess.call([build_dir + "/node_modules/phantomjs/bin/phantomjs",
-                            source_dir + "/testing/py-coverage/blanket-gcov.js",
-                            url,
-                            build_dir]);
+def handle_blanket_report(protocol, host, port, path):
+    os.chdir(build_dir + "/tangelo/web")
+    webserver = subprocess.Popen([build_dir + "/venv/bin/python", "-m", "SimpleHTTPServer", port])
+    url = "%s://%s:%s%s" % (protocol, host, port, path)
+    retval = subprocess.call([build_dir + "/node_modules/phantomjs/bin/phantomjs",
+                              source_dir + "/testing/py-coverage/blanket-gcov.js",
+                              url,
+                              build_dir]);
+    webserver.terminate()
+    return retval
 
 def handle_cover_file(infile):
     with open(infile) as f:
@@ -109,8 +115,8 @@ def main():
         protocol = "http"
         host = "@TESTING_HOST@"
         port = "@TESTING_PORT@"
-        url = "%s://%s:%s/tests/js-coverage/tangelojs-coverage.html" % (protocol, host, port)
-        return handle_blanket_report(url)
+        path = "/tests/js-coverage/tangelojs-coverage.html"
+        return handle_blanket_report(protocol, host, port, path)
     else:
         sys.stderr.write("usage: cover2gcov.py [-o <dir> <inputfile>] [<inputfile> <py|js>]\n")
         return 1
