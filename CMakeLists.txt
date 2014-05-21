@@ -271,21 +271,21 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/primes/primes.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/vegabuilder/vegabuilder.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/vtkweb/index.js
-    ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/isBoolean.js
-    ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/isFunction.js
-    ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/tangelo-exists.js
     ${CMAKE_SOURCE_DIR}/testing/phantomjs/blanket-test.js
     ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/200-ok.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/404-not-found.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/echo-service-no-args.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/echo-service.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/geodots-match.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/ner-service.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/primes.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/rest-get.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/rest-implicit-get.js
-    ${CMAKE_SOURCE_DIR}/testing/web-content-tests/rest-post.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/js-unit-tests/isBoolean.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/js-unit-tests/isFunction.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/js-unit-tests/tangelo-exists.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/200-ok.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/404-not-found.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/echo-service-no-args.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/echo-service.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/geodots-match.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/ner-service.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/primes.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/rest-get.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/rest-implicit-get.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/rest-post.js
 )
 
 # These files should be validated with pep8.
@@ -318,7 +318,8 @@ set(PEP8_FILES
     ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/exceptional.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/restful.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/testapp.py
-    ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/get_free_port.py
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/py-unit-tests/get_free_port.py
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/py-unit-tests/tangelo-types.py
 )
 
 # These files should be uglified and concatenated.
@@ -466,21 +467,21 @@ endif()
 if(${BUILD_TESTING})
     # Grab the test filenames from the directory.
     file(GLOB JS_UNIT_TEST_CASES
-        ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/*.js
+        ${CMAKE_SOURCE_DIR}/testing/test-cases/js-unit-tests/*.js
     )
 
     # Add any configured test files here.
     configure_file(
-        testing/js-unit-tests/tangelo-version.js.in
-        ${CMAKE_BINARY_DIR}/tangelo-version.js
+        testing/test-cases/js-unit-tests/tangelo-version.js.in
+        ${CMAKE_BINARY_DIR}/test-cases/js-unit-tests/tangelo-version.js
     )
     list(APPEND JS_UNIT_TEST_CASES
-        ${CMAKE_BINARY_DIR}/tangelo-version.js
+        ${CMAKE_BINARY_DIR}/test-cases/js-unit-tests/tangelo-version.js
     )
 
     # Grab the test filenames from the Python unit test directory.
     file(GLOB PY_UNIT_TEST_CASES
-        ${CMAKE_SOURCE_DIR}/testing/py-unit-tests/*.py
+        ${CMAKE_SOURCE_DIR}/testing/test-cases/py-unit-tests/*.py
     )
 
     # Grab the list of "web content tests" - that is, these tests will generally
@@ -488,11 +489,11 @@ if(${BUILD_TESTING})
     # to determine whether the test passes.  This may be as simple as comparing
     # the content directly against expected output.
     file(GLOB WEB_CONTENT_TEST_CASES
-        ${CMAKE_SOURCE_DIR}/testing/web-content-tests/*.js
+        ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/*.js
     )
 
     # Configure the python test runner.
-    configure_file(testing/tangelo-test-runner.py.in ${CMAKE_BINARY_DIR}/tangelo-test-runner.py)
+    configure_file(testing/test-runners/tangelo-test-runner.py.in ${CMAKE_BINARY_DIR}/test-runners/tangelo-test-runner.py)
 
     # Install Tangelo in the virtual environment.
     set(TANGELO_EXECUTABLE ${VENV_DIR}/bin/tangelo)
@@ -549,7 +550,7 @@ if(${BUILD_TESTING})
         add_test(
             NAME ${test_name}
             COMMAND ${VENV_PYTHON_EXECUTABLE}
-                    ${CMAKE_BINARY_DIR}/tangelo-test-runner.py
+                    ${CMAKE_BINARY_DIR}/test-runners/tangelo-test-runner.py
                     ${ARGN}
         )
         set_property(TEST ${test_name} PROPERTY RESOURCE_LOCK tangelo)
@@ -574,7 +575,7 @@ if(${BUILD_TESTING})
                                          -DSOURCE_FILE="${js}"
                                          -P ${CMAKE_SOURCE_DIR}/cmake/configure-js-unit-test.cmake
                 COMMAND ${CMAKE_COMMAND} -E touch ${html}
-                DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/scaffolding/jasmine-scaffold.html.in
+                DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/test-runners/jasmine-runner.html.in
                 COMMENT "Generating Javascript unit test ${f}"
             )
 
@@ -598,7 +599,7 @@ if(${BUILD_TESTING})
                                      -DSOURCE_DIR="${CMAKE_SOURCE_DIR}"
                                      -P ${coverage_configurator}
             COMMAND ${CMAKE_COMMAND} -E touch ${coverage_test}
-            DEPENDS ${JS_UNIT_TEST_FILES} ${CMAKE_SOURCE_DIR}/testing/scaffolding/coverage-scaffold.html.in ${coverage_configurator}
+            DEPENDS ${JS_UNIT_TEST_FILES} ${CMAKE_SOURCE_DIR}/testing/test-runners/coverage-runner.html.in ${coverage_configurator}
             COMMENT "Generating tangelo.js coverage report"
         )
 
@@ -620,11 +621,11 @@ if(${BUILD_TESTING})
             get_filename_component(f "${src}" NAME_WE)
 
             # Name the testing file.
-            set(py ${CMAKE_BINARY_DIR}/py-unit-tests/${f}.py)
+            set(py ${CMAKE_BINARY_DIR}/test-cases/py-unit-tests/${f}.py)
 
-            # Configure the testing code into the test scaffold.
+            # Configure the testing code into the test runner.
             file(READ ${src} UNIT_TEST_CODE)
-            configure_file(testing/scaffolding/unittest-scaffold.py.in ${py})
+            configure_file(testing/test-runners/unittest-runner.py.in ${py})
 
             # Name and create the test.
             set(name unit-test:py:${f})
@@ -680,7 +681,7 @@ if(${BUILD_TESTING})
                                          -DSOURCE_DIR="${CMAKE_SOURCE_DIR}"
                                          -P ${CMAKE_SOURCE_DIR}/cmake/configure-web-content-test.cmake
                 COMMAND ${CMAKE_COMMAND} -E touch ${js_out}
-                DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/scaffolding/web-content-test-scaffold.js.in
+                DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/test-runners/web-content-test-runner.js.in
                 COMMENT "Generating web content test ${f}"
             )
 
@@ -694,8 +695,8 @@ if(${BUILD_TESTING})
 
     # Other tests.
     if(${OTHER_TESTS})
-        set(TANGELO_VERSION_TEST ${CMAKE_BINARY_DIR}/other-tests/tangelo-version.py)
-        configure_file(testing/other-tests/tangelo-version.py.in ${TANGELO_VERSION_TEST})
+        set(TANGELO_VERSION_TEST ${CMAKE_BINARY_DIR}/test-cases/other-tests/tangelo-version.py)
+        configure_file(testing/test-cases/other-tests/tangelo-version.py.in ${TANGELO_VERSION_TEST})
         add_test(other:tangelo-version
             ${VENV_PYTHON_EXECUTABLE} ${TANGELO_VERSION_TEST}
         )

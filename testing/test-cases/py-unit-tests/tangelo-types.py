@@ -84,6 +84,7 @@ class Tester(unittest.TestCase):
 
     def test_return_type_bad_conversion(self):
         msg = "this is a bad converter function"
+
         def bad_converter(x):
             raise ValueError(msg)
 
