@@ -18,13 +18,13 @@ describe("isNumber()", function () {
             .toBe(false);
     });
 
-    it("Test 4 - strings of numbers are not strings", function () {
+    it("Test 4 - strings of numbers are not numbers", function () {
         expect(tangelo.isNumber("42"))
             .toBe(false);
     });
 
-    it("Test 5 - strings of numbers (with +) are not strings", function () {
-        expect(tangelo.isNumber("+42"))
+    it("Test 5 - strings of numbers cast to numbers (with +) are numbers", function () {
+        expect(tangelo.isNumber(+"42"))
             .toBe(true);
     });
 
@@ -33,4 +33,38 @@ describe("isNumber()", function () {
             .toBe(false);
     });
 
+    it("Test 7 - floating point numbers are numbers", function () {
+        expect(tangelo.isNumber(3.14159))
+            .toBe(true);
+    });
+
+    it("Test 8 - Infinity is a number", function () {
+        expect(tangelo.isNumber(Infinity))
+            .toBe(true);
+    });
+
+    it("Test 9 - NaN is a number", function () {
+        expect(tangelo.isNumber(0./0.))
+            .toBe(true);
+    });
+
+    it("Test 10 - undefined (blank argument list) is not a number", function () {
+        expect(tangelo.isNumber())
+            .toBe(false);
+    });
+
+    it("Test 11 - objects are not numbers", function () {
+        expect(tangelo.isNumber({foo: 42}))
+            .toBe(false);
+    });
+
+    it("Test 12 - arrays are not numbers", function () {
+        expect(tangelo.isNumber([1, 2, 3]))
+            .toBe(false);
+    });
+
+    it("Test 13 - functions are not numbers", function () {
+        expect(tangelo.isNumber(tangelo.isNumber))
+            .toBe(false);
+    });
 });
