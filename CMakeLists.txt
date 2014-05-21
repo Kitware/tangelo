@@ -319,6 +319,7 @@ set(PEP8_FILES
     ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/restful.py
     ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/testapp.py
     ${CMAKE_SOURCE_DIR}/testing/test-cases/py-unit-tests/get_free_port.py
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/py-unit-tests/tangelo-types.py
 )
 
 # These files should be uglified and concatenated.
