@@ -271,11 +271,11 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/primes/primes.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/vegabuilder/vegabuilder.js
     ${CMAKE_SOURCE_DIR}/tangelo/web/examples/vtkweb/index.js
-    ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/isBoolean.js
-    ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/isFunction.js
-    ${CMAKE_SOURCE_DIR}/testing/js-unit-tests/tangelo-exists.js
     ${CMAKE_SOURCE_DIR}/testing/phantomjs/blanket-test.js
     ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/js-unit-tests/isBoolean.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/js-unit-tests/isFunction.js
+    ${CMAKE_SOURCE_DIR}/testing/test-cases/js-unit-tests/tangelo-exists.js
     ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/200-ok.js
     ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/404-not-found.js
     ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/echo-service-no-args.js
@@ -473,10 +473,10 @@ if(${BUILD_TESTING})
     # Add any configured test files here.
     configure_file(
         testing/test-cases/js-unit-tests/tangelo-version.js.in
-        ${CMAKE_BINARY_DIR}/tangelo-version.js
+        ${CMAKE_BINARY_DIR}/test-cases/js-unit-tests/tangelo-version.js
     )
     list(APPEND JS_UNIT_TEST_CASES
-        ${CMAKE_BINARY_DIR}/tangelo-version.js
+        ${CMAKE_BINARY_DIR}/test-cases/js-unit-tests/tangelo-version.js
     )
 
     # Grab the test filenames from the Python unit test directory.
@@ -621,7 +621,7 @@ if(${BUILD_TESTING})
             get_filename_component(f "${src}" NAME_WE)
 
             # Name the testing file.
-            set(py ${CMAKE_BINARY_DIR}/py-unit-tests/${f}.py)
+            set(py ${CMAKE_BINARY_DIR}/test-cases/py-unit-tests/${f}.py)
 
             # Configure the testing code into the test scaffold.
             file(READ ${src} UNIT_TEST_CODE)
@@ -695,7 +695,7 @@ if(${BUILD_TESTING})
 
     # Other tests.
     if(${OTHER_TESTS})
-        set(TANGELO_VERSION_TEST ${CMAKE_BINARY_DIR}/other-tests/tangelo-version.py)
+        set(TANGELO_VERSION_TEST ${CMAKE_BINARY_DIR}/test-cases/other-tests/tangelo-version.py)
         configure_file(testing/test-cases/other-tests/tangelo-version.py.in ${TANGELO_VERSION_TEST})
         add_test(other:tangelo-version
             ${VENV_PYTHON_EXECUTABLE} ${TANGELO_VERSION_TEST}

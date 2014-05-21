@@ -1,4 +1,4 @@
-set(alljs ${CMAKE_BINARY_DIR}/all-js-unit-tests.js)
+set(alljs ${CMAKE_BINARY_DIR}/test-cases/js-unit-tests/all-js-unit-tests.js)
 
 file(WRITE ${alljs} "")
 foreach(f IN LISTS JS_UNIT_TEST_CASES)
