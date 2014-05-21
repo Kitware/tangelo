@@ -82,7 +82,7 @@ function updateGraph() {
                     .html("There doesn't seem to be Mongo instance at <em>" + enron.host + "</em>" +
                         ", with database <em>" + enron.database + "</em> and collection <em>" + enron.collection + "</em>" +
                         ", or there is no data there." +
-                        "  See these <a href=\"http://localhost:8080/docs/setup.html#enron-email-network\">instructions</a> for help setting this up.");
+                        "  See these <a href=\"http://tangelo.readthedocs.org/en/latest/setup.html#enron-email-network\">instructions</a> for help setting this up.");
                 return;
             }
 

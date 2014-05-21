@@ -495,7 +495,7 @@ var runner = function () {
             }
 
             // Exit with an appropriate code.
-            phantom.exit(result ? 0 : 1);
+            phantom.exit(result.outcome ? 0 : 1);
         }, info.delay);
     }, waittime);
 
