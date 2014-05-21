@@ -4,8 +4,6 @@
 describe('tangelo.data.smooth', function () {
     'use strict';
 
-    var smooth = tangelo.data.smooth;
-
     function makeData(n, x, y, xf) {
         var i, data = [], d;
         xf = xf || function (j) {
@@ -25,8 +23,8 @@ describe('tangelo.data.smooth', function () {
 
     describe('edge cases', function () {
         it('empty data', function () {
-            expect(smooth({})).toEqual([]);
-            expect(smooth({data: []})).toEqual([]);
+            expect(tangelo.data.smooth({})).toEqual([]);
+            expect(tangelo.data.smooth({data: []})).toEqual([]);
         });
         it('non positive radius', function () {
             var data = makeData(10);
@@ -34,7 +32,7 @@ describe('tangelo.data.smooth', function () {
             data.forEach(function (d) {
                 values.push(d.y);
             });
-            smooth({
+            tangelo.data.smooth({
                     data: data,
                     radius: -1
             }).forEach(function (d) {
@@ -44,7 +42,7 @@ describe('tangelo.data.smooth', function () {
         it('test in place data mutation', function () {
             var data = makeData(25),
                 obj = {};
-            smooth({
+            tangelo.data.smooth({
                 data: data,
                 set: function (val, d, i) {
                     this[i]._obj1 = obj;
@@ -65,7 +63,7 @@ describe('tangelo.data.smooth', function () {
                 mean += d.y;
             });
             mean = mean/n;
-            values = smooth({
+            values = tangelo.data.smooth({
                 data: data,
                 radius: 0
             });
@@ -80,7 +78,7 @@ describe('tangelo.data.smooth', function () {
                 values.push(d.y);
             });
             data.reverse();
-            expect(smooth({
+            expect(tangelo.data.smooth({
                 data: data,
                 sorted: false,
                 radius: 0
@@ -97,7 +95,7 @@ describe('tangelo.data.smooth', function () {
                 mean += d.y;
             });
             mean = mean / n;
-            smooth({
+            tangelo.data.smooth({
                 data: data,
                 kernel: 'box',
                 radius: 10
@@ -115,7 +113,7 @@ describe('tangelo.data.smooth', function () {
                     y: i
                 });
             }
-            smooth({
+            tangelo.data.smooth({
                 data: data,
                 kernel: 'box',
                 radius: 1.5,
@@ -144,7 +142,7 @@ describe('tangelo.data.smooth', function () {
                 mean += d.y;
             });
             mean = mean / n;
-            smooth({
+            tangelo.data.smooth({
                 data: data,
                 kernel: 'gaussian',
                 radius: 100
@@ -166,7 +164,7 @@ describe('tangelo.data.smooth', function () {
                 });
             }
             data[50].y = 1;
-            smooth({
+            tangelo.data.smooth({
                 kernel: 'gaussian',
                 radius: sigma * 3,
                 absolute: true,
@@ -208,7 +206,7 @@ describe('tangelo.data.smooth', function () {
 
         data[50].y = 1;
 
-        smooth({
+        tangelo.data.smooth({
             kernel: expKernel,
             radius: radius,
             absolute: true,
@@ -236,7 +234,7 @@ describe('tangelo.data.smooth', function () {
             data = makeData(n),
             xCount = 0, yCount = 0;
 
-        smooth({
+        tangelo.data.smooth({
             data: data,
             x: function (d) {
                 xCount += 1;
