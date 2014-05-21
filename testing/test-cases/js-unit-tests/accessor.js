@@ -4,12 +4,12 @@ describe("tangelo.accessor", function () {
     "use strict";
 
     var data = {
-            oranges: "tangelos",
-            lemons: {
-                car: "jalopy",
-                fruit: "citrus"
-            }
-        };
+        oranges: "tangelos",
+        lemons: {
+            car: "jalopy",
+            fruit: "citrus"
+        }
+    };
 
     it("Undefined accessors display 'undefined' property", function () {
         var undef1 = tangelo.accessor(),
