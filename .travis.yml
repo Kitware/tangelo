@@ -9,4 +9,4 @@ script:
     - pip install virtualenv
     - cmake ..
     - make
-    - ctest
+    - ctest -D Continuous
