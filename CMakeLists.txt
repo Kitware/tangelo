@@ -11,8 +11,10 @@ mark_as_advanced(CMAKE_INSTALL_PREFIX)
 find_package(PythonInterp 2.7 REQUIRED)
 
 # Include the testing module; activate testing by default.
-include(CTest)
+set(COVERAGE_COMMAND "${CMAKE_BINARY_DIR}/cover2gcov.py")
+set(COVERAGE_EXTRA_FLAGS "")
 enable_testing()
+include(CTest)
 
 # Extend cmake module path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
