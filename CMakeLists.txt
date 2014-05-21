@@ -493,7 +493,7 @@ if(${BUILD_TESTING})
     )
 
     # Configure the python test runner.
-    configure_file(testing/tangelo-test-runner.py.in ${CMAKE_BINARY_DIR}/tangelo-test-runner.py)
+    configure_file(testing/test-runners/tangelo-test-runner.py.in ${CMAKE_BINARY_DIR}/test-runners/tangelo-test-runner.py)
 
     # Install Tangelo in the virtual environment.
     set(TANGELO_EXECUTABLE ${VENV_DIR}/bin/tangelo)
@@ -550,7 +550,7 @@ if(${BUILD_TESTING})
         add_test(
             NAME ${test_name}
             COMMAND ${VENV_PYTHON_EXECUTABLE}
-                    ${CMAKE_BINARY_DIR}/tangelo-test-runner.py
+                    ${CMAKE_BINARY_DIR}/test-runners/tangelo-test-runner.py
                     ${ARGN}
         )
         set_property(TEST ${test_name} PROPERTY RESOURCE_LOCK tangelo)
@@ -575,7 +575,7 @@ if(${BUILD_TESTING})
                                          -DSOURCE_FILE="${js}"
                                          -P ${CMAKE_SOURCE_DIR}/cmake/configure-js-unit-test.cmake
                 COMMAND ${CMAKE_COMMAND} -E touch ${html}
-                DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/scaffolding/jasmine-scaffold.html.in
+                DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/test-runners/jasmine-runner.html.in
                 COMMENT "Generating Javascript unit test ${f}"
             )
 
@@ -599,7 +599,7 @@ if(${BUILD_TESTING})
                                      -DSOURCE_DIR="${CMAKE_SOURCE_DIR}"
                                      -P ${coverage_configurator}
             COMMAND ${CMAKE_COMMAND} -E touch ${coverage_test}
-            DEPENDS ${JS_UNIT_TEST_FILES} ${CMAKE_SOURCE_DIR}/testing/scaffolding/coverage-scaffold.html.in ${coverage_configurator}
+            DEPENDS ${JS_UNIT_TEST_FILES} ${CMAKE_SOURCE_DIR}/testing/test-runners/coverage-runner.html.in ${coverage_configurator}
             COMMENT "Generating tangelo.js coverage report"
         )
 
@@ -623,9 +623,9 @@ if(${BUILD_TESTING})
             # Name the testing file.
             set(py ${CMAKE_BINARY_DIR}/test-cases/py-unit-tests/${f}.py)
 
-            # Configure the testing code into the test scaffold.
+            # Configure the testing code into the test runner.
             file(READ ${src} UNIT_TEST_CODE)
-            configure_file(testing/scaffolding/unittest-scaffold.py.in ${py})
+            configure_file(testing/test-runners/unittest-runner.py.in ${py})
 
             # Name and create the test.
             set(name unit-test:py:${f})
@@ -681,7 +681,7 @@ if(${BUILD_TESTING})
                                          -DSOURCE_DIR="${CMAKE_SOURCE_DIR}"
                                          -P ${CMAKE_SOURCE_DIR}/cmake/configure-web-content-test.cmake
                 COMMAND ${CMAKE_COMMAND} -E touch ${js_out}
-                DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/scaffolding/web-content-test-scaffold.js.in
+                DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/test-runners/web-content-test-runner.js.in
                 COMMENT "Generating web content test ${f}"
             )
 
