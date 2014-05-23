@@ -9,5 +9,11 @@ set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 ctest_start(Continuous)
 ctest_configure()
 ctest_build()
-ctest_test()
-ctest_submit()
+ctest_test(RETURN_VALUE retval)
+
+# This script will not return nonzero when tests fail, so we force an early exit
+# here, just so that Travis reports a testing failure.  The actual dashboard
+# submission happens in a separate travis invocation.
+if (NOT retval EQUAL 0)
+    message(FATAL_ERROR "Some test(s) failed.")
+endif()
