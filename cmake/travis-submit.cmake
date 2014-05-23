@@ -7,4 +7,4 @@ set(CTEST_BUILD_NAME "Linux-$ENV{TRAVIS_BRANCH}")
 set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 
 ctest_start(Continuous)
-test_submit()
+ctest_submit()
