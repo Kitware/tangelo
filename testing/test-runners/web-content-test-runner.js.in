@@ -420,6 +420,7 @@ var runner = function () {
                     // difference magnitude by the image magnitude.
                     if (percent) {
                         diffMag /= L2(info.image[baseline]);
+                        console.log("Percentage difference: " + diffMag);
                     }
 
                     // Emit a cdash report.
