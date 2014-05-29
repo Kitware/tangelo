@@ -14,7 +14,7 @@ declareTest({
             testElement: document.getElementsByTagName("canvas")[0],
             baselineName: "geodots",
             filenameBase: "geodots",
-            percentThreshold: 0.05
+            percentThreshold: 0.03
         });
     }
 });
