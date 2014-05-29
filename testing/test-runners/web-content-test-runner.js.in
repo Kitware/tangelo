@@ -394,7 +394,15 @@ var runner = function () {
                         testElem = cfg.testElement,
                         baseline = cfg.baselineName,
                         basename = cfg.filenameBase,
+                        threshold,
+                        percent = false;
+
+                    if (cfg.threshold !== undefined) {
                         threshold = cfg.threshold;
+                    } else if (cfg.percentThreshold) {
+                        threshold = cfg.percentThreshold;
+                        percent = true;
+                    }
 
                     // Load the test image from the specified element.
                     testImage.drawFromElement(testElem);
@@ -407,6 +415,13 @@ var runner = function () {
                     // Compute the diff image magnitude.
                     diffMag = L2(diff);
                     console.log("L2 magnitude of difference image: " + diffMag);
+
+                    // If a percent threshold was requested, divide the
+                    // difference magnitude by the image magnitude.
+                    if (percent) {
+                        diffMag /= L2(info.image[baseline]);
+                        console.log("Percentage difference: " + diffMag);
+                    }
 
                     // Emit a cdash report.
                     cdashImage("TestImage", basename + "-test.png");
