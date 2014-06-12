@@ -1,3 +1,9 @@
+.. image:: https://badge.fury.io/py/tangelo.svg
+    :target: http://badge.fury.io/py/tangelo
+    
+.. image:: https://pypip.in/d/tangelo/badge.svg
+    :target: https://pypi.python.org/pypi/tangelo
+
 ============================================================
  Tangelo: A simple, quick, powerful web framework
 ============================================================
