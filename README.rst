@@ -4,6 +4,9 @@
 .. image:: https://pypip.in/d/tangelo/badge.svg
     :target: https://pypi.python.org/pypi/tangelo
 
+.. image:: https://travis-ci.org/Kitware/tangelo.svg?branch=master
+    :target: https://travis-ci.org/Kitware/tangelo
+
 ============================================================
  Tangelo: A simple, quick, powerful web framework
 ============================================================
