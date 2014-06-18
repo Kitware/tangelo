@@ -9,4 +9,5 @@ script:
     - pip install virtualenv
     - cmake ..
     - make
-    - ctest
+    - ctest -V -S ../cmake/travis-build.cmake
+    - ctest -V -S ../cmake/travis-submit.cmake
