@@ -19,8 +19,17 @@
             data: [],
             x: tangelo.accessor({'field': 'time'}),
             y: tangelo.accessor({'field': 'value'}),
-            padding: 30,
-            transition: 0
+            margin: {
+                top: 10,
+                bottom: 30,
+                left: 30,
+                right: 10
+            },
+            transition: 0,
+            width: null,
+            height: null,
+            xTicks: 10,
+            yTicks: 10
         },
 
         _create: function () {
@@ -33,44 +42,57 @@
                             .attr('class', 'y-axis axis');
             this.path = this.plot.append('path')
                             .attr('class', 'path');
+            this._x = null;
+            this._y = null;
         },
 
         _update: function () {
-            var axisPadding = 15,
-                padding = this.options.padding,
+            var that = this,
+                axisPadding = 15,
+                margin = this.options.margin,
                 xAcc = tangelo.accessor(this.options.x),
                 yAcc = tangelo.accessor(this.options.y),
-                width = this.element.width() - 2 * padding - axisPadding,
-                height = this.element.height() - 2 * padding - axisPadding,
+                width = (this.options.width || this.element.width()) -
+                    margin.left - margin.right - axisPadding,
+                height = (this.options.height || this.element.height()) -
+                    margin.top - margin.bottom - axisPadding,
                 data = this.options.data,
-                x = d3.time.scale()
-                    .domain(d3.extent(data, xAcc))
-                    .range([0, width])
-                    .nice(),
-                y = d3.scale.linear()
-                    .domain(d3.extent(data, yAcc))
-                    .range([height, 0])
-                    .nice(),
-                xaxis = d3.svg.axis()
-                    .scale(x)
-                    .orient('bottom'),
-                yaxis = d3.svg.axis()
-                    .scale(y)
-                    .orient('left'),
-                line = d3.svg.line()
-                    .x(function (d) {
-                        return x(xAcc(d));
-                    })
-                    .y(function (d) {
-                        return y(yAcc(d));
-                    });
+                xaxis,
+                yaxis,
+                line;
+
+            this._x = d3.time.scale()
+                .domain(d3.extent(data, xAcc))
+                .range([0, width])
+                .nice();
+            this._y = d3.scale.linear()
+                .domain(d3.extent(data, yAcc))
+                .range([height, 0])
+                .nice();
+
+            xaxis = d3.svg.axis()
+                .scale(this._x)
+                .orient('bottom');
+            xaxis.ticks(this.options.xTicks);
+            yaxis = d3.svg.axis()
+                .scale(this._y)
+                .orient('left');
+            yaxis.ticks(this.options.yTicks);
+
+            line = d3.svg.line()
+                .x(function (d) {
+                    return that._x(xAcc(d));
+                })
+                .y(function (d) {
+                    return that._y(yAcc(d));
+                });
 
             // resize svg
             this.svg
-                .attr('width', width + 2 * padding + axisPadding)
-                .attr('height', height + 2 * padding + axisPadding);
+                .attr('width', width + margin.left + margin.right + axisPadding)
+                .attr('height', height + margin.top + margin.bottom + axisPadding);
             this.main
-                .attr('transform', 'translate(' + (padding + axisPadding) + ',' + padding + ')');
+                .attr('transform', 'translate(' + (margin.left + axisPadding) + ',' + margin.top + ')');
 
             // generate axes
             applyTransition(this.xaxis, this.options.transition)
@@ -82,8 +104,15 @@
             // generate the plot
             applyTransition(this.path, this.options.transition)
                 .attr('d', line(this.options.data));
-        }
+        },
 
+        xScale: function () {
+            return this._x;
+        },
+
+        yScale: function () {
+            return this._y;
+        }
     });
 
 }(window.tangelo, window.jQuery, window.d3));

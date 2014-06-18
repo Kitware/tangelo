@@ -49,8 +49,8 @@
                 throw "x and y accessors are not set";
             }
             var padding = options.padding || 7.5,
-                width = (that.width || $(node).width()) - 2 * padding,
-                height = (that.height || $(node).height()) - 2 * padding,
+                width = Math.max((that.width || $(node).width()) - 2 * padding, 0),
+                height = Math.max((that.height || $(node).height()) - 2 * padding, 0),
                 xAx = d3.scale.linear().range([0, width]).domain([0, 1]),
                 yAx = d3.scale.linear().range([height, 0]).domain([0, 1]),
                 opacity = options.opacity || 1,
@@ -170,8 +170,8 @@
 
             // set the global plot size
             svgC
-                .attr('width', oWidth + 2 * padding)
-                .attr('height', oHeight + 2 * padding);
+                .attr('width', oWidth)
+                .attr('height', oHeight);
             
             // translate the main plot group for padding
             svg.attr('transform', 'translate(' + (padding + eWidth + offset) + ',' + (padding + eHeight + offset) + ')');
@@ -280,7 +280,9 @@
             data: [],
             padding: 10,
             color: tangelo.accessor({value: "steelblue"}),
-            full: false
+            full: false,
+            width: null,
+            height: null
         },
         _create: function () {
             this.obj = new CorrelationPlotter($.extend({'node': this.element.get(0)}, this.options));
@@ -288,6 +290,7 @@
         },
         _update: function () {
             $.extend(this.obj, this.options);
+            this.obj.draw();
         },
         variables: function (v) {
             this.obj.variables = v;

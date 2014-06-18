@@ -35,7 +35,7 @@
                 enter,
                 exit;
 
-            if (this.options.data) {
+            if (this.options.data && this.map()) {
                 this.options.data.forEach(function (d) {
                     pt = geo.latlng(lat(d), lng(d));
                     d._georef = that.latlng2display(pt)[0];
@@ -49,9 +49,11 @@
 
                 selection.attr('cx', tangelo.accessor({'field': '_georef.x'}))
                     .attr('cy', tangelo.accessor({'field': '_georef.y'}))
-                    .attr('r', this.options.size)
+                    .attr('r', tangelo.accessor(this.options.size))
                     .style('fill', function (d) {
-                        return that.colorScale(that.options.color(d));
+                        return that.colorScale(
+                            tangelo.accessor(that.options.color)(d)
+                        );
                     });
 
                 exit.remove();
