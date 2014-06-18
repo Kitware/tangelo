@@ -493,7 +493,7 @@ function getMinMaxDates(zoom) {
                 .html("There doesn't seem to be a Mongo instance at <em>" + flickr.config.server + "</em>" +
                     ", with database <em>" + flickr.config.db + "</em> and collection <em>" + flickr.config.coll + "</em>" +
                     ", or there is no data there." +
-                    "  See these <a href=\"http://localhost:8080/docs/setup.html#flickr-metadata-maps\">instructions</a> for help setting this up.");
+                    "  See these <a href=\"http://tangelo.readthedocs.org/en/latest/setup.html#flickr-metadata-maps\">instructions</a> for help setting this up.");
             return;
         }
 

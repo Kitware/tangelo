@@ -6,7 +6,8 @@ def main():
     result = subprocess.call(["@VENV_DIR@/bin/tangelo", "restart",
                               "--host", "@TESTING_HOST@",
                               "--port", "@TESTING_PORT@",
-                              "--root", "tangelo/web"])
+                              "--root", "tangelo/web",
+                              "--no-config"])
 
     if result != 0:
         print "fatal error: could not start Tangelo on port @TESTING_PORT@"
@@ -20,7 +21,7 @@ def main():
     # Shut the server down.
     shutdown = subprocess.call(["@VENV_DIR@/bin/tangelo", "stop",
                                 "--port", "@TESTING_PORT@"])
-    
+
     # If there was an error shutting down, report it and fail the test.
     if shutdown != 0:
         print "fatal error: could not shut down Tangelo after test finished"

@@ -200,6 +200,14 @@ as follows::
 
     python -m nltk.downloader nltk.downloader maxent_ne_chunker maxent_treebank_pos_tagger punkt words
 
+If you are building Tangelo from source, be sure to use the appropriate
+Virtualenv when installing these packages.  For example, from the build
+directory::
+
+    ./venv/bin/pip install nltk numpy
+
+This will ensure that the packages are visible to tangelo when it runs.
+
 Flickr Metadata Maps
 --------------------
 

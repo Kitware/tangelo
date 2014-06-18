@@ -83,24 +83,6 @@ def shutdown(signum, frame):
 def start():
     sys.stderr.write("starting tangelo...")
 
-    # Set up the global configuration.  This includes the hostname and port
-    # number as specified in the CMake phase.
-    #
-    # Whether to log directly to the screen has to do with whether we are
-    # daemonizing - if we are, we want to suppress the output, and if we are
-    # not, we want to see everything.
-    try:
-        cherrypy.config.update({"environment": "production",
-                                "log.error_file": logfile,
-                                "log.screen": not daemonize,
-                                "server.socket_host": hostname,
-                                "server.socket_port": port,
-                                "error_page.default": tangelo.server.Tangelo.error_page})
-    except IOError as e:
-        print >>sys.stderr, "failed"
-        print >>sys.stderr, "error with config file %s: %s" % (e.filename, e.strerror)
-        return 1
-
     # If we are daemonizing, do it here, before anything gets started.  We have
     # to set this up in a certain way:
     #
@@ -194,6 +176,24 @@ def start():
                                                "tools.treat_url.on": True},
                                          "/favicon.ico": {"tools.staticfile.on": True,
                                                           "tools.staticfile.filename": sys.prefix + "/share/tangelo/tangelo.ico"}})
+
+    # Set up the global configuration.  This includes the hostname and port
+    # number as specified in the CMake phase.
+    #
+    # Whether to log directly to the screen has to do with whether we are
+    # daemonizing - if we are, we want to suppress the output, and if we are
+    # not, we want to see everything.
+    try:
+        cherrypy.config.update({"environment": "production",
+                                "log.error_file": logfile,
+                                "log.screen": not daemonize,
+                                "server.socket_host": hostname,
+                                "server.socket_port": port,
+                                "error_page.default": tangelo.server.Tangelo.error_page})
+    except IOError as e:
+        print >>sys.stderr, "failed"
+        print >>sys.stderr, "error with config file %s: %s" % (e.filename, e.strerror)
+        return 1
 
     # Try to drop privileges if requested, since we've bound to whatever port
     # superuser privileges were needed for already.
@@ -407,7 +407,7 @@ def status(pid, attr=None, clean=False):
         elif attr == "file":
             print status_file
         elif attr == "status":
-            print ("running" if running else "dead")
+            print "running" if running else "dead"
         elif attr == "interface":
             print "%s:%s" % (status.get("hostname", "<unknown>"), status.get("port", "<unknown>"))
         elif attr == "config":

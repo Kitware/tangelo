@@ -82,6 +82,25 @@ function processFileContents(filename, id, file_hash) {
         // operation.
         if (response.error) {
             appendInfo(response.error);
+            if (response.error === "NLTK not installed") {
+                if (d3.select(".error-div")[0][0] === null) {
+                    d3.select(document.body)
+                        .append("div")
+                        .classed("error-div", true)
+                        .style("font-size", "14pt")
+                        .style("position", "fixed")
+                        .style("height", "100%")
+                        .style("width", "100%")
+                        .style("top", "0px")
+                        .style("left", "0px")
+                        .style("padding-top", "20%")
+                        .style("padding-left", "20%")
+                        .style("padding-right", "20%")
+                        .style("text-align", "center")
+                        .html("This app requires the NLTK Python package to be installed.<br>" +
+                              "See these <a href=\"http://tangelo.readthedocs.org/en/latest/setup.html#named-entities\">instructions</a> for help setting this up.");
+                }
+            }
             return;
         }
 

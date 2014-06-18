@@ -1,4 +1,3 @@
-import unittest
 import tangelo.util
 
 
@@ -14,6 +13,3 @@ class Tester(unittest.TestCase):
             result = result and (port > 1024)
 
         self.assertTrue(result)
-
-if __name__ == "__main__":
-    unittest.main()

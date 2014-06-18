@@ -4,12 +4,14 @@
 declareTest({
     name: "services should have access to their configuration files",
     url: "/service/test/configured",
-    test: function (page, info) {
+    test: function () {
         "use strict";
 
-        console.log("expected: abracadabra");
-        console.log("received: " + page.plainText);
+        var actual = document.body.textContent;
 
-        return page.plainText === "abracadabra";
+        console.log("expected: abracadabra");
+        console.log("received: " + actual);
+
+        return actual === "abracadabra";
     }
 });

@@ -1,10 +1,11 @@
-import cherrypy
-import nltk
-import nltk.chunk.named_entity
-
-
 # This service performs named entity recognition on input text.
 def run(text=""):
+    try:
+        import nltk
+        import nltk.chunk.named_entity
+    except ImportError:
+        return {"error": "NLTK not installed"}
+
     # Create an empty result container.
     response = {"result": []}
 

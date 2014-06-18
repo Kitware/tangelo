@@ -1,9 +1,18 @@
+.. image:: https://badge.fury.io/py/tangelo.svg
+    :target: http://badge.fury.io/py/tangelo
+    
+.. image:: https://pypip.in/d/tangelo/badge.svg
+    :target: https://pypi.python.org/pypi/tangelo
+
+.. image:: https://travis-ci.org/Kitware/tangelo.svg?branch=master
+    :target: https://travis-ci.org/Kitware/tangelo
+
 ============================================================
- Tangelo: Rapidly create powerfully visual web applications
+ Tangelo: A simple, quick, powerful web framework
 ============================================================
 
-http://kitware.github.io/tangelo/
----------------------------------
+http://tangelo.kitware.com
+---------------------------
 
 **Tangelo** is a web framework built on top of
 `CherryPy <http://www.cherrypy.org/>`_ for producing rich web applications

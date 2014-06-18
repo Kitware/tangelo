@@ -1,0 +1,125 @@
+#!@VENV_PYTHON_EXECUTABLE@
+
+import os
+import urllib
+import SimpleHTTPServer
+import subprocess
+import sys
+
+venv_dir = "@VENV_DIR@/lib/python2.7/site-packages/"
+build_dir = "@CMAKE_BINARY_DIR@"
+source_dir = "@CMAKE_SOURCE_DIR@"
+
+def emit(count, line_no, text, f=sys.stdout):
+    f.write("%s:%s:%s" % (format(count, " >9"), format(line_no, " >5"), text))
+
+def process_gcda(fname):
+    fdir, fname = os.path.split(fname)
+    basename = fname.split(".")
+    ext = basename[-2]
+    basename = ".".join(basename[:-2])
+    fname = basename + ".cover"
+    return ext, os.path.join(fdir, fname)
+
+def handle_blanket_report(protocol, host, port, path):
+    os.chdir(build_dir + "/tangelo/web")
+    webserver = subprocess.Popen([build_dir + "/venv/bin/python", "-m", "SimpleHTTPServer", port])
+    url = "%s://%s:%s%s" % (protocol, host, port, path)
+    retval = subprocess.call([build_dir + "/node_modules/phantomjs/bin/phantomjs",
+                              source_dir + "/testing/py-coverage/blanket-gcov.js",
+                              url,
+                              build_dir]);
+    webserver.terminate()
+    return retval
+
+def handle_cover_file(infile):
+    with open(infile) as f:
+        lines = f.readlines()
+
+    basefile = os.path.basename(infile)
+    basename = ".".join(basefile.split(".")[:-1])
+
+    source = basename + ".py"
+    outfile = source + ".gcov"
+
+    total = 0
+    covered = 0
+    with open(outfile, "w") as f:
+        emit("-", 0, "Source:%s\n" % (venv_dir + "/".join(basename.split(".")) + ".py"), f)
+        emit("-", 0, "Graph:%s\n" % (basename + ".gcno"), f)
+        emit("-", 0, "Data:%s\n" % (basename + ".gcda"), f)
+        emit("-", 0, "Runs:1\n", f)
+        emit("-", 0, "Programs:1\n", f)
+
+        for i, line in enumerate(lines):
+            # The line number is 1-indexed whereas the array is 0-indexed.
+            line_no = i + 1
+
+            if len(line) == 0:
+                # Blank lines should be marked as not needed to be covered (with a
+                # hyphen).
+                code_text = ""
+                count = "-"
+            else:
+                # Split off the first six characters; these encode the number of
+                # times the line has been executed.  Skip one character when
+                # grabbing the program text, because .cover files interpolate a
+                # space here.
+                prefix = line[:6]
+                code_text = line[7:]
+
+                # A line marked as uncoverable is a blank prefix; an unexecuted line
+                # is all right-angle-brackets; executed lines show the actual number
+                # followed by a colon.
+                if prefix == "      ":
+                    count = "-"
+                elif prefix == ">>>>>>":
+                    count = "#####"
+                else:
+                    count = int(prefix[:-1])
+
+                if count != "-":
+                    total += 1
+
+                    if count != "#####":
+                        covered += 1
+
+            emit(count, line_no, code_text, f)
+
+    print "File '%s'" % (venv_dir + "/".join(basename.split(".")) + ".py")
+    print "Lines executed:%.02f%% of %d" % (covered * 100. / total, total)
+    print "Creating '%s'" % (outfile)
+
+    return 0
+
+def main():
+    # Grab the input filename from the arguments.
+    #
+    # CTest runs "gcov" programs with "-o <directory> inputfile" as its
+    # arguments, so we have to watch for -o as the first argument.
+    #
+    # If the first argument is not -o, then the first two arguments are taken to
+    # be the input file and the file type (py or js).
+    infile = sys.argv[1]
+    ext = None
+
+    if infile == "-o":
+        ext, infile = process_gcda(sys.argv[3])
+
+    if ext is None:
+        ext = sys.argv[2]
+    
+    if ext == "py":
+        return handle_cover_file(infile)
+    elif ext == "js":
+        protocol = "http"
+        host = "@TESTING_HOST@"
+        port = "@TESTING_PORT@"
+        path = "/tests/js-coverage/tangelojs-coverage.html"
+        return handle_blanket_report(protocol, host, port, path)
+    else:
+        sys.stderr.write("usage: cover2gcov.py [-o <dir> <inputfile>] [<inputfile> <py|js>]\n")
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(main())
