@@ -5,12 +5,10 @@ import HTMLParser
 import os
 import cherrypy
 import json
-import imp
 import traceback
 import types
 
 import tangelo
-from tangelo.minify_json import json_minify
 import tangelo.util
 
 
@@ -25,7 +23,7 @@ class Tangelo(object):
         self.stream = stream
 
         # A dict containing information about imported modules.
-        self.modules = {}
+        self.modules = tangelo.util.ModuleCache()
 
         # Mount a streaming API if requested.
         #
@@ -73,10 +71,8 @@ class Tangelo(object):
         # Extend the system path with the module's home path.
         sys.path.insert(0, modpath)
 
-        # Import the module if not already imported previously (or if the
-        # module to import, or its configuration file, has been updated since
-        # the last import).
         try:
+<<<<<<< HEAD:tangelo/server.py
             stamp = self.modules.get(module)
             mtime = os.path.getmtime(module)
 
@@ -138,6 +134,11 @@ class Tangelo(object):
                                             "trying to import module " +
                                             "%s:<br><pre>%s</pre>" %
                                             (tangelo.request_path(), bt))
+=======
+            service = self.modules.get(module)
+        except tangelo.HTTPStatusCode as e:
+            result = e
+>>>>>>> 403cf92... Implemented a "module cache" abstraction:tangelo/tangelo/server.py
         else:
             # Try to run the service - either it's in a function called
             # "run()", or else it's in a REST API consisting of at least one of
