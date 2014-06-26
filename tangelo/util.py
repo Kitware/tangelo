@@ -110,6 +110,7 @@ class NonBlockingReader(threading.Thread):
         for line in lines:
             self.pushline(line)
 
+
 class ModuleCache(object):
     def __init__(self):
         self.modules = {}

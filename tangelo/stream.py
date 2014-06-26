@@ -1,5 +1,6 @@
 import json
 import traceback
+import types
 
 import cherrypy
 
@@ -29,25 +30,25 @@ class TangeloStream(object):
             # StopIteration, then there are no more results to retrieve; if
             # any other exception is raised, this is treated as an error.
             try:
-                result = {"data": stream.next()}
+                result = stream.next()
             except StopIteration:
-                result = {"finished": True}
+                cherrypy.response.status = "204 Stream Finished"
                 del self.streams[key]
             except:
                 del self.streams[key]
-                raise cherrypy.HTTPError(
-                    "501 Error in Python Service",
-                    "Caught exception while executing stream " +
-                    "service keyed by %s:<br><pre>%s</pre>" %
-                    (key, traceback.format_exc()))
+                cherrypy.response.status = "500 Exception Raised By Streaming Service"
+                result = {"error": "Caught exception while executing stream service keyed by %s:<br><pre>%s</pre>" % (key, traceback.format_exc())}
 
-        try:
-            return json.dumps(result)
-        except TypeError:
-            raise cherrypy.HTTPError(
-                "501 Bad Response from Python Service",
-                ("The stream keyed by %s returned a non " +
-                 "JSON-seriazable result: %s") % (key, result["data"]))
+        # If the result from the streaming service is not already a string,
+        # attempt to make a string out of it by JSONifying.
+        if not isinstance(result, types.StringTypes):
+            try:
+                return json.dumps(result)
+            except TypeError:
+                cherrypy.response.status = "500 Streaming Service Result Is Not JSON-serializable"
+                result = {"error": "The stream keyed by %s returned a non JSON-serializable result: %s" % (key, result)}
+
+        return result
 
     def POST(self, *pathcomp, **kwargs):
         url = "/" + "/".join(pathcomp)
@@ -67,10 +68,10 @@ class TangeloStream(object):
             try:
                 service = self.modules.get(module_path)
             except tangelo.HTTPStatusCode as e:
+                cherrypy.response.status = e.code
+                result = {"error": ""}
                 if e.msg:
-                    raise cherrypy.HTTPError(e.code, e.msg)
-                else:
-                    raise cherrypy.HTTPError(e.code)
+                    result["error"] = e.msg
 
             # Check for a "stream" function inside the module.
             if "stream" not in dir(service):
