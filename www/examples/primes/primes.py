@@ -1,6 +1,8 @@
 import itertools
 import math
 
+import tangelo
+
 
 def is_prime(v):
     for i in range(2, int(math.ceil(math.sqrt(v)) + 1)):
@@ -9,7 +11,7 @@ def is_prime(v):
     return True
 
 
-def primes():
+def stream():
     yield 2
     yield 3
 
@@ -18,5 +20,6 @@ def primes():
             yield i
 
 
-def run():
-    return primes()
+@tangelo.types(int)
+def run(n):
+    return list(itertools.islice(stream(), n))

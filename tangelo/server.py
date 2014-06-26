@@ -19,18 +19,9 @@ class Tangelo(object):
     # An in-band signal to treat HTML error messages as literal strings.
     literal = "literal:::"
 
-    def __init__(self, stream=None):
-        self.stream = stream
-
+    def __init__(self, module_cache=None):
         # A dict containing information about imported modules.
-        self.modules = tangelo.util.ModuleCache()
-
-        # Mount a streaming API if requested.
-        #
-        # TODO(choudhury): make the mounting directory configurable by the
-        # user.
-        if self.stream:
-            cherrypy.tree.mount(stream, "/stream")
+        self.modules = tangelo.util.ModuleCache() if module_cache is None else module_cache
 
     @staticmethod
     def error_page(status, message, traceback, version):
@@ -201,12 +192,6 @@ class Tangelo(object):
                 raise cherrypy.HTTPError(result.code, result.msg)
             else:
                 raise cherrypy.HTTPError(result.code)
-        elif "next" in dir(result):
-            if self.stream:
-                return self.stream.add(result)
-            else:
-                return json.dumps({"error": "Streaming is not supported " +
-                                            "in this instance of Tangelo"})
         elif not isinstance(result, types.StringTypes):
             try:
                 result = json.dumps(result)

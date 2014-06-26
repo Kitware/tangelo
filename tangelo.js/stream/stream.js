@@ -6,6 +6,7 @@
     tangelo.stream.streams = function (callback) {
         $.ajax({
             url: "/stream",
+            type: "GET",
             dataType: "json",
             error: function (jqxhr) {
                 callback(undefined, jqxhr);
@@ -18,14 +19,21 @@
 
     tangelo.stream.start = function (url, callback) {
         // Form an absolute url from the input.
-        url = tangelo.absoluteUrl(url);
+        var streamUrl = "/stream" + tangelo.absoluteUrl(url);
 
         // Send an ajax request to get the stream started.
         $.ajax({
-            url: url,
+            url: streamUrl,
+            type: "POST",
             dataType: "json",
             error: function (jqxhr) {
-                callback(undefined, jqxhr);
+                var report = {
+                    status: jqxhr.status,
+                    statusText: jqxhr.statusText,
+                    description: JSON.parse(jqxhr.responseText).error,
+                    jqxhr: jqxhr
+                };
+                callback(undefined, report);
             },
             success: function (data) {
                 callback(data.key);
@@ -38,14 +46,20 @@
             url: "/stream/" + key,
             dataType: "json",
             error: function (jqxhr) {
-                callback(undefined, undefined, jqxhr);
+                var report = {
+                    status: jqxhr.status,
+                    statusText: jqxhr.statusText,
+                    description: JSON.parse(jqxhr.responseText).error,
+                    jqxhr: jqxhr
+                };
+                callback(undefined, undefined, report);
             },
             success: function (result) {
                 if (result.error) {
                     console.warn("[tangelo.stream.query()] error: " + result.error);
                     callback(undefined, undefined, tangelo.error(tangelo.APPLICATION_ERROR, result.error));
                 } else {
-                    callback(result.data, result.finished);
+                    callback(result.data, result.finished ? true : false);
                 }
             }
         });

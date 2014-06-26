@@ -7,8 +7,13 @@ $(function () {
 
     var values = [];
 
-    tangelo.stream.start("primes", function (primes_key) {
+    tangelo.stream.start("primes", function (primes_key, error) {
         var offset = 0;
+
+        if (error) {
+            console.warn(error);
+            return;
+        }
 
         function totalWidth(el) {
             return $(el).width() + (+$(el).css("marginLeft").slice(0, -2)) + (+$(el).css("marginRight").slice(0, -2));
