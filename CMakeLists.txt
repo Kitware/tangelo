@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 # This project doesn't require any of the standard compilers, hence the "NONE"
 # argument.
 project(Tangelo NONE)
-set(TANGELO_VERSION 0.6.1dev)
+set(TANGELO_VERSION 0.7dev)
 
 mark_as_advanced(CMAKE_INSTALL_PREFIX)
 
