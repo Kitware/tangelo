@@ -33,6 +33,7 @@ class TangeloStream(object):
                 result = stream.next()
             except StopIteration:
                 cherrypy.response.status = "204 Stream Finished"
+                result = "OK"
                 del self.streams[key]
             except:
                 del self.streams[key]
