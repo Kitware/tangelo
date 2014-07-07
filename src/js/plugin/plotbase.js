@@ -81,10 +81,10 @@
                 .attr('transform', 'translate(' + (margin.left + axisPadding) + ',' + margin.top + ')');
 
             // generate axes
-            this._applyTransition(this.xaxis, this.options.transition)
+            this.xaxis
                 .attr('transform', 'translate(0,' + height + ')')
                 .call(xaxis);
-            this._applyTransition(this.yaxis, this.options.transition)
+            this.yaxis
                 .call(yaxis);
         },
 
