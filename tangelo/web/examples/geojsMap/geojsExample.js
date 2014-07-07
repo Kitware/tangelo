@@ -35,12 +35,11 @@ $(function () {
         var pts = [];
         data.forEach(function (d) {
             var pt = map.geojsMap("latlng2display", geo.latlng(parseFloat(d[2]), parseFloat(d[3])));
-            pts.push(pt[0]);
+            pts.push(pt);
         });
         points
             .attr("cx", function (d, i) { return pts[i].x; })
             .attr("cy", function (d, i) { return pts[i].y; });
     }
     draw();
-    map.on("draw", draw);
 });
