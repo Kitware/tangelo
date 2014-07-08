@@ -836,6 +836,17 @@ provide convenient behaviors or to implement common visualization methods.  See
     .. image:: images/timeline.png
         :align: center
         :alt: An example timeline plot
+
+.. js:function:: $.histogram(spec)
+
+    Constructs a histogram from an arbitrary array of numerical data.
+
+    :param object[] spec.data: An array of data objects from which the timeline will be derived.
+    :param accessor spec.x: An accessor for the numerical value of the object to be used for binning.
+    :param number spec.transition: The duration of the transition animation in milliseconds, or
+        false to turn off transitions.
+    :param number nBins: The number of bins to display (default: 10).
+
 .. .. js:class:: tangelo.GoogleMapSVG(elem, mapoptions, cfg, cont)
 
 .. todo::
