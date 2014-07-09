@@ -22,7 +22,7 @@
             return this.svgLayer.renderer().displayToWorld(pt);
         },
         svg: function () { // interactive svg layer
-            return this.svgGroup[0];
+            return this.svgGroup.node();
         },
         legend: function () { // non-interactive svg on top
             throw 'Legend layer not yet implemented';
@@ -43,7 +43,7 @@
             this._map = geo.map(opts);
             this._map.createLayer('osm');
             this.svgLayer = this._map.createLayer('feature', {'renderer': 'd3Renderer'});
-            this.svgGroup = this.svgLayer.renderer().canvas()[0];
+            this.svgGroup = this.svgLayer.renderer().canvas();
 
             this._resize();
             $(window).resize(function () {
