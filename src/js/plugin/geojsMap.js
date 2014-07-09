@@ -13,7 +13,7 @@
             // etc.
             zoom: 3,
             width: null,
-            heigth: null
+            height: null
         },
         latlng2display: function (pt) {
             return this.svgLayer.renderer().worldToDisplay(pt);
