@@ -43,12 +43,24 @@ window.onload = function () {
         $("#content1").timeline({
             data: data,
             y: {field: 'value1'},
-            transition: transition
+            transition: transition,
+            margin: {
+                left: 35,
+                right: 20,
+                top: 10,
+                bottom: 35
+            }
         });
         $("#content2").timeline({
             data: data,
             y: {field: 'value2'},
-            transition: transition
+            transition: transition,
+            margin: {
+                left: 35,
+                right: 20,
+                top: 10,
+                bottom: 35
+            }
         });
     }
     
