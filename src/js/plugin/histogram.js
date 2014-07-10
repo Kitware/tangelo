@@ -146,9 +146,14 @@
                 var val, bin;
 
                 val = xAcc(d);
-                bin = Math.floor((val - x_ext[0]) / dx);
+                bin = (val - x_ext[0]) / dx;
 
-                if (bin >= 0 && bin < N) {
+                if (bin >= 0 && bin < N + dx / 1000) {
+                    // make sure the val === x_ext[1] gets in the largest bin
+                    if (bin >= N) {
+                        bin = N - 1;
+                    }
+                    bin = Math.floor(bin);
                     that._bins[bin].count += 1;
                 }
 
