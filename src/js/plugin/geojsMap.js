@@ -37,7 +37,9 @@
             var node = this.element.get(0),
                 opts = {
                     zoom: this.options.zoom,
-                    node: node
+                    node: node,
+                    width: this.options.width,
+                    height: this.options.height
                 },
                 that = this;
             this._map = geo.map(opts);
