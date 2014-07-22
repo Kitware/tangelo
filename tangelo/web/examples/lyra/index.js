@@ -480,7 +480,8 @@ $(function () {
 
             // A function that launches a Lyra editor window.
             f.launchLyra = function (qargs) {
-                var lyra = window.open("/lyra/editor.html?editor=true", "_blank");
+                var lyra = window.open("/lyra/index.html", "_blank");
+                lyra.isNew = qargs.new;
                 lyra.onload = function () {
                     lyra.postMessage(qargs, window.location.origin);
                 };
@@ -495,7 +496,10 @@ $(function () {
                 f.launchLyra({
                     new: true,
                     timeline: null,
-                    data: encodeURIComponent(JSON.stringify(data.getData()))
+                    data: {
+                        name: "data",
+                        values: data.getData()
+                    }
                 });
             };
 
@@ -505,8 +509,11 @@ $(function () {
                 f.launchLyra({
                     new: false,
                     name: model.get("name"),
-                    timeline: encodeURIComponent(JSON.stringify(model.get("lyra").timeline)),
-                    data: encodeURIComponent(JSON.stringify(model.get("lyra").vega.data[0].values))
+                    timeline: model.get("lyra").timeline,
+                    data: {
+                        name: "data",
+                        values: model.get("lyra").vega.data[0].values
+                    }
                 });
             };
 
@@ -522,7 +529,7 @@ $(function () {
                 var model,
                     name;
 
-                if (e.data.new) {
+                if (e.source.isNew) {
                     name = "Unsaved " + _.uniqueId();
 
                     // Construct a new Vis model to represent the newly created
@@ -533,7 +540,7 @@ $(function () {
                         name: name,
                         lyra: {
                             timeline: e.data.timeline,
-                            vega: e.data.vega
+                            vega: e.data.spec
                         }
                     });
 
@@ -546,7 +553,7 @@ $(function () {
                     vis.model.set({
                         lyra: {
                             timeline: e.data.timeline,
-                            vega: e.data.vega
+                            vega: e.data.spec
                         }
                     });
                     vis.render();
