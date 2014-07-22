@@ -379,6 +379,68 @@ common data formats into a common format usable by Tangelo plugins.
 
     will sort the input data and perform a gaussian smooth with standard deviation equal to :math:`1`.
 
+.. js:function:: tangelo.data.bin(spec)
+
+    :param object spec.data: An array of data objects.
+    :param Accessor spec.value: An accessor to the value of a data object.
+    :param integer spec.nBins: The number of bins to create (default 25).
+    :param number spec.min: The minimum bin value (default data minimum).
+    :param number spec.max: The maximum bin value (default data maximum).
+    :param object spec.bins: User defined bins to aggregate the data into.
+
+    Aggregates an array of data objects into a set of bins that can be used to draw a histogram.
+    The bin objects returned by this method look as follows:
+
+    .. code-block:: javascript
+
+        {
+            "min": 0,
+            "max": 1,
+            "count": 5
+        }
+
+    A data object is counted as inside the bin if its value is in the half open interval
+    ``[ min, max )``; however for the right most bin, values equal to the maximum
+    are also included.  The default behavior of this method is two construct a new array of
+    equally spaced bins between data's minimum value and the data's maximum value.  If
+    ``spec.bins`` is given, then the data is aggregated into these bins rather
+    than a new set being generated.  In this case, the bin objects are mutated rather
+    a new array being created.  In addition, the counters are **not** reset to 0, so the user must
+    do so manually if the bins are reused over multiple calls.
+
+    Examples:
+
+    .. code-block:: javascript
+
+        >>> tangelo.data.bin({
+                data: [{"value": 0}, {"value": 1}, {"value": 2}],
+                nBins: 2
+            })
+        [
+            {"min": 0, "max": 1, "count": 1},
+            {"min": 1, "max": 2, "count": 2}
+        ]
+
+        >>> tangelo.data.bin({
+                data: [{"value": 1}, {"value": 3}],
+                nBins: 2,
+                min: 0,
+                max: 4
+            })
+        [
+            {"min": 0, "max": 2, "count": 1},
+            {"min": 2, "max": 4, "count": 1}
+        ]
+
+        >>> tangelo.data.bin({
+                data: [{"value": 1}, {"value": 3}],
+                bins: [{"min": 0, "max": 2, "count": 1}, {"min": 2, "max": 10, "count": 0}]
+            })
+        [
+            {"min": 0, "max": 2, "count": 2},
+            {"min": 2, "max": 10, "count": 1}
+        ]
+
 .. _streaming-js:
 
 Streaming API
