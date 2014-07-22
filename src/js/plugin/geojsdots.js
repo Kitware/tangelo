@@ -20,9 +20,23 @@
             var that = this;
             this.colorScale = d3.scale.category10();
             this._super();
-            this.element.on('draw', function () {
-                that._update();
+            this.element.on('rescale', function () {
+                that._rescale();
             });
+        },
+
+        _rescale: function () {
+            var that = this,
+                scale;
+            if (this.options.data && this.map()) {
+                scale = this.scale();
+                d3.select(this.svg())
+                    .selectAll('.point')
+                    .data(this.options.data)
+                    .attr('r', function (d) {
+                        return tangelo.accessor(that.options.size)(d) / scale;
+                    });
+            }
         },
 
         _update: function () {
@@ -38,7 +52,7 @@
             if (this.options.data && this.map()) {
                 this.options.data.forEach(function (d) {
                     pt = geo.latlng(lat(d), lng(d));
-                    d._georef = that.latlng2display(pt)[0];
+                    d._georef = that.latlng2display(pt);
                 });
                 selection = d3.select(svg).selectAll('.point').data(this.options.data);
                 enter = selection.enter();
@@ -49,7 +63,6 @@
 
                 selection.attr('cx', tangelo.accessor({'field': '_georef.x'}))
                     .attr('cy', tangelo.accessor({'field': '_georef.y'}))
-                    .attr('r', tangelo.accessor(this.options.size))
                     .style('fill', function (d) {
                         return that.colorScale(
                             tangelo.accessor(that.options.color)(d)
@@ -57,6 +70,8 @@
                     });
 
                 exit.remove();
+
+                this._rescale();
             }
         }
     });

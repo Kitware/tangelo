@@ -341,7 +341,9 @@ common data formats into a common format usable by Tangelo plugins.
 
     for :math:`R=` **spec.radius** and :math:`K=` **spec.kernel**.  Predefined kernels can be specified as strings,
     these include:
+
         * *box*: simple moving average (default),
+
         * *gaussian*: gaussian with standard deviation **spec.radius**/3.
     
     The function returns an array of numbers representing the smoothed dependent variables.  In addition 
@@ -770,7 +772,9 @@ provide convenient behaviors or to implement common visualization methods.  See
         coordinates.  This function takes in either a `geo.latlng` object or
         an array of such objects.  It always returns an array of objects with
         properties:
+
             * `x` the horizontal pixel coordinate
+
             * `y` the vertical pixel coordinate
 
         :param geo.latlng point: The world coordinate(s) to be converted
