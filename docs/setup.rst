@@ -114,7 +114,7 @@ key             The path to the SSL key (*string*)                              
 
 cert            The path to the SSL certificate (*string*)                                                  null [#https]_
 
-girder-host     The hostname running Girder (*string*)                                                      localhost [#girder]_
+girder-host     The hostname running Girder (*string*)                                                      "localhost" [#girder]_
 
 girder-port     The port on which the Girder database is running (*integer*)                                27017 [#girder]_
 
@@ -141,7 +141,7 @@ girder-path     The path on which to mount a Girder API (*string*)              
     named "tangelo", that also has minimal permissions, but is only used to run
     Tangelo in privilege drop mode.
 
-.. [#https] You must also specify both --key and --cert to serve content over
+.. [#https] You must also specify both key and cert to serve content over
     https.
 
 .. [#girder] (Girder)[https://github.com/girder/girder] will attempt to be
