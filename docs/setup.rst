@@ -109,6 +109,16 @@ group           The user group to drop privileges to (*string*)                 
 daemonize       Whether to run as a daemon (*boolean*)                                                      true [#daemonize]_
 
 access_auth     Whether to protect directories containing a ``.htaccess`` file (*boolean*)                  true
+
+key             The path to the SSL key (*string*)                                                          null [#https]_
+
+cert            The path to the SSL certificate (*string*)                                                  null [#https]_
+
+girder-host     The hostname running Girder (*string*)                                                      localhost [#girder]_
+
+girder-port     The port on which the Girder database is running (*integer*)                                27017 [#girder]_
+
+girder-path     The path on which to mount a Girder API (*string*)                                          null [#girder]_
 =============== =========================================================================================   =============
 
 .. rubric:: Footnotes
@@ -130,6 +140,15 @@ access_auth     Whether to protect directories containing a ``.htaccess`` file (
     control of the others.  Therefore, the recommendation is to create a new user
     named "tangelo", that also has minimal permissions, but is only used to run
     Tangelo in privilege drop mode.
+
+.. [#https] You must also specify both --key and --cert to serve content over
+    https.
+
+.. [#girder] (Girder)[https://github.com/girder/girder] will attempt to be
+    mounted if the girder-path is provided. The girder-path will be the root
+    for mounting the Girder static resources and API endpoints, and should
+    start with a leading ``/``, for example ``/girder``. The ``girder`` Python
+    library must be available to the Python environment.
 
 Administering a Tangelo Installation
 ====================================
@@ -235,7 +254,7 @@ API**, and **upload the data to the MongoDB server**.
    .. code-block:: none
 
        get-flickr-data.py <your API key> <maximum number of photos to retrieve> >flickr_paris.json
-   
+
    If you do not want to retrieve the data yourself, you can use the
    `hosted version <http://midas3.kitware.com/midas/download/bitstream/339384/flickr_paris_1000.json.gz>`_.
    This dataset was generated with this script, with a max count argument of 1000.
