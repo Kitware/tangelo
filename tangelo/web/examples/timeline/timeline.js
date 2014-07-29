@@ -1,5 +1,5 @@
 window.onload = function () {
-    var n = 1000, data = [], i, 
+    var n = 1000, data = [], i,
         start = new Date(2010, 0, 1),
         end = new Date(2010, 11, 31),
         deltaTime = (end - start)/(n - 1),
@@ -20,7 +20,7 @@ window.onload = function () {
             };
         }
     }
-   
+
     function smooth(radius) {
         $('#textBox').text('Smoothing radius: ' + (radius * 100).toFixed() + '%');
         tangelo.data.smooth(
@@ -38,7 +38,7 @@ window.onload = function () {
             }, spec)
         );
     }
-    
+
     function draw(transition) {
         $("#content1").timeline({
             data: data,
@@ -51,7 +51,7 @@ window.onload = function () {
             transition: transition
         });
     }
-    
+
     generate();
     smooth(radii[iRadius]);
     draw();

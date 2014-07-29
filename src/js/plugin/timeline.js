@@ -23,7 +23,7 @@
                 top: 10,
                 bottom: 30,
                 left: 30,
-                right: 10
+                right: 30
             },
             transition: 0,
             width: null,
@@ -36,14 +36,23 @@
             this.svg = d3.select(this.element.get(0)).append('svg').attr('class', 'timeline');
             this.main = this.svg.append('g');
             this.plot = this.main.append('g').attr('class', 'plot');
+
             this.xaxis = this.main.append('g')
-                            .attr('class', 'x-axis axis');
+                            .style('font-family', 'sans-serif')
+                            .style('font-size', '11px');
+
             this.yaxis = this.main.append('g')
-                            .attr('class', 'y-axis axis');
+                            .style('font-family', 'sans-serif')
+                            .style('font-size', '11px');
+
             this.path = this.plot.append('path')
-                            .attr('class', 'path');
+                            .style('fill', 'none')
+                            .style('stroke', 'steelblue')
+                            .style('stroke-width', '1.5px');
+
             this._x = null;
             this._y = null;
+            $(window).resize(this._update.bind(this));
         },
 
         _update: function () {
@@ -62,11 +71,17 @@
                 line;
 
             this._x = d3.time.scale()
-                .domain(d3.extent(data, xAcc))
+                .domain(d3.extent(data, function (d) { return new Date(xAcc(d)); }))
                 .range([0, width])
                 .nice();
             this._y = d3.scale.linear()
-                .domain(d3.extent(data, yAcc))
+                .domain(d3.extent(data, function (d) {
+                    var val = yAcc(d);
+                    if (tangelo.isNumber(val) && !isNaN(val)) {
+                        return val;
+                    }
+                    return undefined;
+                }))
                 .range([height, 0])
                 .nice();
 
@@ -81,10 +96,14 @@
 
             line = d3.svg.line()
                 .x(function (d) {
-                    return that._x(xAcc(d));
+                    return that._x(new Date(xAcc(d)));
                 })
                 .y(function (d) {
                     return that._y(yAcc(d));
+                })
+                .defined(function (d) {
+                    var val = that._y(yAcc(d));
+                    return tangelo.isNumber(val) && !isNaN(val);
                 });
 
             // resize svg
@@ -100,6 +119,19 @@
                 .call(xaxis);
             applyTransition(this.yaxis, this.options.transition)
                 .call(yaxis);
+
+            function styleLine(selection) {
+                selection
+                    .style('fill', 'none')
+                    .style('stroke', 'black')
+                    .style('stroke-width', '1px')
+                    .style('shape-rendering', 'crispEdges');
+            }
+
+            this.xaxis.selectAll('path').call(styleLine);
+            this.xaxis.selectAll('line').call(styleLine);
+            this.yaxis.selectAll('path').call(styleLine);
+            this.yaxis.selectAll('line').call(styleLine);
 
             // generate the plot
             applyTransition(this.path, this.options.transition)
