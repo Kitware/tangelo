@@ -1,6 +1,0 @@
-{
-    "girderApi": "/girder/api/v1",
-    "collection": "lyra",
-    "visFolder": "visualizations",
-    "dataFolder": "data"
-}
