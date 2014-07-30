@@ -41,6 +41,11 @@ Optional argument                  Effect
 --clean                            use with 'status' action to remove stale status files for dead processes
 --verbose, -v                      display extra information as Tangelo starts up
 --version                          display Tangelo version number
+--key FILE                         the path to the SSL key. You must also specify --cert to serve content over https.
+--cert FILE                        the path to the SSL certificate. You must also specify --key to serve content over https.
+--girder-host HOST                 the hostname running Girder
+--girder-port PORT                 the port on which Girder is running
+--girder-path PATH                 the path on which to mount a Girder API
 =================================  ============================================================================================================================
 
 Example Usage
