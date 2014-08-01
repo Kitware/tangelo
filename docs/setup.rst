@@ -161,7 +161,7 @@ For example, as the system administrator you might create a directory on the web
 server machine at ``/srv/tangelo`` which would serve as the web root.  The
 website front page and supporting materials could be placed here, with the
 *tangelo.js* and *tangelo.min.js* files copied from
-``/usr/share/tangelo/web/js/`` to ``/srv/tangelo/js`` so they can be easily
+``/usr/share/tangelo/www/js/`` to ``/srv/tangelo/js`` so they can be easily
 accessed from user web applications.
 
 The log file could be placed in ``/var/log``, and the hostname should reflect
@@ -244,7 +244,7 @@ API**, and **upload the data to the MongoDB server**.
 
   By default, the Flickr application assumes that the server is running on the
   same host as Tangelo.  To change this, you can edit the configuration file for
-  the app, found at ``/usr/share/tangelo/web/examples/flickr/config.json``.
+  the app, found at ``/usr/share/tangelo/www/examples/flickr/config.json``.
 
 #. **Get photo data from Flickr.**  For this step you will need a `Flickr API
    key <http://www.flickr.com/services/api/misc.api_keys.html>`_.  Armed with a
@@ -296,7 +296,7 @@ object - the file is instead in a particular format recognized by Mongo.)
 As with the Flickr data prep above, you can modify this command line to install
 this data on another server or in a different database/collection.  If you do
 so, remember to also modify
-``/usr/share/tangelo/web/examples/enron/config.json`` to reflect these changes.
+``/usr/share/tangelo/www/examples/enron/config.json`` to reflect these changes.
 
 Reload the Enron app and take a look at the email communication network.
 

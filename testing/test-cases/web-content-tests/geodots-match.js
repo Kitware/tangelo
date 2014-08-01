@@ -5,7 +5,7 @@ declareTest({
     name: "Geodots - ground truth match",
     url: "/examples/geodots",
     imageFiles: {
-        geodots: "${CMAKE_BINARY_DIR}/tangelo/web/examples/geodots/geodots.png"
+        geodots: "${CMAKE_BINARY_DIR}/tangelo/www/examples/geodots/geodots.png"
     },
     test: function () {
         "use strict";

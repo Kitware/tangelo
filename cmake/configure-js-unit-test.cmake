@@ -1,5 +1,5 @@
 file(READ "${SOURCE_FILE}" TEST_SOURCE)
 configure_file(
     ${SOURCE_DIR}/testing/test-runners/jasmine-runner.html.in
-    tangelo/web/tests/js-unit-tests/${TEST_NAME}.html
+    tangelo/www/tests/js-unit-tests/${TEST_NAME}.html
 )
