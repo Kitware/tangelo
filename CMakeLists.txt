@@ -46,6 +46,9 @@ function(glob_recurse_ungit var path)
         string(FIND ${f} ".git" index)
         if(${index} EQUAL -1)
             string(FIND ${f} "/." index)
+            if(${index} EQUAL -1)
+                string(FIND ${f} ".in" index)
+            endif()
         endif()
         if(${index} EQUAL -1)
             list(APPEND files ${f})
@@ -273,10 +276,10 @@ set(JS_LINT_FILES
 
 # These files should be validated with pep8.
 set(PEP8_FILES
-    ${CMAKE_SOURCE_DIR}/scripts/tangelo.in
     ${CMAKE_SOURCE_DIR}/scripts/vtkweb-launcher.py
     ${CMAKE_SOURCE_DIR}/scripts/setup.py.in
     ${CMAKE_SOURCE_DIR}/tangelo/__init__.py
+    ${CMAKE_SOURCE_DIR}/tangelo/__main__.py.in
     ${CMAKE_SOURCE_DIR}/tangelo/plugin.py
     ${CMAKE_SOURCE_DIR}/tangelo/server.py
     ${CMAKE_SOURCE_DIR}/tangelo/stream.py
@@ -353,7 +356,7 @@ set(TANGELO_SOURCES
 
 # Configure setup.py
 configure_file(scripts/setup.py.in ${CMAKE_BINARY_DIR}/tangelo/setup.py)
-configure_file(scripts/tangelo.in ${CMAKE_BINARY_DIR}/tangelo/scripts/tangelo)
+configure_file(tangelo/__main__.py.in ${CMAKE_BINARY_DIR}/tangelo/tangelo/__main__.py)
 
 if(${BUILD_TANGELO})
     # Copy package files to build directory.
