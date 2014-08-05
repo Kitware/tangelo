@@ -90,9 +90,9 @@ class Tangelo(object):
                     (config_mtime is not None and
                      config_mtime > stamp["mtime"])):
                 if stamp is None:
-                    tangelo.log("loading new module: " + module)
+                    tangelo.log("TANGELO", "loading new module: " + module)
                 else:
-                    tangelo.log("reloading module: " + module)
+                    tangelo.log("TANGELO", "reloading module: " + module)
 
                 # Load any configuration the module might carry with it.
                 if config_mtime is not None:
@@ -103,14 +103,14 @@ class Tangelo(object):
                                 msg = ("Service module configuration file " +
                                        "does not contain a key-value store " +
                                        "(i.e., a JSON Object)")
-                                tangelo.log(msg)
+                                tangelo.log("ERROR", msg)
                                 raise TypeError(msg)
                     except IOError:
-                        tangelo.log("Could not open config file %s" %
+                        tangelo.log("ERROR", "Could not open config file %s" %
                                     (config_file))
                         raise
                     except ValueError as e:
-                        tangelo.log("Error reading config file %s: %s" %
+                        tangelo.log("ERROR", "Error reading config file %s: %s" %
                                     (config_file, e))
                         raise
                 else:
@@ -130,9 +130,8 @@ class Tangelo(object):
         except:
             bt = traceback.format_exc()
 
-            tangelo.log("Error importing module %s" % (tangelo.request_path()),
-                        "SERVICE")
-            tangelo.log(bt, "SERVICE")
+            tangelo.log("ERROR", "Error importing module %s" % (tangelo.request_path()))
+            tangelo.log("ERROR", bt)
 
             result = tangelo.HTTPStatusCode("501 Error in Python Service",
                                             Tangelo.literal + "There was an error while " +
@@ -169,9 +168,9 @@ class Tangelo(object):
             except Exception as e:
                 bt = traceback.format_exc()
 
-                tangelo.log("Caught exception while executing service %s" %
-                            (tangelo.request_path()), "SERVICE")
-                tangelo.log(bt, "SERVICE")
+                tangelo.log("ERROR", "Caught exception while executing service %s" %
+                            (tangelo.request_path()))
+                tangelo.log("ERROR", bt)
 
                 result = tangelo.HTTPStatusCode("501 Error in Python Service",
                                                 Tangelo.literal + "There was an error " +

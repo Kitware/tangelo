@@ -239,7 +239,7 @@ class AuthUpdate(cherrypy.Tool):
                 # been modified list the last request to this path.
                 htspec = AuthUpdate.parse_htaccess(htfile)
                 if htspec["msg"] is not None:
-                    tangelo.log("[AuthUpdate] Could not register %s: %s" %
+                    tangelo.log("TANGELO", "[AuthUpdate] Could not register %s: %s" %
                                 (reqpath, htspec["msg"]))
                     return changed, htspec["msg"]
 

@@ -1,8 +1,6 @@
 import bson.json_util
 import pymongo
 
-import tangelo
-
 
 def decode(s, argname, resp):
     try:
@@ -84,5 +82,4 @@ def run(server, db, coll, method='find', query=None, limit=1000,
         raise RuntimeError("illegal method '%s' in module 'mongo'")
 
     # Return the response object.
-    tangelo.log(str(response))
     return bson.json_util.dumps(response)
