@@ -11,12 +11,14 @@ formatting errors; and web service utilities to supercharge Python services.
 Core Services
 =============
 
-.. py:function:: tangelo.log(msg[, context])
+.. py:function:: tangelo.log(context, msg)
 
-    Writes a message ``msg`` to the log file.  If ``context`` is supplied, it
-    will be prepended to the message within the log file.  This function may be
-    useful for debugging or otherwise tracking a service's activities as it
-    runs.
+    Writes a message ``msg`` to the log file.  ``context`` is a descriptive tag
+    that will be prepended to the message within the log file.  Common context
+    tags used internally in Tangelo include "TANGELO" (to describe
+    startup/shutdown activities), "ERROR", and "ENGINE" (which describes actions
+    being taken by CherryPy).  This function may be useful for debugging or
+    otherwise tracking a service's activities as it runs.
 
 .. py:function:: tangelo.abspath(webpath)
 

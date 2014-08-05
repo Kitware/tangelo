@@ -24,8 +24,8 @@ def header(h, t=None):
     return r
 
 
-def log(*pargs, **kwargs):
-    cherrypy.log(*pargs, **kwargs)
+def log(section, message):
+    cherrypy.log(message, section)
 
 
 def request_path():

@@ -73,7 +73,7 @@ def WebSocketRelay(hostname, port, key):
                 scheme = "wss"
             url = "%s://%s:%d/ws" % (scheme, hostname, port)
 
-            tangelo.log("websocket created at %s:%d/%s (proxy to %s)" %
+            tangelo.log("TANGELO", "websocket created at %s:%d/%s (proxy to %s)" %
                         (hostname, port, key, url))
 
             self.client = VTKWebSocketAB(url, self)
@@ -81,7 +81,7 @@ def WebSocketRelay(hostname, port, key):
         def closed(self, code, reason=None):
             # TODO(choudhury): figure out if recovery, etc. is possible if the
             # socket is closed for some reason.
-            tangelo.log("websocket at %s:%d/%s closed with code %d (%s)" %
+            tangelo.log("TANGELO", "websocket at %s:%d/%s closed with code %d (%s)" %
                         (hostname, port, key, code, reason))
 
         def received_message(self, msg):
