@@ -276,6 +276,7 @@ set(JS_LINT_FILES
 
 # These files should be validated with pep8.
 set(PEP8_FILES
+    ${CMAKE_SOURCE_DIR}/scripts/tangelo
     ${CMAKE_SOURCE_DIR}/scripts/vtkweb-launcher.py
     ${CMAKE_SOURCE_DIR}/scripts/setup.py.in
     ${CMAKE_SOURCE_DIR}/tangelo/__init__.py
@@ -345,6 +346,7 @@ glob_recurse_ungit(TANGELO_MODULE_SOURCES tangelo/*)
 set(TANGELO_SOURCES
     ${TANGELO_WEB_SOURCES}
     ${TANGELO_MODULE_SOURCES}
+    scripts/tangelo
     scripts/tangelo-passwd
     scripts/vtkweb-launcher.py
     assets/conf/tangelo.conf.global
