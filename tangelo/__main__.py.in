@@ -75,129 +75,6 @@ def shutdown(signum, frame):
     tangelo.log("TANGELO", "Be seeing you.")
 
 
-def start():
-    # Create a streaming API object.
-    stream = tangelo.stream.TangeloStream()
-
-    # Create an instance of the main handler object.
-    rootapp = cherrypy.Application(tangelo.server.Tangelo(stream=stream), "/")
-
-    # Create a VTKWeb API object if requested, and mount it.
-    vtkweb = None
-    if vtkpython is not None:
-        vtkweb = tangelo.vtkweb.TangeloVtkweb(vtkpython=vtkpython, weblauncher=invocation_dir + "/bin/vtkweb-launcher.py")
-        cherrypy.tree.mount(vtkweb, "/vtkweb")
-
-    # Create a Girder API object if requested, and mount it at the requested
-    # path.
-    girder = None
-    if girderconf["path"]:
-        girder = tangelo.girder.TangeloGirder(girderconf["host"], girderconf["port"])
-        cherrypy.tree.mount(girder, girderconf["path"], girder.config)
-
-    # Mount the root application object.
-    cherrypy.tree.mount(rootapp, config={"/": {"tools.auth_update.on": access_auth,
-                                               "tools.treat_url.on": True},
-                                         "/favicon.ico": {"tools.staticfile.on": True,
-                                                          "tools.staticfile.filename": sys.prefix + "/share/tangelo/tangelo.ico"}})
-
-    # Set up the global configuration.
-    try:
-        cherrypy.config.update({"environment": "production",
-                                "log.screen": True,
-                                "server.socket_host": hostname,
-                                "server.socket_port": port,
-                                "error_page.default": tangelo.server.Tangelo.error_page})
-    except IOError as e:
-        tangelo.log("ERROR", "problem with config file %s: %s" % (e.filename, e.strerror))
-        return 1
-
-    # Try to drop privileges if requested, since we've bound to whatever port
-    # superuser privileges were needed for already.
-    if drop_privileges:
-        tangelo.log("TANGELO", "Performing privilege drop")
-
-        # If we're on windows, don't supply any username/groupname, and just
-        # assume we should drop priveleges.
-        if platform.system() == "Windows":
-            cherrypy.process.plugins.DropPrivileges(cherrypy.engine).subscribe()
-        elif os.getuid() == 0:
-            # Reaching here means we're on unix, and we are the root user, so go
-            # ahead and drop privileges to the requested user/group.
-            import grp
-            import pwd
-
-            # On some systems, negative uids and gids are allowed.  These can
-            # render in Python (in particular, on OS X) as very large unsigned
-            # values.  This function first checks to see if the input value is
-            # already negative; if so, there's no issue and we return it
-            # unchanged.  Otherwise, we treat the argument as a bit
-            # representation of a *signed* value, check the sign bit to see if
-            # it *should* be a negative number, and then perform the proper
-            # arithmetic to turn it into a signed one.
-            def to_signed(val):
-                # If we already see a negative number, just return it.
-                if val < 0:
-                    return val
-
-                # Check sign bit, and subtract the unsigned range from the value
-                # if it is set.
-                return val - 0x100000000 if val & 0x80000000 else val
-
-            # Find the UID and GID for the requested user and group.
-            try:
-                mode = "user"
-                value = user
-                uid = to_signed(pwd.getpwnam(user).pw_uid)
-
-                mode = "group"
-                value = group
-                gid = to_signed(grp.getgrnam(group).gr_gid)
-            except KeyError:
-                tangelo.log("ERROR", "no such %s '%s' to drop privileges to" % (mode, value))
-                return 1
-
-            # Set the process home directory to be the dropped-down user's.
-            os.environ["HOME"] = os.path.expanduser("~%s" % (user))
-
-            # Perform the actual UID/GID change.
-            cherrypy.process.plugins.DropPrivileges(cherrypy.engine, uid=uid, gid=gid).subscribe()
-
-    # Set up websocket handling.  Use the pass-through subclassed version of the
-    # plugin so we can set a priority on it that doesn't conflict with privilege
-    # drop.
-    tangelo.websocket.WebSocketLowPriorityPlugin(cherrypy.engine).subscribe()
-    cherrypy.tools.websocket = tangelo.ws4py.server.cherrypyserver.WebSocketTool()
-
-    # Replace the stock auth_digest and auth_basic tools with ones that have
-    # slightly lower priority (so the AuthUpdate tool can run before them).
-    cherrypy.tools.auth_basic = cherrypy.Tool("before_handler", cherrypy.lib.auth_basic.basic_auth, priority=2)
-    cherrypy.tools.auth_digest = cherrypy.Tool("before_handler", cherrypy.lib.auth_digest.digest_auth, priority=2)
-
-    # Install signal handlers to allow for proper cleanup/shutdown.
-    for sig in [signal.SIGINT, signal.SIGTERM]:
-        signal.signal(sig, shutdown)
-
-    # Send SIGQUIT to an immediate, ungraceful shutdown instead.
-    if platform.system() != "Windows":
-        signal.signal(signal.SIGQUIT, die)
-
-    # Install the "treat_url" tool, which performs redirections and analyzes the
-    # request path to see what kind of resource is being requested, and the
-    # "auth update" tool, which checks for updated/new/deleted .htaccess files
-    # and updates the state of auth tools on various paths.
-    cherrypy.tools.treat_url = cherrypy.Tool("before_handler", tangelo.tool.treat_url, priority=0)
-    if access_auth:
-        cherrypy.tools.auth_update = tangelo.tool.AuthUpdate(point="before_handler", priority=1)
-
-    # Start the CherryPy engine.
-    cherrypy.engine.start()
-
-    # Start the Twisted reactor in the main thread (it will block but the
-    # CherryPy engine has already started in a non-blocking manner).
-    reactor.run(installSignalHandlers=False)
-    cherrypy.engine.block()
-
 # The following code should be transferred to an appropriate utility script that
 # queries a running Tangelo server for the appropriate information.
 #
@@ -230,8 +107,8 @@ def start():
     ##print >>sys.stderr, "log file:    %s" % (status.get("logfile", "unknown"))
     ##print >>sys.stderr, "web root:    %s" % (status.get("webroot", "unknown"))
 
-if __name__ == "__main__":
-    attrs = ", ".join(["pid", "file", "status", "interface", "config", "log", "root"])
+def main():
+    #attrs = ", ".join(["pid", "file", "status", "interface", "config", "log", "root"])
 
     p = argparse.ArgumentParser(description="Start a Tangelo server.")
     p.add_argument("-c", "--config", type=str, default=None, metavar="FILE", help="specifies configuration file to use")
@@ -258,20 +135,20 @@ if __name__ == "__main__":
     # If version flag is present, print the version number and exit.
     if args.version:
         print tangelo_version
-        sys.exit(0)
+        return 0
 
     # Make sure user didn't specify conflicting flags.
     if args.access_auth and args.no_access_auth:
         tangelo.log("ERROR", "can't specify both --access-auth (-a) and --no-access-auth (-na) together")
-        sys.exit(1)
+        return 1
 
     if args.drop_privileges and args.no_drop_privileges:
         tangelo.log("ERROR", "can't specify both --drop-privileges (-p) and --no-drop-privileges (-np) together")
-        sys.exit(1)
+        return 1
 
     if args.no_config and args.config is not None:
         tangelo.log("ERROR", "can't specify both --config (-c) and --no-config (-nc) together")
-        sys.exit(1)
+        return 1
 
     # Figure out where this is being called from - that will be useful for a
     # couple of purposes.
@@ -306,7 +183,7 @@ if __name__ == "__main__":
             config = read_config(cfg_file)
         except ValueError as e:
             tangelo.log("ERROR", "problem with configuration file %s: %s" % (cfg_file, e.message))
-            sys.exit(1)
+            return 1
 
     # Determine whether to use access auth.
     access_auth = True
@@ -388,7 +265,7 @@ if __name__ == "__main__":
         tangelo.log("TANGELO", "\tSSL Key file: %s" % (ssl_key))
     elif not (ssl_key is None and ssl_cert is None):
         tangelo.log("ERROR", "error: SSL key or SSL cert missing")
-        sys.exit(1)
+        return 1
     else:
         tangelo.log("TANGELO", "HTTPS disabled")
 
@@ -415,7 +292,7 @@ if __name__ == "__main__":
         # directory?  This is how SimpleHTTPServer works, for example.
         if not root:
             tangelo.log("ERROR", "could not find default web root directory")
-            sys.exit(1)
+            return 1
 
     tangelo.log("TANGELO", "Serving content from %s" % (root))
 
@@ -426,5 +303,130 @@ if __name__ == "__main__":
     # configuration object.
     cherrypy.config.update({"module-config": {}})
 
-    # Start the server.
-    sys.exit(start())
+    # Create a streaming API object.
+    stream = tangelo.stream.TangeloStream()
+
+    # Create an instance of the main handler object.
+    rootapp = cherrypy.Application(tangelo.server.Tangelo(stream=stream), "/")
+
+    # Create a VTKWeb API object if requested, and mount it.
+    vtkweb = None
+    if vtkpython is not None:
+        vtkweb = tangelo.vtkweb.TangeloVtkweb(vtkpython=vtkpython, weblauncher=invocation_dir + "/bin/vtkweb-launcher.py")
+        cherrypy.tree.mount(vtkweb, "/vtkweb")
+
+    # Create a Girder API object if requested, and mount it at the requested
+    # path.
+    girder = None
+    if girderconf["path"]:
+        girder = tangelo.girder.TangeloGirder(girderconf["host"], girderconf["port"])
+        cherrypy.tree.mount(girder, girderconf["path"], girder.config)
+
+    # Mount the root application object.
+    cherrypy.tree.mount(rootapp, config={"/": {"tools.auth_update.on": access_auth,
+                                               "tools.treat_url.on": True},
+                                         "/favicon.ico": {"tools.staticfile.on": True,
+                                                          "tools.staticfile.filename": sys.prefix + "/share/tangelo/tangelo.ico"}})
+
+    # Set up the global configuration.
+    try:
+        cherrypy.config.update({"environment": "production",
+                                "log.screen": True,
+                                "server.socket_host": hostname,
+                                "server.socket_port": port,
+                                "error_page.default": tangelo.server.Tangelo.error_page})
+    except IOError as e:
+        tangelo.log("ERROR", "problem with config file %s: %s" % (e.filename, e.strerror))
+        return 1
+
+    # Try to drop privileges if requested, since we've bound to whatever port
+    # superuser privileges were needed for already.
+    if drop_privileges:
+        # If we're on windows, don't supply any username/groupname, and just
+        # assume we should drop priveleges.
+        if platform.system() == "Windows":
+            tangelo.log("TANGELO", "Performing privilege drop")
+            cherrypy.process.plugins.DropPrivileges(cherrypy.engine).subscribe()
+        elif os.getuid() == 0:
+            tangelo.log("TANGELO", "Performing privilege drop")
+
+            # Reaching here means we're on unix, and we are the root user, so go
+            # ahead and drop privileges to the requested user/group.
+            import grp
+            import pwd
+
+            # On some systems, negative uids and gids are allowed.  These can
+            # render in Python (in particular, on OS X) as very large unsigned
+            # values.  This function first checks to see if the input value is
+            # already negative; if so, there's no issue and we return it
+            # unchanged.  Otherwise, we treat the argument as a bit
+            # representation of a *signed* value, check the sign bit to see if
+            # it *should* be a negative number, and then perform the proper
+            # arithmetic to turn it into a signed one.
+            def to_signed(val):
+                # If we already see a negative number, just return it.
+                if val < 0:
+                    return val
+
+                # Check sign bit, and subtract the unsigned range from the value
+                # if it is set.
+                return val - 0x100000000 if val & 0x80000000 else val
+
+            # Find the UID and GID for the requested user and group.
+            try:
+                mode = "user"
+                value = user
+                uid = to_signed(pwd.getpwnam(user).pw_uid)
+
+                mode = "group"
+                value = group
+                gid = to_signed(grp.getgrnam(group).gr_gid)
+            except KeyError:
+                tangelo.log("ERROR", "no such %s '%s' to drop privileges to" % (mode, value))
+                return 1
+
+            # Set the process home directory to be the dropped-down user's.
+            os.environ["HOME"] = os.path.expanduser("~%s" % (user))
+
+            # Perform the actual UID/GID change.
+            cherrypy.process.plugins.DropPrivileges(cherrypy.engine, uid=uid, gid=gid).subscribe()
+        else:
+            tangelo.log("TANGELO", "Not performing privilege drop (because not running as superuser)")
+
+    # Set up websocket handling.  Use the pass-through subclassed version of the
+    # plugin so we can set a priority on it that doesn't conflict with privilege
+    # drop.
+    tangelo.websocket.WebSocketLowPriorityPlugin(cherrypy.engine).subscribe()
+    cherrypy.tools.websocket = tangelo.ws4py.server.cherrypyserver.WebSocketTool()
+
+    # Replace the stock auth_digest and auth_basic tools with ones that have
+    # slightly lower priority (so the AuthUpdate tool can run before them).
+    cherrypy.tools.auth_basic = cherrypy.Tool("before_handler", cherrypy.lib.auth_basic.basic_auth, priority=2)
+    cherrypy.tools.auth_digest = cherrypy.Tool("before_handler", cherrypy.lib.auth_digest.digest_auth, priority=2)
+
+    # Install signal handlers to allow for proper cleanup/shutdown.
+    for sig in [signal.SIGINT, signal.SIGTERM]:
+        signal.signal(sig, shutdown)
+
+    # Send SIGQUIT to an immediate, ungraceful shutdown instead.
+    if platform.system() != "Windows":
+        signal.signal(signal.SIGQUIT, die)
+
+    # Install the "treat_url" tool, which performs redirections and analyzes the
+    # request path to see what kind of resource is being requested, and the
+    # "auth update" tool, which checks for updated/new/deleted .htaccess files
+    # and updates the state of auth tools on various paths.
+    cherrypy.tools.treat_url = cherrypy.Tool("before_handler", tangelo.tool.treat_url, priority=0)
+    if access_auth:
+        cherrypy.tools.auth_update = tangelo.tool.AuthUpdate(point="before_handler", priority=1)
+
+    # Start the CherryPy engine.
+    cherrypy.engine.start()
+
+    # Start the Twisted reactor in the main thread (it will block but the
+    # CherryPy engine has already started in a non-blocking manner).
+    reactor.run(installSignalHandlers=False)
+    cherrypy.engine.block()
+
+if __name__ == "__main__":
+    sys.exit(main())
