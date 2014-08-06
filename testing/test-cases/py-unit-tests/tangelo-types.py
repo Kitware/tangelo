@@ -13,7 +13,7 @@ class Tester(unittest.TestCase):
         def op(a, b, c=None, d=None):
             return a + b + c + d
 
-        @tangelo.types(int, float, c=int, d=float)
+        @tangelo.types(a=int, b=float, c=int, d=float)
         def op_typed(a, b, c=None, d=None):
             return op(a, b, c, d)
 
@@ -25,7 +25,7 @@ class Tester(unittest.TestCase):
         Demonstrate that @tangelo.types works with any non-base-type conversion functions.
         """
 
-        @tangelo.types(json.loads)
+        @tangelo.types(data=json.loads)
         def extract_foo(data):
             return data["foo"]
 
@@ -40,7 +40,7 @@ class Tester(unittest.TestCase):
         imported by Tangelo itself.
         """
 
-        @tangelo.types(bson.json_util.loads)
+        @tangelo.types(data=bson.json_util.loads)
         def extract_foo(data):
             return data["foo"]
 
@@ -54,7 +54,7 @@ class Tester(unittest.TestCase):
         Demonstrate the failure mode when a value cannot be converted.
         """
 
-        @tangelo.types(int)
+        @tangelo.types(x=int)
         def identity(x):
             return x
 
@@ -97,3 +97,24 @@ class Tester(unittest.TestCase):
         self.assertTrue(isinstance(result, tangelo.HTTPStatusCode))
         self.assertEqual(result.code, "500 Return Value Conversion Failed")
         self.assertEqual(result.msg, msg)
+
+    def test_unnamed_variable(self):
+        def use_types_badly():
+            @tangelo.types(int)
+            def oops(x):
+                return x + 5
+
+            return oops
+
+        self.assertRaises(TypeError, use_types_badly)
+
+    def test_badly_named_variable(self):
+        @tangelo.types(bar=int)
+        def foo(baz):
+            return baz + 1
+
+        result = foo(10)
+
+        self.assertTrue(isinstance(result, tangelo.HTTPStatusCode))
+        self.assertEqual(result.code, "400 Unknown Argument Name")
+        self.assertEqual(result.msg, "'bar' was registered for type conversion but did not appear in the arguments list")

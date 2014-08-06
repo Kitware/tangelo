@@ -181,7 +181,6 @@ if(${BUILD_TESTING})
     set(JS_UNIT_TESTS ON CACHE BOOL "Generate tangelo.js unit tests.")
     set(PY_UNIT_TESTS ON CACHE BOOL "Generate tangelo Python module unit tests.")
     set(WEB_CONTENT_TESTS ON CACHE BOOL "Generate tests for example web appplications.")
-    set(PY_COVERAGE_TEST ON CACHE BOOL "Generate Python coverage report.")
     set(OTHER_TESTS ON CACHE BOOL "Generate miscellaenous other tests.")
     set(TESTING_HOST localhost CACHE STRING "The host to run Tangelo on for the test suite.")
     set(TESTING_PORT 50047 CACHE STRING "The port number to run Tangelo for the test suite.")
@@ -194,7 +193,6 @@ if(${BUILD_TESTING})
                            JS_UNIT_TESTS
                            PY_STYLE_TESTS
                            WEB_CONTENT_TESTS
-                           PY_COVERAGE_TEST
                            TESTING_PORT
     )
 else()
@@ -204,7 +202,6 @@ else()
                            JS_UNIT_TESTS
                            PY_UNIT_TESTS
                            WEB_CONTENT_TESTS
-                           PY_COVERAGE_TEST
                            TESTING_PORT
     )
 endif()
@@ -617,36 +614,10 @@ if(${BUILD_TESTING})
 
             # Name and create the test.
             set(name unit-test:py:${f})
-            if(PY_COVERAGE_TEST)
-                add_test(${name}
-                    ${VENV_PYTHON_EXECUTABLE} -m trace --count -C CMakeFiles/tangelo-all.dir -m ${py}
-                )
-            else()
-                add_test(${name}
-                    ${VENV_PYTHON_EXECUTABLE} ${py}
-                )
-            endif()
+            add_test(${name}
+                ${VENV_PYTHON_EXECUTABLE} ${py}
+            )
         endforeach()
-
-        if(PY_COVERAGE_TEST)
-            # If performing Python coverage, we need to drop fake .gcda files in
-            # a place where CTest will find them, in order to trigger the
-            # analysis of the .cover files.
-            function(signal_gcda name)
-                set(fullpath "${CMAKE_BINARY_DIR}/CMakeFiles/tangelo-all.dir/${name}.gcda")
-                add_custom_command(
-                    OUTPUT ${fullpath}
-                    COMMAND ${CMAKE_COMMAND} -E touch "${fullpath}"
-                    COMMENT "Generating ${name}.gcda (signal file)"
-                )
-                list(APPEND GCDA_FILES "${fullpath}")
-                set(GCDA_FILES "${GCDA_FILES}" PARENT_SCOPE)
-            endfunction()
-
-            signal_gcda("tangelo.__init__.py")
-            signal_gcda("tangelo.util.py")
-            signal_gcda("tangelo.js")
-        endif()
     endif()
 
     # Web content tests.

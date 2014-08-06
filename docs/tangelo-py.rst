@@ -121,15 +121,15 @@ Web Services Utilities
     all lowercase letters before searching the Python module for a matching
     function to call.
 
-.. py:decorator:: tangelo.types([ptype1,...,ptypeN],kwarg1=kwtype1,...,kwargN=kwtypeN)
+.. py:decorator:: tangelo.types(arg1=type1,...,argN=typeN)
 
-    Decorates a service by converting it from a function of several string arguments
-    to a function taking typed arguments.  Each argument to ``tangelo.types()`` is a
-    function that converts strings to some other type - the standard Python
-    functions ``int()``, ``float()``, and ``json.loads()`` are good examples.  The
-    positional and keyword arguments represent the types of the positional and
-    keyword arguments, respectively, of the function.  For example, the following
-    code snippet
+    Decorates a service by converting it from a function of several string
+    arguments to a function taking typed arguments.  Each argument to
+    ``tangelo.types()`` is a function that converts strings to some other type -
+    the standard Python functions ``int()``, ``float()``, and ``json.loads()``
+    are good examples.  The functions are passed in as keyword arguments, with
+    the keyword naming an argument in the decorated function.  For example, the
+    following code snippet
 
     .. code-block:: python
 
@@ -138,7 +138,7 @@ Web Services Utilities
         def stringfunc(a, b):
             return a + b
 
-        @types(int, int)
+        @tangelo.types(a=int, b=int)
         def intfunc(a, b):
             return a + b
 
