@@ -1,0 +1,12 @@
+#!python
+
+import sys
+import tangelo.__main__
+
+
+def main():
+    tangelo.__main__.main()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
