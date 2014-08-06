@@ -97,3 +97,24 @@ class Tester(unittest.TestCase):
         self.assertTrue(isinstance(result, tangelo.HTTPStatusCode))
         self.assertEqual(result.code, "500 Return Value Conversion Failed")
         self.assertEqual(result.msg, msg)
+
+    def test_unnamed_variable(self):
+        def use_types_badly():
+            @tangelo.types(int)
+            def oops(x):
+                return x + 5
+
+            return oops
+
+        self.assertRaises(TypeError, use_types_badly)
+
+    def test_badly_named_variable(self):
+        @tangelo.types(bar=int)
+        def foo(baz):
+            return baz + 1
+
+        result = foo(10)
+
+        self.assertTrue(isinstance(result, tangelo.HTTPStatusCode))
+        self.assertEqual(result.code, "400 Unknown Argument Name")
+        self.assertEqual(result.msg, "'bar' was registered for type conversion but did not appear in the arguments list")
