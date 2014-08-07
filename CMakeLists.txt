@@ -340,9 +340,11 @@ set(JS_UGLIFY_FILES
 # These files should be copied to the build directory.
 glob_recurse_ungit(TANGELO_WEB_SOURCES www/*)
 glob_recurse_ungit(TANGELO_MODULE_SOURCES tangelo/*)
+glob_recurse_ungit(TANGELO_DAEMON_SCRIPTS assets/daemon/*)
 set(TANGELO_SOURCES
     ${TANGELO_WEB_SOURCES}
     ${TANGELO_MODULE_SOURCES}
+    ${TANGELO_DAEMON_SCRIPTS}
     scripts/tangelo
     scripts/tangelo-passwd
     scripts/vtkweb-launcher.py
