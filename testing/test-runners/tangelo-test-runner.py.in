@@ -1,17 +1,31 @@
 import subprocess
 import sys
+import time
+
 
 def main():
     # Start tangelo on the testing port, and bail out with error if it fails.
-    result = subprocess.call(["@VENV_DIR@/bin/tangelo", "restart",
-                              "--host", "@TESTING_HOST@",
-                              "--port", "@TESTING_PORT@",
-                              "--root", "tangelo/web",
-                              "--no-config"])
+    p = subprocess.Popen(["@VENV_DIR@/bin/tangelo",
+                          "--host", "@TESTING_HOST@",
+                          "--port", "@TESTING_PORT@",
+                          "--root", "tangelo/www",
+                          "--no-config"],
+                         stderr=subprocess.PIPE)
 
-    if result != 0:
-        print "fatal error: could not start Tangelo on port @TESTING_PORT@"
-        return result
+    # Wait until tangelo either starts or fails.
+    #
+    # TODO: there is a possibility of hanging here.  If, for some reason,
+    # neither the success nor failure messages occur in the log, the call to
+    # readline() below will eventually stop, waiting for input that won't come.
+    # When Tangelo is healthy, however, one of the two sought messages will
+    # occur.
+    while True:
+        line = p.stderr.readline()
+        if line.endswith("ENGINE Bus STARTED\n"):
+            break
+        elif line.endswith("ENGINE Bus EXITED\n"):
+            print "fatal error: could not start Tangelo on port @TESTING_PORT@"
+            return 1
 
     # Run the testing command, which is simply the arguments passed to this
     # script.  Hang onto the return value so it can be returned after server
@@ -19,15 +33,26 @@ def main():
     result = subprocess.call(sys.argv[1:])
 
     # Shut the server down.
-    shutdown = subprocess.call(["@VENV_DIR@/bin/tangelo", "stop",
-                                "--port", "@TESTING_PORT@"])
+    p.terminate()
 
-    # If there was an error shutting down, report it and fail the test.
-    if shutdown != 0:
+    # Wait for the Tangelo process to actually exit, timing out after 10
+    # seconds.
+    start = time.time()
+    now = time.time()
+    while now - start < 10:
+        retcode = p.poll()
+        if retcode is not None:
+            break
+        time.sleep(0.5)
+
+    # If there was an error shutting down, report it, kill Tangelo forcefully,
+    # and fail the test.
+    if retcode is None:
         print "fatal error: could not shut down Tangelo after test finished"
-        return shutdown
+        p.kill()
+        return 1
 
-    # Everything is good, return the result of running the test.
+    # Return the result of running the test.
     return result
 
 if __name__ == "__main__":
