@@ -13,7 +13,8 @@
             // etc.
             zoom: 3,
             width: null,
-            height: null
+            height: null,
+            tileURL: undefined
         },
         latlng2display: function (pt) {
             return this.svgLayer.renderer().worldToDisplay(pt);
@@ -43,7 +44,7 @@
                 },
                 that = this;
             this._map = geo.map(opts);
-            this._map.createLayer('osm');
+            this._map.createLayer('osm', { baseUrl: this.options.tileURL });
             this.svgLayer = this._map.createLayer('feature', {'renderer': 'd3Renderer'});
             this.svgGroup = this.svgLayer.renderer().canvas();
 
@@ -65,6 +66,9 @@
             this._map.resize(0, 0, w, h);
         },
         _setOption: function (key, value) {
+            if (key === 'tileURL' && this._map) {
+                throw "Cannot set tileURL after map creation.";
+            }
             this.options[key] = value;
             if (key === 'width' || key === 'height') {
                 this._resize();
