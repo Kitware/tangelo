@@ -762,6 +762,7 @@ provide convenient behaviors or to implement common visualization methods.  See
     </examples/geojsMap>`.
 
     :param integer spec.zoom: The initial zoom level of the map.
+    :param string spec.tileURL: The base url for an openstreetmap compatible tile server.
 
     The widget also contains the following public methods for drawing on the
     map.
