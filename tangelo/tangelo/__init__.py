@@ -62,6 +62,10 @@ def request_body():
                        cherrypy.request.process_request_body)
 
 
+def request_headers():
+    return cherrypy.request.headers
+
+
 def abspath(path):
     if len(path) >= 2 and path[0] == "/" and path[1] == "~":
         path = path[1:]

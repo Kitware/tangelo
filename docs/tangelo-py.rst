@@ -62,6 +62,10 @@ HTTP Interaction
     This can be useful, e.g., for retrieving data submitted in the body for a
     POST request.
 
+.. py:function:: tangelo.request_headers()
+
+    Returns a dictionary of the headers in the current request.
+
 .. py:class:: tangelo.HTTPStatusCode(code[, description])
 
     Constructs an HTTP status object signalling the status code given by ``code``
