@@ -26,7 +26,7 @@
             return this.svgGroup.node();
         },
         legend: function () { // non-interactive svg on top
-            throw 'Legend layer not yet implemented';
+            throw new Error('Legend layer not yet implemented');
         },
         map: function () { // return the geojs map object
             return this._map;
@@ -67,7 +67,7 @@
         },
         _setOption: function (key, value) {
             if (key === 'tileURL' && this._map) {
-                throw "Cannot set tileURL after map creation.";
+                throw new Error('Cannot set tileURL after map creation.');
             }
             this.options[key] = value;
             if (key === 'width' || key === 'height') {
