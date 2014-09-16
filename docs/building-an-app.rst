@@ -24,7 +24,7 @@ Preparing the Stage
 Tangelo will need to be running in order for the application to work.  The
 quickstart instructions will be sufficient (see :ref:`quickstart`): ::
 
-    tangelo start
+    tangelo
 
 This should launch Tangelo on *localhost*, port 8080 (also known as
 http://localhost:8080/).

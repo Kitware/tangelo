@@ -26,7 +26,7 @@ Please visit the `Tangelo homepage`_ or the `GitHub repository`_ for more
 information.
 
 .. _CherryPy: http://www.cherrypy.org
-.. _Tangelo homepage: http://kitware.github.io/tangelo/
+.. _Tangelo homepage: http://tangelo.kitware.com
 .. _GitHub repository: https://github.com/Kitware/tangelo
 .. _Vega: http://trifacta.github.io/vega/
 
@@ -47,7 +47,7 @@ Quick Start
 
 3. Issue this command to start up a Tangelo server: ::
 
-    tangelo start
+    tangelo
 
 4. Visit your Tangelo instance at http://localhost:8080.
 
