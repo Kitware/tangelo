@@ -129,7 +129,7 @@ girder-path     The path on which to mount a Girder API (*string*)              
 .. [#https] You must also specify both key and cert to serve content over
     https.
 
-.. [#girder] (Girder)[https://github.com/girder/girder] will attempt to be
+.. [#girder] `Girder <https://github.com/girder/girder>`_ will attempt to be
     mounted if the girder-path is provided. The girder-path will be the root
     for mounting the Girder static resources and API endpoints, and should
     start with a leading ``/``, for example ``/girder``. The ``girder`` Python
@@ -194,44 +194,44 @@ systemd
 `systemd` is a Linux service manager daemon for which a `unit file` corresponds
 to each service.  Tangelo supplies such a unit file, along with supporting
 scripts, at ``/usr/share/tangelo/daemon/systemd``.  To install Tangelo as a
-service, the files in this directory need to be copied or symlink to a location
+service, the files in this directory need to be copied or symlinked to a location
 from which `systemd` can access them.  An example follows, though your particular
 system may require some changes from what is shown here; see the `systemd
-documentation <http://www.freedesktop.org/wiki/Software/systemd/>` for more
+documentation <http://www.freedesktop.org/wiki/Software/systemd/>`_ for more
 information.
 
-Go to the place where systemd unit files are installed:
+Go to the place where systemd unit files are installed: ::
 
     cd /usr/lib/systemd/system
 
-Place an appropriate symlink there:
+Place an appropriate symlink there: ::
 
     sudo ln -s /usr/share/tangelo/daemon/systemd/system/tangelo@.service
 
-Go to the systemd auxiliary scripts directory:
+Go to the systemd auxiliary scripts directory: ::
 
     cd ../scripts
 
-Install a symlink to the launcher script:
+Install a symlink to the launcher script: ::
 
     sudo ln -s /usr/share/tangelo/daemon/systemd/scripts/launch-tangelo.sh
 
 Now you will be able to control Tangelo via the ``systemctl`` command.
 Note that the unit file defines Tangelo as an `instantiated service`, meaning
 that multiple Tangelo instances can be launched independently by specifying an
-instantiation name.  For example:
+instantiation name.  For example: ::
 
     sudo systemctl start tangelo@localhost:8080
 
 will launch Tangelo to run on the `localhost` interface, on port 8080.  The way
-this works is that ``systemctl`` takes the instantiation name and passes it to
-``launch-tangelo.sh``.  It in turn parses the hostname and port number from the
+this works is that ``systemctl`` takes the instantiation name (i.e., all the text after the ``@`` symbol - *localhost:8080*) and passes it to
+``launch-tangelo.sh``.  It in turn parses the hostname (*localhost*) and port number (*8080*) from the
 name, then launches Tangelo using whatever configuration file is found at
 ``/etc/tangelo.conf``, but overriding the hostname and port with those parsed
 from the name.  This allows for a unique name for each Tangelo instance that
 corresponds to its unique web interface.
 
-Since the configuration file may change independently of how a given instance
+Since the configuration file used for a particular Tangelo instance may change independently of how that instance
 has been configured and run, you may consult the Tangelo instance itself to find
 out its configuration parameters by sending a ``GET`` request to ``/config``.
 

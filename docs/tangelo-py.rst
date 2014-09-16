@@ -50,8 +50,16 @@ HTTP Interaction
 
 .. py:function:: tangelo.content_type([type])
 
-    Returns the content type for the current request, as a string.  If ``type``
+    Returns the content type for the current request, as a string.  If `type`
     is specified, also sets the content type to the specified string.
+
+.. py:function:: tangelo.header(header_name[, new_value])
+
+    Returns the value associated to `header_name` in the HTTP headers, or
+    ``None`` if the header is not present.
+
+    If `new_value` is supplied, the header value will additionally be replaced
+    by that value.
 
 .. py:function:: tangelo.request_path()
 
@@ -95,6 +103,11 @@ Web Services Utilities
     in every function wishing to change the path, but prevents shadowing of
     expected locations by modules with the same name in other directories, and
     the uncontrolled growth of the ``sys.path`` variable.
+
+.. py:function:: tangelo.config()
+
+    Returns a copy of the service configuration dictionary (see
+    :ref:`configuration`).
 
 .. py:decorator:: tangelo.restful
 

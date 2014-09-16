@@ -141,25 +141,26 @@ is then delivered to the ``success`` callback in the JavaScript code above).  In
 general, Tangelo follows this set of steps to determine what to do with the
 returned value from a Python service:
 
-#. If the return value is a **Python object containing a** ``next()``
-   **method**, Tangelo stores the object in the streaming table, and its
-   contents can be retrieved via the :ref:`streaming API <streaming>`.
+#. If the ``run()`` function is decorated with a ``@tangelo.return_type()``
+   decorator (see :ref:`returntype`), the function that was passed to the decorator will transform the
+   function's native return value to a string, and that will be delivered as the
+   requested content.
 
-#.  Otherwise, if the return value is a **JSON-serializable Python object**,
-    Tangelo calls ``json.dumps()`` on it to convert it into a string, and then
-    delivers that string as the content.
+#. Otherwise, if the return value is a **JSON-serializable Python object**,
+   Tangelo calls ``json.dumps()`` on it to convert it into a string, and then
+   delivers that string as the content.
 
-    Python's numeric types are JSON-serializable by default, as is the value
-    ``None``.  Lists and tuples of serializable items are converted into JSON
-    lists, while dictionaries with serializable keys and values are converted
-    into JSON objects.  Finally, any Python object *can be made*
-    JSON-serializable by extending ``json.JSONEncoder`` (see the
-    `Python documentation
-    <http://docs.python.org/2/library/json.html#json.JSONEncoder>`_ for more
-    information).
+   Python's numeric types are JSON-serializable by default, as is the value
+   ``None``.  Lists and tuples of serializable items are converted into JSON
+   lists, while dictionaries with serializable keys and values are converted
+   into JSON objects.  Finally, any Python object *can be made*
+   JSON-serializable by extending ``json.JSONEncoder`` (see the
+   `Python documentation
+   <http://docs.python.org/2/library/json.html#json.JSONEncoder>`_ for more
+   information).
 
-    If a **non**-JSON-serializable object is returned, this will result in a
-    server error.
+   If a **non**-JSON-serializable object is returned, this will result in a
+   server error.
 
 #. Otherwise, if the return value is a **string**, then Tangelo treats the
    return value as the final result; i.e., it delivers the return value without
@@ -167,6 +168,8 @@ returned value from a Python service:
 
 #. Finally, if the return value **does not fit into any of the above
    steps**, Tangelo will report a server error.
+
+.. _returntype:
 
 Specifying a Custom Return Type Converter
 -----------------------------------------
@@ -235,8 +238,10 @@ REST verbs to just the set of commonly used ones and (2) exposing every function
 in the service as part of a REST interface (since some of those could simply be
 helper functions).
 
-Configuration
-=============
+.. _configuration:
+
+Configuring Web Services
+========================
 
 You can optionally include a configuration file alongside the service itself.
 For instance, suppose the following service is implemented in `autodestruct.py`:

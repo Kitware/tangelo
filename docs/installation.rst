@@ -170,14 +170,14 @@ Run the ``make`` command: ::
 
     make
 
-This will create a Python package ``Tangelo-[version].tar.gz`` in the
+This will create a Python package ``tangelo-[version].tar.gz`` in the
 ``dist`` directory.
 
 **5. Install the package**
 
 To install this package into your Python environment, run::
 
-    pip install dist/Tangelo-[version].tar.gz
+    pip install dist/tangelo-[version].tar.gz
 
 This installs the `tangelo` Python package along with its dependencies
 and places the ``tangelo`` executable in
@@ -190,14 +190,14 @@ run the following::
 
     make
     pip uninstall tangelo
-    pip install dist/Tangelo-[version].tar.gz
+    pip install dist/tangelo-[version].tar.gz
 
 **6. Start the server!**
 
 The ``tangelo`` program controls startup and
-shutdown of the Tangelo server.  Run::
+shutdown of a Tangelo server instance.  Run::
 
-    tangelo start
+    tangelo
 
 to launch the server (on http://localhost:8080 by default).  Point your browser
 there and you should see the "Tangelo sunrise."
@@ -270,7 +270,7 @@ Then build the project using the ``ninja`` build tool::
 
 To install this package into your Python environment, run::
 
-    /c/Python27/Scripts/pip install dist/Tangelo-[version].tar.gz
+    /c/Python27/Scripts/pip install dist/tangelo-[version].tar.gz
 
 This installs the `tangelo` Python package along with its dependencies
 and places the ``tangelo`` executable in ``/c/Python27/Scripts``.
@@ -280,18 +280,17 @@ run the following from the build directory::
 
     ninja
     /c/Python27/Scripts/pip uninstall tangelo
-    /c/Python27/Scripts/pip install dist/Tangelo-[version].tar.gz
+    /c/Python27/Scripts/pip install dist/tangelo-[version].tar.gz
 
 **10. Start the server!**
 
 The ``tangelo`` program controls startup and
-shutdown of the Tangelo server.  Run::
+shutdown of a Tangelo server instance.  Run::
 
-    /c/Python27/Scripts/tangelo start
+    /c/Python27/Scripts/tangelo
 
-to launch the server (on `localhost:8000 <http://localhost:8000>`_ by default).
-Point your browser there and you should see a collection of demo applications
-to get you started.
+to launch the server (on `localhost:8080 <http://localhost:8080>`_ by default).
+Point your browser there and you should see the "Tangelo sunrise".
 
 Running the Tests
 -----------------

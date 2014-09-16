@@ -97,7 +97,7 @@ The process to protect a directory is as follows:
    specifies that the acceptable usernames and passwords will be found in the
    file ``/home/laforge/secret/dilithiumpw.txt``.
 
-   Currently, the only supported authentication type is digest.  The realm will
+   Currently, the only supported authentication type is *digest*.  The realm will
    be displayed to the user when prompted for a username and password.
 
 #. Create the password file, using the ``tangelo-passwd`` program (see
