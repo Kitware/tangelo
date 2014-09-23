@@ -72,6 +72,12 @@ HTTP Interaction
     This can be useful, e.g., for retrieving data submitted in the body for a
     POST request.
 
+.. py:function:: tangelo.session(key[, value])
+
+    Returns the value currently associated to the session key `key`, or `None`
+    if there is no such key.  If `value` is given, it will become newly associated
+    to `key`.
+
 .. py:class:: tangelo.HTTPStatusCode(code[, description])
 
     Constructs an HTTP status object signalling the status code given by ``code``

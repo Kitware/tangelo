@@ -20,6 +20,8 @@ Optional argument                  Effect
 -na, --no-access-auth              disable HTTP authentication (i.e. processing of .htaccess files)
 -p, --drop-privileges              enable privilege drop when started as superuser (default)
 -np, --no-drop-privileges          disable privilege drop when started as superuser
+-s, --sessions                     enable server-side session tracking (default)
+-ns, --no-drop-privileges          disable server-side session tracking
 --hostname HOSTNAME                overrides configured hostname on which to run Tangelo
 --port PORT                        overrides configured port number on which to run Tangelo
 -u USERNAME, --user USERNAME       specifies the user to run as when root privileges are dropped
