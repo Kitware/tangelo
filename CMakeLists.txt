@@ -315,6 +315,7 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/src/js/vega/geovis.js
     ${CMAKE_SOURCE_DIR}/src/js/vtkweb/_package.js
     ${CMAKE_SOURCE_DIR}/src/js/vtkweb/vtkweb.js
+    ${CMAKE_SOURCE_DIR}/src/js/plugin/bokeh.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/controlPanel.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/GoogleMapSVG.js
     ${CMAKE_SOURCE_DIR}/src/js/plugin/svgColorLegend.js
