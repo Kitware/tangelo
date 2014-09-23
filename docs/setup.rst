@@ -95,6 +95,8 @@ vtkpython       The path to the ``vtkptyhon`` program (for use in :ref:`vtkweb` 
 
 drop_privileges Whether to drop privileges when started as the superuser (*boolean*)                        true
 
+sessions        Wehther to enable server-side session tracking (*boolean*)                                  true
+
 user            The user account to drop privileges to (*string*)                                           "nobody" [#usergroup]_
 
 group           The user group to drop privileges to (*string*)                                             "nobody" [#usergroup]_
