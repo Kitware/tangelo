@@ -83,6 +83,8 @@ def main():
     p.add_argument("-na", "--no-access-auth", action="store_const", const=True, default=None, help="disable HTTP authentication (i.e. processing of .htaccess files)")
     p.add_argument("-p", "--drop-privileges", action="store_const", const=True, default=None, help="enable privilege drop when started as superuser (default)")
     p.add_argument("-np", "--no-drop-privileges", action="store_const", const=True, default=None, help="disable privilege drop when started as superuser")
+    p.add_argument("-s", "--sessions", action="store_const", const=True, default=None, help="enable session tracking (default)")
+    p.add_argument("-ns", "--no-sessions", action="store_const", const=True, default=None, help="edisable session tracking")
     p.add_argument("--hostname", type=str, default=None, metavar="HOSTNAME", help="overrides configured hostname on which to run Tangelo")
     p.add_argument("--port", type=int, default=None, metavar="PORT", help="overrides configured port number on which to run Tangelo")
     p.add_argument("-u", "--user", type=str, default=None, metavar="USERNAME", help="specifies the user to run as when root privileges are dropped")
@@ -115,6 +117,10 @@ def main():
     if args.no_config and args.config is not None:
         tangelo.log("ERROR", "can't specify both --config (-c) and --no-config (-nc) together")
         return 1
+
+    if args.no_config and args.config is not None:
+        tangelo.log("ERROR", "can't specify both --sessions (-s) and --no-sessions (-ns) together")
+        sys.exit(1)
 
     # Figure out where this is being called from - that will be useful for a
     # couple of purposes.
@@ -168,6 +174,16 @@ def main():
             drop_privileges = config.get("drop_privileges")
     else:
         drop_privileges = (args.drop_privileges is not None) or (not args.no_drop_privileges)
+
+    # Determine whether to enable sessions.
+    sessions = True
+    if args.sessions is None and args.no_sessions is None:
+        if config.get("sessions") is not None:
+            sessions = config.get("sessions")
+    else:
+        sessions = (args.sessions is not None) or (not args.no_sessions)
+
+    tangelo.log("TANGELO", "Sessions %s" % ("enabled" if sessions else "disabled"))
 
     # Extract the rest of the arguments, giving priority first to command line
     # arguments, then to the configuration file (if any), and finally to a
@@ -290,7 +306,8 @@ def main():
 
     # Mount the root application object.
     cherrypy.tree.mount(rootapp, config={"/": {"tools.auth_update.on": access_auth,
-                                               "tools.treat_url.on": True},
+                                               "tools.treat_url.on": True,
+                                               "tools.sessions.on": sessions},
                                          "/favicon.ico": {"tools.staticfile.on": True,
                                                           "tools.staticfile.filename": sys.prefix + "/share/tangelo/tangelo.ico"}})
 
