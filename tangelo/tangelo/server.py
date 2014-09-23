@@ -182,39 +182,51 @@ class Tangelo(object):
         # Restore the path to what it was originally.
         sys.path = origpath
 
-        # Check the type of the result to decide what result to finally return:
-        #
-        # 1. If it is an HTTPStatusCode object, raise a cherrypy HTTPError
-        # exception, which will cause the browser to do the right thing.
-        #
-        # 2. TODO: If it's a Python generator object, log it with the Tangelo
-        # streaming API.
-        #
-        # 3. If it's a Python dictionary, convert it to JSON.
-        #
-        # 4. If it's a string, don't do anything to it.
-        #
+        # Check the type of the result to decide what result to finally return.
         # This allows the services to return a Python object if they wish, or
         # to perform custom serialization (such as for MongoDB results, etc.).
+
+        # If it is an HTTPStatusCode object, raise a cherrypy HTTPError
+        # exception, which will cause the browser to do the right thing.
         if isinstance(result, tangelo.HTTPStatusCode):
             if result.msg:
                 raise cherrypy.HTTPError(result.code, result.msg)
             else:
                 raise cherrypy.HTTPError(result.code)
-        elif "next" in dir(result):
+
+        # If it's a Python generator object, log it with the Tangelo
+        # streaming API.
+        if "next" in dir(result):
             if self.stream:
                 return self.stream.add(result)
             else:
                 return json.dumps({"error": "Streaming is not supported " +
                                             "in this instance of Tangelo"})
-        elif not isinstance(result, types.StringTypes):
-            try:
-                result = json.dumps(result)
-            except TypeError as e:
-                msg = Tangelo.literal + "<p>A JSON type error occurred in service " + tangelo.request_path() + ":</p>"
-                msg += "<p><pre>" + cgi.escape(e.message) + "</pre></p>"
 
-                raise cherrypy.HTTPError("501 Error in Python Service", msg)
+        # If it's a string, don't do anything to it.
+        if isinstance(result, types.StringTypes):
+            return result
+
+        # If it's a Bokeh plot, convert it to JavaScript and a div element.
+        try:
+            from bokeh.resources import CDN
+            from bokeh.embed import components
+            from bokeh.plot_object import PlotObject
+
+            if isinstance(result, PlotObject):
+                script, div = components(result, CDN)
+                return json.dumps({"script": script, "div": div})
+        except ImportError:
+            pass
+
+        # If it's another type of Python object, try to convert it to JSON.
+        try:
+            result = json.dumps(result)
+        except TypeError as e:
+            msg = Tangelo.literal + "<p>A JSON type error occurred in service " + tangelo.request_path() + ":</p>"
+            msg += "<p><pre>" + cgi.escape(e.message) + "</pre></p>"
+
+            raise cherrypy.HTTPError("501 Error in Python Service", msg)
 
         return result
 
