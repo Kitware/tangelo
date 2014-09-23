@@ -46,6 +46,9 @@ function(glob_recurse_ungit var path)
         string(FIND ${f} ".git" index)
         if(${index} EQUAL -1)
             string(FIND ${f} "/." index)
+            if(${index} EQUAL -1)
+                string(FIND ${f} ".in" index)
+            endif()
         endif()
         if(${index} EQUAL -1)
             list(APPEND files ${f})
@@ -178,7 +181,6 @@ if(${BUILD_TESTING})
     set(JS_UNIT_TESTS ON CACHE BOOL "Generate tangelo.js unit tests.")
     set(PY_UNIT_TESTS ON CACHE BOOL "Generate tangelo Python module unit tests.")
     set(WEB_CONTENT_TESTS ON CACHE BOOL "Generate tests for example web appplications.")
-    set(PY_COVERAGE_TEST ON CACHE BOOL "Generate Python coverage report.")
     set(OTHER_TESTS ON CACHE BOOL "Generate miscellaenous other tests.")
     set(TESTING_HOST localhost CACHE STRING "The host to run Tangelo on for the test suite.")
     set(TESTING_PORT 50047 CACHE STRING "The port number to run Tangelo for the test suite.")
@@ -191,7 +193,6 @@ if(${BUILD_TESTING})
                            JS_UNIT_TESTS
                            PY_STYLE_TESTS
                            WEB_CONTENT_TESTS
-                           PY_COVERAGE_TEST
                            TESTING_PORT
     )
 else()
@@ -201,7 +202,6 @@ else()
                            JS_UNIT_TESTS
                            PY_UNIT_TESTS
                            WEB_CONTENT_TESTS
-                           PY_COVERAGE_TEST
                            TESTING_PORT
     )
 endif()
@@ -214,46 +214,46 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/stamps)
 # NOTE: flickr.js and ner.js have been commented out because they are not
 # expected to pass JSLint validation without a major rewrite.
 set(JS_LINT_FILES
-    ${CMAKE_SOURCE_DIR}/src/js/core/core.js.in
-    ${CMAKE_SOURCE_DIR}/src/js/core/util.js
-    ${CMAKE_SOURCE_DIR}/src/js/data/_package.js
-    ${CMAKE_SOURCE_DIR}/src/js/data/tree.js
-    ${CMAKE_SOURCE_DIR}/src/js/data/distanceCluster.js
-    ${CMAKE_SOURCE_DIR}/src/js/data/smooth.js
-    ${CMAKE_SOURCE_DIR}/src/js/data/bin.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/GoogleMapSVG.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/controlPanel.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/dendrogram.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/geodots.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/geonodelink.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/girderBrowser.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/mapdots.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/nodelink.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/svgColorLegend.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/correlationPlot.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/timeline.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/geojsMap.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/geojsdots.js
-    ${CMAKE_SOURCE_DIR}/src/js/stream/_package.js
-    ${CMAKE_SOURCE_DIR}/src/js/stream/stream.js
-    ${CMAKE_SOURCE_DIR}/src/js/vega/_package.js
-    ${CMAKE_SOURCE_DIR}/src/js/vega/geovis.js
-    ${CMAKE_SOURCE_DIR}/src/js/vtkweb/_package.js
-    ${CMAKE_SOURCE_DIR}/src/js/vtkweb/vtkweb.js
-    ${CMAKE_SOURCE_DIR}/src/js/widget/widget.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/index.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/landingPage.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/app-template/myapp.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/dendrogram/dendrogram.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/enron/enron.js
-    #${CMAKE_SOURCE_DIR}/tangelo/web/examples/flickr/flickr.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/geodots/geodots.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/geonodelink/geonodelink.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/mapdots/mapdots.js
-    #${CMAKE_SOURCE_DIR}/tangelo/web/examples/ner/ner.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/primes/primes.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/vegabuilder/vegabuilder.js
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/vtkweb/index.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/core/core.js.in
+    ${CMAKE_SOURCE_DIR}/tangelo.js/core/util.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/data/_package.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/data/tree.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/data/distanceCluster.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/data/smooth.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/data/bin.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/GoogleMapSVG.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/controlPanel.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/dendrogram.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geodots.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geonodelink.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/girderBrowser.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/mapdots.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/nodelink.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/svgColorLegend.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/correlationPlot.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/timeline.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geojsMap.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geojsdots.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/stream/_package.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/stream/stream.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/vega/_package.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/vega/geovis.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/vtkweb/_package.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/vtkweb/vtkweb.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/widget/widget.js
+    ${CMAKE_SOURCE_DIR}/www/examples/index.js
+    ${CMAKE_SOURCE_DIR}/www/examples/landingPage.js
+    ${CMAKE_SOURCE_DIR}/www/examples/app-template/myapp.js
+    ${CMAKE_SOURCE_DIR}/www/examples/dendrogram/dendrogram.js
+    ${CMAKE_SOURCE_DIR}/www/examples/enron/enron.js
+    #${CMAKE_SOURCE_DIR}/www/examples/flickr/flickr.js
+    ${CMAKE_SOURCE_DIR}/www/examples/geodots/geodots.js
+    ${CMAKE_SOURCE_DIR}/www/examples/geonodelink/geonodelink.js
+    ${CMAKE_SOURCE_DIR}/www/examples/mapdots/mapdots.js
+    #${CMAKE_SOURCE_DIR}/www/examples/ner/ner.js
+    ${CMAKE_SOURCE_DIR}/www/examples/primes/primes.js
+    ${CMAKE_SOURCE_DIR}/www/examples/vegabuilder/vegabuilder.js
+    ${CMAKE_SOURCE_DIR}/www/examples/vtkweb/index.js
     ${CMAKE_SOURCE_DIR}/testing/phantomjs/blanket-test.js
     ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js
     ${CMAKE_SOURCE_DIR}/testing/test-cases/js-unit-tests/isBoolean.js
@@ -273,98 +273,101 @@ set(JS_LINT_FILES
 
 # These files should be validated with pep8.
 set(PEP8_FILES
-    ${CMAKE_SOURCE_DIR}/tangelo/bin/tangelo.in
-    ${CMAKE_SOURCE_DIR}/tangelo/bin/vtkweb-launcher.py
-    ${CMAKE_SOURCE_DIR}/tangelo/setup.py.in
-    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/__init__.py
-    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/plugin.py
-    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/server.py
-    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/stream.py
-    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/tool.py
-    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/util.py
-    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/vtkweb.py
-    ${CMAKE_SOURCE_DIR}/tangelo/tangelo/websocket.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/app-template/myservice.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/enron/emailers.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/ner/ner.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/ner/nermongo.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/examples/primes/primes.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/service/celery.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/service/config.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/service/impala-json.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/service/mongo.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/service/svg2pdf.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/404.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/abspath.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/broken.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/echo.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/exceptional.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/restful.py
-    ${CMAKE_SOURCE_DIR}/tangelo/web/service/test/testapp.py
+    ${CMAKE_SOURCE_DIR}/scripts/tangelo
+    ${CMAKE_SOURCE_DIR}/scripts/vtkweb-launcher.py
+    ${CMAKE_SOURCE_DIR}/scripts/setup.py.in
+    ${CMAKE_SOURCE_DIR}/tangelo/__init__.py
+    ${CMAKE_SOURCE_DIR}/tangelo/__main__.py.in
+    ${CMAKE_SOURCE_DIR}/tangelo/server.py
+    ${CMAKE_SOURCE_DIR}/tangelo/stream.py
+    ${CMAKE_SOURCE_DIR}/tangelo/tool.py
+    ${CMAKE_SOURCE_DIR}/tangelo/util.py
+    ${CMAKE_SOURCE_DIR}/tangelo/vtkweb.py
+    ${CMAKE_SOURCE_DIR}/tangelo/websocket.py
+    ${CMAKE_SOURCE_DIR}/www/examples/app-template/myservice.py
+    ${CMAKE_SOURCE_DIR}/www/examples/enron/emailers.py
+    ${CMAKE_SOURCE_DIR}/www/examples/ner/ner.py
+    ${CMAKE_SOURCE_DIR}/www/examples/ner/nermongo.py
+    ${CMAKE_SOURCE_DIR}/www/examples/primes/primes.py
+    ${CMAKE_SOURCE_DIR}/www/service/celery.py
+    ${CMAKE_SOURCE_DIR}/www/service/config.py
+    ${CMAKE_SOURCE_DIR}/www/service/impala-json.py
+    ${CMAKE_SOURCE_DIR}/www/service/mongo.py
+    ${CMAKE_SOURCE_DIR}/www/service/svg2pdf.py
+    ${CMAKE_SOURCE_DIR}/www/service/test/404.py
+    ${CMAKE_SOURCE_DIR}/www/service/test/abspath.py
+    ${CMAKE_SOURCE_DIR}/www/service/test/broken.py
+    ${CMAKE_SOURCE_DIR}/www/service/test/echo.py
+    ${CMAKE_SOURCE_DIR}/www/service/test/exceptional.py
+    ${CMAKE_SOURCE_DIR}/www/service/test/restful.py
+    ${CMAKE_SOURCE_DIR}/www/service/test/testapp.py
     ${CMAKE_SOURCE_DIR}/testing/test-cases/py-unit-tests/get_free_port.py
     ${CMAKE_SOURCE_DIR}/testing/test-cases/py-unit-tests/tangelo-types.py
 )
 
 # These files should be uglified and concatenated.
-configure_file(src/js/core/core.js.in ${CMAKE_BINARY_DIR}/core.js)
+configure_file(tangelo.js/core/core.js.in ${CMAKE_BINARY_DIR}/core.js)
 set(JS_UGLIFY_FILES
     ${CMAKE_BINARY_DIR}/core.js
-    ${CMAKE_SOURCE_DIR}/src/js/core/util.js
-    ${CMAKE_SOURCE_DIR}/src/js/widget/widget.js
-    ${CMAKE_SOURCE_DIR}/src/js/vega/_package.js
-    ${CMAKE_SOURCE_DIR}/src/js/vega/geovis.js
-    ${CMAKE_SOURCE_DIR}/src/js/vtkweb/_package.js
-    ${CMAKE_SOURCE_DIR}/src/js/vtkweb/vtkweb.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/controlPanel.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/GoogleMapSVG.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/svgColorLegend.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/dendrogram.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/geodots.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/geonodelink.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/girderBrowser.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/mapdots.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/nodelink.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/correlationPlot.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/timeline.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/geojsMap.js
-    ${CMAKE_SOURCE_DIR}/src/js/plugin/geojsdots.js
-    ${CMAKE_SOURCE_DIR}/src/js/stream/_package.js
-    ${CMAKE_SOURCE_DIR}/src/js/stream/stream.js
-    ${CMAKE_SOURCE_DIR}/src/js/data/_package.js
-    ${CMAKE_SOURCE_DIR}/src/js/data/tree.js
-    ${CMAKE_SOURCE_DIR}/src/js/data/distanceCluster.js
-    ${CMAKE_SOURCE_DIR}/src/js/data/smooth.js
-    ${CMAKE_SOURCE_DIR}/src/js/data/bin.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/core/util.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/widget/widget.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/vega/_package.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/vega/geovis.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/vtkweb/_package.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/vtkweb/vtkweb.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/controlPanel.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/GoogleMapSVG.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/svgColorLegend.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/dendrogram.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geodots.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geonodelink.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/girderBrowser.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/mapdots.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/nodelink.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/correlationPlot.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/timeline.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geojsMap.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geojsdots.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/stream/_package.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/stream/stream.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/data/_package.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/data/tree.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/data/distanceCluster.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/data/smooth.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/data/bin.js
 )
 
 # These files should be copied to the build directory.
-glob_recurse_ungit(TANGELO_WEB_SOURCES tangelo/web/*)
-glob_recurse_ungit(TANGELO_MODULE_SOURCES tangelo/tangelo/*)
+glob_recurse_ungit(TANGELO_WEB_SOURCES www/*)
+glob_recurse_ungit(TANGELO_MODULE_SOURCES tangelo/*)
+glob_recurse_ungit(TANGELO_DAEMON_SCRIPTS assets/daemon/*)
 set(TANGELO_SOURCES
     ${TANGELO_WEB_SOURCES}
     ${TANGELO_MODULE_SOURCES}
-    tangelo/bin/tangelo-passwd
-    tangelo/bin/vtkweb-launcher.py
-    tangelo/conf/tangelo.conf.global
-    tangelo/conf/tangelo.conf.local
-    tangelo/data/get-flickr-data.py
-    tangelo/images/tangelo.ico
+    ${TANGELO_DAEMON_SCRIPTS}
+    scripts/tangelo
+    scripts/tangelo-passwd
+    scripts/vtkweb-launcher.py
+    assets/conf/tangelo.conf.global
+    assets/conf/tangelo.conf.local
+    assets/data/get-flickr-data.py
+    assets/images/tangelo.ico
 )
 
 # Configure setup.py
-configure_file(tangelo/setup.py.in ${CMAKE_BINARY_DIR}/tangelo/setup.py)
-configure_file(tangelo/bin/tangelo.in ${CMAKE_BINARY_DIR}/tangelo/bin/tangelo)
+configure_file(scripts/setup.py.in ${CMAKE_BINARY_DIR}/tangelo/setup.py)
+configure_file(tangelo/__main__.py.in ${CMAKE_BINARY_DIR}/tangelo/tangelo/__main__.py)
 
 if(${BUILD_TANGELO})
     # Copy package files to build directory.
     foreach(m ${TANGELO_SOURCES})
-        set(outfile ${CMAKE_BINARY_DIR}/${m})
+        set(outfile ${CMAKE_BINARY_DIR}/tangelo/${m})
         copy_file(${m} ${outfile})
         list(APPEND TANGELO_BUILD_FILES ${outfile})
     endforeach()
 
     list(APPEND TANGELO_BUILD_FILES
-        ${CMAKE_BINARY_DIR}/tangelo/bin/tangelo
+        ${CMAKE_BINARY_DIR}/tangelo/tangelo/__main__.py
         ${CMAKE_BINARY_DIR}/tangelo/setup.py
     )
 
@@ -372,13 +375,13 @@ if(${BUILD_TANGELO})
     copy_file(README.rst ${CMAKE_BINARY_DIR}/tangelo/README)
 
     # Build the Tangelo javascript libraries.
-    set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/tangelo/web/js/tangelo.min.js)
-    set(JS_FILE ${CMAKE_BINARY_DIR}/tangelo/web/js/tangelo.js)
+    set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/tangelo/www/js/tangelo.min.js)
+    set(JS_FILE ${CMAKE_BINARY_DIR}/tangelo/www/js/tangelo.js)
 
     # Minified .js file.
     add_custom_command(
         OUTPUT ${MIN_JS_FILE}
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/tangelo/web/js
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/tangelo/www/js
         COMMAND ${UGLIFYJS_EXECUTABLE} ${JS_UGLIFY_FILES} -m -o ${MIN_JS_FILE}
         DEPENDS ${JS_UGLIFY_FILES} ${UGLIFYJS_EXECUTABLE}
         COMMENT "Creating minified javascript library"
@@ -419,7 +422,7 @@ if(${BUILD_DOCUMENTATION})
     )
 
     # A command to generate the documentation.
-    set(DOCUMENTATION_DIR ${CMAKE_BINARY_DIR}/tangelo/web/docs)
+    set(DOCUMENTATION_DIR ${CMAKE_BINARY_DIR}/tangelo/www/docs)
     set(DOCUMENTATION_INDEX ${DOCUMENTATION_DIR}/index.html)
     add_custom_command(
         OUTPUT ${DOCUMENTATION_INDEX}
@@ -548,7 +551,7 @@ if(${BUILD_TESTING})
         # Generate the tests.
         foreach(js ${JS_UNIT_TEST_CASES})
             get_filename_component(f "${js}" NAME_WE)
-            set(html ${CMAKE_BINARY_DIR}/tangelo/web/tests/js-unit-tests/${f}.html)
+            set(html ${CMAKE_BINARY_DIR}/tangelo/www/tests/js-unit-tests/${f}.html)
 
             # Generate the testing HTML file (to be run with phantomjs via a
             # jasmine runner) via a custom command, so the file is regenerated
@@ -572,11 +575,11 @@ if(${BUILD_TESTING})
         endforeach()
 
         # Copy the blanket JS files to where they need to be.
-        configure_file(${CMAKE_SOURCE_DIR}/testing/js/blanket.min.js tangelo/web/tests/js-coverage/blanket.min.js COPYONLY)
-        configure_file(${CMAKE_SOURCE_DIR}/testing/js/jasmine-blanket.js tangelo/web/tests/js-coverage/jasmine-blanket.js COPYONLY)
+        configure_file(${CMAKE_SOURCE_DIR}/testing/js/blanket.min.js tangelo/www/tests/js-coverage/blanket.min.js COPYONLY)
+        configure_file(${CMAKE_SOURCE_DIR}/testing/js/jasmine-blanket.js tangelo/www/tests/js-coverage/jasmine-blanket.js COPYONLY)
 
         # Generate the coverage report.
-        set(coverage_test ${CMAKE_BINARY_DIR}/tangelo/web/tests/js-coverage/tangelojs-coverage.html)
+        set(coverage_test ${CMAKE_BINARY_DIR}/tangelo/www/tests/js-coverage/tangelojs-coverage.html)
         set(coverage_configurator  ${CMAKE_SOURCE_DIR}/cmake/configure-js-coverage-test.cmake)
         add_custom_command(OUTPUT ${coverage_test}
             COMMAND ${CMAKE_COMMAND} "-DJS_UNIT_TEST_CASES=\"${JS_UNIT_TEST_CASES}\""
@@ -613,37 +616,10 @@ if(${BUILD_TESTING})
 
             # Name and create the test.
             set(name unit-test:py:${f})
-            if(PY_COVERAGE_TEST)
-                add_test(${name}
-                    ${VENV_PYTHON_EXECUTABLE} -m trace --count -C CMakeFiles/tangelo-all.dir -m ${py}
-                )
-            else()
-                add_test(${name}
-                    ${VENV_PYTHON_EXECUTABLE} ${py}
-                )
-            endif()
+            add_test(${name}
+                ${VENV_PYTHON_EXECUTABLE} ${py}
+            )
         endforeach()
-
-        if(PY_COVERAGE_TEST)
-            # If performing Python coverage, we need to drop fake .gcda files in
-            # a place where CTest will find them, in order to trigger the
-            # analysis of the .cover files.
-            function(signal_gcda name)
-                set(fullpath "${CMAKE_BINARY_DIR}/CMakeFiles/tangelo-all.dir/${name}.gcda")
-                add_custom_command(
-                    OUTPUT ${fullpath}
-                    COMMAND ${CMAKE_COMMAND} -E touch "${fullpath}"
-                    COMMENT "Generating ${name}.gcda (signal file)"
-                )
-                list(APPEND GCDA_FILES "${fullpath}")
-                set(GCDA_FILES "${GCDA_FILES}" PARENT_SCOPE)
-            endfunction()
-
-            signal_gcda("tangelo.__init__.py")
-            signal_gcda("tangelo.plugin.py")
-            signal_gcda("tangelo.util.py")
-            signal_gcda("tangelo.js")
-        endif()
     endif()
 
     # Web content tests.
@@ -654,7 +630,7 @@ if(${BUILD_TESTING})
         # Generate the tests.
         foreach(js ${WEB_CONTENT_TEST_CASES})
             get_filename_component(f "${js}" NAME_WE)
-            set(js_out ${CMAKE_BINARY_DIR}/tangelo/web/tests/web-content-tests/${f}.js)
+            set(js_out ${CMAKE_BINARY_DIR}/tangelo/www/tests/web-content-tests/${f}.js)
 
             add_custom_command(OUTPUT ${js_out}
                 COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}"

@@ -1,6 +1,7 @@
 import cherrypy
 import copy
 import functools
+import inspect
 import os.path
 import sys
 from types import StringTypes
@@ -24,8 +25,8 @@ def header(h, t=None):
     return r
 
 
-def log(*pargs, **kwargs):
-    cherrypy.log(*pargs, **kwargs)
+def log(section, message):
+    cherrypy.log(message, section)
 
 
 def request_path():
@@ -141,7 +142,7 @@ def restful(f):
     return f
 
 
-def types(*_ptypes, **kwtypes):
+def types(**typefuncs):
     """
     Decorate a function that takes strings to one that takes typed values.
 
@@ -158,37 +159,49 @@ def types(*_ptypes, **kwtypes):
     def wrap(f):
         @functools.wraps(f)
         def typed_func(*pargs, **kwargs):
-            # Make a list out of the tuple so we can change it below if
-            # necessary.
-            ptypes = list(_ptypes)
+            # Analyze the incoming arguments so we know how to apply the
+            # type-conversion functions in `typefuncs`.
+            argspec = inspect.getargspec(f)
 
-            # Pad out or truncate the typing array to match the length of the
-            # function's positional arguments.
-            diff = len(pargs) - len(ptypes)
-            if diff > 0:
-                ptypes += [None] * diff
-            elif diff < 0:
-                ptypes = ptypes[:len(pargs)]
+            # The `args` property contains the list of named arguments passed to
+            # f.  Construct a dict mapping from these names to the values that
+            # were passed.
+            #
+            # It is possible that `args` contains names that are not represented
+            # in `pargs`, if some of the arguments are passed as keyword
+            # arguments.  In this case, the relative shortness of `pargs` will
+            # cause the call to zip() to truncate the `args` list, and the
+            # keyword-style passed arguments will simply be present in `kwargs`.
+            pargs_dict = {name: value for (name, value) in zip(argspec.args, pargs)}
 
-            # Replace None with the identity function in ptypes.
-            def ident(x):
-                return x
-            ptypes = [ident if x is None else x for x in ptypes]
-
+            # Begin converting arguments according to the functions given in
+            # `typefuncs`.  If a given name does not appear in `typefuncs`,
+            # simply leave it unchanged.  If a name appears in `typefuncs` that
+            # does not appear in the argument list, this is considered an error.
             try:
-                # Map the typing functions over the positional arguments.
-                pargs = map(lambda f, v: f(v), ptypes, pargs)
-
-                # Do the same for the keyword arguments by consulting the kwtypes dict.
-                for k in kwargs:
-                    if k in kwtypes and kwtypes[k] is not None:
-                        kwargs[k] = kwtypes[k](kwargs[k])
+                for name, func in typefuncs.iteritems():
+                    if name in pargs_dict:
+                        pargs_dict[name] = func(pargs_dict[name])
+                    elif name in kwargs:
+                        kwargs[name] = func(kwargs[name])
+                    else:
+                        return HTTPStatusCode("400 Unknown Argument Name", "'%s' was registered for type conversion but did not appear in the arguments list" % (name))
             except ValueError as e:
                 return HTTPStatusCode("400 Input Value Conversion Failed", str(e))
+
+            # Unroll `pargs` into a list of arguments that are in the correct
+            # order.
+            pargs = []
+            for name in argspec.args:
+                try:
+                    pargs.append(pargs_dict[name])
+                except KeyError:
+                    break
 
             # Call the wrapped function using the converted arguments.
             return f(*pargs, **kwargs)
 
+        typed_func.typefuncs = typefuncs
         return typed_func
     return wrap
 

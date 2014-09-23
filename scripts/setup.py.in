@@ -17,15 +17,17 @@ def copy_with_dir(files, base):
 # Build up a list of extra files to install.
 #
 # Include the example configuration files.
-data_files_list = [("share/tangelo/conf", ["conf/tangelo.conf.global",
-                                           "conf/tangelo.conf.local"]),
-                   ("share/tangelo/data", ["data/get-flickr-data.py"]),
-                   ("share/tangelo", ["images/tangelo.ico"])]
+data_files_list = [("share/tangelo/conf", ["assets/conf/tangelo.conf.global",
+                                           "assets/conf/tangelo.conf.local"]),
+                   ("share/tangelo/daemon/systemd/system", ["assets/daemon/systemd/system/tangelo@.service"]),
+                   ("share/tangelo/daemon/systemd/scripts", ["assets/daemon/systemd/scripts/launch-tangelo.sh"]),
+                   ("share/tangelo/data", ["assets/data/get-flickr-data.py"]),
+                   ("share/tangelo", ["assets/images/tangelo.ico"])]
 
 # Include the website base files, excluding generated tests and compiled python
 # files.
-web_files = filter(lambda f: not (f.startswith("web/tests") or f.endswith(".pyc")),
-                   rcollect("web"))
+web_files = filter(lambda f: not (f.startswith("www/tests") or f.endswith(".pyc")),
+                   rcollect("www"))
 data_files_list += copy_with_dir(web_files, "share/tangelo")
 
 # Create the package.
@@ -38,9 +40,9 @@ distutils.core.setup(name="tangelo",
                                "tangelo.autobahn",
                                "tangelo.ws4py",
                                "tangelo.ws4py.server"],
-                     scripts=["bin/tangelo",
-                              "bin/tangelo-passwd",
-                              "bin/vtkweb-launcher.py"],
+                     scripts=["scripts/tangelo",
+                              "scripts/tangelo-passwd",
+                              "scripts/vtkweb-launcher.py"],
                      data_files=data_files_list,
                      description="Tangelo Web Framework",
                      long_description="Tangelo is a Python-based web " +

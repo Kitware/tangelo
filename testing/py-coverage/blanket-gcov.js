@@ -124,7 +124,7 @@ page.open(url, function (status) {
                 fileOutput += count + ":" + line_no + ":" + line + "\n";
             }
 
-            preamble = "        -:    0:Source:" + build_dir + "/tangelo/web/js/tangelo.js\n";
+            preamble = "        -:    0:Source:" + build_dir + "/tangelo/www/js/tangelo.js\n";
             preamble += "        -:    0:Graph:tangelo.js.gcno\n";
             preamble += "        -:    0:Data:tangelo.js.gcda\n";
             preamble += "        -:    0:Runs:1\n";
@@ -132,7 +132,7 @@ page.open(url, function (status) {
 
             fs.write("tangelo.js.gcov", preamble + fileOutput, "w");
 
-            console.log("File '" + build_dir + "/tangelo/web/js/tangelo.js'");
+            console.log("File '" + build_dir + "/tangelo/www/js/tangelo.js'");
             console.log("Lines executed:" + (report.hits * 100 / report.lines).toFixed(2) + "% of " + report.lines);
             console.log("Creating 'tangelo.js.gcov'");
 

@@ -29,6 +29,18 @@ The core functions represent basic support for creating web applications.
     :param string module: reporting module name
     :param string msg: message to report in exception
 
+.. js:function:: tangelo.error(code[[, message], jqxhr])
+
+    Returns an object encoding an error state that can be used as an "in-band"
+    error in a Tangelo JavaScript function.  If `message` is given, it is stored
+    in the object as the error message; if omitted, a default message will be
+    supplied based upon the error code `code`.  `jqxhr` is meant to be an ajax
+    object; if supplied, it will also be stored in the object for later
+    examination.
+
+    The available predefined values for `code` are
+    ``tangelo.error.AJAX_FAILURE`` and ``tangelo.error.APPLICATION_ERROR``.
+
 .. js:function:: tangelo.unavailable(cfg)
 
     Returns a function that raises a fatal error telling the user about missing

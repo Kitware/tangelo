@@ -9,5 +9,5 @@ endforeach()
 file(READ ${alljs} TEST_SOURCE)
 configure_file(
     ${SOURCE_DIR}/testing/test-runners/coverage-runner.html.in
-    tangelo/web/tests/js-coverage/tangelojs-coverage.html
+    tangelo/www/tests/js-coverage/tangelojs-coverage.html
 )

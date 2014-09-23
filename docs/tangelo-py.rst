@@ -11,12 +11,14 @@ formatting errors; and web service utilities to supercharge Python services.
 Core Services
 =============
 
-.. py:function:: tangelo.log(msg[, context])
+.. py:function:: tangelo.log(context, msg)
 
-    Writes a message ``msg`` to the log file.  If ``context`` is supplied, it
-    will be prepended to the message within the log file.  This function may be
-    useful for debugging or otherwise tracking a service's activities as it
-    runs.
+    Writes a message ``msg`` to the log file.  ``context`` is a descriptive tag
+    that will be prepended to the message within the log file.  Common context
+    tags used internally in Tangelo include "TANGELO" (to describe
+    startup/shutdown activities), "ERROR", and "ENGINE" (which describes actions
+    being taken by CherryPy).  This function may be useful for debugging or
+    otherwise tracking a service's activities as it runs.
 
 .. py:function:: tangelo.abspath(webpath)
 
@@ -48,8 +50,16 @@ HTTP Interaction
 
 .. py:function:: tangelo.content_type([type])
 
-    Returns the content type for the current request, as a string.  If ``type``
+    Returns the content type for the current request, as a string.  If `type`
     is specified, also sets the content type to the specified string.
+
+.. py:function:: tangelo.header(header_name[, new_value])
+
+    Returns the value associated to `header_name` in the HTTP headers, or
+    ``None`` if the header is not present.
+
+    If `new_value` is supplied, the header value will additionally be replaced
+    by that value.
 
 .. py:function:: tangelo.request_path()
 
@@ -94,6 +104,11 @@ Web Services Utilities
     expected locations by modules with the same name in other directories, and
     the uncontrolled growth of the ``sys.path`` variable.
 
+.. py:function:: tangelo.config()
+
+    Returns a copy of the service configuration dictionary (see
+    :ref:`configuration`).
+
 .. py:decorator:: tangelo.restful
 
     Marks a function in a Python service file as being part of that service's
@@ -119,15 +134,15 @@ Web Services Utilities
     all lowercase letters before searching the Python module for a matching
     function to call.
 
-.. py:decorator:: tangelo.types([ptype1,...,ptypeN],kwarg1=kwtype1,...,kwargN=kwtypeN)
+.. py:decorator:: tangelo.types(arg1=type1,...,argN=typeN)
 
-    Decorates a service by converting it from a function of several string arguments
-    to a function taking typed arguments.  Each argument to ``tangelo.types()`` is a
-    function that converts strings to some other type - the standard Python
-    functions ``int()``, ``float()``, and ``json.loads()`` are good examples.  The
-    positional and keyword arguments represent the types of the positional and
-    keyword arguments, respectively, of the function.  For example, the following
-    code snippet
+    Decorates a service by converting it from a function of several string
+    arguments to a function taking typed arguments.  Each argument to
+    ``tangelo.types()`` is a function that converts strings to some other type -
+    the standard Python functions ``int()``, ``float()``, and ``json.loads()``
+    are good examples.  The functions are passed in as keyword arguments, with
+    the keyword naming an argument in the decorated function.  For example, the
+    following code snippet
 
     .. code-block:: python
 
@@ -136,7 +151,7 @@ Web Services Utilities
         def stringfunc(a, b):
             return a + b
 
-        @types(int, int)
+        @tangelo.types(a=int, b=int)
         def intfunc(a, b):
             return a + b
 

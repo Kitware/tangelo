@@ -54,7 +54,7 @@ function, each of which implements one test.
 The CMake infrastructure takes the code from each file and places it into a
 scaffold template (found at ``testing/scaffolding/jasmine-scaffold.html.in``)
 forming a web page which, when loaded, runs the Jasmine test and displays the
-result.  This page will be placed in the ``tangelo/web/tests/js-unit-tests``
+result.  This page will be placed in the ``tangelo/www/tests/js-unit-tests``
 directory within the build directory.  You can view the files directly to see
 the Jasmine report, but CTest will run each of these tests by loading the page
 in PhantomJS, then extracting the pass/fail information from the report.  This
@@ -310,12 +310,12 @@ is run as a whole, each Python unit test will be dependent on a special
 "coverage clearing" test the removes the on-disk cache from the last run.
 Another special test, which generates an HTML coverage report, depends in turn
 on each unit test.  This report can be found in the
-``tangelo/web/tests/python-coverage`` directory within the build directory.
+``tangelo/www/tests/python-coverage`` directory within the build directory.
 
 The JavaScript unit tests are collected into a single, overarching test suite,
 which is run under the supervision of Blanket.js, which generates an HTML
 coverage report, similarly to the Python ``coverage`` program.  This report can
-be found at ``tangelo/web/tests/js-unit-tests/tangelojs-coverage.html`` in the
+be found at ``tangelo/www/tests/js-unit-tests/tangelojs-coverage.html`` in the
 build directory.
 
 While achieving 100% coverage is difficult or may even be impossible, striving

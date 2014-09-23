@@ -13,7 +13,7 @@ Configuring and Launching Tangelo
 
 The simplest way to launch a Tangelo server is to use this command: ::
 
-    tangelo start
+    tangelo
 
 The simple command hides a fair amount of activity behind the scenes, and it
 will be instructive to track that activity.
@@ -41,14 +41,11 @@ something like this:
     {
         "hostname": "0.0.0.0",
         "port":     8080,
-
-        "logdir":   "~/.config/tangelo"
     }
 
 This minimal configuration file specifies that Tangelo should listen on all
-interfaces for connections on port 8080, and use the logfile
-``~/.config/tangelo/tangelo.log``.  By contrast, ``tangelo.conf.global`` looks
-like this:
+interfaces for connections on port 8080.  By contrast, ``tangelo.conf.global``
+looks like this:
 
 .. code-block:: javascript
 
@@ -58,16 +55,14 @@ like this:
 
         "user":     "nobody",
         "group":    "nobody",
-
-        "logdir":   "/var/log"
     }
 
 This configuration file is meant for the case when Tangelo is to be installed as
 a system-level service.  It will run on port 80 (the standard port for an HTTP
-server), store a logfile in ``/var/log``, and, though it will need to be started
-with superuser privileges, it will drop those privleges to run as user
-``nobody`` in group ``nobody`` to prevent damage to the system should the
-process be, e.g., hijacked by an attacker.
+server) and, though it will need to be started with superuser privileges, it
+will drop those privleges to run as user ``nobody`` in group ``nobody`` to
+prevent damage to the system should the process be, e.g., hijacked by an
+attacker.
 
 To run Tangelo using a particular configuration file, ``tangelo`` can be invoked
 with the ``-c`` or ``--config`` option: ::
@@ -96,8 +91,6 @@ port            The port number on which to listen for connections (*integer*)  
 
 root            The path to the directory to be served by Tangelo as the web root (*string*)                "/usr/share/tangelo/web" [#root]_
 
-logdir          The directory that will contain the Tangelo log file (``tangelo.log``) (*string*)           "." [#logdir]_
-
 vtkpython       The path to the ``vtkptyhon`` program (for use in :ref:`vtkweb` capabilities) (*string*)    null
 
 drop_privileges Whether to drop privileges when started as the superuser (*boolean*)                        true
@@ -105,8 +98,6 @@ drop_privileges Whether to drop privileges when started as the superuser (*boole
 user            The user account to drop privileges to (*string*)                                           "nobody" [#usergroup]_
 
 group           The user group to drop privileges to (*string*)                                             "nobody" [#usergroup]_
-
-daemonize       Whether to run as a daemon (*boolean*)                                                      true [#daemonize]_
 
 access_auth     Whether to protect directories containing a ``.htaccess`` file (*boolean*)                  true
 
@@ -127,12 +118,6 @@ girder-path     The path on which to mount a Girder API (*string*)              
     the path begins with the Python value stored in ``sys.prefix``; in a Unix
     system, this value is */usr*, yielding the default path shown here.
 
-.. [#logdir] This is to say, by default the log file will appear in the
-    directory from which Tangelo was launched.
-
-.. [#daemonize] On platforms that don't support daemonization (i.e., Windows),
-    this defaults to false.
-
 .. [#usergroup] Your Unix system may already have a user named "nobody" which
     has the least possible level of permissions.  The theory is that system daemons
     can be run as this user, limiting the damage a rogue process can do.  However,
@@ -144,7 +129,7 @@ girder-path     The path on which to mount a Girder API (*string*)              
 .. [#https] You must also specify both key and cert to serve content over
     https.
 
-.. [#girder] (Girder)[https://github.com/girder/girder] will attempt to be
+.. [#girder] `Girder <https://github.com/girder/girder>`_ will attempt to be
     mounted if the girder-path is provided. The girder-path will be the root
     for mounting the Girder static resources and API endpoints, and should
     start with a leading ``/``, for example ``/girder``. The ``girder`` Python
@@ -161,15 +146,14 @@ For example, as the system administrator you might create a directory on the web
 server machine at ``/srv/tangelo`` which would serve as the web root.  The
 website front page and supporting materials could be placed here, with the
 *tangelo.js* and *tangelo.min.js* files copied from
-``/usr/share/tangelo/web/js/`` to ``/srv/tangelo/js`` so they can be easily
+``/usr/share/tangelo/www/js/`` to ``/srv/tangelo/js`` so they can be easily
 accessed from user web applications.
 
-The log file could be placed in ``/var/log``, and the hostname should reflect
-the desired external identity of the Tangelo server - perhaps
-*excelsior.starfleet.mil*.  As this is a "global" deployment, we want to listen
-on port 80 for connections.  Since we will need to start Tangelo as root (to
-gain access to the low-numbered ports), we should also specify a user and group
-to drop privileges to:  these can be the specially created user and group
+The hostname should reflect the desired external identity of the Tangelo server -
+perhaps *excelsior.starfleet.mil*.  As this is a "global" deployment, we want to
+listen on port 80 for connections.  Since we will need to start Tangelo as root
+(to gain access to the low-numbered ports), we should also specify a user and
+group to drop privileges to:  these can be the specially created user and group
 *tangelo*.
 
 The corresponding configuration file might look like this:
@@ -186,12 +170,70 @@ The corresponding configuration file might look like this:
         "group": "tangelo",
 
         // Runtime resources.
-        "root": "/srv/tangelo",
-        "logdir": "/var/log"
+        "root": "/srv/tangelo"
     }
 
-This file should be placed in ``/etc/tangelo``, and then Tangelo can be launched
-with a simple ``tangelo start`` on the command line.
+This file should be saved to ``/etc/tangelo.conf``, and then Tangelo can be launched
+with a simple ``tangelo`` on the command line.
+
+Running Tangelo as a System Service
+===================================
+
+Tangelo does not include any mechanisms to self-daemonize, instead running in,
+e.g., a terminal, putting all logging output on ``stdout``, and offering no
+facilities to track multiple instances by PID, etc.  However, the Tangelo
+package includes some scripts and configurations for various system service
+managers.  This section contains some instructions on working with the supported
+managers.  If you would like a different system supported, send a message to
+`tangelo-users@public.kitware.com` or fork the `GitHub repository
+<https://github.com/Kitware/tangelo>`_ and send a pull request.
+
+systemd
+-------
+
+`systemd` is a Linux service manager daemon for which a `unit file` corresponds
+to each service.  Tangelo supplies such a unit file, along with supporting
+scripts, at ``/usr/share/tangelo/daemon/systemd``.  To install Tangelo as a
+service, the files in this directory need to be copied or symlinked to a location
+from which `systemd` can access them.  An example follows, though your particular
+system may require some changes from what is shown here; see the `systemd
+documentation <http://www.freedesktop.org/wiki/Software/systemd/>`_ for more
+information.
+
+Go to the place where systemd unit files are installed: ::
+
+    cd /usr/lib/systemd/system
+
+Place an appropriate symlink there: ::
+
+    sudo ln -s /usr/share/tangelo/daemon/systemd/system/tangelo@.service
+
+Go to the systemd auxiliary scripts directory: ::
+
+    cd ../scripts
+
+Install a symlink to the launcher script: ::
+
+    sudo ln -s /usr/share/tangelo/daemon/systemd/scripts/launch-tangelo.sh
+
+Now you will be able to control Tangelo via the ``systemctl`` command.
+Note that the unit file defines Tangelo as an `instantiated service`, meaning
+that multiple Tangelo instances can be launched independently by specifying an
+instantiation name.  For example: ::
+
+    sudo systemctl start tangelo@localhost:8080
+
+will launch Tangelo to run on the `localhost` interface, on port 8080.  The way
+this works is that ``systemctl`` takes the instantiation name (i.e., all the text after the ``@`` symbol - *localhost:8080*) and passes it to
+``launch-tangelo.sh``.  It in turn parses the hostname (*localhost*) and port number (*8080*) from the
+name, then launches Tangelo using whatever configuration file is found at
+``/etc/tangelo.conf``, but overriding the hostname and port with those parsed
+from the name.  This allows for a unique name for each Tangelo instance that
+corresponds to its unique web interface.
+
+Since the configuration file used for a particular Tangelo instance may change independently of how that instance
+has been configured and run, you may consult the Tangelo instance itself to find
+out its configuration parameters by sending a ``GET`` request to ``/config``.
 
 Preparing Data for the Example Applications
 ===========================================
@@ -244,7 +286,7 @@ API**, and **upload the data to the MongoDB server**.
 
   By default, the Flickr application assumes that the server is running on the
   same host as Tangelo.  To change this, you can edit the configuration file for
-  the app, found at ``/usr/share/tangelo/web/examples/flickr/config.json``.
+  the app, found at ``/usr/share/tangelo/www/examples/flickr/config.json``.
 
 #. **Get photo data from Flickr.**  For this step you will need a `Flickr API
    key <http://www.flickr.com/services/api/misc.api_keys.html>`_.  Armed with a
@@ -296,7 +338,7 @@ object - the file is instead in a particular format recognized by Mongo.)
 As with the Flickr data prep above, you can modify this command line to install
 this data on another server or in a different database/collection.  If you do
 so, remember to also modify
-``/usr/share/tangelo/web/examples/enron/config.json`` to reflect these changes.
+``/usr/share/tangelo/www/examples/enron/config.json`` to reflect these changes.
 
 Reload the Enron app and take a look at the email communication network.
 

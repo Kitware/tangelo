@@ -5,6 +5,7 @@ import time
 
 import cherrypy
 
+import tangelo
 import tangelo.websocket
 
 
@@ -132,14 +133,13 @@ class TangeloVtkweb(object):
                 cmdline.extend(["--sslKey", ssl_key, "--sslCert", ssl_cert])
 
             # Launch the requested process.
-            tangelo.log("starting a vtkweb process: %s" % (" ".join(cmdline)))
+            tangelo.log("TANGELO", "starting a VTKWeb process: %s" % (" ".join(cmdline)))
             try:
                 process = subprocess.Popen(cmdline,
                                            stdout=subprocess.PIPE,
                                            stderr=subprocess.PIPE)
-            except OSError as e:
-                return launch_failure(e.strerror)
-            except IOError as e:
+            except (OSError, IOError) as e:
+                tangelo.log("ERROR", "Could not launch VTKWeb process")
                 return launch_failure(e.strerror)
 
             # Capture the new process's stdout and stderr streams in
@@ -230,20 +230,18 @@ class TangeloVtkweb(object):
 
             # Extract the key.
             key = pargs[0]
-            tangelo.log("shutting down %s" % (key))
 
             # Check for the key in the process table.
             if key not in self.processes:
-                tangelo.log("key not found")
                 return json.dumps({"status": "failed",
                                    "reason": "no such key in process table"})
 
             # Terminate the process.
-            tangelo.log("terminating process")
+            tangelo.log("TANGELO", "Shutting down VTKWeb process %s" % (key))
             proc = self.processes[key]
             proc["process"].terminate()
             proc["process"].wait()
-            tangelo.log("terminated")
+            tangelo.log("TANGELO", "Process terminated")
 
             # Remove the process entry from the table.
             del self.processes[key]
