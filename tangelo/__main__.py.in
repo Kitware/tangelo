@@ -285,11 +285,13 @@ def main():
     # configuration object.
     cherrypy.config.update({"module-config": {}})
 
-    # Create a streaming API object.
-    stream = tangelo.stream.TangeloStream()
-
     # Create an instance of the main handler object.
-    rootapp = cherrypy.Application(tangelo.server.Tangelo(stream=stream), "/")
+    module_cache = tangelo.util.ModuleCache()
+    rootapp = cherrypy.Application(tangelo.server.Tangelo(module_cache=module_cache), "/")
+
+    # Create a streaming API object.
+    stream = tangelo.stream.TangeloStream(module_cache=module_cache)
+    cherrypy.tree.mount(stream, "/stream", config={"/": {"request.dispatch": cherrypy.dispatch.MethodDispatcher()}})
 
     # Create a VTKWeb API object if requested, and mount it.
     vtkweb = None

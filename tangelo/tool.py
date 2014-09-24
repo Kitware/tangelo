@@ -5,19 +5,17 @@ import tangelo
 import tangelo.server
 
 
-# A function to run as a before_handler hook that examines a request path and
-# "normalizes" it, either by appending a slash or "index.html", etc.
-def treat_url():
-    reqpath = cherrypy.request.path_info
-    webroot = cherrypy.config.get("webroot")
-
-    # Clear the thread storage.
-    cherrypy.thread_data.target = None
-    cherrypy.thread_data.do_auth = True
+def analyze_url(reqpath, webroot):
+    target = None
+    save_data = {"target": None,
+                 "do_auth": True}
 
     # If the request path is blank, redirect to /.
     if reqpath == "":
-        raise cherrypy.HTTPRedirect("/")
+        return {"action": "HTTPRedirect",
+                "argument": "/",
+                "save_data": save_data,
+                "target": target}
 
     # Compute "parallel" path component lists based on the web root and the
     # disk root.
@@ -52,7 +50,10 @@ def treat_url():
     elif len(reqpathcomp) == len(pathcomp):
         reqpathcomp_save = ["/" + reqpathcomp[0]] + reqpathcomp[1:]
     else:
-        raise RuntimeError("reqpathcomp and pathcomp lengths are wonky")
+        return {"action": "RuntimeError",
+                "message": "reqpathcomp and pathcomp lengths are wonky",
+                "save_data": save_data,
+                "target": target}
 
     # If the path represents a directory and has a trailing slash, remove it
     # (this will make the auth update step easier).
@@ -65,8 +66,8 @@ def treat_url():
     else:
         pathcomp_save = pathcomp
 
-    cherrypy.thread_data.reqpathcomp = reqpathcomp_save
-    cherrypy.thread_data.pathcomp = pathcomp_save
+    save_data["reqpathcomp"] = reqpathcomp_save
+    save_data["pathcomp"] = pathcomp_save
 
     # If pathcomp has more than one element, fuse the first two together.  This
     # makes the search for a possible service below much simpler.
@@ -91,29 +92,35 @@ def treat_url():
     # Finally, if it is none of the above, then indicate a 404 error.
     if os.path.isdir(path):
         if reqpath[-1] != "/":
-            raise cherrypy.HTTPRedirect(reqpath + "/")
+            return {"action": "HTTPRedirect",
+                    "argument": reqpath + "/",
+                    "save_data": save_data,
+                    "target": target}
         elif os.path.exists(path + os.path.sep + "index.html"):
-            raise cherrypy.InternalRedirect(reqpath + "index.html")
+            return {"action": "InternalRedirect",
+                    "argument": reqpath + "index.html",
+                    "save_data": save_data,
+                    "target": target}
         else:
-            cherrypy.thread_data.target = {"type": "dir",
-                                           "path": path}
+            target = {"type": "dir",
+                      "path": path}
     elif os.path.exists(path):
         # Don't serve Python files (if someone really wants to serve the program
         # text, they can create a symlink with a different file extension and
         # that will be served just fine).
         if len(path) > 3 and path[-3:] == ".py":
-            cherrypy.thread_data.target = {"type": "restricted",
-                                           "path": path}
+            target = {"type": "restricted",
+                      "path": path}
         else:
             # Also do not serve config files that match up to Python files.
             if (len(path) > 5 and
                     path[-5:] == ".json" and
                     os.path.exists(path[:-5] + ".py")):
-                cherrypy.thread_data.target = {"type": "restricted",
-                                               "path": path}
+                target = {"type": "restricted",
+                          "path": path}
             else:
-                cherrypy.thread_data.target = {"type": "file",
-                                               "path": path}
+                target = {"type": "file",
+                          "path": path}
     else:
         service_path = None
         pargs = None
@@ -125,13 +132,33 @@ def treat_url():
                 break
 
         if pargs is None:
-            cherrypy.thread_data.target = {"type": "404",
-                                           "path": path}
-            cherrypy.thread_data.do_auth = False
+            target = {"type": "404",
+                      "path": path}
+            save_data["do_auth"] = False
         else:
-            cherrypy.thread_data.target = {"type": "service",
-                                           "path": service_path,
-                                           "pargs": pargs}
+            target = {"type": "service",
+                      "path": service_path,
+                      "pargs": pargs}
+
+    return {"save_data": save_data,
+            "target": target}
+
+
+def treat_url():
+    directive = analyze_url(cherrypy.request.path_info, cherrypy.config.get("webroot"))
+
+    cherrypy.thread_data.target = directive["target"]
+    cherrypy.thread_data.do_auth = directive["save_data"]["do_auth"]
+    cherrypy.thread_data.reqpathcomp = directive["save_data"]["reqpathcomp"]
+    cherrypy.thread_data.pathcomp = directive["save_data"]["pathcomp"]
+
+    if "action" in directive:
+        if directive["action"] == "HTTPRedirect":
+            raise cherrypy.HTTPRedirect(directive["argument"])
+        elif directive["action"] == "InternalRedirect":
+            raise cherrypy.InternalRedirect(directive["argument"])
+        else:
+            raise RuntimeError("illegal action directive: '%s'" % (directive["action"]))
 
 
 class AuthUpdate(cherrypy.Tool):

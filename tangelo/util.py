@@ -1,11 +1,17 @@
+import cherrypy
 import errno
-import fnmatch
+import imp
+import json
 import os
 import os.path
 import md5
 import socket
 import threading
+import traceback
 import Queue
+
+import tangelo
+from tangelo.minify_json import json_minify
 
 
 def get_free_port():
@@ -104,3 +110,73 @@ class NonBlockingReader(threading.Thread):
     def pushlines(self, lines):
         for line in lines:
             self.pushline(line)
+
+
+class ModuleCache(object):
+    def __init__(self):
+        self.modules = {}
+
+    def get(self, module):
+        # Import the module if not already imported previously (or if the module
+        # to import, or its configuration file, has been updated since the last
+        # import).
+        try:
+            stamp = self.modules.get(module)
+            mtime = os.path.getmtime(module)
+
+            config_file = module[:-2] + "json"
+            config_mtime = None
+            if os.path.exists(config_file):
+                config_mtime = os.path.getmtime(config_file)
+
+            if (stamp is None or
+                    mtime > stamp["mtime"] or
+                    (config_mtime is not None and
+                     config_mtime > stamp["mtime"])):
+
+                # Load any configuration the module might carry with it.
+                if config_mtime is not None:
+                    try:
+                        with open(config_file) as f:
+                            config = json.loads(json_minify(f.read()))
+                            if type(config) != dict:
+                                msg = ("Service module configuration file " +
+                                       "does not contain a key-value store " +
+                                       "(i.e., a JSON Object)")
+                                tangelo.log("TANGELO", msg)
+                                raise TypeError(msg)
+                    except IOError:
+                        tangelo.log("TANGELO", "Could not open config file %s" %
+                                    (config_file))
+                        raise
+                    except ValueError as e:
+                        tangelo.log("TANGELO", "Error reading config file %s: %s" %
+                                    (config_file, e))
+                        raise
+                else:
+                    config = {}
+
+                cherrypy.config["module-config"][module] = config
+
+                # Remove .py to get the module name
+                name = module[:-3]
+
+                # Load the module.
+                service = imp.load_source(name, module)
+                self.modules[module] = {"module": service,
+                                        "mtime": max(mtime, config_mtime)}
+            else:
+                service = stamp["module"]
+
+            return service
+        except:
+            bt = traceback.format_exc()
+
+            tangelo.log("TANGELO", "Error importing module %s" % (tangelo.request_path()))
+            tangelo.log("TANGELO", bt)
+
+            raise tangelo.HTTPStatusCode("501 Error in Python Service",
+                                         tangelo.server.Tangelo.literal + "There was an error while " +
+                                         "trying to import module " +
+                                         "%s:<br><pre>%s</pre>" %
+                                         (tangelo.request_path(), bt))

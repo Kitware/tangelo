@@ -7,16 +7,27 @@ $(function () {
 
     var values = [];
 
-    tangelo.stream.start("primes", function (primes_key) {
+    tangelo.stream.start("primes", function (primes_key, error) {
         var offset = 0;
+
+        if (error) {
+            console.warn(error);
+            return;
+        }
 
         function totalWidth(el) {
             return $(el).width() + (+$(el).css("marginLeft").slice(0, -2)) + (+$(el).css("marginRight").slice(0, -2));
         }
 
-        tangelo.stream.run(primes_key, function (results) {
+        /*jslint unparam: true */
+        tangelo.stream.run(primes_key, function (results, finished, error) {
             var sel,
                 shift;
+
+            if (error) {
+                console.warn(error);
+                return;
+            }
 
             values.push(results);
             if (values.length > 5) {
@@ -66,4 +77,5 @@ $(function () {
             offset -= shift;
         }, 1000);
     });
+    /*jslint unparam: false */
 });

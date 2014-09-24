@@ -5,12 +5,10 @@ import HTMLParser
 import os
 import cherrypy
 import json
-import imp
 import traceback
 import types
 
 import tangelo
-from tangelo.minify_json import json_minify
 import tangelo.util
 
 
@@ -21,18 +19,9 @@ class Tangelo(object):
     # An in-band signal to treat HTML error messages as literal strings.
     literal = "literal:::"
 
-    def __init__(self, stream=None):
-        self.stream = stream
-
+    def __init__(self, module_cache=None):
         # A dict containing information about imported modules.
-        self.modules = {}
-
-        # Mount a streaming API if requested.
-        #
-        # TODO(choudhury): make the mounting directory configurable by the
-        # user.
-        if self.stream:
-            cherrypy.tree.mount(stream, "/stream")
+        self.modules = tangelo.util.ModuleCache() if module_cache is None else module_cache
 
     @staticmethod
     def error_page(status, message, traceback, version):
@@ -73,71 +62,10 @@ class Tangelo(object):
         # Extend the system path with the module's home path.
         sys.path.insert(0, modpath)
 
-        # Import the module if not already imported previously (or if the
-        # module to import, or its configuration file, has been updated since
-        # the last import).
         try:
-            stamp = self.modules.get(module)
-            mtime = os.path.getmtime(module)
-
-            config_file = module[:-2] + "json"
-            config_mtime = None
-            if os.path.exists(config_file):
-                config_mtime = os.path.getmtime(config_file)
-
-            if (stamp is None or
-                    mtime > stamp["mtime"] or
-                    (config_mtime is not None and
-                     config_mtime > stamp["mtime"])):
-                if stamp is None:
-                    tangelo.log("TANGELO", "loading new module: " + module)
-                else:
-                    tangelo.log("TANGELO", "reloading module: " + module)
-
-                # Load any configuration the module might carry with it.
-                if config_mtime is not None:
-                    try:
-                        with open(config_file) as f:
-                            config = json.loads(json_minify(f.read()))
-                            if type(config) != dict:
-                                msg = ("Service module configuration file " +
-                                       "does not contain a key-value store " +
-                                       "(i.e., a JSON Object)")
-                                tangelo.log("ERROR", msg)
-                                raise TypeError(msg)
-                    except IOError:
-                        tangelo.log("ERROR", "Could not open config file %s" %
-                                    (config_file))
-                        raise
-                    except ValueError as e:
-                        tangelo.log("ERROR", "Error reading config file %s: %s" %
-                                    (config_file, e))
-                        raise
-                else:
-                    config = {}
-
-                cherrypy.config["module-config"][module] = config
-
-                # Remove .py to get the module name
-                name = module[:-3]
-
-                # Load the module.
-                service = imp.load_source(name, module)
-                self.modules[module] = {"module": service,
-                                        "mtime": max(mtime, config_mtime)}
-            else:
-                service = stamp["module"]
-        except:
-            bt = traceback.format_exc()
-
-            tangelo.log("ERROR", "Error importing module %s" % (tangelo.request_path()))
-            tangelo.log("ERROR", bt)
-
-            result = tangelo.HTTPStatusCode("501 Error in Python Service",
-                                            Tangelo.literal + "There was an error while " +
-                                            "trying to import module " +
-                                            "%s:<br><pre>%s</pre>" %
-                                            (tangelo.request_path(), bt))
+            service = self.modules.get(module)
+        except tangelo.HTTPStatusCode as e:
+            result = e
         else:
             # Try to run the service - either it's in a function called
             # "run()", or else it's in a REST API consisting of at least one of
@@ -186,12 +114,9 @@ class Tangelo(object):
         # 1. If it is an HTTPStatusCode object, raise a cherrypy HTTPError
         # exception, which will cause the browser to do the right thing.
         #
-        # 2. TODO: If it's a Python generator object, log it with the Tangelo
-        # streaming API.
+        # 2. If it's not a string, try to convert it to one with json.dumps()
         #
-        # 3. If it's a Python dictionary, convert it to JSON.
-        #
-        # 4. If it's a string, don't do anything to it.
+        # 3. Otherwise, leave it alone.
         #
         # This allows the services to return a Python object if they wish, or
         # to perform custom serialization (such as for MongoDB results, etc.).
@@ -200,12 +125,6 @@ class Tangelo(object):
                 raise cherrypy.HTTPError(result.code, result.msg)
             else:
                 raise cherrypy.HTTPError(result.code)
-        elif "next" in dir(result):
-            if self.stream:
-                return self.stream.add(result)
-            else:
-                return json.dumps({"error": "Streaming is not supported " +
-                                            "in this instance of Tangelo"})
         elif not isinstance(result, types.StringTypes):
             try:
                 result = json.dumps(result)
