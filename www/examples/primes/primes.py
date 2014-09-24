@@ -20,6 +20,6 @@ def stream():
             yield i
 
 
-@tangelo.types(int)
+@tangelo.types(n=int)
 def run(n):
     return list(itertools.islice(stream(), n))

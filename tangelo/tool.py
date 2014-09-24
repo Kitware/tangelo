@@ -6,9 +6,6 @@ import tangelo.server
 
 
 def analyze_url(reqpath, webroot):
-    tangelo.log(reqpath)
-    tangelo.log(webroot)
-
     target = None
     save_data = {"target": None,
                  "do_auth": True}
@@ -149,8 +146,6 @@ def analyze_url(reqpath, webroot):
 
 def treat_url():
     directive = analyze_url(cherrypy.request.path_info, cherrypy.config.get("webroot"))
-
-    tangelo.log(str(directive))
 
     cherrypy.thread_data.target = directive["target"]
     cherrypy.thread_data.do_auth = directive["save_data"]["do_auth"]

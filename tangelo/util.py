@@ -1,5 +1,6 @@
+import cherrypy
 import errno
-import fnmatch
+import imp
 import json
 import os
 import os.path
@@ -132,10 +133,6 @@ class ModuleCache(object):
                     mtime > stamp["mtime"] or
                     (config_mtime is not None and
                      config_mtime > stamp["mtime"])):
-                if stamp is None:
-                    tangelo.log("loading new module: " + module)
-                else:
-                    tangelo.log("reloading module: " + module)
 
                 # Load any configuration the module might carry with it.
                 if config_mtime is not None:
@@ -146,14 +143,14 @@ class ModuleCache(object):
                                 msg = ("Service module configuration file " +
                                        "does not contain a key-value store " +
                                        "(i.e., a JSON Object)")
-                                tangelo.log(msg)
+                                tangelo.log("TANGELO", msg)
                                 raise TypeError(msg)
                     except IOError:
-                        tangelo.log("Could not open config file %s" %
+                        tangelo.log("TANGELO", "Could not open config file %s" %
                                     (config_file))
                         raise
                     except ValueError as e:
-                        tangelo.log("Error reading config file %s: %s" %
+                        tangelo.log("TANGELO", "Error reading config file %s: %s" %
                                     (config_file, e))
                         raise
                 else:
@@ -175,9 +172,8 @@ class ModuleCache(object):
         except:
             bt = traceback.format_exc()
 
-            tangelo.log("Error importing module %s" % (tangelo.request_path()),
-                        "SERVICE")
-            tangelo.log(bt, "SERVICE")
+            tangelo.log("TANGELO", "Error importing module %s" % (tangelo.request_path()))
+            tangelo.log("TANGELO", bt)
 
             raise tangelo.HTTPStatusCode("501 Error in Python Service",
                                          tangelo.server.Tangelo.literal + "There was an error while " +

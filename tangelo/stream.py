@@ -56,7 +56,7 @@ class TangeloStream(object):
         directive = tangelo.tool.analyze_url(url, cherrypy.config.get("webroot"))
 
         if "target" not in directive or directive["target"].get("type") != "service":
-            tangelo.log(json.dumps(directive, indent=4))
+            tangelo.log("STREAM", json.dumps(directive, indent=4))
             cherrypy.response.status = "500 Error Opening Streaming Service"
             result = {"error": "could not open streaming service"}
         else:
@@ -73,26 +73,26 @@ class TangeloStream(object):
                 result = {"error": ""}
                 if e.msg:
                     result["error"] = e.msg
-
-            # Check for a "stream" function inside the module.
-            if "stream" not in dir(service):
-                cherrypy.response.status = "400 Non-Streaming Service"
-                result = {"error": "The requested streaming service does not implement a 'stream()' function"}
             else:
-                # Call the stream function and capture its result.
-                try:
-                    stream = service.stream(*pargs, **kwargs)
-                except Exception as e:
-                    bt = traceback.format_exc()
-
-                    tangelo.log("Caught exception while executing service %s" %
-                                (tangelo.request_path()), "SERVICE")
-                    tangelo.log(bt, "SERVICE")
-
-                    cherrypy.response.status = "500 Streaming Service Raised Exception"
-                    result = {"error": "Caught exception during streaming service execution: %s" % (str(bt))}
+                # Check for a "stream" function inside the module.
+                if "stream" not in dir(service):
+                    cherrypy.response.status = "400 Non-Streaming Service"
+                    result = {"error": "The requested streaming service does not implement a 'stream()' function"}
                 else:
-                    result = self.add(stream)
+                    # Call the stream function and capture its result.
+                    try:
+                        stream = service.stream(*pargs, **kwargs)
+                    except Exception as e:
+                        bt = traceback.format_exc()
+
+                        tangelo.log("Caught exception while executing service %s" %
+                                    (tangelo.request_path()), "SERVICE")
+                        tangelo.log(bt, "SERVICE")
+
+                        cherrypy.response.status = "500 Streaming Service Raised Exception"
+                        result = {"error": "Caught exception during streaming service execution: %s" % (str(bt))}
+                    else:
+                        result = self.add(stream)
 
         return json.dumps(result)
 
