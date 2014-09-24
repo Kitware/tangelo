@@ -18,12 +18,9 @@
     };
 
     tangelo.stream.start = function (url, callback) {
-        // Form an absolute url from the input.
-        var streamUrl = "/stream" + tangelo.absoluteUrl(url);
-
         // Send an ajax request to get the stream started.
         $.ajax({
-            url: streamUrl,
+            url: "/stream/start" + tangelo.absoluteUrl(url),
             type: "POST",
             dataType: "json",
             error: function (jqxhr) {
