@@ -114,12 +114,9 @@ class Tangelo(object):
         # 1. If it is an HTTPStatusCode object, raise a cherrypy HTTPError
         # exception, which will cause the browser to do the right thing.
         #
-        # 2. TODO: If it's a Python generator object, log it with the Tangelo
-        # streaming API.
+        # 2. If it's not a string, try to convert it to one with json.dumps()
         #
-        # 3. If it's a Python dictionary, convert it to JSON.
-        #
-        # 4. If it's a string, don't do anything to it.
+        # 3. Otherwise, leave it alone.
         #
         # This allows the services to return a Python object if they wish, or
         # to perform custom serialization (such as for MongoDB results, etc.).
