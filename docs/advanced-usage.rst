@@ -8,10 +8,9 @@ Streaming
 =========
 
 It may be necessary to return an immense (or even :root:`infinite
-</examples/primes>`) amount of data from a web service to
-the client.  However, this may take up so much time and memory that dealing with
-it becomes intractable.  In such situations, Tangelo's *Streaming API* may be
-able to help.
+</examples/primes>`) amount of data from a web service to the client.  However,
+this may take up so much time and memory that dealing with it becomes
+intractable.  In such situations, Tangelo's *Streaming API* may be able to help.
 
 Generators in Python
 --------------------
@@ -19,10 +18,11 @@ Generators in Python
 Essentially, Tangelo's streaming capability works by exposing Python's
 abstraction of `generators
 <http://docs.python.org/2/reference/expressions.html#yield-expressions>`_
-through Tangelo's service API.  If a web service module includes a ``stream()`` function that uses the ``yield`` keyword
-instead of ``return``, thus marking it as a generator function, then Tangelo
-can use this module to launch a *streaming service*.  Here is an example
-of such a service, in a hypothetical file named ``prime-factors.py``:
+through Tangelo's service API.  If a web service module includes a ``stream()``
+function that uses the ``yield`` keyword instead of ``return``, thus marking it
+as a generator function, then Tangelo can use this module to launch a *streaming
+service*.  Here is an example of such a service, in a hypothetical file named
+``prime-factors.py``:
 
 .. code-block:: python
 
@@ -41,10 +41,10 @@ of such a service, in a hypothetical file named ``prime-factors.py``:
             if n % i == 0
                 yield i
 
-The ``stream()`` function returns a *generator object* - an object that returns a
-prime divisor of its argument once for each call to its ``next()`` method.  When
-the code reaches its "end" (i.e., there are no more values to ``yield``), the
-``next()`` method raises a ``StopIteration`` exception.
+The ``stream()`` function returns a *generator object* - an object that returns
+a prime divisor of its argument once for each call to its ``next()`` method.
+When the code reaches its "end" (i.e., there are no more values to ``yield``),
+the ``next()`` method raises a ``StopIteration`` exception.
 
 In Python this object, and others that behave the same way, are known as
 *iterables*.  Generators are valuable in particular because they generate values
@@ -55,10 +55,10 @@ trades space for time, then amortizes the time over multiple calls to
 
 Tangelo leverages this idea to create *streaming services*.  When a service
 module returns a generator object from its ``stream()``, Tangelo's streaming API
-can log the generator object in a
-table, associate a hexadecimal key to it, and send this key as the response.
-For example, an ajax request to the streaming API, identifying the ``prime-factors`` service above, might yield
-the following response:
+can log the generator object in a table, associate a hexadecimal key to it, and
+send this key as the response.  For example, an ajax request to the streaming
+API, identifying the ``prime-factors`` service above, might yield the following
+response:
 
 .. code-block:: javascript
 
@@ -70,8 +70,8 @@ object by further engaging the streaming API.
 The Streaming REST API
 ----------------------
 
-The streaming API is found at :root:`/stream`.  The API is RESTful
-and uses the following verbs:
+The streaming API is found at :root:`/stream`.  The API is RESTful and uses the
+following verbs:
 
 * ``GET /stream`` returns a list of all active stream keys.
 
@@ -81,8 +81,8 @@ and uses the following verbs:
   function found in the service, generates a hexadecimal key, and logs it in a
   table of streaming services, finally returning the key.
 
-* ``POST /stream/next/<stream-key>``  calls ``next()`` on the associated generator and
-  returns a JSON object with the following form:
+* ``POST /stream/next/<stream-key>``  calls ``next()`` on the associated
+  generator and returns a JSON object with the following form:
 
     .. code-block:: javascript
 
