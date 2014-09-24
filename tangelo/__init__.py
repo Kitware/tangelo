@@ -25,6 +25,10 @@ def header(h, t=None):
     return r
 
 
+def request_header(h):
+    return cherrypy.request.headers.get(h)
+
+
 def log(section, message):
     cherrypy.log(message, section)
 
