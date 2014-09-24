@@ -63,73 +63,9 @@ class Tangelo(object):
         sys.path.insert(0, modpath)
 
         try:
-<<<<<<< HEAD:tangelo/server.py
-            stamp = self.modules.get(module)
-            mtime = os.path.getmtime(module)
-
-            config_file = module[:-2] + "json"
-            config_mtime = None
-            if os.path.exists(config_file):
-                config_mtime = os.path.getmtime(config_file)
-
-            if (stamp is None or
-                    mtime > stamp["mtime"] or
-                    (config_mtime is not None and
-                     config_mtime > stamp["mtime"])):
-                if stamp is None:
-                    tangelo.log("TANGELO", "loading new module: " + module)
-                else:
-                    tangelo.log("TANGELO", "reloading module: " + module)
-
-                # Load any configuration the module might carry with it.
-                if config_mtime is not None:
-                    try:
-                        with open(config_file) as f:
-                            config = json.loads(json_minify(f.read()))
-                            if type(config) != dict:
-                                msg = ("Service module configuration file " +
-                                       "does not contain a key-value store " +
-                                       "(i.e., a JSON Object)")
-                                tangelo.log("ERROR", msg)
-                                raise TypeError(msg)
-                    except IOError:
-                        tangelo.log("ERROR", "Could not open config file %s" %
-                                    (config_file))
-                        raise
-                    except ValueError as e:
-                        tangelo.log("ERROR", "Error reading config file %s: %s" %
-                                    (config_file, e))
-                        raise
-                else:
-                    config = {}
-
-                cherrypy.config["module-config"][module] = config
-
-                # Remove .py to get the module name
-                name = module[:-3]
-
-                # Load the module.
-                service = imp.load_source(name, module)
-                self.modules[module] = {"module": service,
-                                        "mtime": max(mtime, config_mtime)}
-            else:
-                service = stamp["module"]
-        except:
-            bt = traceback.format_exc()
-
-            tangelo.log("ERROR", "Error importing module %s" % (tangelo.request_path()))
-            tangelo.log("ERROR", bt)
-
-            result = tangelo.HTTPStatusCode("501 Error in Python Service",
-                                            Tangelo.literal + "There was an error while " +
-                                            "trying to import module " +
-                                            "%s:<br><pre>%s</pre>" %
-                                            (tangelo.request_path(), bt))
-=======
             service = self.modules.get(module)
         except tangelo.HTTPStatusCode as e:
             result = e
->>>>>>> 403cf92... Implemented a "module cache" abstraction:tangelo/tangelo/server.py
         else:
             # Try to run the service - either it's in a function called
             # "run()", or else it's in a REST API consisting of at least one of
