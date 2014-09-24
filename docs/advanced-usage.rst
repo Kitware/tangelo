@@ -19,9 +19,9 @@ Generators in Python
 Essentially, Tangelo's streaming capability works by exposing Python's
 abstraction of `generators
 <http://docs.python.org/2/reference/expressions.html#yield-expressions>`_
-through Tangelo's service API.  If a service function uses the ``yield`` keyword
+through Tangelo's service API.  If a web service module includes a ``stream()`` function that uses the ``yield`` keyword
 instead of ``return``, thus marking it as a generator function, then Tangelo
-behaves differently when the resulting service is invoked.  Here is an example
+can use this module to launch a *streaming service*.  Here is an example
 of such a service, in a hypothetical file named ``prime-factors.py``:
 
 .. code-block:: python
@@ -36,12 +36,12 @@ of such a service, in a hypothetical file named ``prime-factors.py``:
         return True
 
     @tangelo.types(n=int)
-    def run(n=2):
+    def stream(n=2):
         for i in filter(prime, range(2, int(math.floor(math.sqrt(num)+1)))):
             if n % i == 0
                 yield i
 
-The ``run()`` method returns a *generator object* - an object that returns a
+The ``stream()`` function returns a *generator object* - an object that returns a
 prime divisor of its argument once for each call to its ``next()`` method.  When
 the code reaches its "end" (i.e., there are no more values to ``yield``), the
 ``next()`` method raises a ``StopIteration`` exception.
@@ -54,10 +54,10 @@ trades space for time, then amortizes the time over multiple calls to
 ``next()``.
 
 Tangelo leverages this idea to create *streaming services*.  When a service
-returns a generator object from its ``run()`` or RESTful methods, Tangelo
-responds to a request to that service by logging the generator object in a
-table, associating a hexadecimal key to it, and sending the key as the response.
-For example, an ajax request to the ``prime-factors`` service above might yield
+module returns a generator object from its ``stream()``, Tangelo's streaming API
+can log the generator object in a
+table, associate a hexadecimal key to it, and send this key as the response.
+For example, an ajax request to the streaming API, identifying the ``prime-factors`` service above, might yield
 the following response:
 
 .. code-block:: javascript
@@ -65,7 +65,7 @@ the following response:
     {"key": "3dffee9e03cef2322a2961266ebff104"}
 
 From this point on, values can be retrieved from the newly created generator
-object by engaging the *streaming API*.
+object by further engaging the streaming API.
 
 The Streaming REST API
 ----------------------
@@ -75,7 +75,13 @@ and uses the following verbs:
 
 * ``GET /stream`` returns a list of all active stream keys.
 
-* ``GET /stream/<stream-key>`` calls ``next()`` on the associated generator and
+* ``GET /stream/<stream-key>`` returns some information about the named stream.
+
+* ``POST /stream/start/<path>/<to>/<streaming>/<service>`` runs the ``stream()``
+  function found in the service, generates a hexadecimal key, and logs it in a
+  table of streaming services, finally returning the key.
+
+* ``POST /stream/next/<stream-key>``  calls ``next()`` on the associated generator and
   returns a JSON object with the following form:
 
     .. code-block:: javascript
