@@ -61,6 +61,11 @@ HTTP Interaction
     If `new_value` is supplied, the header value will additionally be replaced
     by that value.
 
+.. py:function:: tangelo.request_header(header_name)
+
+    Returns the value associated to `header_name` in the request headers, or
+    ``None`` if the header is not present.
+
 .. py:function:: tangelo.request_path()
 
     Returns the path of the current request.  This is generally the sequence of
