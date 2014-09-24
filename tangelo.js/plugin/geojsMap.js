@@ -25,7 +25,7 @@
             return this.svgGroup.node();
         },
         legend: function () { // non-interactive svg on top
-            throw 'Legend layer not yet implemented';
+            throw new Error("Legend layer not yet implemented");
         },
         map: function () { // return the geojs map object
             return this._map;
