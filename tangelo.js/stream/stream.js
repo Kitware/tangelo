@@ -44,7 +44,8 @@
     /*jslint unparam: true */
     tangelo.stream.query = function (key, callback) {
         $.ajax({
-            url: "/stream/" + key,
+            url: "/stream/next/" + key,
+            type: "POST",
             dataType: "json",
             error: function (jqxhr) {
                 var report = {
