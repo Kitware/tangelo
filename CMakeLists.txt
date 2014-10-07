@@ -223,6 +223,7 @@ set(JS_LINT_FILES
     ${CMAKE_SOURCE_DIR}/tangelo.js/data/bin.js
     ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/GoogleMapSVG.js
     ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/controlPanel.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/bokeh.js
     ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/dendrogram.js
     ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geodots.js
     ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geonodelink.js
@@ -316,6 +317,7 @@ set(JS_UGLIFY_FILES
     ${CMAKE_SOURCE_DIR}/tangelo.js/vtkweb/_package.js
     ${CMAKE_SOURCE_DIR}/tangelo.js/vtkweb/vtkweb.js
     ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/controlPanel.js
+    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/bokeh.js
     ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/GoogleMapSVG.js
     ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/svgColorLegend.js
     ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/dendrogram.js
