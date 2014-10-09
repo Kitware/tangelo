@@ -21,7 +21,7 @@ class TangeloStream(object):
         else:
             result = self.get_stream_info(key)
 
-        return result
+        return json.dumps(result)
 
     def get_streams(self):
         return self.streams.keys()
@@ -38,17 +38,17 @@ class TangeloStream(object):
         if pathcomp[0] == "start":
             if len(pathcomp[1:]) == 0:
                 cherrypy.response.status = "400 Path To Service Required"
-                return {"error": "No service path was specified"}
-
-            result = self.stream_start("/" + "/".join(pathcomp[1:]), kwargs)
+                result = {"error": "No service path was specified"}
+            else:
+                result = self.stream_start("/" + "/".join(pathcomp[1:]), kwargs)
         elif pathcomp[0] == "next":
             if len(pathcomp[1:]) != 1:
                 cherrypy.response.status = "400 Stream Key Required"
-                return {"error": "No stream key was specified"}
+                result = {"error": "No stream key was specified"}
+            else:
+                result = self.stream_next(pathcomp[1])
 
-            result = self.stream_next(pathcomp[1])
-
-        return result
+        return json.dumps(result)
 
     def stream_start(self, url, kwargs):
         directive = tangelo.tool.analyze_url(url, cherrypy.config.get("webroot"))
@@ -99,7 +99,7 @@ class TangeloStream(object):
                         # Create an object describing the logging of the generator object.
                         result = {"key": key}
 
-        return json.dumps(result)
+        return result
 
     def stream_next(self, key):
         if key not in self.streams:
