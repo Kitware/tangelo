@@ -281,6 +281,10 @@ def main():
     # Set the web root directory.
     cherrypy.config.update({"webroot": root})
 
+    # Set up the API path.
+    cherrypy.config.update({"apiroot": "/api"})
+    apiroot = cherrypy.config["apiroot"]
+
     # Place an empty dict to hold per-module configuration into the global
     # configuration object.
     cherrypy.config.update({"module-config": {}})
@@ -291,20 +295,20 @@ def main():
 
     # Create a streaming API object.
     stream = tangelo.stream.TangeloStream(module_cache=module_cache)
-    cherrypy.tree.mount(stream, "/stream", config={"/": {"request.dispatch": cherrypy.dispatch.MethodDispatcher()}})
+    cherrypy.tree.mount(stream, apiroot + "/stream", config={"/": {"request.dispatch": cherrypy.dispatch.MethodDispatcher()}})
 
     # Create a VTKWeb API object if requested, and mount it.
     vtkweb = None
     if vtkpython is not None:
         vtkweb = tangelo.vtkweb.TangeloVtkweb(vtkpython=vtkpython, weblauncher=invocation_dir + "/bin/vtkweb-launcher.py")
-        cherrypy.tree.mount(vtkweb, "/vtkweb")
+        cherrypy.tree.mount(vtkweb, apiroot + "/vtkweb")
 
     # Create a Girder API object if requested, and mount it at the requested
     # path.
     girder = None
     if girderconf["path"]:
         girder = tangelo.girder.TangeloGirder(girderconf["host"], girderconf["port"])
-        cherrypy.tree.mount(girder, girderconf["path"], girder.config)
+        cherrypy.tree.mount(girder, apiroot + "/" + girderconf["path"], girder.config)
 
     # Mount the root application object.
     cherrypy.tree.mount(rootapp, config={"/": {"tools.auth_update.on": access_auth,
