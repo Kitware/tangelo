@@ -403,7 +403,7 @@ def main():
     # and updates the state of auth tools on various paths.
     cherrypy.tools.treat_url = cherrypy.Tool("before_handler", tangelo.tool.treat_url, priority=0)
     if access_auth:
-        cherrypy.tools.auth_update = tangelo.tool.AuthUpdate(point="before_handler", priority=1)
+        cherrypy.tools.auth_update = tangelo.tool.AuthUpdate(point="before_handler", priority=1, app=rootapp)
 
     # Start the CherryPy engine.
     cherrypy.engine.start()

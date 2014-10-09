@@ -165,11 +165,14 @@ class AuthUpdate(cherrypy.Tool):
     # A list of acceptable authentication types.
     allowed_auth_types = ["digest"]
 
-    def __init__(self, point="before_handler", priority=50):
+    def __init__(self, point="before_handler", priority=50, app=None):
         # cherrypy.Tool attributes.
         self._name = None
         self._point = point
         self._priority = priority
+
+        # Private attributes.
+        self.app = app
 
         # A record of installed auth tools.
         self.security = {}
@@ -249,12 +252,12 @@ class AuthUpdate(cherrypy.Tool):
             if reqpath in self.security:
                 del self.security[reqpath]
 
-                cfg = tangelo.server.cpserver.config[reqpath]
+                cfg = self.app.config[reqpath]
                 for a in AuthUpdate.allowed_auth_types:
                     key = "tools.auth_%s.on" % (a)
                     if key in cfg:
                         cfg[key] = False
-                    tangelo.server.cpserver.merge({reqpath: cfg})
+                    self.app.merge({reqpath: cfg})
                     changed = True
         else:
             # Get the mtime of the htfile.
@@ -281,7 +284,7 @@ class AuthUpdate(cherrypy.Tool):
                              toolname + "get_ha1": passdict,
                              toolname + "key": "deadbeef"}
 
-                tangelo.server.cpserver.merge({reqpath: auth_conf})
+                self.app.merge({reqpath: auth_conf})
 
                 # Store the mtime in the security table.
                 self.security[reqpath] = ht_mtime
