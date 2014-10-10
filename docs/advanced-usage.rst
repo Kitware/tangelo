@@ -70,18 +70,18 @@ object by further engaging the streaming API.
 The Streaming REST API
 ----------------------
 
-The streaming API is found at :root:`/stream`.  The API is RESTful and uses the
+The streaming API is found at :root:`/api/stream`.  The API is RESTful and uses the
 following verbs:
 
-* ``GET /stream`` returns a list of all active stream keys.
+* ``GET /api/stream`` returns a list of all active stream keys.
 
-* ``GET /stream/<stream-key>`` returns some information about the named stream.
+* ``GET /api/stream/<stream-key>`` returns some information about the named stream.
 
-* ``POST /stream/start/<path>/<to>/<streaming>/<service>`` runs the ``stream()``
+* ``POST /api/stream/start/<path>/<to>/<streaming>/<service>`` runs the ``stream()``
   function found in the service, generates a hexadecimal key, and logs it in a
   table of streaming services, finally returning the key.
 
-* ``POST /stream/next/<stream-key>``  calls ``next()`` on the associated
+* ``POST /api/stream/next/<stream-key>``  calls ``next()`` on the associated
   generator and returns a JSON object with the following form:
 
     .. code-block:: javascript
@@ -96,7 +96,7 @@ following verbs:
   If ``finished`` is ``true``, there will be no ``data`` field, and the stream
   key for that stream will become invalid.
 
-* ``DELETE /stream/<stream-key>`` makes the stream key invalid, removes the
+* ``DELETE /api/stream/<stream-key>`` makes the stream key invalid, removes the
   generator object from the stream table, and returns a response showing which
   key was removed:
 
@@ -136,7 +136,7 @@ The VTK Web REST API
 The VTK Web API is found at :root:`/vtkweb`.  The API is RESTful
 and uses the following verbs:
 
-* ``POST /vtkweb/full/path/to/vtkweb/script.py`` launches the named script
+* ``POST /api/vtkweb/full/path/to/vtkweb/script.py`` launches the named script
   (which must be given as an absolute path) and returns a JSON object similar to
   the following:
 
@@ -159,9 +159,9 @@ and uses the following verbs:
   In any case, receiving a response with a ``status`` field reading "complete"
   means that the process has started successfully.
 
-* ``GET /vtkweb`` returns a list of keys for all active VTK Web processes.
+* ``GET /api/vtkweb`` returns a list of keys for all active VTK Web processes.
 
-* ``GET /vtkweb/<key>`` returns information about a particular VTK Web process.
+* ``GET /api/vtkweb/<key>`` returns information about a particular VTK Web process.
   For example:
 
     .. code-block:: javascript
@@ -190,7 +190,7 @@ and uses the following verbs:
   there will be an additional field ``returncode`` containing the exit code of
   the process.
 
-* ``DELETE /vtkweb/<key>`` terminates the associated VTK process and returns a
+* ``DELETE /api/vtkweb/<key>`` terminates the associated VTK process and returns a
   response containing the key:
 
     .. code-block:: javascript

@@ -120,6 +120,20 @@ kinds of web applications.
         This may occur if, for example, the configuration file is optional.  If
         there is an ajax error, it will be passed in the `error` parameter.
 
+.. js:function:: tangelo.apiUrl(api[, *pathComponents])
+
+    Constructs and returns a URL for the named `api`, with optional trailing
+    path components listed in the remaining arguments to the function.
+
+    For example, a call to ``tangelo.apiUrl("stream", "next", "a1b2c3d4e5")``
+    will return the string ``"/api/stream/next/a1b2c3d4e5"``.  This function is
+    useful for calls to, e.g., ``$.ajax()`` when engaging a Tangelo API.
+
+    :param string api: The name of the Tangelo API to construct a URL for.
+
+    :param string \*pathComponents: Any extra path components to be appended to
+        the constructed URL.
+
 .. js:function:: tangelo.uniqueID(n)
 
     Generates a identifier made up of `n` randomly chosen lower and upper case
