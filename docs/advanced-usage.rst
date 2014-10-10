@@ -2,6 +2,10 @@
     Advanced Usage
 ======================
 
+Tangelo exports some RESTful APIs to implement advanced functionality and
+information reporting.  This section explains these APIs, why they exist, how
+you can use them, and how to engage them.
+
 .. _streaming:
 
 Streaming
@@ -210,3 +214,54 @@ JavaScript Support for VTK Web
 As with the streaming JavaScript functions, the ``tangelo.vtkweb`` contains
 JavaScript functions providing a clean, callback-based interface to the
 low-level REST API.  See :ref:`vtkweb-js` for full details.
+
+Tangelo Instance Information
+============================
+
+For various reasons (e.g., debugging) you may wish to know how some option is
+set in a particular running instance of Tangelo.  For instance, your application
+may wish to query the version of Tangelo in order to avoid requesting features
+that are not there, etc.  To supply this information, Tangelo exports the
+Information REST API.
+
+The Information REST API
+------------------------
+
+This API is read-only, and supplies settings for all Tangelo options as set at
+startup time.  To get the value of a setting:
+
+* ``GET /api/info/<option>``
+
+Tangelo will return the value of the setting as plain text (except for
+``girderconf``, which is returned as JSON).  Alternatively, you may also request
+a JSON object of all values with
+
+* ``GET /api/info``
+
+The available choices for `<option>` are
+
+* ``config_file``
+
+* ``hostname``
+
+* ``port``
+
+* ``webroot``
+
+* ``drop_privileges``
+
+* ``group``
+
+* ``user``
+
+* ``access_auth``
+
+* ``sessions``
+
+* ``ssl_key``
+
+* ``ssl_cert``
+
+* ``vtkpython``
+
+* ``girderconf``
