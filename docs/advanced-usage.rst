@@ -218,8 +218,8 @@ low-level REST API.  See :ref:`vtkweb-js` for full details.
 Tangelo Instance Information
 ============================
 
-For various reasons (e.g., debugging) you may wish to know how some option is
-set in a particular running instance of Tangelo.  For instance, your application
+For various reasons (e.g., debugging) you may wish to know some information
+about a particular running instance of Tangelo.  For instance, your application
 may wish to query the version of Tangelo in order to avoid requesting features
 that are not there, etc.  To supply this information, Tangelo exports the
 Information REST API.
@@ -227,41 +227,17 @@ Information REST API.
 The Information REST API
 ------------------------
 
-This API is read-only, and supplies settings for all Tangelo options as set at
-startup time.  To get the value of a setting:
+This API is read-only.  To get information use this verb:
 
 * ``GET /api/info/<option>``
 
-Tangelo will return the value of the setting as plain text (except for
-``girderconf``, which is returned as JSON).  Alternatively, you may also request
-a JSON object of all values with
+Tangelo will return the value of the setting as plain text.  Alternatively, you
+may also request a JSON object of all values with
 
 * ``GET /api/info``
 
 The available choices for `<option>` are
 
-* ``config_file``
+* ``version``
 
-* ``hostname``
-
-* ``port``
-
-* ``webroot``
-
-* ``drop_privileges``
-
-* ``group``
-
-* ``user``
-
-* ``access_auth``
-
-* ``sessions``
-
-* ``ssl_key``
-
-* ``ssl_cert``
-
-* ``vtkpython``
-
-* ``girderconf``
+A future version of this API may supply more information.

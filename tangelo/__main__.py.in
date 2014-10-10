@@ -133,10 +133,8 @@ def main():
     # look for one in a sequence of other places.
     cfg_file = None
     config = {}
-    settings = {}
     if args.no_config:
         tangelo.log("TANGELO", "Not using any configuration file")
-        settings["config_file"] = None
     else:
         cfg_file = args.config
         if cfg_file is None:
@@ -152,8 +150,6 @@ def main():
         else:
             cfg_file = tangelo.util.expandpath(cfg_file)
             tangelo.log("TANGELO", "Using configuration file %s" % (cfg_file))
-
-        settings["config_file"] = cfg_file
 
         # Get a dict representing the contents of the config file.
         try:
@@ -171,7 +167,6 @@ def main():
         access_auth = (args.access_auth is not None) or (not args.no_access_auth)
 
     tangelo.log("TANGELO", "Access authentication %s" % ("enabled" if access_auth else "disabled"))
-    settings["access_auth"] = access_auth
 
     # Determine whether to perform privilege drop.
     drop_privileges = True
@@ -180,8 +175,6 @@ def main():
             drop_privileges = config.get("drop_privileges")
     else:
         drop_privileges = (args.drop_privileges is not None) or (not args.no_drop_privileges)
-
-    settings["drop_privileges"] = drop_privileges
 
     # Determine whether to enable sessions.
     sessions = True
@@ -192,7 +185,6 @@ def main():
         sessions = (args.sessions is not None) or (not args.no_sessions)
 
     tangelo.log("TANGELO", "Sessions %s" % ("enabled" if sessions else "disabled"))
-    settings["sessions"] = sessions
 
     # Extract the rest of the arguments, giving priority first to command line
     # arguments, then to the configuration file (if any), and finally to a
@@ -201,11 +193,6 @@ def main():
     port = args.port or config.get("port") or 8080
     user = args.user or config.get("user") or "nobody"
     group = args.group or config.get("group") or "nobody"
-
-    settings["hostname"] = hostname
-    settings["port"] = port
-    settings["user"] = user
-    settings["group"] = group
 
     tangelo.log("TANGELO", "Privilege drop %s" % ("enabled (if necessary)" if drop_privileges else "disabled"))
     if drop_privileges:
@@ -221,16 +208,12 @@ def main():
     else:
         tangelo.log("TANGELO", "VTKWeb support disabled")
 
-    settings["vtkpython"] = vtkpython
-
     # Girder options.  If no girder path is specified, we take this to mean we
     # should NOT mount a Girder API.
     girderconf = {}
     girderconf["host"] = args.girder_host or config.get("girder-host") or "localhost"
     girderconf["port"] = args.girder_port or config.get("girder-port") or 27017
     girderconf["path"] = args.girder_path or config.get("girder-path")
-
-    settings["girderconf"] = girderconf
 
     if girderconf["path"] is not None:
         tangelo.log("TANGELO", "Girder support enabled")
@@ -247,14 +230,10 @@ def main():
     if ssl_key is not None:
         ssl_key = tangelo.util.expandpath(ssl_key)
 
-    settings["ssl_key"] = ssl_key
-
     # Grab the cert file.
     ssl_cert = args.cert or config.get("cert")
     if ssl_cert is not None:
         ssl_cert = tangelo.util.expandpath(ssl_cert)
-
-    settings["ssl_cert"] = ssl_cert
 
     # In order to enable HTTPS, *both* the key and cert must be specified.  If
     # only one or the other is specified, this is considered an error, because
@@ -298,7 +277,6 @@ def main():
             tangelo.log("ERROR", "could not find default web root directory")
             return 1
 
-    settings["webroot"] = root
     tangelo.log("TANGELO", "Serving content from %s" % (root))
 
     # Set the web root directory.
@@ -317,7 +295,7 @@ def main():
     rootapp = cherrypy.Application(tangelo.server.Tangelo(module_cache=module_cache), "/")
 
     # Create an info API object.
-    info = tangelo.info.TangeloInfo(version=tangelo_version, cmdline=" ".join(sys.argv), settings=settings)
+    info = tangelo.info.TangeloInfo(version=tangelo_version)
     cherrypy.tree.mount(info, apiroot + "/info", config={"/": {"request.dispatch": cherrypy.dispatch.MethodDispatcher()}})
 
     # Create a streaming API object.
