@@ -136,6 +136,7 @@ def main():
     settings = {}
     if args.no_config:
         tangelo.log("TANGELO", "Not using any configuration file")
+        settings["config_file"] = None
     else:
         cfg_file = args.config
         if cfg_file is None:
