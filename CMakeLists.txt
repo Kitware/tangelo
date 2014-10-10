@@ -279,6 +279,7 @@ set(PEP8_FILES
     ${CMAKE_SOURCE_DIR}/scripts/setup.py.in
     ${CMAKE_SOURCE_DIR}/tangelo/__init__.py
     ${CMAKE_SOURCE_DIR}/tangelo/__main__.py.in
+    ${CMAKE_SOURCE_DIR}/tangelo/info.py
     ${CMAKE_SOURCE_DIR}/tangelo/server.py
     ${CMAKE_SOURCE_DIR}/tangelo/stream.py
     ${CMAKE_SOURCE_DIR}/tangelo/tool.py
