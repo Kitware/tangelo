@@ -3,6 +3,7 @@ import json
 
 import tangelo
 
+
 class TangeloInfo(object):
     exposed = True
     general = ["version", "cmdline"]
