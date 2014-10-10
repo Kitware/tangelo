@@ -27,10 +27,10 @@ directory is set to ``/srv/tangelo/root``, visiting http://localhost:8080/ would
 serve content from that directory, and visiting http://localhost:8080/foobar
 would serve content from ``/srv/tangelo/root/foobar``, etc.
 
-**The streaming and VTKWeb APIs.** The URLs :root:`/stream` and
-:root:`/vtkweb` are **reserved**; they are the interfaces to the
+**The streaming and VTKWeb APIs.** The URLs :root:`/api/stream` and
+:root:`/api/vtkweb` are **reserved**; they are the interfaces to the
 Streaming and VTKWeb APIs, respectively.  Files in the web root directory named
-``stream`` and ``vtkweb`` *will not be served by Tangelo*.  (For more
+``api/stream`` and ``api/vtkweb`` *will not be served by Tangelo*.  (For more
 information about these APIs, see :ref:`streaming` and :ref:`vtkweb`.)
 
 The foregoing examples demonstrate how Tangelo associates URLs to directories
@@ -48,8 +48,8 @@ according to the following cascade of rules:
    serve that.  This listing will include hyperlinks to the files contained
    therein.
 
-As mentioned already, the URLs :root:`/stream` and
-:root:`/vtkweb` are special and do not serve any static content
+As mentioned already, the URLs :root:`/api/stream` and
+:root:`/api/vtkweb` are special and do not serve any static content
 from disk.  Similarly, a URL referring to a Python script, but lacking the final
 ``.py``, names a *web service*; such URLs do not serve static content, but
 rather run the referred Python script and serve the results (see
@@ -65,8 +65,8 @@ Web root            http://localhost:8080/holodeck3/status.html serve ``/srv/tan
 Indexed directory   http://localhost:8080/tenforward            serve ``/srv/tangelo/root/tenforward/index.html``
 Unindexed directory http://localhost:8080/warpdrive             serve directory listing for ``/srv/tangelo/root/warpdrive``
 Web service         http://localhost:8080/lcars/lookup          serve result of executing ``run()`` function of ``/srv/tangelo/lcars/lookup.py``
-Streaming           http://localhost:8080/stream/id12345        serve result of running stream ``id12345`` for one step
-VTKWeb              http://localhost:8080/vtkweb/id23456        serve readouts of ``stdout`` and ``stderr`` from VTK process ``id23456``
+Streaming           http://localhost:8080/api/stream/id12345    serve result of running stream ``id12345`` for one step
+VTKWeb              http://localhost:8080/api/vtkweb/id23456    serve readouts of ``stdout`` and ``stderr`` from VTK process ``id23456``
 =================== =========================================== ================================================================================
 
 HTTP Authentication
