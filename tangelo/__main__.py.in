@@ -1,6 +1,7 @@
 #!python
 
 import argparse
+import ConfigParser
 import errno
 import itertools
 import os
@@ -35,12 +36,48 @@ def read_config(cfgfile):
     if cfgfile is None:
         return {}
 
-    # Read out the text of the file.
-    with open(cfgfile) as f:
-        text = f.read()
+    def getboolean(section, key):
+        try:
+            return cfg.getboolean(section, key)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return None
 
-    # Strip comments and then parse into a dict.
-    return json.loads(json_minify(text))
+    def getint(section, key):
+        try:
+            return cfg.getint(section, key)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return None
+
+    def getstring(section, key):
+        try:
+            return cfg.get(section, key)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return None
+
+    # Read the config file.
+    cfg = ConfigParser.SafeConfigParser()
+    cfg.read(cfgfile)
+
+    # Populate a dictionary with the values from the config.
+    config = {}
+    config["access_auth"] = getboolean("tangelo", "access_auth")
+    config["drop_privileges"] = getboolean("tangelo", "drop_privileges")
+    config["sessions"] = getboolean("tangelo", "sessions")
+    config["hostname"] = getstring("tangelo", "hostname")
+    config["port"] = getint("tangelo", "port")
+    config["user"] = getstring("tangelo", "user")
+    config["group"] = getstring("tangelo", "group")
+    config["key"] = getstring("tangelo", "key")
+    config["cert"] = getstring("tangelo", "cert")
+    config["root"] = getstring("tangelo", "root")
+
+    config["vtkpython"] = getstring("vtkweb", "vtkpython")
+
+    config["girder-host"] = getstring("girder", "girder-host")
+    config["girder-port"] = getint("girder", "girder-port")
+    config["girder-path"] = getstring("girder", "girder-path")
+
+    return config
 
 
 def polite(signum, frame):
@@ -139,7 +176,7 @@ def main():
         cfg_file = args.config
         if cfg_file is None:
             tangelo.log("TANGELO", "Looking for default configuration file")
-            for loc in ["/etc/tangelo.conf", os.path.expanduser("~/.config/tangelo/tangelo.conf"), invocation_dir + "/share/tangelo/conf/tangelo.conf.local"]:
+            for loc in ["/etc/tangelo.conf", os.path.expanduser("~/.config/tangelo/tangelo.conf"), invocation_dir + "/share/tangelo/conf/tangelo.local.conf"]:
                 tangelo.log("TANGELO", "Trying %s" % (loc))
                 if os.path.exists(loc):
                     cfg_file = loc
