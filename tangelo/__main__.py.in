@@ -55,8 +55,12 @@ def read_config(cfgfile):
             return None
 
     # Read the config file.
-    cfg = ConfigParser.SafeConfigParser()
-    cfg.read(cfgfile)
+    cfg = ConfigParser.RawConfigParser()
+    files = cfg.read(cfgfile)
+
+    # Signal error if file could not be read.
+    if len(files) == 0:
+        raise IOError(2, "Could not open configuration file", cfgfile)
 
     # Populate a dictionary with the values from the config.
     config = {}
@@ -190,10 +194,20 @@ def main():
 
         # Get a dict representing the contents of the config file.
         try:
+            ok = False
             config = read_config(cfg_file)
-        except ValueError as e:
-            tangelo.log("ERROR", "problem with configuration file %s: %s" % (cfg_file, e.message))
-            return 1
+            ok = True
+        except IOError as e:
+            tangelo.log("ERROR", "%s" % (e))
+        except ConfigParser.MissingSectionHeaderError:
+            tangelo.log("ERROR", "Config file '%s' has no section headers" % (cfg_file))
+        except ConfigParser.ParsingError as e:
+            tangelo.log("ERROR", "Config file '%s' has syntax errors:" % (cfg_file))
+            for lineno, text in e.errors:
+                tangelo.log("ERROR", "\tline %d: %s" % (lineno, text))
+        finally:
+            if not ok:
+                return 1
 
     # Determine whether to use access auth.
     access_auth = True
