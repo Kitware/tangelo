@@ -18,6 +18,7 @@ import re
 import tangelo
 from tangelo.minify_json import json_minify
 import tangelo.girder
+import tangelo.info
 import tangelo.server
 import tangelo.stream
 import tangelo.tool
@@ -292,6 +293,10 @@ def main():
     # Create an instance of the main handler object.
     module_cache = tangelo.util.ModuleCache()
     rootapp = cherrypy.Application(tangelo.server.Tangelo(module_cache=module_cache), "/")
+
+    # Create an info API object.
+    info = tangelo.info.TangeloInfo(version=tangelo_version)
+    cherrypy.tree.mount(info, apiroot + "/info", config={"/": {"request.dispatch": cherrypy.dispatch.MethodDispatcher()}})
 
     # Create a streaming API object.
     stream = tangelo.stream.TangeloStream(module_cache=module_cache)
