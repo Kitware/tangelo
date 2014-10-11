@@ -160,7 +160,7 @@ def main():
         tangelo.log("ERROR", "can't specify both --config (-c) and --no-config (-nc) together")
         return 1
 
-    if args.no_config and args.config is not None:
+    if args.no_sessions and args.sessions:
         tangelo.log("ERROR", "can't specify both --sessions (-s) and --no-sessions (-ns) together")
         sys.exit(1)
 
