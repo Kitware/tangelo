@@ -245,6 +245,9 @@ def main():
     user = args.user or config.get("user") or "nobody"
     group = args.group or config.get("group") or "nobody"
 
+    tangelo.log("TANGELO", "Hostname: %s" % (hostname))
+    tangelo.log("TANGELO", "Port: %d" % (port))
+
     tangelo.log("TANGELO", "Privilege drop %s" % ("enabled (if necessary)" if drop_privileges else "disabled"))
     if drop_privileges:
         tangelo.log("TANGELO", "\tUser: %s" % (user))
