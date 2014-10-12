@@ -8,8 +8,7 @@ def main():
     p = subprocess.Popen(["@VENV_DIR@/bin/tangelo",
                           "--host", "@TESTING_HOST@",
                           "--port", "@TESTING_PORT@",
-                          "--root", "tangelo/www",
-                          "--no-config"],
+                          "--root", "tangelo/www"],
                          stderr=subprocess.PIPE)
 
     # Wait until tangelo either starts or fails.
@@ -19,12 +18,19 @@ def main():
     # readline() below will eventually stop, waiting for input that won't come.
     # When Tangelo is healthy, however, one of the two sought messages will
     # occur.
+    buf = []
     while True:
         line = p.stderr.readline()
+        buf.append(line)
         if line.endswith("ENGINE Bus STARTED\n"):
             break
         elif line.endswith("ENGINE Bus EXITED\n"):
             print "fatal error: could not start Tangelo on port @TESTING_PORT@"
+            print "".join(buf)
+            return 1
+        elif p.poll() is not None:
+            print "fatal error: Tangelo did not start up correctly"
+            print "".join(buf)
             return 1
 
     # Run the testing command, which is simply the arguments passed to this
