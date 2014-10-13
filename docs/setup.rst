@@ -18,7 +18,7 @@ The simplest way to launch a Tangelo server is to use this command: ::
 The simple command hides a fair amount of activity behind the scenes, and it
 will be instructive to track that activity.
 
-Tangelo's runtime behaviors are specified via *configuration file*.  Tangelo
+Tangelo's runtime behaviors are specified via configuration file and command line options.  Tangelo
 configuration files are simply `JSON+comments
 <http://blog.getify.com/json-comments/>`_ files containing a single JavaScript
 object of key-value pairs describing the configuration.  When no configuration
@@ -107,11 +107,11 @@ key             The path to the SSL key (*string*)                              
 
 cert            The path to the SSL certificate (*string*)                                                  null [#https]_
 
-girder-host     The hostname running Girder (*string*)                                                      "localhost" [#girder]_
+girder-host     The hostname running Girder (*string*)                                                      "localhost" [#gird]_
 
-girder-port     The port on which the Girder database is running (*integer*)                                27017 [#girder]_
+girder-port     The port on which the Girder database is running (*integer*)                                27017 [#gird]_
 
-girder-path     The path on which to mount a Girder API (*string*)                                          null [#girder]_
+girder-path     The path on which to mount a Girder API (*string*)                                          null [#gird]_
 =============== =========================================================================================   =============
 
 .. rubric:: Footnotes
@@ -131,7 +131,7 @@ girder-path     The path on which to mount a Girder API (*string*)              
 .. [#https] You must also specify both key and cert to serve content over
     https.
 
-.. [#girder] `Girder <https://github.com/girder/girder>`_ will attempt to be
+.. [#gird] `Girder <https://github.com/girder/girder>`_ will attempt to be
     mounted if the girder-path is provided. The girder-path will be the root
     for mounting the Girder static resources and API endpoints, and should
     start with a leading ``/``, for example ``/girder``. The ``girder`` Python
