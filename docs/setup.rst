@@ -15,47 +15,37 @@ The simplest way to launch a Tangelo server is to use this command: ::
 
     tangelo
 
-The simple command hides a fair amount of activity behind the scenes, and it
-will be instructive to track that activity.
+Tangelo's runtime behaviors are specified via configuration file and command
+line options.  Tangelo configuration files are INI-style files as read by the
+standard Python `ConfigParse
+<https://docs.python.org/2/library/configparser.html>`_ module.  These files
+consist of one or more `sections`, each of which contains one or more option
+settings.  A section begins with the section title, wrapped in square brackets.
+Options are given as key-value pairs:  the line starts with the name of the
+key, then a colon followed by a space, and then the value.
 
-Tangelo's runtime behaviors are specified via configuration file and command line options.  Tangelo
-configuration files are simply `JSON+comments
-<http://blog.getify.com/json-comments/>`_ files containing a single JavaScript
-object of key-value pairs describing the configuration.  When no configuration
-file is specified on the command line (via the ``-c`` or ``--config`` flags),
-Tangelo will search for one in a sequence of predetermined locations, as
-follows:
+The example configuration found at
+``/usr/share/tangelo/conf/tangelo/local/conf`` reads something like the
+following:
 
-#. ``/etc/tangelo.conf``
+.. code-block:: cfg
 
-#. ``~/.config/tangelo/tangelo.conf``
-
-#. ``/usr/share/tangelo/conf/tangelo.conf.local``
-
-For example, in the quickstart situation, Tangelo will end up using #3, one of
-the configuration files that ships with Tangelo.  ``tangelo.conf.local`` looks
-something like this:
-
-.. code-block:: javascript
-
-    {
-        "hostname": "0.0.0.0",
-        "port":     8080,
-    }
+    [tangelo]
+    hostname: 0.0.0.0
+    port:     8080
 
 This minimal configuration file specifies that Tangelo should listen on all
 interfaces for connections on port 8080.  By contrast, ``tangelo.conf.global``
 looks like this:
 
-.. code-block:: javascript
+.. code-block:: cfg
 
-    {
-        "hostname": "0.0.0.0",
-        "port":     80,
+    [tangelo]
+    hostname: 0.0.0.0
+    port:     80
 
-        "user":     "nobody",
-        "group":    "nobody",
-    }
+    user:     nobody
+    group:    nobody
 
 This configuration file is meant for the case when Tangelo is to be installed as
 a system-level service.  It will run on port 80 (the standard port for an HTTP
@@ -69,50 +59,68 @@ with the ``-c`` or ``--config`` option: ::
 
     tangelo -c ~/myconfig.json
 
-Otherwise, a particular user may have a configuration she wishes to use for all
-Tangelo sessions; she can place this file at ``~/.config/tangelo.conf`` and
-forgo the use of ``-c`` and ``--config``.  Finally, a system administrator can
-create a sitewide configuration by installing a file to ``/etc/tangelo.conf``.
+When the flag is omitted, Tangelo will use default values for all
+configuration options (see :ref:`config-options` below).
+
+Finally, all configuration options can also be specified on the command line.
+This has the effect of overriding whatever value may be set in the specified
+configuration file.  This can be useful for, e.g., using a single configuration
+file for multiple Tangelo instances, but varying the port number.
 
 .. _config-options:
 
 Configuration Options
 ---------------------
 
-The following table shows what fields that can be included in the configuration
-file, what they mean, and their default values if left unspecified:
+The following tables, organized by section title, show what fields can be
+included in the configuration file, what they mean, and their default values if
+left unspecified.
 
-=============== =========================================================================================   =============
-Option          Meaning                                                                                     Default value
-=============== =========================================================================================   =============
-hostname        The hostname interface on which to listen for connections (*string*)                        "localhost"
+The **[tangelo]** section contains general server options:
 
-port            The port number on which to listen for connections (*integer*)                              "8080"
+================ =================================================================   =================================
+Option           Meaning                                                             Default value
+================ =================================================================   =================================
+hostname         The hostname interface on which to listen for connections           ``localhost``
 
-root            The path to the directory to be served by Tangelo as the web root (*string*)                "/usr/share/tangelo/web" [#root]_
+port             The port number on which to listen for connections                  ``8080``
 
-vtkpython       The path to the ``vtkptyhon`` program (for use in :ref:`vtkweb` capabilities) (*string*)    null
+root             The path to the directory to be served by Tangelo as the web root   ``/usr/share/tangelo/www`` [#root]_
 
-drop_privileges Whether to drop privileges when started as the superuser (*boolean*)                        true
+drop_privileges  Whether to drop privileges when started as the superuser            ``True``
 
-sessions        Wehther to enable server-side session tracking (*boolean*)                                  true
+sessions         Wehther to enable server-side session tracking                      ``True``
 
-user            The user account to drop privileges to (*string*)                                           "nobody" [#usergroup]_
+user             The user account to drop privileges to                              ``nobody`` [#usergroup]_
 
-group           The user group to drop privileges to (*string*)                                             "nobody" [#usergroup]_
+group            The user group to drop privileges to                                ``nobody`` [#usergroup]_
 
-access_auth     Whether to protect directories containing a ``.htaccess`` file (*boolean*)                  true
+access_auth      Whether to protect directories containing a ``.htaccess`` file      ``True``
 
-key             The path to the SSL key (*string*)                                                          null [#https]_
+key              The path to the SSL key                                             ``None`` [#https]_ [#unset]_
 
-cert            The path to the SSL certificate (*string*)                                                  null [#https]_
+cert             The path to the SSL certificate                                     ``None`` [#https]_ [#unset]_
+================ =================================================================   =================================
 
-girder-host     The hostname running Girder (*string*)                                                      "localhost" [#gird]_
+The **[vtkpython]** section contains options related to :ref:`vtkweb` integration:
 
-girder-port     The port on which the Girder database is running (*integer*)                                27017 [#gird]_
+================ =================================================================   =================================
+Option           Meaning                                                             Default value
+================ =================================================================   =================================
+vtkpython        The path to the ``vtkptyhon`` program                               ``None`` [#unset]_
+================ =================================================================   =================================
 
-girder-path     The path on which to mount a Girder API (*string*)                                          null [#gird]_
-=============== =========================================================================================   =============
+The **[girder]** section contains options related to mounting a Girder API: [#gird]_
+
+================ =================================================================   =================================
+Option           Meaning                                                             Default value
+================ =================================================================   =================================
+host [#girdopt]_ The hostname running Girder                                         ``localhost``
+
+port [#girdopt]_ The port on which the Girder database is running                    ``27017``
+
+path [#girdopt]_ The path on which to mount a Girder API                             ``None`` [#unset]_
+================ =================================================================   =================================
 
 .. rubric:: Footnotes
 
@@ -132,10 +140,17 @@ girder-path     The path on which to mount a Girder API (*string*)              
     https.
 
 .. [#gird] `Girder <https://github.com/girder/girder>`_ will attempt to be
-    mounted if the girder-path is provided. The girder-path will be the root
-    for mounting the Girder static resources and API endpoints, and should
-    start with a leading ``/``, for example ``/girder``. The ``girder`` Python
-    library must be available to the Python environment.
+    mounted if the girder-path is provided. The girder-path will be the root for
+    mounting the Girder static resources and API endpoints, and will be placed
+    under Tangelo's ``api`` path.  For instance, if the option is set to "girder",
+    then the Girder API will be accessible at ``/api/girder``. The ``girder``
+    Python library must be available to the Python environment.
+
+.. [#girdopt] On the command line, this option is prefixed by "girder-" to
+    encode the fact that the option comes from the [girder] configuration section.
+
+.. [#unset] That is to say, the option is simply unset by default, the
+    equivalent of not mentioning the option at all in a configuration file.
 
 Administering a Tangelo Installation
 ====================================
@@ -160,23 +175,23 @@ group to drop privileges to:  these can be the specially created user and group
 
 The corresponding configuration file might look like this:
 
-.. code-block:: javascript
+.. code-block:: cfg
 
-    {
-        // Network options.
-        "hostname": "excelsior.starfleet.mil",
-        "port": 80,
+    [tangelo]
+    # Network options.
+    hostname: excelsior.starfleet.mil
+    port: 80
 
-        // Privilege drop options.
-        "user": "tangelo",
-        "group": "tangelo",
+    # Privilege drop options.
+    user: tangelo
+    group: tangelo
 
-        // Runtime resources.
-        "root": "/srv/tangelo"
-    }
+    # Runtime resources.
+    root: /srv/tangelo
 
-This file should be saved to ``/etc/tangelo.conf``, and then Tangelo can be launched
-with a simple ``tangelo`` on the command line.
+This file should be saved to ``/etc/tangelo.conf``, and then Tangelo can be
+launched with a command like ``tangelo -c /etc/tangelo.conf`` (the ``sudo`` may
+be necessary to allow for port 80 to be bound).
 
 Running Tangelo as a System Service
 ===================================
@@ -226,16 +241,13 @@ instantiation name.  For example: ::
     sudo systemctl start tangelo@localhost:8080
 
 will launch Tangelo to run on the `localhost` interface, on port 8080.  The way
-this works is that ``systemctl`` takes the instantiation name (i.e., all the text after the ``@`` symbol - *localhost:8080*) and passes it to
-``launch-tangelo.sh``.  It in turn parses the hostname (*localhost*) and port number (*8080*) from the
-name, then launches Tangelo using whatever configuration file is found at
-``/etc/tangelo.conf``, but overriding the hostname and port with those parsed
-from the name.  This allows for a unique name for each Tangelo instance that
-corresponds to its unique web interface.
-
-Since the configuration file used for a particular Tangelo instance may change independently of how that instance
-has been configured and run, you may consult the Tangelo instance itself to find
-out its configuration parameters by sending a ``GET`` request to ``/config``.
+this works is that ``systemctl`` takes the instantiation name (i.e., all the
+text after the ``@`` symbol - *localhost:8080*) and passes it to
+``launch-tangelo.sh``.  It in turn parses the hostname (*localhost*) and port
+number (*8080*) from the name, then launches Tangelo using whatever
+configuration file is found at ``/etc/tangelo.conf``, but overriding the
+hostname and port with those parsed from the name.  This allows for a unique
+name for each Tangelo instance that corresponds to its unique web interface.
 
 Preparing Data for the Example Applications
 ===========================================
