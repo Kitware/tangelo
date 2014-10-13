@@ -351,8 +351,8 @@ set(TANGELO_SOURCES
     scripts/tangelo
     scripts/tangelo-passwd
     scripts/vtkweb-launcher.py
-    assets/conf/tangelo.conf.global
-    assets/conf/tangelo.conf.local
+    assets/conf/tangelo.global.conf
+    assets/conf/tangelo.local.conf
     assets/data/get-flickr-data.py
     assets/images/tangelo.ico
 )

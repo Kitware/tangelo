@@ -1,6 +1,7 @@
 #!python
 
 import argparse
+import ConfigParser
 import errno
 import itertools
 import os
@@ -35,12 +36,52 @@ def read_config(cfgfile):
     if cfgfile is None:
         return {}
 
-    # Read out the text of the file.
-    with open(cfgfile) as f:
-        text = f.read()
+    def getboolean(section, key):
+        try:
+            return cfg.getboolean(section, key)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return None
 
-    # Strip comments and then parse into a dict.
-    return json.loads(json_minify(text))
+    def getint(section, key):
+        try:
+            return cfg.getint(section, key)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return None
+
+    def getstring(section, key):
+        try:
+            return cfg.get(section, key)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return None
+
+    # Read the config file.
+    cfg = ConfigParser.RawConfigParser()
+    files = cfg.read(cfgfile)
+
+    # Signal error if file could not be read.
+    if len(files) == 0:
+        raise IOError(2, "Could not open configuration file", cfgfile)
+
+    # Populate a dictionary with the values from the config.
+    config = {}
+    config["access_auth"] = getboolean("tangelo", "access_auth")
+    config["drop_privileges"] = getboolean("tangelo", "drop_privileges")
+    config["sessions"] = getboolean("tangelo", "sessions")
+    config["hostname"] = getstring("tangelo", "hostname")
+    config["port"] = getint("tangelo", "port")
+    config["user"] = getstring("tangelo", "user")
+    config["group"] = getstring("tangelo", "group")
+    config["key"] = getstring("tangelo", "key")
+    config["cert"] = getstring("tangelo", "cert")
+    config["root"] = getstring("tangelo", "root")
+
+    config["vtkpython"] = getstring("vtkweb", "vtkpython")
+
+    config["girder-host"] = getstring("girder", "girder-host")
+    config["girder-port"] = getint("girder", "girder-port")
+    config["girder-path"] = getstring("girder", "girder-path")
+
+    return config
 
 
 def polite(signum, frame):
@@ -79,7 +120,6 @@ def shutdown(signum, frame):
 def main():
     p = argparse.ArgumentParser(description="Start a Tangelo server.")
     p.add_argument("-c", "--config", type=str, default=None, metavar="FILE", help="specifies configuration file to use")
-    p.add_argument("-nc", "--no-config", action="store_true", help="skips looking for and using a configuration file")
     p.add_argument("-a", "--access-auth", action="store_const", const=True, default=None, help="enable HTTP authentication (i.e. processing of .htaccess files) (default)")
     p.add_argument("-na", "--no-access-auth", action="store_const", const=True, default=None, help="disable HTTP authentication (i.e. processing of .htaccess files)")
     p.add_argument("-p", "--drop-privileges", action="store_const", const=True, default=None, help="enable privilege drop when started as superuser (default)")
@@ -115,11 +155,7 @@ def main():
         tangelo.log("ERROR", "can't specify both --drop-privileges (-p) and --no-drop-privileges (-np) together")
         return 1
 
-    if args.no_config and args.config is not None:
-        tangelo.log("ERROR", "can't specify both --config (-c) and --no-config (-nc) together")
-        return 1
-
-    if args.no_config and args.config is not None:
+    if args.no_sessions and args.sessions:
         tangelo.log("ERROR", "can't specify both --sessions (-s) and --no-sessions (-ns) together")
         sys.exit(1)
 
@@ -131,31 +167,29 @@ def main():
     # If --no-config was specified, this will be the empty dictionary;
     # otherwise, check the command line arguments for a config file first, then
     # look for one in a sequence of other places.
-    cfg_file = None
     config = {}
-    if args.no_config:
-        tangelo.log("TANGELO", "Not using any configuration file")
+    cfg_file = args.config
+    if cfg_file is None:
+        tangelo.log("TANGELO", "No configuration file specified - using command line args and defaults")
     else:
-        cfg_file = args.config
-        if cfg_file is None:
-            tangelo.log("TANGELO", "Looking for default configuration file")
-            for loc in ["/etc/tangelo.conf", os.path.expanduser("~/.config/tangelo/tangelo.conf"), invocation_dir + "/share/tangelo/conf/tangelo.conf.local"]:
-                tangelo.log("TANGELO", "Trying %s" % (loc))
-                if os.path.exists(loc):
-                    cfg_file = loc
-                    break
+        cfg_file = tangelo.util.expandpath(cfg_file)
+        tangelo.log("TANGELO", "Using configuration file %s" % (cfg_file))
 
-        if cfg_file is None:
-            tangelo.log("TANGELO", "No configuration file found - will use command line args and defaults")
-        else:
-            cfg_file = tangelo.util.expandpath(cfg_file)
-            tangelo.log("TANGELO", "Using configuration file %s" % (cfg_file))
-
-        # Get a dict representing the contents of the config file.
-        try:
-            config = read_config(cfg_file)
-        except ValueError as e:
-            tangelo.log("ERROR", "problem with configuration file %s: %s" % (cfg_file, e.message))
+    # Get a dict representing the contents of the config file.
+    try:
+        ok = False
+        config = read_config(cfg_file)
+        ok = True
+    except IOError as e:
+        tangelo.log("ERROR", "%s" % (e))
+    except ConfigParser.MissingSectionHeaderError:
+        tangelo.log("ERROR", "Config file '%s' has no section headers" % (cfg_file))
+    except ConfigParser.ParsingError as e:
+        tangelo.log("ERROR", "Config file '%s' has syntax errors:" % (cfg_file))
+        for lineno, text in e.errors:
+            tangelo.log("ERROR", "\tline %d: %s" % (lineno, text))
+    finally:
+        if not ok:
             return 1
 
     # Determine whether to use access auth.
@@ -193,6 +227,9 @@ def main():
     port = args.port or config.get("port") or 8080
     user = args.user or config.get("user") or "nobody"
     group = args.group or config.get("group") or "nobody"
+
+    tangelo.log("TANGELO", "Hostname: %s" % (hostname))
+    tangelo.log("TANGELO", "Port: %d" % (port))
 
     tangelo.log("TANGELO", "Privilege drop %s" % ("enabled (if necessary)" if drop_privileges else "disabled"))
     if drop_privileges:
