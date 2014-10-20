@@ -649,6 +649,13 @@ if(${BUILD_TESTING})
         )
     endif()
 
+    # Configure Python test cases' fixture module.
+    configure_file(
+        tests/fixture/fixture.py.in
+        ${CMAKE_BINARY_DIR}/tests/fixture.py
+        @ONLY
+    )
+
     # Generate Python test cases.
     file(GLOB PYTHON_TESTS
         ${CMAKE_SOURCE_DIR}/tests/*.py
