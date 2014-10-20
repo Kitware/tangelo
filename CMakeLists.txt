@@ -120,15 +120,6 @@ if(${BUILD_DOCUMENTATION} OR ${BUILD_TESTING})
         COMMENT "Installing pep8"
     )
 
-    # Install pylint (for Python lint tests).
-    set(PYLINT_EXECUTABLE ${VENV_DIR}/bin/pylint)
-    add_custom_command(
-        OUTPUT ${PYLINT_EXECUTABLE}
-        COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall pylint
-        DEPENDS ${PIP_EXECUTABLE}
-        COMMENT "Installing pylint"
-    )
-
     # Install pymongo (for use of Mongo in example applications).
     set(MONGO_MODULE ${VENV_DIR}/lib/python2.7/site-packages/pymongo/__init__.py)
     add_custom_command(
@@ -516,22 +507,6 @@ if(${BUILD_TESTING})
 
         # Make sure pep8 is installed.
         list(APPEND TESTING_DEPENDENCIES ${PEP8_EXECUTABLE})
-    endif()
-
-    # Python lint tests.
-    if(PY_LINT_TESTS)
-        set(PYLINT_RCFILE "${CMAKE_SOURCE_DIR}/testing/pylint/pylintrc")
-        set(PYLINT_OPTIONS --rcfile=${PYLINT_RCFILE})
-
-        foreach(f ${PEP8_FILES})
-            add_test(
-                NAME style:py:pylint:${f}
-                COMMAND ${PYLINT_EXECUTABLE} ${PYLINT_OPTIONS} ${f}
-                )
-        endforeach()
-
-        # Make sure pylint is installed.
-        list(APPEND TESTING_DEPENDENCIES ${PYLINT_EXECUTABLE})
     endif()
 
     # A variation of add_test that invokes setup and teardown around the
