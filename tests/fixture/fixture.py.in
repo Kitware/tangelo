@@ -5,12 +5,13 @@ import time
 tangelo = "@TANGELO_EXECUTABLE@"
 host = "@TESTING_HOST@"
 port = "@TESTING_PORT@"
+www = "@TESTING_WEB_CONTENT@"
 
 process = None
 
 
-def url(*path):
-    return "http://%s:%s/%s" % (host, port, "/".join(path))
+def url(*path, **query):
+    return "http://%s:%s/%s?%s" % (host, port, "/".join(path), "&".join(["%s=%s" % (key, value) for key, value in query.iteritems()]))
 
 def start_tangelo():
     global process
@@ -20,7 +21,8 @@ def start_tangelo():
 
     process = subprocess.Popen([tangelo,
                                 "--host", host,
-                                "--port", port],
+                                "--port", port,
+                                "--root", www],
                                stderr=subprocess.PIPE)
 
     buf = []

@@ -650,6 +650,7 @@ if(${BUILD_TESTING})
     endif()
 
     # Configure Python test cases' fixture module.
+    set(TESTING_WEB_CONTENT "${CMAKE_SOURCE_DIR}/tests/www")
     configure_file(
         tests/fixture/fixture.py.in
         ${CMAKE_BINARY_DIR}/tests/fixture.py
