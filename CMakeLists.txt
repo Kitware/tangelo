@@ -120,6 +120,15 @@ if(${BUILD_DOCUMENTATION} OR ${BUILD_TESTING})
         COMMENT "Installing pep8"
     )
 
+    # Install nose (for Python testing).
+    set(NOSE_EXECUTABLE ${VENV_DIR}/bin/nosetests)
+    add_custom_command(
+        OUTPUT ${NOSE_EXECUTABLE}
+        COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall nose
+        DEPENDS ${PIP_EXECUTABLE}
+        COMMENT "Installing nose"
+    )
+
     # Install pymongo (for use of Mongo in example applications).
     set(MONGO_MODULE ${VENV_DIR}/lib/python2.7/site-packages/pymongo/__init__.py)
     add_custom_command(
@@ -639,6 +648,29 @@ if(${BUILD_TESTING})
             ${VENV_PYTHON_EXECUTABLE} ${TANGELO_VERSION_TEST}
         )
     endif()
+
+    # Generate Python test cases.
+    file(GLOB PYTHON_TESTS
+        ${CMAKE_SOURCE_DIR}/tests/*.py
+    )
+
+    foreach(case_src ${PYTHON_TESTS})
+        get_filename_component(f "${case_src}" NAME_WE)
+        set(case ${CMAKE_BINARY_DIR}/tests/${f}.py)
+        add_custom_command(OUTPUT ${case}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                                     ${case_src}
+                                     ${case}
+            DEPENDS ${case_src}
+            COMMENT "Generating test ${f}"
+        )
+
+        add_test(tangelo:${f}
+            ${NOSE_EXECUTABLE} ${case}
+        )
+
+        list(APPEND PYTHON_TEST_FILES ${case})
+    endforeach()
 endif()
 
 # The top-level dependency list.
@@ -667,6 +699,7 @@ if(${BUILD_TESTING})
         ${TESTING_DEPENDENCIES}
         ${JS_UNIT_TEST_FILES}
         ${WEB_CONTENT_TEST_FILES}
+        ${PYTHON_TEST_FILES}
         ${MONGO_MODULE}
         ${NLTK_MODULE}
     )
