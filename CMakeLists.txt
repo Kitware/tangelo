@@ -150,21 +150,13 @@ if(${BUILD_DOCUMENTATION} OR ${BUILD_TESTING})
     list(APPEND ${TESTING_DEPENDENCIES} ${MONGO_MODULE})
 endif()
 
-# Need UglifyJS to build Tangelo; JSLint and PhantomJS to test.
+# Need UglifyJS to build Tangelo; PhantomJS to test.
 if(${BUILD_TANGELO} OR ${BUILD_TESTING})
     find_program(NPM_EXECUTABLE
         npm
     )
 
     set(NPM_DIR ${CMAKE_BINARY_DIR}/node_modules)
-
-    # Install JSLint (for Javascript style/lint tests).
-    set(JSLINT_EXECUTABLE ${NPM_DIR}/jslint/bin/jslint.js)
-    add_custom_command(
-        OUTPUT ${JSLINT_EXECUTABLE}
-        COMMAND ${NPM_EXECUTABLE} install jslint
-        COMMENT "Installing jslint"
-    )
 
     # Install UglifyJS (to build Tangelo Javascript libraries).
     set(UGLIFYJS_EXECUTABLE ${NPM_DIR}/uglify-js/bin/uglifyjs)
@@ -185,9 +177,7 @@ endif()
 
 # Show/hide testing options depending on whether testing is enabled.
 if(${BUILD_TESTING})
-    set(JS_LINT_TESTS ON CACHE BOOL "Generate style tests for JS source files (via JSLint).")
     set(PY_STYLE_TESTS ON CACHE BOOL "Generate style tests for Python source files (via pep8).")
-    set(PY_LINT_TESTS OFF CACHE BOOL "Generate pylint tests for Python source files.")
     set(JS_UNIT_TESTS ON CACHE BOOL "Generate tangelo.js unit tests.")
     set(PY_UNIT_TESTS ON CACHE BOOL "Generate tangelo Python module unit tests.")
     set(WEB_CONTENT_TESTS ON CACHE BOOL "Generate tests for example web appplications.")
@@ -197,18 +187,14 @@ if(${BUILD_TESTING})
 
     mark_as_advanced(TESTING_HOST)
 
-    mark_as_advanced(CLEAR JS_LINT_TESTS
-                           PY_STYLE_TESTS
-                           PY_LINT_TESTS
+    mark_as_advanced(CLEAR PY_STYLE_TESTS
                            JS_UNIT_TESTS
                            PY_STYLE_TESTS
                            WEB_CONTENT_TESTS
                            TESTING_PORT
     )
 else()
-    mark_as_advanced(FORCE JS_LINT_TESTS
-                           PY_STYLE_TESTS
-                           PY_LINT_TESTS
+    mark_as_advanced(FORCE PY_STYLE_TESTS
                            JS_UNIT_TESTS
                            PY_UNIT_TESTS
                            WEB_CONTENT_TESTS
@@ -218,69 +204,6 @@ endif()
 
 # Create a binary directory to hold various timestamps.
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/stamps)
-
-# These files should be validated with JSLint.
-#
-# NOTE: flickr.js and ner.js have been commented out because they are not
-# expected to pass JSLint validation without a major rewrite.
-set(JS_LINT_FILES
-    ${CMAKE_SOURCE_DIR}/tangelo.js/core/core.js.in
-    ${CMAKE_SOURCE_DIR}/tangelo.js/core/util.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/data/_package.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/data/tree.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/data/distanceCluster.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/data/smooth.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/data/bin.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/GoogleMapSVG.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/controlPanel.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/bokeh.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/dendrogram.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geodots.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geonodelink.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/girderBrowser.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/mapdots.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/nodelink.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/svgColorLegend.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/correlationPlot.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/timeline.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geojsMap.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geojsdots.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/stream/_package.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/stream/stream.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/vega/_package.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/vega/geovis.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/vtkweb/_package.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/vtkweb/vtkweb.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/widget/widget.js
-    ${CMAKE_SOURCE_DIR}/www/examples/index.js
-    ${CMAKE_SOURCE_DIR}/www/examples/landingPage.js
-    ${CMAKE_SOURCE_DIR}/www/examples/app-template/myapp.js
-    ${CMAKE_SOURCE_DIR}/www/examples/dendrogram/dendrogram.js
-    ${CMAKE_SOURCE_DIR}/www/examples/enron/enron.js
-    #${CMAKE_SOURCE_DIR}/www/examples/flickr/flickr.js
-    ${CMAKE_SOURCE_DIR}/www/examples/geodots/geodots.js
-    ${CMAKE_SOURCE_DIR}/www/examples/geonodelink/geonodelink.js
-    ${CMAKE_SOURCE_DIR}/www/examples/mapdots/mapdots.js
-    #${CMAKE_SOURCE_DIR}/www/examples/ner/ner.js
-    ${CMAKE_SOURCE_DIR}/www/examples/primes/primes.js
-    ${CMAKE_SOURCE_DIR}/www/examples/vegabuilder/vegabuilder.js
-    ${CMAKE_SOURCE_DIR}/www/examples/vtkweb/index.js
-    ${CMAKE_SOURCE_DIR}/testing/phantomjs/blanket-test.js
-    ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js
-    ${CMAKE_SOURCE_DIR}/testing/test-cases/js-unit-tests/isBoolean.js
-    ${CMAKE_SOURCE_DIR}/testing/test-cases/js-unit-tests/isFunction.js
-    ${CMAKE_SOURCE_DIR}/testing/test-cases/js-unit-tests/tangelo-exists.js
-    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/200-ok.js
-    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/404-not-found.js
-    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/echo-service-no-args.js
-    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/echo-service.js
-    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/geodots-match.js
-    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/ner-service.js
-    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/primes.js
-    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/rest-get.js
-    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/rest-implicit-get.js
-    ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/rest-post.js
-)
 
 # These files should be validated with pep8.
 set(PEP8_FILES
@@ -506,17 +429,6 @@ if(${BUILD_TESTING})
 
     # These will be added to the dependencies of the top-level target.
     list(APPEND TESTING_DEPENDENCIES ${TANGELO_EXECUTABLE})
-
-    # Javascript style tests.
-    if(${JS_LINT_TESTS})
-        # Generate the tests.
-        foreach(f ${JS_LINT_FILES})
-            add_test(style:js:${f} ${JSLINT_EXECUTABLE} ${f})
-        endforeach()
-
-        # Make sure JSLint is installed.
-        list(APPEND TESTING_DEPENDENCIES ${JSLINT_EXECUTABLE})
-    endif()
 
     # Python style tests.
     if(${PY_STYLE_TESTS})
