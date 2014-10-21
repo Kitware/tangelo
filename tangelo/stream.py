@@ -103,7 +103,7 @@ class TangeloStream(object):
 
     def stream_next(self, key):
         if key not in self.streams:
-            cherrypy.response.status = "400 No Such Key"
+            cherrypy.response.status = "404 No Such Key"
             result = {"error": "Key '%s' does not correspond to an active stream" % (key)}
         else:
             # Grab the stream in preparation for running it.
@@ -124,15 +124,6 @@ class TangeloStream(object):
                 cherrypy.response.status = "500 Exception Raised By Streaming Service"
                 result = {"error": "Caught exception while executing stream service keyed by %s:<br><pre>%s</pre>" % (key, traceback.format_exc())}
 
-        # If the result from the streaming service is not already a string,
-        # attempt to make a string out of it by JSONifying.
-        if not isinstance(result, types.StringTypes):
-            try:
-                return json.dumps(result)
-            except TypeError:
-                cherrypy.response.status = "500 Streaming Service Result Is Not JSON-serializable"
-                result = {"error": "The stream keyed by %s returned a non JSON-serializable result: %s" % (key, result)}
-
         return result
 
     def DELETE(self, key=None):
@@ -140,7 +131,7 @@ class TangeloStream(object):
             cherrypy.response.status = "400 Stream Key Required"
             result = {"error": "No stream key was specified"}
         elif key not in self.streams:
-            cherrypy.response.status = "400 No Such Stream Key"
+            cherrypy.response.status = "404 No Such Stream Key"
             result = {"error": "Key '%s' does not correspond to an active stream" % (key)}
         else:
             del self.streams[key]
