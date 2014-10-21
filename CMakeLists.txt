@@ -138,41 +138,6 @@ if(${BUILD_DOCUMENTATION} OR ${BUILD_TESTING})
                 ${REQUESTS_MODULE}
         COMMENT "Installing nose"
     )
-
-    # Install pymongo (for use of Mongo in example applications).
-    set(MONGO_MODULE ${VENV_DIR}/lib/python2.7/site-packages/pymongo/__init__.py)
-    add_custom_command(
-        OUTPUT ${MONGO_MODULE}
-        COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall pymongo
-        DEPENDS ${PIP_EXECUTABLE}
-        COMMENT "Installing pymongo"
-    )
-    list(APPEND ${TESTING_DEPENDENCIES} ${MONGO_MODULE})
-endif()
-
-# Need UglifyJS to build Tangelo; PhantomJS to test.
-if(${BUILD_TANGELO} OR ${BUILD_TESTING})
-    find_program(NPM_EXECUTABLE
-        npm
-    )
-
-    set(NPM_DIR ${CMAKE_BINARY_DIR}/node_modules)
-
-    # Install UglifyJS (to build Tangelo Javascript libraries).
-    set(UGLIFYJS_EXECUTABLE ${NPM_DIR}/uglify-js/bin/uglifyjs)
-    add_custom_command(
-        OUTPUT ${UGLIFYJS_EXECUTABLE}
-        COMMAND ${NPM_EXECUTABLE} install uglify-js
-        COMMENT "Installing uglify-js"
-    )
-
-    # Install PhantomJS (for web content and Javascript unit tests).
-    set(PHANTOMJS_EXECUTABLE ${NPM_DIR}/phantomjs/bin/phantomjs)
-    add_custom_command(
-        OUTPUT ${PHANTOMJS_EXECUTABLE}
-        COMMAND ${NPM_EXECUTABLE} install phantomjs
-        COMMENT "Installing phantomjs"
-    )
 endif()
 
 # Show/hide testing options depending on whether testing is enabled.
@@ -219,41 +184,7 @@ set(PEP8_FILES
     ${CMAKE_SOURCE_DIR}/www/service/svg2pdf.py
 )
 
-# These files should be uglified and concatenated.
-configure_file(tangelo.js/core/core.js.in ${CMAKE_BINARY_DIR}/core.js)
-set(JS_UGLIFY_FILES
-    ${CMAKE_BINARY_DIR}/core.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/core/util.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/widget/widget.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/vega/_package.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/vega/geovis.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/vtkweb/_package.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/vtkweb/vtkweb.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/controlPanel.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/bokeh.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/GoogleMapSVG.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/svgColorLegend.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/dendrogram.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geodots.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geonodelink.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/girderBrowser.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/mapdots.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/nodelink.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/correlationPlot.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/timeline.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geojsMap.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/plugin/geojsdots.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/stream/_package.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/stream/stream.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/data/_package.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/data/tree.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/data/distanceCluster.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/data/smooth.js
-    ${CMAKE_SOURCE_DIR}/tangelo.js/data/bin.js
-)
-
 # These files should be copied to the build directory.
-glob_recurse_ungit(TANGELO_WEB_SOURCES www/*)
 glob_recurse_ungit(TANGELO_MODULE_SOURCES tangelo/*)
 glob_recurse_ungit(TANGELO_DAEMON_SCRIPTS assets/daemon/*)
 set(TANGELO_SOURCES
@@ -288,27 +219,6 @@ if(${BUILD_TANGELO})
 
     # Also copy the README file.
     copy_file(README.rst ${CMAKE_BINARY_DIR}/tangelo/README)
-
-    # Build the Tangelo javascript libraries.
-    set(MIN_JS_FILE ${CMAKE_BINARY_DIR}/tangelo/www/js/tangelo.min.js)
-    set(JS_FILE ${CMAKE_BINARY_DIR}/tangelo/www/js/tangelo.js)
-
-    # Minified .js file.
-    add_custom_command(
-        OUTPUT ${MIN_JS_FILE}
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/tangelo/www/js
-        COMMAND ${UGLIFYJS_EXECUTABLE} ${JS_UGLIFY_FILES} -m -o ${MIN_JS_FILE}
-        DEPENDS ${JS_UGLIFY_FILES} ${UGLIFYJS_EXECUTABLE}
-        COMMENT "Creating minified javascript library"
-    )
-
-    # Unminified .js file.
-    add_custom_command(
-        OUTPUT ${JS_FILE}
-        COMMAND ${UGLIFYJS_EXECUTABLE} ${JS_UGLIFY_FILES} -b -o ${JS_FILE}
-        DEPENDS ${JS_UGLIFY_FILES} ${UGLIFYJS_EXECUTABLE}
-        COMMENT "Creating unminified javascript library"
-    )
 endif()
 
 # Generate documentation.
@@ -432,8 +342,6 @@ endif()
 get_property(ALL_COPIED_FILES GLOBAL PROPERTY copied_files)
 set(TOP_LEVEL_DEPENDENCIES
     ${ALL_COPIED_FILES}
-    ${MIN_JS_FILE}
-    ${JS_FILE}
 )
 
 if(${BUILD_DOCUMENTATION})
