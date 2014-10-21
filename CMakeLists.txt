@@ -212,11 +212,6 @@ set(PEP8_FILES
     ${CMAKE_SOURCE_DIR}/tangelo/util.py
     ${CMAKE_SOURCE_DIR}/tangelo/vtkweb.py
     ${CMAKE_SOURCE_DIR}/tangelo/websocket.py
-    ${CMAKE_SOURCE_DIR}/www/examples/app-template/myservice.py
-    ${CMAKE_SOURCE_DIR}/www/examples/enron/emailers.py
-    ${CMAKE_SOURCE_DIR}/www/examples/ner/ner.py
-    ${CMAKE_SOURCE_DIR}/www/examples/ner/nermongo.py
-    ${CMAKE_SOURCE_DIR}/www/examples/primes/primes.py
     ${CMAKE_SOURCE_DIR}/www/service/celery.py
     ${CMAKE_SOURCE_DIR}/www/service/config.py
     ${CMAKE_SOURCE_DIR}/www/service/impala-json.py
