@@ -32,16 +32,16 @@ def put(*pargs, **kwargs):
 # This function has not been decorated as the above three, so it will not be
 # part of this service's RESTful API.
 def delete(*pargs, **kwargs):
-    return "DELETE: " + " ".join(pargs) + "  %s" % (kwargs)
+    return "DELETE: " + " ".join(pargs) + " %s" % (kwargs)
 
 
 # And here is an example of an unusual HTTP method.
 @tangelo.restful
 def propfind(*pargs, **kwargs):
-    return "PROPFIND: " + " ".join(pargs) + "  %s" % (kwargs)
+    return "PROPFIND: " + " ".join(pargs) + " %s" % (kwargs)
 
 
 # And one that isn't even a valid HTTP method.
 @tangelo.restful
 def dukat(*pargs, **kwargs):
-    return "DUKAT: " + " ".join(pargs) + "  %s" % (kwargs)
+    return "DUKAT: " + " ".join(pargs) + " %s" % (kwargs)
