@@ -120,12 +120,22 @@ if(${BUILD_DOCUMENTATION} OR ${BUILD_TESTING})
         COMMENT "Installing pep8"
     )
 
+    # Install requests (for Python testing).
+    set(REQUESTS_MODULE ${VENV_DIR}/lib/python2.7/site-packages/requests/__init__.py)
+    add_custom_command(
+        OUTPUT ${REQUESTS_MODULE}
+        COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall requests
+        DEPENDS ${PIP_EXECUTABLE}
+        COMMENT "Installing requests"
+    )
+
     # Install nose (for Python testing).
     set(NOSE_EXECUTABLE ${VENV_DIR}/bin/nosetests)
     add_custom_command(
         OUTPUT ${NOSE_EXECUTABLE}
         COMMAND ${PIP_EXECUTABLE} install --upgrade --force-reinstall nose
         DEPENDS ${PIP_EXECUTABLE}
+                ${REQUESTS_MODULE}
         COMMENT "Installing nose"
     )
 
@@ -679,6 +689,9 @@ if(${BUILD_TESTING})
 
         list(APPEND PYTHON_TEST_FILES ${case})
     endforeach()
+
+    # Include nose as a testing dependency.
+    list(APPEND TESTING_DEPENDENCIES ${NOSE_EXECUTABLE})
 endif()
 
 # The top-level dependency list.
