@@ -85,7 +85,7 @@ class Tangelo(object):
                     # requested method, ensure that it was marked as being part
                     # of the API, and call it; or give a 405 error.
                     method = cherrypy.request.method
-                    restfunc = service.__dict__[method.lower()]
+                    restfunc = service.__dict__.get(method.lower())
                     if (restfunc is not None and
                             hasattr(restfunc, "restful") and
                             restfunc.restful):
