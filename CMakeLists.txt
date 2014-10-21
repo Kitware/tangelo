@@ -177,20 +177,20 @@ endif()
 
 # Show/hide testing options depending on whether testing is enabled.
 if(${BUILD_TESTING})
-    set(PY_STYLE_TESTS ON CACHE BOOL "Generate style tests for Python source files (via pep8).")
-    set(PY_UNIT_TESTS ON CACHE BOOL "Generate unit tests for Tangelo web behavior.")
+    set(PEP8_TESTS ON CACHE BOOL "Generate style tests for Python source files (via pep8).")
+    set(TANGELO_TESTS ON CACHE BOOL "Generate unit tests for Tangelo web behavior.")
     set(TESTING_HOST localhost CACHE STRING "The host to run Tangelo on for the test suite.")
     set(TESTING_PORT 50047 CACHE STRING "The port number to run Tangelo for the test suite.")
 
     mark_as_advanced(TESTING_HOST)
 
-    mark_as_advanced(CLEAR PY_STYLE_TESTS
-                           PY_UNIT_TESTS
+    mark_as_advanced(CLEAR PEP8_TESTS
+                           TANGELO_TESTS
                            TESTING_PORT
     )
 else()
-    mark_as_advanced(FORCE PY_STYLE_TESTS
-                           PY_UNIT_TESTS
+    mark_as_advanced(FORCE PEP8_TESTS
+                           TANGELO_TESTS
                            TESTING_PORT
     )
 endif()
@@ -385,7 +385,7 @@ if(${BUILD_TESTING})
     list(APPEND TESTING_DEPENDENCIES ${TANGELO_EXECUTABLE})
 
     # Python style tests.
-    if(${PY_STYLE_TESTS})
+    if(${PEP8_TESTS})
         foreach(f ${PEP8_FILES})
             add_test(style:py:pep8:${f} ${PEP8_EXECUTABLE} --ignore=E501 ${f})
         endforeach()
@@ -395,7 +395,7 @@ if(${BUILD_TESTING})
     endif()
 
     # Configure Python test cases' fixture module.
-    if(${PY_UNIT_TESTS})
+    if(${TANGELO_TESTS})
         set(TESTING_WEB_CONTENT "${CMAKE_SOURCE_DIR}/tests/www")
         configure_file(
             tests/fixture/fixture.py.in
