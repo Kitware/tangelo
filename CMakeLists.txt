@@ -178,26 +178,19 @@ endif()
 # Show/hide testing options depending on whether testing is enabled.
 if(${BUILD_TESTING})
     set(PY_STYLE_TESTS ON CACHE BOOL "Generate style tests for Python source files (via pep8).")
-    set(JS_UNIT_TESTS ON CACHE BOOL "Generate tangelo.js unit tests.")
-    set(PY_UNIT_TESTS ON CACHE BOOL "Generate tangelo Python module unit tests.")
-    set(WEB_CONTENT_TESTS ON CACHE BOOL "Generate tests for example web appplications.")
-    set(OTHER_TESTS ON CACHE BOOL "Generate miscellaenous other tests.")
+    set(PY_UNIT_TESTS ON CACHE BOOL "Generate unit tests for Tangelo web behavior.")
     set(TESTING_HOST localhost CACHE STRING "The host to run Tangelo on for the test suite.")
     set(TESTING_PORT 50047 CACHE STRING "The port number to run Tangelo for the test suite.")
 
     mark_as_advanced(TESTING_HOST)
 
     mark_as_advanced(CLEAR PY_STYLE_TESTS
-                           JS_UNIT_TESTS
-                           PY_STYLE_TESTS
-                           WEB_CONTENT_TESTS
+                           PY_UNIT_TESTS
                            TESTING_PORT
     )
 else()
     mark_as_advanced(FORCE PY_STYLE_TESTS
-                           JS_UNIT_TESTS
                            PY_UNIT_TESTS
-                           WEB_CONTENT_TESTS
                            TESTING_PORT
     )
 endif()
@@ -229,15 +222,6 @@ set(PEP8_FILES
     ${CMAKE_SOURCE_DIR}/www/service/impala-json.py
     ${CMAKE_SOURCE_DIR}/www/service/mongo.py
     ${CMAKE_SOURCE_DIR}/www/service/svg2pdf.py
-    ${CMAKE_SOURCE_DIR}/www/service/test/404.py
-    ${CMAKE_SOURCE_DIR}/www/service/test/abspath.py
-    ${CMAKE_SOURCE_DIR}/www/service/test/broken.py
-    ${CMAKE_SOURCE_DIR}/www/service/test/echo.py
-    ${CMAKE_SOURCE_DIR}/www/service/test/exceptional.py
-    ${CMAKE_SOURCE_DIR}/www/service/test/restful.py
-    ${CMAKE_SOURCE_DIR}/www/service/test/testapp.py
-    ${CMAKE_SOURCE_DIR}/testing/test-cases/py-unit-tests/get_free_port.py
-    ${CMAKE_SOURCE_DIR}/testing/test-cases/py-unit-tests/tangelo-types.py
 )
 
 # These files should be uglified and concatenated.
@@ -388,36 +372,6 @@ endif()
 
 # Testing
 if(${BUILD_TESTING})
-    # Grab the test filenames from the directory.
-    file(GLOB JS_UNIT_TEST_CASES
-        ${CMAKE_SOURCE_DIR}/testing/test-cases/js-unit-tests/*.js
-    )
-
-    # Add any configured test files here.
-    configure_file(
-        testing/test-cases/js-unit-tests/tangelo-version.js.in
-        ${CMAKE_BINARY_DIR}/test-cases/js-unit-tests/tangelo-version.js
-    )
-    list(APPEND JS_UNIT_TEST_CASES
-        ${CMAKE_BINARY_DIR}/test-cases/js-unit-tests/tangelo-version.js
-    )
-
-    # Grab the test filenames from the Python unit test directory.
-    file(GLOB PY_UNIT_TEST_CASES
-        ${CMAKE_SOURCE_DIR}/testing/test-cases/py-unit-tests/*.py
-    )
-
-    # Grab the list of "web content tests" - that is, these tests will generally
-    # speaking, retrieve content from a URL, then run a function on the content
-    # to determine whether the test passes.  This may be as simple as comparing
-    # the content directly against expected output.
-    file(GLOB WEB_CONTENT_TEST_CASES
-        ${CMAKE_SOURCE_DIR}/testing/test-cases/web-content-tests/*.js
-    )
-
-    # Configure the python test runner.
-    configure_file(testing/test-runners/tangelo-test-runner.py.in ${CMAKE_BINARY_DIR}/test-runners/tangelo-test-runner.py)
-
     # Install Tangelo in the virtual environment.
     set(TANGELO_EXECUTABLE ${VENV_DIR}/bin/tangelo)
     add_custom_command(
@@ -440,170 +394,43 @@ if(${BUILD_TESTING})
         list(APPEND TESTING_DEPENDENCIES ${PEP8_EXECUTABLE})
     endif()
 
-    # A variation of add_test that invokes setup and teardown around the
-    # requested command.
-    function(add_tangelo_test test_name)
-        add_test(
-            NAME ${test_name}
-            COMMAND ${VENV_PYTHON_EXECUTABLE}
-                    ${CMAKE_BINARY_DIR}/test-runners/tangelo-test-runner.py
-                    ${ARGN}
-        )
-        set_property(TEST ${test_name} PROPERTY RESOURCE_LOCK tangelo)
-    endfunction()
-
-    # Unit tests for tangelo.js.
-    if(${JS_UNIT_TESTS})
-        # Make sure PhantomJS is installed.
-        list(APPEND TESTING_DEPENDENCIES ${PHANTOMJS_EXECUTABLE})
-
-        # Generate the tests.
-        foreach(js ${JS_UNIT_TEST_CASES})
-            get_filename_component(f "${js}" NAME_WE)
-            set(html ${CMAKE_BINARY_DIR}/tangelo/www/tests/js-unit-tests/${f}.html)
-
-            # Generate the testing HTML file (to be run with phantomjs via a
-            # jasmine runner) via a custom command, so the file is regenerated
-            # when the source file changes.
-            add_custom_command(OUTPUT ${html}
-                COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}"
-                                         -DSOURCE_DIR="${CMAKE_SOURCE_DIR}"
-                                         -DSOURCE_FILE="${js}"
-                                         -P ${CMAKE_SOURCE_DIR}/cmake/configure-js-unit-test.cmake
-                COMMAND ${CMAKE_COMMAND} -E touch ${html}
-                DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/test-runners/jasmine-runner.html.in
-                COMMENT "Generating Javascript unit test ${f}"
-            )
-
-            list(APPEND JS_UNIT_TEST_FILES ${html})
-
-            add_tangelo_test(unit-test:js:${f}
-                ${PHANTOMJS_EXECUTABLE} ${CMAKE_SOURCE_DIR}/testing/phantomjs/run-jasmine.js
-                                            http://${TESTING_HOST}:${TESTING_PORT}/tests/js-unit-tests/${f}.html
-            )
-        endforeach()
-
-        # Copy the blanket JS files to where they need to be.
-        configure_file(${CMAKE_SOURCE_DIR}/testing/js/blanket.min.js tangelo/www/tests/js-coverage/blanket.min.js COPYONLY)
-        configure_file(${CMAKE_SOURCE_DIR}/testing/js/jasmine-blanket.js tangelo/www/tests/js-coverage/jasmine-blanket.js COPYONLY)
-
-        # Generate the coverage report.
-        set(coverage_test ${CMAKE_BINARY_DIR}/tangelo/www/tests/js-coverage/tangelojs-coverage.html)
-        set(coverage_configurator  ${CMAKE_SOURCE_DIR}/cmake/configure-js-coverage-test.cmake)
-        add_custom_command(OUTPUT ${coverage_test}
-            COMMAND ${CMAKE_COMMAND} "-DJS_UNIT_TEST_CASES=\"${JS_UNIT_TEST_CASES}\""
-                                     -DSOURCE_DIR="${CMAKE_SOURCE_DIR}"
-                                     -P ${coverage_configurator}
-            COMMAND ${CMAKE_COMMAND} -E touch ${coverage_test}
-            DEPENDS ${JS_UNIT_TEST_FILES} ${CMAKE_SOURCE_DIR}/testing/test-runners/coverage-runner.html.in ${coverage_configurator}
-            COMMENT "Generating tangelo.js coverage report"
-        )
-
-        list(APPEND JS_UNIT_TEST_FILES ${coverage_test})
-    endif()
-
-    # Configure the gcov impersonator script.
-    configure_file(
-        testing/py-coverage/cover2gcov.py.in
-        cover2gcov.py
-    )
-
-    # Unit tests for tangelo Python module.
-    if(${PY_UNIT_TESTS})
-        # Add each test.  Decorate the call with the coverage tool if we're in
-        # coverage mode.
-        foreach(src ${PY_UNIT_TEST_CASES})
-            # Get the test's basename.
-            get_filename_component(f "${src}" NAME_WE)
-
-            # Name the testing file.
-            set(py ${CMAKE_BINARY_DIR}/test-cases/py-unit-tests/${f}.py)
-
-            # Configure the testing code into the test runner.
-            file(READ ${src} UNIT_TEST_CODE)
-            configure_file(testing/test-runners/unittest-runner.py.in ${py})
-
-            # Name and create the test.
-            set(name unit-test:py:${f})
-            add_test(${name}
-                ${VENV_PYTHON_EXECUTABLE} ${py}
-            )
-        endforeach()
-    endif()
-
-    # Web content tests.
-    if(${WEB_CONTENT_TESTS})
-        # Make sure PhantomJS is installed.
-        list(APPEND TESTING_DEPENDENCIES ${PHANTOMJS_EXECUTABLE})
-
-        # Generate the tests.
-        foreach(js ${WEB_CONTENT_TEST_CASES})
-            get_filename_component(f "${js}" NAME_WE)
-            set(js_out ${CMAKE_BINARY_DIR}/tangelo/www/tests/web-content-tests/${f}.js)
-
-            add_custom_command(OUTPUT ${js_out}
-                COMMAND ${CMAKE_COMMAND} -DTEST_NAME="${f}"
-                                         -DTEST_SOURCE="${js}"
-                                         -DJS_OUT="${js_out}"
-                                         -DTESTING_HOST="${TESTING_HOST}"
-                                         -DTESTING_PORT="${TESTING_PORT}"
-                                         -DSOURCE_DIR="${CMAKE_SOURCE_DIR}"
-                                         -P ${CMAKE_SOURCE_DIR}/cmake/configure-web-content-test.cmake
-                COMMAND ${CMAKE_COMMAND} -E touch ${js_out}
-                DEPENDS ${js} ${CMAKE_SOURCE_DIR}/testing/test-runners/web-content-test-runner.js.in
-                COMMENT "Generating web content test ${f}"
-            )
-
-            list(APPEND WEB_CONTENT_TEST_FILES ${js_out})
-
-            add_tangelo_test(web-content:${f}
-                ${PHANTOMJS_EXECUTABLE} ${js_out}
-            )
-        endforeach()
-    endif()
-
-    # Other tests.
-    if(${OTHER_TESTS})
-        set(TANGELO_VERSION_TEST ${CMAKE_BINARY_DIR}/test-cases/other-tests/tangelo-version.py)
-        configure_file(testing/test-cases/other-tests/tangelo-version.py.in ${TANGELO_VERSION_TEST})
-        add_test(other:tangelo-version
-            ${VENV_PYTHON_EXECUTABLE} ${TANGELO_VERSION_TEST}
-        )
-    endif()
-
     # Configure Python test cases' fixture module.
-    set(TESTING_WEB_CONTENT "${CMAKE_SOURCE_DIR}/tests/www")
-    configure_file(
-        tests/fixture/fixture.py.in
-        ${CMAKE_BINARY_DIR}/tests/fixture.py
-        @ONLY
-    )
-
-    # Generate Python test cases.
-    file(GLOB PYTHON_TESTS
-        ${CMAKE_SOURCE_DIR}/tests/*.py
-    )
-
-    foreach(case_src ${PYTHON_TESTS})
-        get_filename_component(f "${case_src}" NAME_WE)
-        set(case ${CMAKE_BINARY_DIR}/tests/${f}.py)
-        add_custom_command(OUTPUT ${case}
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                                     ${case_src}
-                                     ${case}
-            DEPENDS ${case_src}
-            COMMENT "Generating test ${f}"
+    if(${PY_UNIT_TESTS})
+        set(TESTING_WEB_CONTENT "${CMAKE_SOURCE_DIR}/tests/www")
+        configure_file(
+            tests/fixture/fixture.py.in
+            ${CMAKE_BINARY_DIR}/tests/fixture.py
+            @ONLY
         )
 
-        add_test(tangelo:${f}
-            ${NOSE_EXECUTABLE} ${case}
+        # Generate Python test cases.
+        file(GLOB PYTHON_TESTS
+            ${CMAKE_SOURCE_DIR}/tests/*.py
         )
 
-        list(APPEND PYTHON_TEST_FILES ${case})
-    endforeach()
+        foreach(case_src ${PYTHON_TESTS})
+            get_filename_component(f "${case_src}" NAME_WE)
+            set(case ${CMAKE_BINARY_DIR}/tests/${f}.py)
+            add_custom_command(OUTPUT ${case}
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                                         ${case_src}
+                                         ${case}
+                DEPENDS ${case_src}
+                COMMENT "Generating test ${f}"
+            )
 
-    # Include nose as a testing dependency.
-    list(APPEND TESTING_DEPENDENCIES ${NOSE_EXECUTABLE})
+            add_test(tangelo:${f}
+                ${NOSE_EXECUTABLE} ${case}
+            )
+
+            list(APPEND PYTHON_TEST_FILES ${case})
+        endforeach()
+
+        # Include nose as a testing dependency, as well as the tests themselves.
+        list(APPEND TESTING_DEPENDENCIES
+            ${NOSE_EXECUTABLE}
+            ${PYTHON_TEST_FILES})
+    endif()
 endif()
 
 # The top-level dependency list.
@@ -612,7 +439,6 @@ set(TOP_LEVEL_DEPENDENCIES
     ${ALL_COPIED_FILES}
     ${MIN_JS_FILE}
     ${JS_FILE}
-    ${GCDA_FILES}
 )
 
 if(${BUILD_DOCUMENTATION})
@@ -630,11 +456,6 @@ endif()
 if(${BUILD_TESTING})
     list(APPEND TOP_LEVEL_DEPENDENCIES
         ${TESTING_DEPENDENCIES}
-        ${JS_UNIT_TEST_FILES}
-        ${WEB_CONTENT_TEST_FILES}
-        ${PYTHON_TEST_FILES}
-        ${MONGO_MODULE}
-        ${NLTK_MODULE}
     )
 endif()
 
