@@ -1,5 +1,5 @@
 *.swp
 *.pyc
-.vagrant
-build
-CMakeLists.txt.user
+node_modules
+venv
+configuration.json
