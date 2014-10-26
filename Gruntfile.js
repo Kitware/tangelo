@@ -1,7 +1,10 @@
 /*global module:false*/
 module.exports = function(grunt) {
   var fs = require("fs"),
-      config;
+      config,
+      pip = "venv/bin/pip",
+      sphinx = "venv/bin/sphinx-build",
+      pep8 = "venv/bin/pep8";
 
   // Project configuration.
   grunt.initConfig({
@@ -95,13 +98,14 @@ module.exports = function(grunt) {
           console.log("Virtual environment already exists");
           return;
       } catch (e) {
-          console.log("Creating virtual environment");
-
           done = this.async();
 
           grunt.util.spawn({
               cmd: config.virtualenv,
-              args: ["-p", config.python, "venv"]
+              args: ["-p", config.python, "venv"],
+              opts: {
+                  stdio: "inherit"
+              }
           }, function (error, result, code) {
               if (error) {
                   grunt.fail.warn("Could not initialize virtualenv:\n" + result.stderr);
@@ -112,7 +116,28 @@ module.exports = function(grunt) {
       }
   });
 
+  // Python dependencies installation step.
+  grunt.registerTask("pydeps", "Install Python build dependencies", function () {
+      var done;
+
+      grunt.task.requires("virtualenv");
+
+      done = this.async();
+
+      grunt.util.spawn({
+          cmd: pip,
+          args: ["install", "-r", "requirements.txt"],
+          opts: {
+              stdio: "inherit"
+          }
+      }, function (error, result, code) {
+          if (error) {
+              grunt.fail.warn("Could not install Python modules:\n" + result.stderr);
+          }
+      });
+  });
+
   // Default task.
-  grunt.registerTask('default', ['readconfig', 'virtualenv']);
+  grunt.registerTask('default', ['readconfig', 'virtualenv', 'pydeps']);
 
 };

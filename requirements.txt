@@ -1,0 +1,3 @@
+Sphinx
+pep8
+requests
