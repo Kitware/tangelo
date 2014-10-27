@@ -27,7 +27,7 @@ import tangelo.util
 import tangelo.vtkweb
 import tangelo.websocket
 
-tangelo_version = "@TANGELO_VERSION@"
+tangelo_version = "0.7.0-dev"
 
 vtkweb = None
 

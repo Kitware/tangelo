@@ -30,6 +30,11 @@ module.exports = function(grunt) {
             }
         }
     },
+    version: {
+        src: [
+            "tangelo/__main__.py"
+        ]
+    },
     watch: {
       gruntfile: {
         files: '<%= jshint.gruntfile.src %>',
@@ -44,6 +49,7 @@ module.exports = function(grunt) {
 
   // These plugins provide necessary tasks.
   grunt.loadNpmTasks("grunt-prompt");
+  grunt.loadNpmTasks("grunt-version");
   grunt.loadNpmTasks('grunt-contrib-watch');
 
   // Read configuration from disk.
@@ -138,6 +144,9 @@ module.exports = function(grunt) {
   });
 
   // Default task.
-  grunt.registerTask('default', ['readconfig', 'virtualenv', 'pydeps']);
+  grunt.registerTask('default', ['version',
+                                 'readconfig',
+                                 'virtualenv',
+                                 'pydeps']);
 
 };
