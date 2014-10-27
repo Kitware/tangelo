@@ -5,7 +5,8 @@ module.exports = function(grunt) {
       python = "../venv/bin/python",
       pip = "venv/bin/pip",
       sphinx = "venv/bin/sphinx-build",
-      pep8 = "venv/bin/pep8";
+      pep8 = "venv/bin/pep8",
+      version = grunt.file.readJSON("package.json").version;
 
   // Project configuration.
   grunt.initConfig({
@@ -176,11 +177,33 @@ module.exports = function(grunt) {
       });
   });
 
+  // Install the Python package to the virtual environment.
+  grunt.registerTask("tangelo:venv", "Install Tangelo to the virtual environment", function () {
+      var done;
+
+      done = this.async();
+
+      grunt.util.spawn({
+          cmd: pip,
+          args: ["install", "--upgrade", "sdist/tangelo-" + version + ".tar.gz"],
+          opts: {
+              stdio: "inherit"
+          }
+      }, function (error, result, code) {
+          if (error) {
+              grunt.fail.warn("Could not install Tangelo to virtual environment:\n" + result.stderr);
+          }
+
+          done();
+      });
+  });
+
   // Default task.
   grunt.registerTask('default', ['version',
                                  'readconfig',
                                  'virtualenv',
                                  'pydeps',
-                                 'tangelo:package']);
+                                 'tangelo:package',
+                                 'tangelo:venv']);
 
 };
