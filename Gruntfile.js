@@ -156,7 +156,7 @@ module.exports = function(grunt) {
   });
 
   // Build the Python package.
-  grunt.registerTask("tangelo:package", "Build Tangelo package distribution", function () {
+  grunt.registerTask("package", "Build Tangelo package distribution", function () {
       var done;
 
       done = this.async();
@@ -178,7 +178,7 @@ module.exports = function(grunt) {
   });
 
   // Install the Python package to the virtual environment.
-  grunt.registerTask("tangelo:venv", "Install Tangelo to the virtual environment", function () {
+  grunt.registerTask("install", "Install Tangelo to the virtual environment", function () {
       var done;
 
       done = this.async();
@@ -222,7 +222,7 @@ module.exports = function(grunt) {
   });
 
   // Build documentation with Sphinx.
-  grunt.registerTask("sphinx", "Build Tangelo documentation with Sphinx", function () {
+  grunt.registerTask("docs", "Build Tangelo documentation with Sphinx", function () {
       var done = this.async();
 
       grunt.util.spawn({
@@ -230,7 +230,7 @@ module.exports = function(grunt) {
           args: ["-b", "html",
                  "-D", "version=" + version,
                  "-D", "release=" + version,
-           "docs",
+                 "docs",
                  "tangelo/www/docs"],
           opts: {
               stdio: "inherit"
@@ -249,8 +249,8 @@ module.exports = function(grunt) {
                                  'readconfig',
                                  'virtualenv',
                                  'pydeps',
-                                 'sphinx',
-                                 'tangelo:package',
-                                 'tangelo:venv']);
+                                 'docs',
+                                 'package',
+                                 'install']);
 
 };
