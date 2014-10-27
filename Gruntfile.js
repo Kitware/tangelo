@@ -1,11 +1,13 @@
 /*global module:false*/
 module.exports = function(grunt) {
   var fs = require("fs"),
+      path = require("path"),
       config,
-      python = "../venv/bin/python",
-      pip = "venv/bin/pip",
-      sphinx = "venv/bin/sphinx-build",
-      pep8 = "venv/bin/pep8",
+      python = path.resolve("venv/bin/python"),
+      pip = path.resolve("venv/bin/pip"),
+      sphinx = path.resolve("venv/bin/sphinx-build"),
+      pep8 = path.resolve("venv/bin/pep8"),
+      nosetests = path.resolve("venv/bin/nosetests"),
       version = grunt.file.readJSON("package.json").version;
 
   // Project configuration.
@@ -211,7 +213,7 @@ module.exports = function(grunt) {
       var done = this.async();
 
       grunt.util.spawn({
-          cmd: "venv/bin/nosetests",
+          cmd: nosetests,
           args: [file],
           opts: {
               stdio: "inherit"
