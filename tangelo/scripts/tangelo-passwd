@@ -62,7 +62,7 @@ else:
     if userrec[0] is None:
         pws.append(userrec[1])
     else:
-        pws[userrec[0]] = userrec[1] 
+        pws[userrec[0]] = userrec[1]
 
 try:
     with open(passwordfile, "w") as f:

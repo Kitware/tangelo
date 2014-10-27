@@ -39,6 +39,32 @@ module.exports = function(grunt) {
             dest: "tangelo/README"
         }
     },
+    pep8: {
+        files: {
+            src: [
+                "tangelo/setup.py",
+                "tangelo/setupahhhh.py",
+                "tangelo/scripts/tangelo",
+                "tangelo/scripts/tangelo-passwd",
+                "tangelo/scripts/vtkweb-launcher",
+                "tangelo/tangelo/__init__.py",
+                "tangelo/tangelo/__main__.py",
+                "tangelo/tangelo/girder.py",
+                "tangelo/tangelo/info.py",
+                "tangelo/tangelo/server.py",
+                "tangelo/tangelo/stream.py",
+                "tangelo/tangelo/tool.py",
+                "tangelo/tangelo/util.py",
+                "tangelo/tangelo/vtkweb.py",
+                "tangelo/tangelo/websocket.py",
+                "tangelo/www/service/celery.py",
+                "tangelo/www/service/config.py",
+                "tangelo/www/service/impala-json.py",
+                "tangelo/www/service/mongo.py",
+                "tangelo/www/service/svg2pdf.py"
+            ]
+        }
+    },
     test_run: {
         files: {
             src: ["tests/*.py"]
@@ -157,6 +183,20 @@ module.exports = function(grunt) {
       });
   });
 
+  grunt.registerMultiTask("pep8", "Style check Python sources", function () {
+      var done = this.async();
+
+      grunt.util.spawn({
+          cmd: pep8,
+          args: ["--ignore=E501"].concat(this.filesSrc),
+          opts: {
+              stdio: "inherit"
+          }
+      }, function (error, result, code) {
+          done(code === 0);
+      });
+  });
+
   // Build the Python package.
   grunt.registerTask("package", "Build Tangelo package distribution", function () {
       var done;
@@ -251,6 +291,7 @@ module.exports = function(grunt) {
                                  'readconfig',
                                  'virtualenv',
                                  'pydeps',
+                                 'pep8',
                                  'docs',
                                  'package',
                                  'install']);
