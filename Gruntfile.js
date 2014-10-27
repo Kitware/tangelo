@@ -8,6 +8,7 @@ module.exports = function(grunt) {
       sphinx = path.resolve("venv/bin/sphinx-build"),
       pep8 = path.resolve("venv/bin/pep8"),
       nosetests = path.resolve("venv/bin/nosetests"),
+      tangelo = path.resolve("venv/bin/tangelo"),
       version = grunt.file.readJSON("package.json").version;
 
   // Project configuration.
@@ -283,6 +284,31 @@ module.exports = function(grunt) {
           }
 
           done(code === 0);
+      });
+  });
+
+  // Serve Tangelo.
+  grunt.registerTask("serve", "Serve Tangelo on a given port (8080 by default)", function (host, port) {
+      var done = this.async();
+
+      if (host === undefined && port === undefined) {
+          host = "localhost";
+          port = "8080";
+      } else if (port === undefined) {
+          port = host;
+          host = "localhost";
+      }
+
+      grunt.util.spawn({
+          cmd: tangelo,
+          args: ["--hostname", host,
+                 "--port", port,
+                 "--root", "venv/share/tangelo/www"],
+          opts: {
+              stdio: "inherit"
+          }
+      }, function () {
+          done();
       });
   });
 
