@@ -5,3 +5,4 @@ venv
 sdist
 configuration.json
 tangelo/MANIFEST
+tangelo/www/docs

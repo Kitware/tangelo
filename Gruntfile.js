@@ -221,11 +221,35 @@ module.exports = function(grunt) {
       });
   });
 
+  // Build documentation with Sphinx.
+  grunt.registerTask("sphinx", "Build Tangelo documentation with Sphinx", function () {
+      var done = this.async();
+
+      grunt.util.spawn({
+          cmd: sphinx,
+          args: ["-b", "html",
+                 "-D", "version=" + version,
+                 "-D", "release=" + version,
+           "docs",
+                 "tangelo/www/docs"],
+          opts: {
+              stdio: "inherit"
+          }
+      }, function (error, result, code) {
+          if (error) {
+              grunt.fail.warn("Could not build documentation:\n" + result.stderr);
+          }
+
+          done(code === 0);
+      });
+  });
+
   // Default task.
   grunt.registerTask('default', ['version',
                                  'readconfig',
                                  'virtualenv',
                                  'pydeps',
+                                 'sphinx',
                                  'tangelo:package',
                                  'tangelo:venv']);
 
