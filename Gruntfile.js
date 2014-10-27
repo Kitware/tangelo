@@ -2,6 +2,7 @@
 module.exports = function(grunt) {
   var fs = require("fs"),
       config,
+      python = "../venv/bin/python",
       pip = "venv/bin/pip",
       sphinx = "venv/bin/sphinx-build",
       pep8 = "venv/bin/pep8";
@@ -148,6 +149,30 @@ module.exports = function(grunt) {
           if (error) {
               grunt.fail.warn("Could not install Python modules:\n" + result.stderr);
           }
+
+          done();
+      });
+  });
+
+  // Build the Python package.
+  grunt.registerTask("tangelo:package", "Build Tangelo package distribution", function () {
+      var done;
+
+      done = this.async();
+
+      grunt.util.spawn({
+          cmd: python,
+          args: ["setup.py", "sdist", "--dist-dir", "../sdist"],
+          opts: {
+              stdio: "inherit",
+              cwd: "tangelo"
+          }
+      }, function (error, result, code) {
+          if (error) {
+              grunt.fail.warn("Could not build Tangelo package:\n" + result.stderr);
+          }
+
+          done();
       });
   });
 
@@ -155,6 +180,7 @@ module.exports = function(grunt) {
   grunt.registerTask('default', ['version',
                                  'readconfig',
                                  'virtualenv',
-                                 'pydeps']);
+                                 'pydeps',
+                                 'tangelo:package']);
 
 };

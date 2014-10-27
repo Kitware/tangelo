@@ -2,4 +2,6 @@
 *.pyc
 node_modules
 venv
+sdist
 configuration.json
+tangelo/MANIFEST
