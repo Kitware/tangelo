@@ -32,8 +32,15 @@ module.exports = function(grunt) {
     },
     version: {
         src: [
-            "tangelo/__main__.py"
+            "tangelo/tangelo/__main__.py",
+            "tangelo/setup.py"
         ]
+    },
+    copy: {
+        readme: {
+            src: "README.rst",
+            dest: "tangelo/README"
+        }
     },
     watch: {
       gruntfile: {
@@ -50,6 +57,7 @@ module.exports = function(grunt) {
   // These plugins provide necessary tasks.
   grunt.loadNpmTasks("grunt-prompt");
   grunt.loadNpmTasks("grunt-version");
+  grunt.loadNpmTasks("grunt-contrib-copy");
   grunt.loadNpmTasks('grunt-contrib-watch');
 
   // Read configuration from disk.
