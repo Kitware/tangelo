@@ -37,6 +37,11 @@ module.exports = function(grunt) {
             dest: "tangelo/README"
         }
     },
+    test_run: {
+        files: {
+            src: ["tests/*.py"]
+        }
+    },
     watch: {
       gruntfile: {
         files: '<%= jshint.gruntfile.src %>',
@@ -50,6 +55,7 @@ module.exports = function(grunt) {
   });
 
   // These plugins provide necessary tasks.
+  grunt.loadNpmTasks("grunt-continue");
   grunt.loadNpmTasks("grunt-prompt");
   grunt.loadNpmTasks("grunt-version");
   grunt.loadNpmTasks("grunt-contrib-copy");
@@ -189,6 +195,29 @@ module.exports = function(grunt) {
           }
 
           done();
+      });
+  });
+
+  // Run nose tests.
+  grunt.registerTask("test", ["continueOn", "test_run", "continueOff"]);
+
+  grunt.registerMultiTask("test_run", "Run nose for each test", function () {
+      this.filesSrc.forEach(function (file) {
+          grunt.task.run("nose:" + file);
+      });
+  });
+
+  grunt.registerTask("nose", "Run Tangelo tests with nose", function (file) {
+      var done = this.async();
+
+      grunt.util.spawn({
+          cmd: "venv/bin/nosetests",
+          args: [file],
+          opts: {
+              stdio: "inherit"
+          }
+      }, function (error, result, code) {
+          done(code === 0);
       });
   });
 

@@ -1,3 +1,4 @@
 Sphinx
 pep8
 requests
+nose
