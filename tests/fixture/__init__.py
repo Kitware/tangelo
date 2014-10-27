@@ -2,10 +2,8 @@ import subprocess
 import sys
 import time
 
-tangelo = "@TANGELO_EXECUTABLE@"
-host = "@TESTING_HOST@"
-port = "@TESTING_PORT@"
-www = "@TESTING_WEB_CONTENT@"
+host = "localhost"
+port = "50047"
 
 process = None
 
@@ -19,10 +17,10 @@ def start_tangelo():
     if process is not None:
         raise RuntimeError("start_tangelo() called twice without a stop_tangelo() in between")
 
-    process = subprocess.Popen([tangelo,
+    process = subprocess.Popen(["venv/bin/tangelo",
                                 "--host", host,
                                 "--port", port,
-                                "--root", www],
+                                "--root", "tests/www"],
                                stderr=subprocess.PIPE)
 
     buf = []

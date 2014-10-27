@@ -20,13 +20,6 @@ module.exports = function(grunt) {
                         type: "input",
                         message: "Path to virtualenv?",
                         default: "/usr/bin/virtualenv"
-                    },
-
-                    {
-                        config: "python",
-                        type: "input",
-                        message: "Path to python?",
-                        default: "/usr/bin/python"
                     }
                 ]
             }
@@ -71,6 +64,7 @@ module.exports = function(grunt) {
           config = JSON.parse(text);
       } catch (e) {
           grunt.task.run("configure");
+          grunt.task.run("readconfig");
           return;
       }
   });
@@ -118,7 +112,7 @@ module.exports = function(grunt) {
 
           grunt.util.spawn({
               cmd: config.virtualenv,
-              args: ["-p", config.python, "venv"],
+              args: ["venv"],
               opts: {
                   stdio: "inherit"
               }
