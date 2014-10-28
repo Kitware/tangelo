@@ -44,7 +44,6 @@ module.exports = function(grunt) {
         files: {
             src: [
                 "tangelo/setup.py",
-                "tangelo/setupahhhh.py",
                 "tangelo/scripts/tangelo",
                 "tangelo/scripts/tangelo-passwd",
                 "tangelo/scripts/vtkweb-launcher",
