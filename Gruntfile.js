@@ -31,8 +31,137 @@ module.exports = function(grunt) {
     version: {
         src: [
             "tangelo/tangelo/__main__.py",
-            "tangelo/setup.py"
+            "tangelo/setup.py",
+            "js/core/core.js"
         ]
+    },
+    concat: {
+        options: {
+            banner: "<%= banner %>",
+            stripBanners: true
+        },
+        dist: {
+            src: ["js/**/*.js"],
+            dest: "tangelo/www/js/tangelo.js"
+        }
+    },
+    uglify: {
+        options: {
+            banner: "<%= banner %>"
+        },
+        dist: {
+            src: "<%= concat.dist.dest %>",
+            dest: "tangelo/www/js/tangelo.min.js"
+        }
+    },
+    jshint: {
+        options: {
+            // Enforcing options (for strict checking, should be true by
+            // default; set to false indicates departure from this policy).
+            bitwise: true,
+            camelcase: true,
+            curly: true,
+            eqeqeq: true,
+            forin: true,
+            immed: true,
+            latedef: true,
+            newcap: true,
+            noempty: false,
+            nonbsp: true,
+            nonew: true,
+            plusplus: false,
+            quotmark: "double",
+            undef: true,
+            unused: true,
+            strict: true,
+            maxparams: false,
+            maxdepth: false,
+            maxstatements: false,
+            maxcomplexity: false,
+            maxlen: false,
+
+            // Relaxing options (for strict checking, should be false by
+            // default; set to true indicates departure from this policy).
+            eqnull: true,
+
+            // Environment options.
+            browser: true,
+
+            // Globals.
+            globals: {
+                console: false
+            }
+        },
+        gruntfile: {
+            src: "Gruntfile.js"
+        },
+        tangelo: {
+            src: ["js/**/*.js"]
+        },
+        test: {
+            options: {
+                globals: {
+                    QUnit: false,
+                    tangelo: false
+                }
+            },
+            src: ["test/**/*.js"]
+        }
+    },
+    jscs: {
+        options: {
+            requireCurlyBraces: true,
+            requireSpaceAfterKeywords: true,
+            requireSpaceBeforeBlockStatements: true,
+            requireParenthesesAroundIIFE: true,
+            requireSpacesInConditionalExpression: true,
+            requireSpacesInAnonymousFunctionExpression: {
+                beforeOpeningRoundBrace: true,
+                beforeOpeningCurlyBrace: true
+            },
+            requireSpacesInNamedFunctionExpression: {
+                beforeOpeningCurlyBrace: true
+            },
+            requireSpacesInFunctionDeclaration: {
+                beforeOpeningCurlyBrace: true
+            },
+            requireMultipleVarDecl: true,
+            requireBlocksOnNewline: true,
+            disallowPaddingNewlinesInBlocks: true,
+            disallowEmptyBlocks: true,
+            disallowQuotedKeysInObjects: true,
+            disallowSpaceAfterObjectKeys: true,
+            requireSpaceBeforeObjectValues: true,
+            requireCommaBeforeLineBreak: true,
+            requireOperatorBeforeLineBreak: true,
+            disallowSpaceAfterPrefixUnaryOperators: true,
+            disallowSpaceBeforePostfixUnaryOperators: true,
+            disallowImplicitTypeConversion: ["numeric", "boolean", "binary", "string"],
+            disallowMultipleLineStrings: true,
+            disallowMultipleLineBreaks: true,
+            disallowMixedSpacesAndTabs: true,
+            disallowTrailingWhitespace: true,
+            disallowTrailingComma: true,
+            disallowKeywordsOnNewLine: ["else if", "else"],
+            requireLineFeedAtFileEnd: true,
+            requireCapitalizedConstructors: true,
+            requireDotNotation: true,
+            requireSpaceAfterLineComment: true,
+            disallowNewlineBeforeBlockStatements: true,
+            validateLineBreaks: "LF",
+            validateIndentation: 4,
+            validateParameterSeparator: ", ",
+            safeContextKeyword: ["that"]
+        },
+        gruntfile: {
+            src: ["Gruntfile.js"]
+        },
+        tangelo: {
+            src: ["js/**/*.js"]
+        },
+        test: {
+            src: ["test/**/*.js"]
+        }
     },
     copy: {
         readme: {
@@ -86,6 +215,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks("grunt-continue");
   grunt.loadNpmTasks("grunt-prompt");
   grunt.loadNpmTasks("grunt-version");
+  grunt.loadNpmTasks("grunt-contrib-jshint");
+  grunt.loadNpmTasks("grunt-jscs");
+  grunt.loadNpmTasks("grunt-contrib-concat");
+  grunt.loadNpmTasks("grunt-contrib-uglify");
   grunt.loadNpmTasks("grunt-contrib-copy");
   grunt.loadNpmTasks('grunt-contrib-watch');
 
@@ -319,6 +452,9 @@ module.exports = function(grunt) {
       });
   });
 
+  // Build tangelo.js.
+  grunt.registerTask("js", "Build tangelo.js and tangelo.min.js", ["version", "concat", "uglify"]);
+
   // Default task.
   grunt.registerTask('default', ['version',
                                  'readconfig',
@@ -326,6 +462,9 @@ module.exports = function(grunt) {
                                  'pydeps',
                                  'pep8',
                                  'docs',
+                                 'jshint',
+                                 'jscs',
+                                 'js',
                                  'package',
                                  'install']);
 

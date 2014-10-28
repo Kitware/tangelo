@@ -6,3 +6,4 @@ sdist
 configuration.json
 tangelo/MANIFEST
 tangelo/www/docs
+tangelo/www/js
