@@ -51,8 +51,8 @@
         // generate the bins
         for (i = 0; i < nBins; i += 1) {
             bins.push({
-                minArg: minArg + i * dx,
-                maxArg: minArg + (i + 1) * dx,
+                min: minArg + i * dx,
+                max: minArg + (i + 1) * dx,
                 count: 0
             });
         }
