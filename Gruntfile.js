@@ -162,15 +162,23 @@ module.exports = function(grunt) {
 
   // Python dependencies installation step.
   grunt.registerTask("pydeps", "Install Python build dependencies", function () {
-      var done;
+      var done,
+          packages;
 
       grunt.task.requires("virtualenv");
 
       done = this.async();
 
+      packages = [
+          "Sphinx",
+          "pep8",
+          "requests",
+          "nose"
+      ];
+
       grunt.util.spawn({
           cmd: pip,
-          args: ["install", "-r", "requirements.txt"],
+          args: ["install"].concat(packages),
           opts: {
               stdio: "inherit"
           }
