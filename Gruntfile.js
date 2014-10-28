@@ -32,7 +32,7 @@ module.exports = function(grunt) {
         src: [
             "tangelo/tangelo/__main__.py",
             "tangelo/setup.py",
-            "js/core/core.js"
+            "js/src/core/core.js"
         ]
     },
     concat: {
@@ -41,7 +41,7 @@ module.exports = function(grunt) {
             stripBanners: true
         },
         dist: {
-            src: ["js/**/*.js"],
+            src: ["js/src/**/*.js"],
             dest: "tangelo/www/js/tangelo.js"
         }
     },
@@ -96,7 +96,7 @@ module.exports = function(grunt) {
             src: "Gruntfile.js"
         },
         tangelo: {
-            src: ["js/**/*.js"]
+            src: ["js/src/**/*.js"]
         },
         test: {
             options: {
@@ -105,7 +105,7 @@ module.exports = function(grunt) {
                     tangelo: false
                 }
             },
-            src: ["test/**/*.js"]
+            src: ["js/tests/*.js"]
         }
     },
     jscs: {
@@ -157,17 +157,33 @@ module.exports = function(grunt) {
             src: ["Gruntfile.js"]
         },
         tangelo: {
-            src: ["js/**/*.js"]
+            src: ["js/src/**/*.js"]
         },
         test: {
-            src: ["test/**/*.js"]
+            src: ["js/tests/*.js"]
         }
     },
     copy: {
         readme: {
             src: "README.rst",
             dest: "tangelo/README"
+        },
+        jstest: {
+            expand: true,
+            flatten: true,
+            src: [
+                "js/tests/*.js",
+                "tangelo/www/js/tangelo.js",
+                "tangelo/www/js/tangelo.min.js"
+            ],
+            dest: "jstest/"
         }
+    },
+    qunit: {
+        options: {
+            httpBase: "http://localhost:50047"
+        },
+        files: ["jstest/*.html"]
     },
     pep8: {
         files: {
@@ -199,6 +215,9 @@ module.exports = function(grunt) {
             src: ["tests/*.py"]
         }
     },
+    genhtml: {
+        files: ["js/tests/*.js"]
+    },
     watch: {
       gruntfile: {
         files: '<%= jshint.gruntfile.src %>',
@@ -219,6 +238,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks("grunt-jscs");
   grunt.loadNpmTasks("grunt-contrib-concat");
   grunt.loadNpmTasks("grunt-contrib-uglify");
+  grunt.loadNpmTasks("grunt-contrib-jade");
+  grunt.loadNpmTasks("grunt-contrib-qunit");
   grunt.loadNpmTasks("grunt-contrib-copy");
   grunt.loadNpmTasks('grunt-contrib-watch');
 
@@ -382,7 +403,7 @@ module.exports = function(grunt) {
   });
 
   // Run nose tests.
-  grunt.registerTask("test", ["continueOn", "test_run", "continueOff"]);
+  grunt.registerTask("test:server", ["continueOn", "test_run", "continueOff"]);
 
   grunt.registerMultiTask("test_run", "Run nose for each test", function () {
       this.filesSrc.forEach(function (file) {
@@ -455,6 +476,142 @@ module.exports = function(grunt) {
   // Build tangelo.js.
   grunt.registerTask("js", "Build tangelo.js and tangelo.min.js", ["version", "concat", "uglify"]);
 
+  // Use html template to create tangelojs tests.
+  grunt.registerMultiTask("genhtml", "Generate HTML files for QUnit tests", function () {
+      var name,
+          config;
+
+    console.log(this.filesSrc);
+
+      this.filesSrc.forEach(function (v) {
+          // Extract the name of the test suite, e.g., test/alpha.js -> alpha.
+          name = v.split("/")[2]
+              .split(".")[0];
+
+          // Build a jade task config.  The assignment below is so we can have a
+          // dynamic key based on the name of the test.
+          config = {
+              files: {},
+              options: {
+                  client: false,
+                  data: {
+                      title: "Test case - " + name,
+                      script: name + ".js"
+                  }
+              }
+          };
+          config.files["jstest/" + name + ".html"] = "js/tests/jade/qunitHarness.jade";
+
+          // Add a jade task keyed to the test suite.
+          grunt.config(["jade", name], config);
+      });
+
+      // Schedule the jade task so the actual tests are generated.
+      grunt.task.run("jade");
+  });
+
+  // Tangelo launch/kill task.
+  (function () {
+      var process = null,
+          stopping,
+          output = [];
+
+      grunt.registerTask("tangelo", "Starts/stops a Tangelo server instance.", function (op) {
+          var done,
+              cmdline,
+              fragment = null;
+
+          if (op === "start") {
+              if (process) {
+                  grunt.fail.warn("Tangelo is running already.");
+              }
+
+              stopping = false;
+
+              done = this.async();
+
+              cmdline = {
+                  cmd: tangelo,
+                  args: [
+                      "--port", "50047",
+                      "--root", "."
+                  ]
+              };
+
+              console.log("Starting Tangelo server with: " + cmdline.cmd + " " + cmdline.args.join(" "));
+              process = grunt.util.spawn(cmdline, function () {});
+              if (!process) {
+                  grunt.fail.fatal("Could not launch Tangelo");
+              }
+
+              process.stderr.setEncoding("utf8");
+
+              process.stderr.on("data", function (chunk) {
+                  var complete = chunk.slice(-1) === "\n",
+                      lines,
+                      i,
+                      n;
+
+                  if (fragment) {
+                      chunk = fragment + chunk;
+                      fragment = null;
+                  }
+
+                  lines = chunk.split("\n");
+                  n = complete ? lines.length : lines.length - 1;
+                  for (i = 0; i < n; i++) {
+                      if (!stopping && lines[i].indexOf("ENGINE Bus STARTED") !== -1) {
+                          console.log("Tangelo started with PID " + process.pid);
+                          done();
+                      }
+
+                      output.push(lines[i]);
+                  }
+
+                  if (!complete) {
+                      fragment = lines[lines.length - 1];
+                  }
+              });
+
+              process.stderr.on("end", function () {
+                  if (stopping) {
+                      return;
+                  }
+                  grunt.fail.fatal("Tangelo could not be started\n" + output.join("\n"));
+              });
+          } else if (op === "stop") {
+              if (!process) {
+                  grunt.fail.warn("Tangelo is not running");
+              }
+
+              stopping = true;
+              done = this.async();
+
+              process.kill();
+
+              process.stderr.on("end", function () {
+                  done();
+              });
+
+              setTimeout(function () {
+                  grunt.fail.warn("Could not kill Tangelo\n" + output.join("\n"));
+              }, 10000);
+          } else {
+              grunt.fail.warn("Unknown argument: '" + op + "'");
+          }
+      });
+  }());
+
+  grunt.registerTask("test:client", [
+      "genhtml",
+      "copy:jstest",
+      "tangelo:start",
+      "continueOn",
+      "qunit",
+      "continueOff",
+      "tangelo:stop"
+  ]);
+
   // Default task.
   grunt.registerTask('default', ['version',
                                  'readconfig',
@@ -465,6 +622,7 @@ module.exports = function(grunt) {
                                  'jshint',
                                  'jscs',
                                  'js',
+                                 'copy:readme',
                                  'package',
                                  'install']);
 

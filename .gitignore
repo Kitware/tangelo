@@ -5,5 +5,7 @@ venv
 sdist
 configuration.json
 tangelo/MANIFEST
+tangelo/README
 tangelo/www/docs
 tangelo/www/js
+jstest

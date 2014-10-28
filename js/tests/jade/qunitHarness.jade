@@ -1,0 +1,12 @@
+doctype("html")
+head
+    meta(charset="utf-8")
+    title #{title}
+    link(rel="stylesheet", href="//code.jquery.com/qunit/qunit-1.15.0.css")
+    script(src="tangelo.min.js")
+
+body
+    div#qunit
+    div#qunit-fixture
+    script(src="//code.jquery.com/qunit/qunit-1.15.0.js")
+    script(src="#{script}")
