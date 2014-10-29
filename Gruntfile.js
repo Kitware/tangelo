@@ -616,6 +616,8 @@ module.exports = function (grunt) {
         "tangelo:stop"
     ]);
 
+    grunt.registerTask("test", ["test:server", "test:client"]);
+
     // Clean task.
     grunt.renameTask("clean", "cleanup");
     grunt.registerTask("clean:sdist", "cleanup:sdist");
