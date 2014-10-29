@@ -220,6 +220,19 @@ module.exports = function (grunt) {
       },
       genhtml: {
           files: ["js/tests/*.js"]
+      },
+      cleanup: {
+          node: ["node_modules"],
+          venv: ["venv"],
+          config: ["configuration.json"],
+          sdist: ["sdist"],
+          jstest: ["jstest"],
+          package: [
+              "tangelo/MANIFEST",
+              "tangelo/README",
+              "tangelo/www/docs",
+              "tangelo/www/js"
+          ]
       }
     });
 
@@ -234,6 +247,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-contrib-jade");
     grunt.loadNpmTasks("grunt-contrib-qunit");
     grunt.loadNpmTasks("grunt-contrib-copy");
+    grunt.loadNpmTasks("grunt-contrib-clean");
 
     // Read configuration from disk.
     grunt.registerTask("readconfig", "Read configuration options from disk", function () {
@@ -601,6 +615,22 @@ module.exports = function (grunt) {
         "continueOff",
         "tangelo:stop"
     ]);
+
+    // Clean task.
+    grunt.renameTask("clean", "cleanup");
+    grunt.registerTask("clean:sdist", "cleanup:sdist");
+    grunt.registerTask("clean:jstest", "cleanup:jstest");
+    grunt.registerTask("clean:package", "cleanup:package");
+    grunt.registerTask("clean:config", "cleanup:config");
+    grunt.registerTask("clean:node", "cleanup:node");
+    grunt.registerTask("clean:venv", "cleanup:venv");
+    grunt.registerTask("clean", ["clean:sdist",
+                                 "clean:jstest",
+                                 "clean:package"]);
+    grunt.registerTask("clean:all", ["clean",
+                                     "clean:config",
+                                     "clean:node",
+                                     "clean:venv"]);
 
     // Default task.
     grunt.registerTask("default", ["version",
