@@ -101,7 +101,7 @@
                 // - If it returns a number, use that value as the new delay
                 //   between stream queries.
                 flag = callback(result, false);
-                if (flag === undefined) {
+                if (flag !== undefined) {
                     if (tangelo.isFunction(flag)) {
                         callback = flag;
                     } else if (tangelo.isBoolean(flag)) {
