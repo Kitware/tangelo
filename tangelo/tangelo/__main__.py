@@ -139,6 +139,7 @@ def main():
     p.add_argument("--girder-host", type=str, default=None, metavar="HOST", help="the hostname running Girder")
     p.add_argument("--girder-port", type=int, default=None, metavar="PORT", help="the port on which Girder is running")
     p.add_argument("--girder-path", type=str, default=None, metavar="PATH", help="the path on which to mount a Girder API")
+    p.add_argument("--plugin-config", type=str, default="/etc/tangelo/plugin.conf", metavar="PATH", help="path to plugin configuration file")
     args = p.parse_args()
 
     # If version flag is present, print the version number and exit.
@@ -316,6 +317,14 @@ def main():
 
     tangelo.log("TANGELO", "Serving content from %s" % (root))
 
+    # Check for the existence of a plugin configuration file - warn if it doesn'
+    # exist.
+    plugin_cfg_file = tangelo.util.expandpath(args.plugin_config)
+    if not os.path.exists(plugin_cfg_file):
+        tangelo.log("TANGELO", "Plugin configuration file %s does not exist - create it to load plugins at runtime" % (plugin_cfg_file))
+    else:
+        tangelo.log("TANGELO", "Using plugin configuration file '%s'" % (plugin_cfg_file))
+
     # Set the web root directory.
     cherrypy.config.update({"webroot": root})
 
@@ -338,6 +347,10 @@ def main():
     # Create a streaming API object.
     stream = tangelo.stream.TangeloStream(module_cache=module_cache)
     cherrypy.tree.mount(stream, apiroot + "/stream", config={"/": {"request.dispatch": cherrypy.dispatch.MethodDispatcher()}})
+
+    # Create a plugin server object.
+    plugins = tangelo.server.Plugins(plugin_cfg_file)
+    cherrypy.tree.mount(plugins, "/plugin")
 
     # Create a VTKWeb API object if requested, and mount it.
     vtkweb = None

@@ -1,4 +1,5 @@
 import cgi
+import ConfigParser
 import datetime
 import sys
 import HTMLParser
@@ -208,3 +209,68 @@ class Tangelo(object):
             else:
                 raise RuntimeError("Illegal target type '%s'" %
                                    (target["type"]))
+
+
+class Plugins(object):
+    def __init__(self, config_file):
+        self.config_file = config_file
+        self.config_dir = os.path.dirname(self.config_file)
+        self.mtime = 0
+        self.plugins = None
+        self.missing_msg = "Plugin config file %s seems to have disappeared" % (self.config_file)
+
+    def refresh_plugins(self):
+        if not os.path.exists(self.config_file):
+            tangelo.log("DEBUG", "not exist")
+            if self.mtime > 0:
+                tangelo.log("PLUGIN", self.missing_msg)
+                self.mtime = 0
+            self.plugins = {}
+            return
+
+        mtime = os.path.getmtime(self.config_file)
+        if mtime <= self.mtime:
+            tangelo.log("DEBUG", "old mtime")
+            return
+
+        parser = ConfigParser.RawConfigParser({"enabled": "true"})
+        files = parser.read(self.config_file)
+        if len(files) == 0:
+            tangelo.log("PLUGIN", self.missing_msg)
+            return
+
+        plugins = parser.sections()
+        tangelo.log("DEBUG", json.dumps(plugins))
+        self.plugins = {}
+        for plugin in plugins:
+            # See whether the plugin is enabled (default: yes)
+            enabled = parser.getboolean(plugin, "enabled")
+
+            if enabled:
+                # Extract the plugin path.
+                try:
+                    path = os.path.join(self.config_dir, parser.get(plugin, "path"))
+                except ConfigParser.NoOptionError:
+                    return "Configuration for plugin '%s' missing required setting 'path'" % (plugin)
+
+                self.plugins[plugin] = path
+
+    @cherrypy.expose
+    def index(self):
+        tangelo.log("DEBUG", "1")
+        error = self.refresh_plugins()
+        if error is not None:
+            tangelo.content_type("text/plain")
+            tangelo.http_status(400, "Bad Plugin Configuration")
+            return error
+
+        tangelo.content_type("application/json")
+        return json.dumps(self.plugins.keys())
+
+    @cherrypy.expose
+    def default(self, plugin, route, *path, **query):
+        return json.dumps({"config": self.config_file,
+                           "plugin": plugin,
+                           "route": route,
+                           "path": path,
+                           "query": query})

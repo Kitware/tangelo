@@ -30,6 +30,10 @@ def request_header(h):
     return cherrypy.request.headers.get(h)
 
 
+def http_status(code, message=None):
+    cherrypy.response.status = "%s%s" % (code, " %s" % (message) if message is not None else "")
+
+
 def log(section, message):
     cherrypy.log(message, section)
 
