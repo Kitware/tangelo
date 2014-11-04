@@ -338,7 +338,8 @@ def main():
 
     # Create an instance of the main handler object.
     module_cache = tangelo.util.ModuleCache()
-    rootapp = cherrypy.Application(tangelo.server.Tangelo(module_cache=module_cache), "/")
+    tangelo_server = tangelo.server.Tangelo(module_cache=module_cache)
+    rootapp = cherrypy.Application(tangelo_server, "/")
 
     # Create an info API object.
     info = tangelo.info.TangeloInfo(version=tangelo_version)
@@ -349,7 +350,7 @@ def main():
     cherrypy.tree.mount(stream, apiroot + "/stream", config={"/": {"request.dispatch": cherrypy.dispatch.MethodDispatcher()}})
 
     # Create a plugin server object.
-    plugins = tangelo.server.Plugins(plugin_cfg_file)
+    plugins = tangelo.server.Plugins(plugin_cfg_file, tangelo_server)
     cherrypy.tree.mount(plugins, "/plugin")
 
     # Create a VTKWeb API object if requested, and mount it.

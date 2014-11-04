@@ -212,8 +212,10 @@ class Tangelo(object):
 
 
 class Plugins(object):
-    def __init__(self, config_file):
+    def __init__(self, config_file, tangelo_server):
         self.config_file = config_file
+        self.tangelo_server = tangelo_server
+
         self.config_dir = os.path.dirname(self.config_file)
         self.mtime = 0
         self.plugins = None
@@ -221,7 +223,6 @@ class Plugins(object):
 
     def refresh_plugins(self):
         if not os.path.exists(self.config_file):
-            tangelo.log("DEBUG", "not exist")
             if self.mtime > 0:
                 tangelo.log("PLUGIN", self.missing_msg)
                 self.mtime = 0
@@ -230,7 +231,6 @@ class Plugins(object):
 
         mtime = os.path.getmtime(self.config_file)
         if mtime <= self.mtime:
-            tangelo.log("DEBUG", "old mtime")
             return
 
         parser = ConfigParser.RawConfigParser({"enabled": "true"})
@@ -240,7 +240,6 @@ class Plugins(object):
             return
 
         plugins = parser.sections()
-        tangelo.log("DEBUG", json.dumps(plugins))
         self.plugins = {}
         for plugin in plugins:
             # See whether the plugin is enabled (default: yes)
@@ -257,7 +256,6 @@ class Plugins(object):
 
     @cherrypy.expose
     def index(self):
-        tangelo.log("DEBUG", "1")
         error = self.refresh_plugins()
         if error is not None:
             tangelo.content_type("text/plain")
@@ -268,9 +266,50 @@ class Plugins(object):
         return json.dumps(self.plugins.keys())
 
     @cherrypy.expose
-    def default(self, plugin, route, *path, **query):
-        return json.dumps({"config": self.config_file,
-                           "plugin": plugin,
-                           "route": route,
-                           "path": path,
-                           "query": query})
+    def default(self, plugin, route=None, *path, **query):
+        # Refresh the plugin registry.
+        error = self.refresh_plugins()
+        if error is not None:
+            tangelo.content_type("text/plain")
+            tangelo.http_status(400, "Bad Plugin Configuration")
+            return error
+
+        # If the named plugin isn't registered, bail out immediately.
+        if plugin not in self.plugins:
+            tangelo.http_status(404, "Plugin Not Found")
+            tangelo.content_type("application/json")
+            return json.dumps({"error": "Plugin '%s' was not found in the plugin registry" % (plugin)})
+
+        plugin_path = self.plugins[plugin]
+
+        if route is None:
+            # Look for a README.md or REEADME.rst file in the plugin directory,
+            # and serve it if it exists, otherwise, just serve a friendly
+            # message.
+            readme = None
+            if os.path.exists(os.path.join(plugin_path, "README.md")):
+                readme = os.path.join(plugin_path, "README.md")
+            elif os.path.exists(os.path.join(plugin_path, "README.rst")):
+                readme = os.path.join(plugin_path, "README.rst")
+
+            if readme is not None:
+                tangelo.content_type("text/plain")
+                return cherrypy.lib.static.serve_file(readme)
+            else:
+                return "Plugin '%s' is here, but there's no README!  If you know the authors of this plugin, you should get them to write one!" % (plugin)
+        elif route == "static":
+            # If the "static" route is requested, serve the requested file
+            # immediately.
+            return cherrypy.lib.static.serve_file(os.path.join(plugin_path, "static", *path))
+        elif route == "service":
+            # If the "service" route is requested, find a service file along the
+            # requested path, and invoke it with the remaining path components
+            # as positional arguments; if no such service file is found, send
+            # back a 404.
+            base_path = os.path.join(plugin_path, "service")
+            for i in range(1, len(path) + 1):
+                service_path = os.path.join(base_path, *(path[:i])) + ".py"
+                if os.path.exists(service_path):
+                    return self.tangelo_server.invoke_service(service_path, *path[i:], **query)
+
+            tangelo.http_status(404, "Service Not Found")
