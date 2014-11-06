@@ -113,7 +113,9 @@ class NonBlockingReader(threading.Thread):
 
 
 class ModuleCache(object):
-    def __init__(self):
+    def __init__(self, config=True, http_error=True):
+        self.config = config
+        self.http_error = http_error
         self.modules = {}
 
     def get(self, module):
@@ -126,8 +128,10 @@ class ModuleCache(object):
 
             config_file = module[:-2] + "json"
             config_mtime = None
-            if os.path.exists(config_file):
-                config_mtime = os.path.getmtime(config_file)
+
+            if self.config:
+                if os.path.exists(config_file):
+                    config_mtime = os.path.getmtime(config_file)
 
             if (stamp is None or
                     mtime > stamp["mtime"] or
@@ -156,7 +160,8 @@ class ModuleCache(object):
                 else:
                     config = {}
 
-                cherrypy.config["module-config"][module] = config
+                if self.config:
+                    cherrypy.config["module-config"][module] = config
 
                 # Remove .py to get the module name
                 name = module[:-3]
@@ -175,8 +180,9 @@ class ModuleCache(object):
             tangelo.log("TANGELO", "Error importing module %s" % (tangelo.request_path()))
             tangelo.log("TANGELO", bt)
 
-            raise tangelo.HTTPStatusCode("501 Error in Python Service",
-                                         tangelo.server.Tangelo.literal + "There was an error while " +
-                                         "trying to import module " +
-                                         "%s:<br><pre>%s</pre>" %
-                                         (tangelo.request_path(), bt))
+            if self.http_error:
+                raise tangelo.HTTPStatusCode("501 Error in Python Service",
+                                             tangelo.server.Tangelo.literal + "There was an error while " +
+                                             "trying to import module " +
+                                             "%s:<br><pre>%s</pre>" %
+                                             (tangelo.request_path(), bt))

@@ -350,7 +350,7 @@ def main():
     cherrypy.tree.mount(stream, apiroot + "/stream", config={"/": {"request.dispatch": cherrypy.dispatch.MethodDispatcher()}})
 
     # Create a plugin server object.
-    plugins = tangelo.server.Plugins(plugin_cfg_file, tangelo_server)
+    plugins = tangelo.server.Plugins("tangelo.plugin", plugin_cfg_file, tangelo_server)
     cherrypy.tree.mount(plugins, "/plugin")
 
     # Create a VTKWeb API object if requested, and mount it.

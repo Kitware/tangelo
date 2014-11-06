@@ -212,7 +212,8 @@ class Tangelo(object):
 
 
 class Plugins(object):
-    def __init__(self, config_file, tangelo_server):
+    def __init__(self, base_package, config_file, tangelo_server):
+        self.base_package = base_package
         self.config_file = config_file
         self.tangelo_server = tangelo_server
 
@@ -220,6 +221,10 @@ class Plugins(object):
         self.mtime = 0
         self.plugins = None
         self.missing_msg = "Plugin config file %s seems to have disappeared" % (self.config_file)
+
+        self.modules = tangelo.util.ModuleCache(config=False, http_error=False)
+
+        exec("%s = sys.modules[self.base_package] = types.ModuleType(self.base_package)" % (self.base_package))
 
     def refresh_plugins(self):
         if not os.path.exists(self.config_file):
@@ -243,7 +248,12 @@ class Plugins(object):
         self.plugins = {}
         for plugin in plugins:
             # See whether the plugin is enabled (default: yes)
-            enabled = parser.getboolean(plugin, "enabled")
+            try:
+                enabled = parser.getboolean(plugin, "enabled")
+            except ValueError:
+                return "Setting 'enabled' in configuration for plugin '%s' must be a boolean value!" % (plugin)
+
+            tangelo.log("PLUGIN", "Plugin '%s' %s" % (plugin, "enabled" if enabled else "disabled"))
 
             if enabled:
                 # Extract the plugin path.
@@ -253,6 +263,29 @@ class Plugins(object):
                     return "Configuration for plugin '%s' missing required setting 'path'" % (plugin)
 
                 self.plugins[plugin] = path
+
+                tangelo.log("PLUGIN", "path is %s" % (path))
+
+                # Check for a "python" directory, and place all modules found
+                # there in a virtual submodule of tangelo.plugin.
+                python = os.path.join(path, "python")
+                if os.path.exists(python):
+                    init = os.path.join(python, "__init__.py")
+                    if not os.path.exists(init):
+                        return "Plugin '%s' includes a 'python' directory but is missing __init.py__" % (plugin)
+
+                    module_name = "%s.%s" % (self.base_package, plugin)
+                    old_path = sys.path
+                    sys.path.append(python)
+                    try:
+                        exec('%s = sys.modules[module_name] = self.modules.get(init)' % (module_name))
+                    finally:
+                        sys.path = old_path
+            else:
+                module_name = "%s.%s" % (self.base_package, plugin)
+                if module_name in sys.modules:
+                    del sys.modules[module_name]
+                    exec("del %s" % (module_name))
 
     @cherrypy.expose
     def index(self):
