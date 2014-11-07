@@ -299,7 +299,7 @@ class Plugins(object):
         return json.dumps(self.plugins.keys())
 
     @cherrypy.expose
-    def default(self, plugin, route=None, *path, **query):
+    def default(self, plugin, *path, **query):
         # Refresh the plugin registry.
         error = self.refresh()
         if error is not None:
@@ -315,7 +315,7 @@ class Plugins(object):
 
         plugin_path = self.plugins[plugin]
 
-        if route is None:
+        if len(path) == 0:
             # Look for a README.md or REEADME.rst file in the plugin directory,
             # and serve it if it exists, otherwise, just serve a friendly
             # message.
@@ -330,19 +330,14 @@ class Plugins(object):
                 return cherrypy.lib.static.serve_file(readme)
             else:
                 return "Plugin '%s' is here, but there's no README!  If you know the authors of this plugin, you should get them to write one!" % (plugin)
-        elif route == "static":
-            # If the "static" route is requested, serve the requested file
-            # immediately.
-            return cherrypy.lib.static.serve_file(os.path.join(plugin_path, "static", *path))
-        elif route == "service":
-            # If the "service" route is requested, find a service file along the
-            # requested path, and invoke it with the remaining path components
-            # as positional arguments; if no such service file is found, send
-            # back a 404.
+        else:
+            # Check for a possible service being named by the requested path.
             base_path = os.path.join(plugin_path, "service")
             for i in range(1, len(path) + 1):
                 service_path = os.path.join(base_path, *(path[:i])) + ".py"
                 if os.path.exists(service_path):
                     return self.tangelo_server.invoke_service(service_path, *path[i:], **query)
 
-            tangelo.http_status(404, "Service Not Found")
+            # Reaching here means we should try to serve the requested path as a
+            # static resource.
+            return cherrypy.lib.static.serve_file(os.path.join(plugin_path, "static", *path))
