@@ -51,7 +51,7 @@ class TangeloStream(object):
         return json.dumps(result)
 
     def stream_start(self, url, kwargs):
-        directive = tangelo.tool.analyze_url(url, cherrypy.config.get("webroot"))
+        directive = tangelo.tool.analyze_url(url)
 
         if "target" not in directive or directive["target"].get("type") != "service":
             tangelo.log("STREAM", json.dumps(directive, indent=4))
