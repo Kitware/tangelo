@@ -14,6 +14,7 @@ window.tangelo = {};
 
     // The location of the API root.
     tangelo.apiRoot = "/api";
+    tangelo.pluginRoot = "/plugin";
 
     // An "in-band" error, one that the application can recover from (possibly
     // by displaying an error message and asking the user to try again, etc.).

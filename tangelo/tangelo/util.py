@@ -162,6 +162,7 @@ class ModuleCache(object):
 
                 if self.config:
                     cherrypy.config["module-config"][module] = config
+                    cherrypy.config["persistent-store"][module] = {}
 
                 # Remove .py to get the module name
                 name = module[:-3]
