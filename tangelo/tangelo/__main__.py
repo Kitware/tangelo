@@ -352,6 +352,7 @@ def main():
     # Create a plugin server object.
     plugins = tangelo.server.Plugins("tangelo.plugin", plugin_cfg_file, tangelo_server)
     cherrypy.tree.mount(plugins, "/plugin")
+    plugins.refresh()
 
     # Create a VTKWeb API object if requested, and mount it.
     vtkweb = None

@@ -226,7 +226,7 @@ class Plugins(object):
 
         exec("%s = sys.modules[self.base_package] = types.ModuleType(self.base_package)" % (self.base_package))
 
-    def refresh_plugins(self):
+    def refresh(self):
         if not os.path.exists(self.config_file):
             if self.mtime > 0:
                 tangelo.log("PLUGIN", self.missing_msg)
@@ -289,7 +289,7 @@ class Plugins(object):
 
     @cherrypy.expose
     def index(self):
-        error = self.refresh_plugins()
+        error = self.refresh()
         if error is not None:
             tangelo.content_type("text/plain")
             tangelo.http_status(400, "Bad Plugin Configuration")
@@ -301,7 +301,7 @@ class Plugins(object):
     @cherrypy.expose
     def default(self, plugin, route=None, *path, **query):
         # Refresh the plugin registry.
-        error = self.refresh_plugins()
+        error = self.refresh()
         if error is not None:
             tangelo.content_type("text/plain")
             tangelo.http_status(400, "Bad Plugin Configuration")
