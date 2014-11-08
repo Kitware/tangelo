@@ -6,9 +6,11 @@ store = tangelo.persistent_store()
 streams = store["streams"] = {}
 modules = store["modules"] = tangelo.util.ModuleCache()
 
+
 @tangelo.restful
 def get(key=None):
     return get_streams() if key is None else get_stream_info(key)
+
 
 @tangelo.restful
 def post(*pathcomp, **kwargs):
@@ -35,6 +37,7 @@ def post(*pathcomp, **kwargs):
         tangelo.http_status(400, "Illegal POST action")
         return {"error": "Illegal POST action '%s'" % (action)}
 
+
 @tangelo.restful
 def delete(key=None):
     if key is None:
@@ -46,13 +49,16 @@ def delete(key=None):
     else:
         del streams[key]
         return {"key": key}
-    
+
+
 def get_streams():
     return streams.keys()
+
 
 def get_stream_info(key):
     tangelo.http_status(501)
     return {"error": "stream info method currently unimplemented"}
+
 
 def stream_start(url, kwargs):
     directive = tangelo.tool.analyze_url(url)
@@ -101,6 +107,7 @@ def stream_start(url, kwargs):
                     # Create an object describing the logging of the generator object.
                     return {"key": key}
 
+
 def stream_next(key):
     if key not in streams:
         tangelo.http_status(404, "No Such Key")
@@ -124,4 +131,3 @@ def stream_next(key):
             del streams[key]
             tangelo.http_status(500, "Exception Raised By Streaming Service")
             return {"error": "Caught exception while executing stream service keyed by %s:<br><pre>%s</pre>" % (key, traceback.format_exc())}
-
