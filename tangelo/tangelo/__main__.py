@@ -13,6 +13,7 @@ import sys
 import time
 import tangelo.util
 import tangelo.ws4py.server
+import threading
 import json
 import re
 
@@ -21,7 +22,6 @@ from tangelo.minify_json import json_minify
 import tangelo.girder
 import tangelo.info
 import tangelo.server
-import tangelo.stream
 import tangelo.tool
 import tangelo.util
 import tangelo.vtkweb
@@ -30,6 +30,8 @@ import tangelo.websocket
 tangelo_version = "0.7.0-dev"
 
 vtkweb = None
+
+reactor_thread = None
 
 
 def read_config(cfgfile):
@@ -101,14 +103,11 @@ def shutdown(signum, frame):
     for sig in [signal.SIGINT, signal.SIGTERM]:
         signal.signal(sig, polite)
 
-    # Perform (1) vtkweb process cleanup, (2) twisted reactor cleanup and quit,
-    # (3) CherryPy shutdown, and (4) CherryPy exit.
+    # Perform (1) vtkweb process cleanup, (2) CherryPy shutdown, and (3)
+    # CherryPy exit.
     if vtkweb:
         tangelo.log("TANGELO", "Shutting down VTKWeb processes")
         vtkweb.shutdown_all()
-
-    tangelo.log("TANGELO", "Stopping thread reactor")
-    reactor.stop()
 
     tangelo.log("TANGELO", "Stopping web server")
     cherrypy.engine.stop()
@@ -347,10 +346,6 @@ def main():
     info = tangelo.info.TangeloInfo(version=tangelo_version)
     cherrypy.tree.mount(info, apiroot + "/info", config={"/": {"request.dispatch": cherrypy.dispatch.MethodDispatcher()}})
 
-    # Create a streaming API object.
-    stream = tangelo.stream.TangeloStream(module_cache=module_cache)
-    cherrypy.tree.mount(stream, apiroot + "/stream", config={"/": {"request.dispatch": cherrypy.dispatch.MethodDispatcher()}})
-
     # Create a plugin server object.
     plugins = tangelo.server.Plugins("tangelo.plugin", plugin_cfg_file, tangelo_server)
     cherrypy.tree.mount(plugins, "/plugin")
@@ -471,9 +466,16 @@ def main():
     # Start the CherryPy engine.
     cherrypy.engine.start()
 
-    # Start the Twisted reactor in the main thread (it will block but the
-    # CherryPy engine has already started in a non-blocking manner).
-    reactor.run(installSignalHandlers=False)
+    # Start the Twisted reactor in its own thread (it will block there but that
+    # won't affect the execution of the main thread).  Set the daemon flag so
+    # that the main thread will not wait for the reactor thread to exit when it
+    # exits (since, like a Romulan engine core, once the reactor is started in
+    # its own thread, there is no way to shut it down).
+    global reactor_thread
+    reactor_thread = threading.Thread(target=reactor.run, kwargs={"installSignalHandlers": False})
+    reactor_thread.daemon = True
+    reactor_thread.start()
+
     cherrypy.engine.block()
 
 if __name__ == "__main__":
