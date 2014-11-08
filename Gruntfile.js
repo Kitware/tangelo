@@ -191,25 +191,10 @@ module.exports = function (grunt) {
       pep8: {
           files: {
               src: [
-                  "tangelo/setup.py",
-                  "tangelo/scripts/tangelo",
-                  "tangelo/scripts/tangelo-passwd",
-                  "tangelo/scripts/vtkweb-launcher",
-                  "tangelo/tangelo/__init__.py",
-                  "tangelo/tangelo/__main__.py",
-                  "tangelo/tangelo/girder.py",
-                  "tangelo/tangelo/info.py",
-                  "tangelo/tangelo/server.py",
-                  "tangelo/tangelo/stream.py",
-                  "tangelo/tangelo/tool.py",
-                  "tangelo/tangelo/util.py",
-                  "tangelo/tangelo/vtkweb.py",
-                  "tangelo/tangelo/websocket.py",
-                  "tangelo/www/service/celery.py",
-                  "tangelo/www/service/config.py",
-                  "tangelo/www/service/impala-json.py",
-                  "tangelo/www/service/mongo.py",
-                  "tangelo/www/service/svg2pdf.py"
+                  "tangelo/**/*.py",
+                  "!tangelo/tangelo/autobahn/**/*.py",
+                  "!tangelo/tangelo/ws4py/**/*.py",
+                  "!tangelo/tangelo/minify_json.py"
               ]
           }
       },
