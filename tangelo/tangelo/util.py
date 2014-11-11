@@ -14,6 +14,15 @@ import tangelo
 from tangelo.minify_json import json_minify
 
 
+def load_service_config(path):
+    with open(path) as f:
+        config = json.loads(json_minify(f.read()))
+        if type(config) != dict:
+            raise TypeError("Service module configuration file does not contain a key-value store (i.e., a JSON Object)")
+
+    return config
+
+
 def get_free_port():
     # Bind a socket to port 0 (which directs the OS to find an unused port).
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -141,17 +150,12 @@ class ModuleCache(object):
                 # Load any configuration the module might carry with it.
                 if config_mtime is not None:
                     try:
-                        with open(config_file) as f:
-                            config = json.loads(json_minify(f.read()))
-                            if type(config) != dict:
-                                msg = ("Service module configuration file " +
-                                       "does not contain a key-value store " +
-                                       "(i.e., a JSON Object)")
-                                tangelo.log("TANGELO", msg)
-                                raise TypeError(msg)
+                        config = load_service_config(config_file)
+                    except TypeError as e:
+                        tangelo.log("TANGELO", "Bad configuration in file %s: %s" % (config_file, e))
+                        raise
                     except IOError:
-                        tangelo.log("TANGELO", "Could not open config file %s" %
-                                    (config_file))
+                        tangelo.log("TANGELO", "Could not open config file %s" % (config_file))
                         raise
                     except ValueError as e:
                         tangelo.log("TANGELO", "Error reading config file %s: %s" %

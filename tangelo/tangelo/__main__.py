@@ -8,12 +8,10 @@ import os
 import cherrypy
 import platform
 import signal
-from twisted.internet import reactor
 import sys
 import time
 import tangelo.util
 import tangelo.ws4py.server
-import threading
 import json
 import re
 
@@ -24,14 +22,10 @@ import tangelo.info
 import tangelo.server
 import tangelo.tool
 import tangelo.util
-import tangelo.vtkweb
 import tangelo.websocket
 
 tangelo_version = "0.7.0-dev"
-
-vtkweb = None
-
-reactor_thread = None
+plugins = None
 
 
 def read_config(cfgfile):
@@ -77,8 +71,6 @@ def read_config(cfgfile):
     config["cert"] = getstring("tangelo", "cert")
     config["root"] = getstring("tangelo", "root")
 
-    config["vtkpython"] = getstring("vtkweb", "vtkpython")
-
     config["girder-host"] = getstring("girder", "girder-host")
     config["girder-port"] = getint("girder", "girder-port")
     config["girder-path"] = getstring("girder", "girder-path")
@@ -103,12 +95,11 @@ def shutdown(signum, frame):
     for sig in [signal.SIGINT, signal.SIGTERM]:
         signal.signal(sig, polite)
 
-    # Perform (1) vtkweb process cleanup, (2) CherryPy shutdown, and (3)
-    # CherryPy exit.
-    if vtkweb:
-        tangelo.log("TANGELO", "Shutting down VTKWeb processes")
-        vtkweb.shutdown_all()
+    # Perform plugin shutdown operations.
+    tangelo.log("TANGELO", "Shutting down plugins...")
+    plugins.teardown()
 
+    # Perform CherryPy shutdown and exit.
     tangelo.log("TANGELO", "Stopping web server")
     cherrypy.engine.stop()
     cherrypy.engine.exit()
@@ -130,7 +121,6 @@ def main():
     p.add_argument("-u", "--user", type=str, default=None, metavar="USERNAME", help="specifies the user to run as when root privileges are dropped")
     p.add_argument("-g", "--group", type=str, default=None, metavar="GROUPNAME", help="specifies the group to run as when root privileges are dropped")
     p.add_argument("-r", "--root", type=str, default=None, metavar="DIR", help="the directory from which Tangelo will serve content")
-    p.add_argument("--vtkpython", type=str, default=None, metavar="FILE", help="the vtkpython executable, for use with the vtkweb service (default: \"vtkpython\")")
     p.add_argument("--verbose", "-v", action="store_true", help="display extra information as Tangelo starts up")
     p.add_argument("--version", action="store_true", help="display Tangelo version number")
     p.add_argument("--key", type=str, default=None, metavar="FILE", help="the path to the SSL key.  You must also specify --cert to serve content over https.")
@@ -236,15 +226,6 @@ def main():
         tangelo.log("TANGELO", "\tUser: %s" % (user))
         tangelo.log("TANGELO", "\tGroup: %s" % (group))
 
-    # Extract the vtkpython executable option, if given.
-    vtkpython = args.vtkpython or config.get("vtkpython")
-    if vtkpython is not None:
-        vtkpython = tangelo.util.expandpath(vtkpython)
-        tangelo.log("TANGELO", "VTKWeb support enabled")
-        tangelo.log("TANGELO", "\tvtkpython found at path %s" % (vtkpython))
-    else:
-        tangelo.log("TANGELO", "VTKWeb support disabled")
-
     # Girder options.  If no girder path is specified, we take this to mean we
     # should NOT mount a Girder API.
     girderconf = {}
@@ -337,6 +318,10 @@ def main():
     cherrypy.config.update({"module-config": {}})
     cherrypy.config.update({"persistent-store": {}})
 
+    # Analogs of the module storage dicts, but for plugins.
+    cherrypy.config.update({"plugin-config": {}})
+    cherrypy.config.update({"plugin-store": {}})
+
     # Create an instance of the main handler object.
     module_cache = tangelo.util.ModuleCache()
     tangelo_server = tangelo.server.Tangelo(module_cache=module_cache)
@@ -347,15 +332,10 @@ def main():
     cherrypy.tree.mount(info, apiroot + "/info", config={"/": {"request.dispatch": cherrypy.dispatch.MethodDispatcher()}})
 
     # Create a plugin server object.
+    global plugins
     plugins = tangelo.server.Plugins("tangelo.plugin", plugin_cfg_file, tangelo_server)
     cherrypy.tree.mount(plugins, "/plugin")
     plugins.refresh()
-
-    # Create a VTKWeb API object if requested, and mount it.
-    vtkweb = None
-    if vtkpython is not None:
-        vtkweb = tangelo.vtkweb.TangeloVtkweb(vtkpython=vtkpython, weblauncher=invocation_dir + "/bin/vtkweb-launcher.py")
-        cherrypy.tree.mount(vtkweb, apiroot + "/vtkweb")
 
     # Create a Girder API object if requested, and mount it at the requested
     # path.
@@ -465,17 +445,6 @@ def main():
 
     # Start the CherryPy engine.
     cherrypy.engine.start()
-
-    # Start the Twisted reactor in its own thread (it will block there but that
-    # won't affect the execution of the main thread).  Set the daemon flag so
-    # that the main thread will not wait for the reactor thread to exit when it
-    # exits (since, like a Romulan engine core, once the reactor is started in
-    # its own thread, there is no way to shut it down).
-    global reactor_thread
-    reactor_thread = threading.Thread(target=reactor.run, kwargs={"installSignalHandlers": False})
-    reactor_thread.daemon = True
-    reactor_thread.start()
-
     cherrypy.engine.block()
 
 if __name__ == "__main__":

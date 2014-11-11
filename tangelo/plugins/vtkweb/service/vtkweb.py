@@ -1,12 +1,64 @@
+import os
 import tangelo
+import tangelo.util
 import tangelo.autobahn.websocket as ab_websocket
 import tangelo.autobahn.wamp as wamp
 import twisted.internet
 import threading
+import sys
 
-vtkpython = None
-weblauncher = None
-processes = {}
+
+def initialize():
+    global vtkpython
+    global weblauncher
+    global processes
+
+    # Get the module config.
+    config = tangelo.plugin_config()
+
+    # Raise an error if there's no vtkpython executable.
+    vtkpython = config.get("vtkpython", None)
+    if not vtkpython:
+        msg = "No 'vtkpython' option specified in configuration plugin"
+        tangelo.log("VTKWEB", "[initialization] fatal error: %s" % (msg))
+
+        # Construct a run() function that will mask the restful API and just
+        # inform the caller about the configuration problem.
+        def run():
+            tangelo.http_status(400, "Bad Configuration")
+            return {"error": msg}
+
+        sys.modules[__name__].__dict__["run"] = run
+        return
+
+    vtkpython = tangelo.util.expandpath(vtkpython)
+    tangelo.log("VTKWEB", "[initialization] Using vtkpython executable %s" % (vtkpython))
+
+    # Use the "web launcher" included with the plugin.
+    weblauncher = os.path.realpath("%s/../include/vtkweb-launcher.py" % (os.path.dirname(__file__)))
+
+    # Initialize a table of VTKWeb processes.
+    tangelo.plugin_store()["processes"] = processes = {}
+
+    # Check to see if a reactor is running already.
+    if twisted.internet.reactor.running:
+        threads = [t for t in threading.enumerate() if t.name == "tangelo-vtkweb-plugin"]
+        if len(threads) > 0:
+            tangelo.log("VTKWEB", "[initialization] A reactor started by a previous loading of this plugin is already running")
+        else:
+            tangelo.log("VTKWEB", "[initialization] A reactor started by someone other than this plugin is already running")
+    else:
+        # Start the Twisted reactor, but in a separate thread so it doesn't
+        # block the CherryPy main loop.  Mark the thread as "daemon" so that
+        # when Tangelo's main thread exits, the reactor thread will be killed
+        # immediately.
+        reactor = threading.Thread(target=twisted.internet.reactor.run, kwargs={"installSignalHandlers": False}, name="tangelo-vtkweb-plugin")
+        reactor.daemon = True
+        reactor.start()
+
+        tangelo.log("VTKWEB", "[initialization] Starting Twisted reactor")
+
+initialize()
 
 
 @tangelo.restful
@@ -42,7 +94,10 @@ def get(key=None):
 
 
 @tangelo.restful
-def post(*pargs, args="", timeout=0):
+def post(*pargs, **query):
+    args = query.get("args", "")
+    timeout = float(query.get("timeout", 0))
+
     if len(pargs) == 0:
         tangelo.http_status(400, "Required Argument Missing")
         return {"error": "No program path was specified"}
@@ -104,7 +159,6 @@ def post(*pargs, args="", timeout=0):
 
     class Timeout:
         pass
-
     signal = "Starting factory"
     if timeout <= 0:
         timeout = 10

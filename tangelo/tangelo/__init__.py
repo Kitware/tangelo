@@ -148,8 +148,16 @@ def config():
                                         [cherrypy.thread_data.modulename])
 
 
+def plugin_config():
+    return copy.deepcopy(cherrypy.config["plugin-config"][cherrypy.thread_data.pluginname])
+
+
 def persistent_store():
     return cherrypy.config["persistent-store"][cherrypy.thread_data.modulename]
+
+
+def plugin_store():
+    return cherrypy.config["plugin-store"][cherrypy.thread_data.pluginname]
 
 
 class HTTPStatusCode:
