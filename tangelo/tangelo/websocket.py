@@ -24,17 +24,16 @@ class WebSocketLowPriorityPlugin(WebSocketPlugin):
     start.priority = 80
 
 
-class WebSocketHandler(object):
-    @cherrypy.expose
-    def index(self):
-        pass
-
-    @cherrypy.expose
-    def ws(self):
-        pass
-
-
 def mount(name, handler_cls, protocols=None):
+    class WebSocketHandler(object):
+        @cherrypy.expose
+        def index(self):
+            pass
+
+        @cherrypy.expose
+        def ws(self):
+            pass
+
     if protocols is None:
         protocols = []
 
