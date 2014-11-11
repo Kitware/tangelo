@@ -333,8 +333,10 @@ def main():
     apiroot = cherrypy.config["apiroot"]
 
     # Place an empty dict to hold per-module configuration into the global
-    # configuration object.
+    # configuration object, and one for persistent per-module storage (the
+    # latter can be manipulated by the service).
     cherrypy.config.update({"module-config": {}})
+    cherrypy.config.update({"persistent-store": {}})
 
     # Create an instance of the main handler object.
     module_cache = tangelo.util.ModuleCache()

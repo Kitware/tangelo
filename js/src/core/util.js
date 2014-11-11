@@ -57,6 +57,10 @@
         return [].concat(tangelo.apiRoot, api, Array.prototype.slice.call(arguments, 1)).join("/");
     };
 
+    tangelo.pluginUrl = function (plugin) {
+        return [].concat(tangelo.pluginRoot, plugin, Array.prototype.slice.call(arguments, 1)).join("/");
+    };
+
     // Returns a unique ID for use as, e.g., ids for dynamically generated html
     // elements, etc.
     tangelo.uniqueID = (function () {

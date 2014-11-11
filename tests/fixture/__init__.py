@@ -11,6 +11,9 @@ process = None
 def url(*path, **query):
     return "http://%s:%s/%s?%s" % (host, port, "/".join(path), "&".join(["%s=%s" % (key, value) for key, value in query.iteritems()]))
 
+def plugin_url(*path, **query):
+    return url(*(["plugin"] + list(path)), **query)
+
 def start_tangelo():
     global process
 
@@ -20,7 +23,8 @@ def start_tangelo():
     process = subprocess.Popen(["venv/bin/tangelo",
                                 "--host", host,
                                 "--port", port,
-                                "--root", "tests/www"],
+                                "--root", "tests/www",
+                                "--plugin-config", "plugin.conf"],
                                stderr=subprocess.PIPE)
 
     buf = []

@@ -148,6 +148,10 @@ def config():
                                         [cherrypy.thread_data.modulename])
 
 
+def persistent_store():
+    return cherrypy.config["persistent-store"][cherrypy.thread_data.modulename]
+
+
 class HTTPStatusCode:
     def __init__(self, code, msg=None):
         self.code = code

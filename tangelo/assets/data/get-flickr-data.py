@@ -21,6 +21,7 @@ import json
 import sys
 import urllib
 
+
 # Construct a JSON representation of a Javascript date (which uses
 # *milli*seconds since the epoch, rather than seconds).
 def get_javascript_date(datestring):
@@ -89,9 +90,10 @@ def main():
         photos = photos[:max_photos]
     else:
         # Retrieve the remaining pagefuls of results.
-        class Done: pass
+        class Done:
+            pass
         try:
-            for page in xrange(2, pages+1):
+            for page in xrange(2, pages + 1):
                 data["page"] = page
 
                 sys.stderr.write("reading page %d..." % (page))
@@ -130,7 +132,7 @@ def main():
               "height_z",
               "width_z",
               "datetakengranularity"]
-                
+
     # Perform a bit of processing: gather the long/lat values into a single
     # field (for use by Mongo indices, etc.); copy the "z" url into a simpler
     # named field; process the date and hashtags out of the appropriate strings.
