@@ -144,16 +144,15 @@ def paths(runtimepaths):
 
 
 def config():
-    return copy.deepcopy(cherrypy.config["module-config"]
-                                        [cherrypy.thread_data.modulename])
+    return copy.deepcopy(cherrypy.config["module-config"][cherrypy.thread_data.modulename])
 
 
 def plugin_config():
     return copy.deepcopy(cherrypy.config["plugin-config"][cherrypy.thread_data.pluginname])
 
 
-def persistent_store():
-    return cherrypy.config["persistent-store"][cherrypy.thread_data.modulename]
+def store():
+    return cherrypy.config["module-store"][cherrypy.thread_data.modulename]
 
 
 def plugin_store():

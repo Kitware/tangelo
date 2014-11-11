@@ -316,7 +316,7 @@ def main():
     # configuration object, and one for persistent per-module storage (the
     # latter can be manipulated by the service).
     cherrypy.config.update({"module-config": {}})
-    cherrypy.config.update({"persistent-store": {}})
+    cherrypy.config.update({"module-store": {}})
 
     # Analogs of the module storage dicts, but for plugins.
     cherrypy.config.update({"plugin-config": {}})

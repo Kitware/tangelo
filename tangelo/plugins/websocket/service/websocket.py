@@ -2,7 +2,7 @@ import tangelo
 import tangelo.util
 
 # Useful aliases for this service's necessary persistent data.
-store = tangelo.persistent_store()
+store = tangelo.store()
 websockets = store["websockets"] = set()
 modules = store["modules"] = tangelo.util.ModuleCache()
 
