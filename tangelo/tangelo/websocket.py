@@ -27,11 +27,29 @@ class WebSocketLowPriorityPlugin(WebSocketPlugin):
 class WebSocketHandler(object):
     @cherrypy.expose
     def index(self):
-        return "OK"
+        pass
 
     @cherrypy.expose
     def ws(self):
         pass
+
+
+def mount(name, handler_cls, protocols=None):
+    if protocols is None:
+        protocols = []
+
+    cherrypy.tree.mount(WebSocketHandler(),
+                        "/ws/%s" % (name),
+                        config={"/ws": {"tools.websocket.on": True,
+                                        "tools.websocket.handler_cls": handler_cls,
+                                        "tools.websocket.protocols": protocols}})
+
+
+def unmount(name):
+    try:
+        del cherrypy.tree.apps["/ws/%s" % (name)]
+    except KeyError:
+        raise KeyError("no such websocket path: %s" % (name))
 
 
 def VTKWebSocketAB(url, relay):
