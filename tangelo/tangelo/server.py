@@ -266,6 +266,24 @@ class Plugins(object):
 
                 tangelo.log("PLUGIN", "path is %s" % (path))
 
+                # Check for a configuration file.
+                config_file = os.path.join(path, "config.json")
+                config = {}
+                if os.path.exists(config_file):
+                    try:
+                        config = tangelo.util.load_service_config(config_file)
+                    except TypeError as e:
+                        tangelo.log("TANGELO", "Bad configuration in file %s: %s" % (config_file, e))
+                    except IOError:
+                        tangelo.log("TANGELO", "Could not open config file %s" % (config_file))
+                    except ValueError as e:
+                        tangelo.log("TANGELO", "Error reading config file %s: %s" % (config_file, e))
+
+                # Install the config and an empty dict as the plugin-level
+                # config and store.
+                cherrypy.config["plugin-config"][path] = config
+                cherrypy.config["plugin-store"][path] = {}
+
                 # Check for a "python" directory, and place all modules found
                 # there in a virtual submodule of tangelo.plugin.
                 python = os.path.join(path, "python")
@@ -286,6 +304,25 @@ class Plugins(object):
                 if module_name in sys.modules:
                     del sys.modules[module_name]
                     exec("del %s" % (module_name))
+
+    def teardown(self):
+        for plugin, path in self.plugins.iteritems():
+            control_file = os.path.join(path, "control.py")
+            if os.path.exists(control_file):
+                try:
+                    control = self.modules.get(control_file)
+                except ImportError:
+                    tangelo.log("PLUGIN", "Could not import teardown module:")
+                    for line in traceback.format_exc().split("\n"):
+                        tangelo.log("PLUGIN", "\t%s" % (line))
+                else:
+                    if "teardown" in dir(control):
+                        tangelo.log("PLUGIN", "Running teardown for %s..." % (plugin))
+                        try:
+                            control.teardown(cherrypy.config["plugin-config"][path], cherrypy.config["plugin-store"][path])
+                        except:
+                            tangelo.log("PLUGIN", "Caught exception during teardown:")
+                            tangelo.log("\n", "%s" % (traceback.format_exc()))
 
     @cherrypy.expose
     def index(self):
@@ -336,7 +373,10 @@ class Plugins(object):
             for i in range(1, len(path) + 1):
                 service_path = os.path.join(base_path, *(path[:i])) + ".py"
                 if os.path.exists(service_path):
-                    return self.tangelo_server.invoke_service(service_path, *path[i:], **query)
+                    cherrypy.thread_data.pluginname = plugin_path
+                    val = self.tangelo_server.invoke_service(service_path, *path[i:], **query)
+                    cherrypy.thread_data.plugin_path = None
+                    return val
 
             # Reaching here means we should try to serve the requested path as a
             # static resource.

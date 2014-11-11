@@ -341,7 +341,7 @@ module.exports = function (grunt) {
 
         grunt.util.spawn({
             cmd: pep8,
-            args: ["--ignore=E501"].concat(this.filesSrc),
+            args: ["--ignore=E501,E265"].concat(this.filesSrc),
             opts: {
                 stdio: "inherit"
             }
