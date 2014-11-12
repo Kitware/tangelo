@@ -1,6 +1,6 @@
 /*jslint browser: true */
 
-(function (tangelo, $) {
+(function (tangelo) {
     "use strict";
 
     // A function to generate a Tangelo API url.
@@ -80,11 +80,23 @@
     };
 
     tangelo.absoluteUrl = function (path) {
-        var trailingSlash = window.location.pathname[window.location.pathname.length - 1] === "/";
+        var trailingSlash,
+            pathname;
+
+        trailingSlash = window.location.pathname[window.location.pathname.length - 1] === "/";
+
+        // No trailing slash means the pathname references a file rather than a
+        // directory, so strip off the final element.
+        if (!trailingSlash) {
+            pathname = window.location.pathname.split("/").slice(0, -1).join("/");
+            console.log(pathname);
+        } else {
+            pathname = window.location.pathname;
+        }
 
         if (path.length > 0) {
             if (path[0] !== "/" && path[0] !== "~") {
-                path = window.location.pathname + (trailingSlash ? "" : "/") + path;
+                path = pathname + (trailingSlash ? "" : "/") + path;
             }
         }
 
