@@ -1,9 +1,9 @@
 (function (tangelo, $) {
     "use strict";
 
-    tangelo.stream = {};
+    var streamPlugin = tangelo.getPlugin("stream");
 
-    tangelo.stream.streams = function (callback) {
+    streamPlugin.streams = function (callback) {
         $.ajax({
             url: tangelo.pluginUrl("stream"),
             type: "GET",
@@ -17,7 +17,7 @@
         });
     };
 
-    tangelo.stream.start = function (url, callback) {
+    streamPlugin.start = function (url, callback) {
         // Send an ajax request to get the stream started.
         $.ajax({
             url: tangelo.pluginUrl("stream", "start", tangelo.absoluteUrl(url)),
@@ -39,7 +39,7 @@
     };
 
     /*jslint unparam: true */
-    tangelo.stream.query = function (key, callback) {
+    streamPlugin.query = function (key, callback) {
         $.ajax({
             url: tangelo.pluginUrl("stream", "next", key),
             type: "POST",
@@ -64,7 +64,7 @@
         /*jslint unparam: true */
     };
 
-    tangelo.stream.run = function (key, callback, delay) {
+    streamPlugin.run = function (key, callback, delay) {
         // NOTE: we can't "shortcut" this (e.g. "delay = delay || 100") because
         // this will prevent the user from passing "0" in as the delay argument.
         if (delay === undefined) {
@@ -74,7 +74,7 @@
         // Perform a stream query, using setTimeout to cause this function to
         // recur (in a way that does not indefinitely deepen the stack) until
         // there is an error, or the stream runs out.
-        tangelo.stream.query(key, function (result, finished, error) {
+        streamPlugin.query(key, function (result, finished, error) {
             var flag,
                 keepgoing = true;
 
@@ -114,13 +114,13 @@
                 // Schedule a new call to this function, with possibly mutated
                 // parameters, after the specified delay.
                 if (keepgoing) {
-                    window.setTimeout(tangelo.stream.run, delay, key, callback, delay);
+                    window.setTimeout(streamPlugin.run, delay, key, callback, delay);
                 }
             }
         });
     };
 
-    tangelo.stream.delete = function (key, callback) {
+    streamPlugin.delete = function (key, callback) {
         $.ajax({
             url: tangelo.pluginUrl("stream", key),
             dataType: "json",
