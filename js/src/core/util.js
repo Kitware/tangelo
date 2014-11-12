@@ -3,55 +3,6 @@
 (function (tangelo, $) {
     "use strict";
 
-    // Returns a key-value store containing the configuration options encoded in
-    // the inputfile.
-    if (!$) {
-        tangelo.config = tangelo.unavailable({
-            plugin: "tangelo.config",
-            required: "JQuery"
-        });
-    } else {
-        tangelo.config = function (inputfile, callback) {
-            var path = window.location.pathname;
-
-            // If the current location ends in a filename, compute the
-            // containing directory before appending the input file name.
-            if (path.slice(-1) !== "/") {
-                path = window.location.pathname.split("/").slice(0, -1).join("/");
-            }
-
-            if (inputfile.length > 0) {
-                if (inputfile[0] !== "/" && inputfile[0] !== "~") {
-                    inputfile = path + "/" + inputfile;
-                }
-            }
-
-            $.ajax({
-                url: "/service/config",
-                data: {
-                    path: inputfile
-                },
-                dataType: "json",
-                error: function (jqxhr) {
-                    // If the ajax call fails, pass the request object to the
-                    // function so the client can examine it.
-                    callback(undefined, undefined, jqxhr);
-                },
-                success: function (data) {
-                    // If successful, check for errors in the execution of the
-                    // service itself, passing that error to the callback if
-                    // necessary.  Otherwise, pass the status and data along to the
-                    // callback.
-                    if (data.error) {
-                        callback(undefined, undefined, tangelo.error(tangelo.error.APPLICATION_ERROR, data.error));
-                    } else {
-                        callback(data.result, data.status);
-                    }
-                }
-            });
-        };
-    }
-
     // A function to generate a Tangelo API url.
     tangelo.apiUrl = function (api) {
         return [].concat(tangelo.apiRoot, api, Array.prototype.slice.call(arguments, 1)).join("/");
