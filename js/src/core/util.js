@@ -12,6 +12,15 @@
         return [].concat(tangelo.pluginRoot, plugin, Array.prototype.slice.call(arguments, 1)).join("/");
     };
 
+    // Standard way to access a plugin namespace.
+    tangelo.getPlugin = function (plugin) {
+        if (tangelo.plugin[plugin] === undefined) {
+            tangelo.plugin[plugin] = {};
+        }
+
+        return tangelo.plugin[plugin];
+    };
+
     // Returns a unique ID for use as, e.g., ids for dynamically generated html
     // elements, etc.
     tangelo.uniqueID = (function () {
