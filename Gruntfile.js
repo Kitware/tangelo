@@ -175,6 +175,8 @@ module.exports = function (grunt) {
               expand: true,
               flatten: true,
               src: [
+                  "js/tests/lib/blanket.js",
+                  "node_modules/grunt-blanket-qunit/reporter/grunt-reporter.js",
                   "js/tests/*.js",
                   "tangelo/www/js/tangelo.js",
                   "tangelo/www/js/tangelo.min.js"
@@ -187,6 +189,16 @@ module.exports = function (grunt) {
               httpBase: "http://localhost:50047"
           },
           files: ["jstest/*.html"]
+      },
+      /*jshint camelcase: false */
+      blanket_qunit: {
+      /*jshint camelcase: true */
+          all: {
+              options: {
+                  urls: ["http://localhost:50047/jstest/accessor.html?coverage=true&gruntReport"],
+                  threshold: 20
+              }
+          }
       },
       pep8: {
           files: {
@@ -231,6 +243,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-contrib-uglify");
     grunt.loadNpmTasks("grunt-contrib-jade");
     grunt.loadNpmTasks("grunt-contrib-qunit");
+    grunt.loadNpmTasks("grunt-blanket-qunit");
     grunt.loadNpmTasks("grunt-contrib-copy");
     grunt.loadNpmTasks("grunt-contrib-clean");
 
@@ -596,7 +609,8 @@ module.exports = function (grunt) {
         "copy:jstest",
         "tangelo:start",
         "continueOn",
-        "qunit",
+        // "qunit",
+        "blanket_qunit",
         "continueOff",
         "tangelo:stop"
     ]);

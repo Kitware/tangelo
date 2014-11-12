@@ -3,7 +3,8 @@ head
     meta(charset="utf-8")
     title #{title}
     link(rel="stylesheet", href="//code.jquery.com/qunit/qunit-1.15.0.css")
-    script(src="tangelo.min.js")
+    script(src="blanket.js" data-cover-reporter="grunt-reporter.js")
+    script(src="tangelo.js" data-cover)
 
 body
     div#qunit
