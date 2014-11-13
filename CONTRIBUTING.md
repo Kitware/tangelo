@@ -5,6 +5,7 @@ We love hearing from Tangelo users, whether by email, on the issue tracker, or
 via pull request.  Here are some guidelines for contributing:
 
 - Please email us at <tangelo-users@public.kitware.com> if you have any questions or concerns or if you need help with any usage problems you encounter while using Tangelo.
+- Consider [subscribing](http://public.kitware.com/mailman/listinfo/tangelo-users) to the *tangelo-users* list to receive important updates about our progress and announcements about releases.
 - If you have feature requests or bug reports, go ahead and open a new issue on the [tracker](https://github.com/Kitware/tangelo/issues).
 - If you would like to contribute actual code, follow these steps:
 
