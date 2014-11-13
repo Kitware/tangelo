@@ -184,12 +184,30 @@ module.exports = function (grunt) {
               dest: "jstest/"
           }
       },
+      jade: {
+          jstest: {
+              files: {
+                  "jstest/tests.html": "js/tests/jade/qunitHarness.jade"
+              },
+              options: {
+                  client: false,
+                  data: function () {
+                      return {
+                          scripts: grunt.file.expand("js/tests/*.js").map(function (s) {
+                              var path = s.split("/");
+                              return path[path.length - 1];
+                          })
+                      };
+                  }
+              }
+          }
+      },
       /*jshint camelcase: false */
       blanket_qunit: {
       /*jshint camelcase: true */
           all: {
               options: {
-                  urls: ["http://localhost:50047/jstest/accessor.html?coverage=true"],
+                  urls: ["http://localhost:50047/jstest/tests.html?coverage=true"],
                   threshold: 20
               }
           }
@@ -208,9 +226,6 @@ module.exports = function (grunt) {
           files: {
               src: ["tests/*.py"]
           }
-      },
-      genhtml: {
-          files: ["js/tests/*.js"]
       },
       cleanup: {
           node: ["node_modules"],
@@ -470,40 +485,24 @@ module.exports = function (grunt) {
         });
     });
 
+    grunt.registerTask("serve:test", "Serve Tangelo in testing mode", function () {
+        var done = this.async();
+
+        grunt.util.spawn({
+            cmd: tangelo,
+            args: ["--hostname", "localhost",
+                   "--port", "50047",
+                   "--root", "."],
+            opts: {
+                stdio: "inherit"
+            }
+        }, function () {
+            done();
+        });
+    });
+
     // Build tangelo.js.
     grunt.registerTask("js", "Build tangelo.js and tangelo.min.js", ["version", "concat", "uglify"]);
-
-    // Use html template to create tangelojs tests.
-    grunt.registerMultiTask("genhtml", "Generate HTML files for QUnit tests", function () {
-        var name,
-            config;
-
-        this.filesSrc.forEach(function (v) {
-            // Extract the name of the test suite, e.g., test/alpha.js -> alpha.
-            name = v.split("/")[2]
-                .split(".")[0];
-
-            // Build a jade task config.  The assignment below is so we can have a
-            // dynamic key based on the name of the test.
-            config = {
-                files: {},
-                options: {
-                    client: false,
-                    data: {
-                        title: "Test case - " + name,
-                        script: name + ".js"
-                    }
-                }
-            };
-            config.files["jstest/" + name + ".html"] = "js/tests/jade/qunitHarness.jade";
-
-            // Add a jade task keyed to the test suite.
-            grunt.config(["jade", name], config);
-        });
-
-        // Schedule the jade task so the actual tests are generated.
-        grunt.task.run("jade");
-    });
 
     // Tangelo launch/kill task.
     (function () {
@@ -598,7 +597,7 @@ module.exports = function (grunt) {
     }());
 
     grunt.registerTask("test:client", [
-        "genhtml",
+        "jade:jstest",
         "copy:jstest",
         "tangelo:start",
         "continueOn",

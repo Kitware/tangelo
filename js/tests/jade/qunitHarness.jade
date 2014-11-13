@@ -1,7 +1,7 @@
 doctype html
 head
     meta(charset="utf-8")
-    title #{title}
+    title tangelo.js unit tests
     link(rel="stylesheet", href="//code.jquery.com/qunit/qunit-1.15.0.css")
     script(src="tangelo.js" data-cover)
 
@@ -21,4 +21,5 @@ body
                 document.write('<script src="blanket.js"></' + 'script>');
             }
         }());
-    script(src="#{script}")
+    - for (var i = 0; i < scripts.length; i++)
+        script(src="#{scripts[i]}")
