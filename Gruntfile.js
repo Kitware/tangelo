@@ -195,7 +195,7 @@ module.exports = function (grunt) {
       /*jshint camelcase: true */
           all: {
               options: {
-                  urls: ["http://localhost:50047/jstest/accessor.html?coverage=true&gruntReport"],
+                  urls: ["http://localhost:50047/jstest/accessor.html?coverage=true"],
                   threshold: 20
               }
           }
@@ -609,7 +609,6 @@ module.exports = function (grunt) {
         "copy:jstest",
         "tangelo:start",
         "continueOn",
-        // "qunit",
         "blanket_qunit",
         "continueOff",
         "tangelo:stop"
