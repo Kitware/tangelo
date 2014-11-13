@@ -184,12 +184,6 @@ module.exports = function (grunt) {
               dest: "jstest/"
           }
       },
-      qunit: {
-          options: {
-              httpBase: "http://localhost:50047"
-          },
-          files: ["jstest/*.html"]
-      },
       /*jshint camelcase: false */
       blanket_qunit: {
       /*jshint camelcase: true */
@@ -242,7 +236,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-contrib-concat");
     grunt.loadNpmTasks("grunt-contrib-uglify");
     grunt.loadNpmTasks("grunt-contrib-jade");
-    grunt.loadNpmTasks("grunt-contrib-qunit");
     grunt.loadNpmTasks("grunt-blanket-qunit");
     grunt.loadNpmTasks("grunt-contrib-copy");
     grunt.loadNpmTasks("grunt-contrib-clean");
