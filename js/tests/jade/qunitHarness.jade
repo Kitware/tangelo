@@ -1,12 +1,25 @@
-doctype("html")
+doctype html
 head
     meta(charset="utf-8")
-    title #{title}
+    title tangelo.js unit tests
     link(rel="stylesheet", href="//code.jquery.com/qunit/qunit-1.15.0.css")
-    script(src="tangelo.min.js")
+    script(src="tangelo.js" data-cover)
 
 body
     div#qunit
     div#qunit-fixture
     script(src="//code.jquery.com/qunit/qunit-1.15.0.js")
-    script(src="#{script}")
+    script.
+        // This allows the correct coverage reporter to be used - the grunt
+        // reporter if Phantom is being used to run the tests, and the default
+        // HTML reporter otherwise.
+        (function () {
+            var phantom = window.navigator.userAgent.indexOf("PhantomJS") !== -1;
+            if (phantom) {
+                document.write('<script src="blanket.js" data-cover-reporter="grunt-reporter.js"></' + 'script>');
+            } else {
+                document.write('<script src="blanket.js"></' + 'script>');
+            }
+        }());
+    - for (var i = 0; i < scripts.length; i++)
+        script(src="#{scripts[i]}")
