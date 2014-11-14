@@ -20,7 +20,8 @@ def start_tangelo():
     if process is not None:
         raise RuntimeError("start_tangelo() called twice without a stop_tangelo() in between")
 
-    process = subprocess.Popen(["venv/bin/tangelo",
+    process = subprocess.Popen(["venv/bin/coverage", "run", "-a",
+                                "venv/bin/tangelo",
                                 "--host", host,
                                 "--port", port,
                                 "--root", "tests/www",

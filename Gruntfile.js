@@ -212,6 +212,25 @@ module.exports = function (grunt) {
               }
           }
       },
+      nose: {
+          options: {
+              virtualenv: "venv",
+              verbose: true,
+              with_coverage: true,
+              cover_package: "tangelo",
+              cover_inclusive: true,
+
+              //cover_branches: true,
+
+              //cover_html: true,
+
+              tests: grunt.file.expand("tests/*.py")
+
+              //cover_html_dir: "jstest/nose_coverage",
+          },
+          main: {
+          }
+      },
       pep8: {
           files: {
               src: [
@@ -251,6 +270,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-contrib-concat");
     grunt.loadNpmTasks("grunt-contrib-uglify");
     grunt.loadNpmTasks("grunt-contrib-jade");
+    grunt.loadNpmTasks("grunt-nose");
     grunt.loadNpmTasks("grunt-blanket-qunit");
     grunt.loadNpmTasks("grunt-contrib-copy");
     grunt.loadNpmTasks("grunt-contrib-clean");
@@ -339,7 +359,8 @@ module.exports = function (grunt) {
             "Sphinx",
             "pep8",
             "requests",
-            "nose"
+            "nose",
+            "coverage"
         ];
 
         grunt.util.spawn({
@@ -423,19 +444,19 @@ module.exports = function (grunt) {
         });
     });
 
-    grunt.registerTask("nose", "Run Tangelo tests with nose", function (file) {
-        var done = this.async();
+/*    grunt.registerTask("nose", "Run Tangelo tests with nose", function (file) {*/
+        //var done = this.async();
 
-        grunt.util.spawn({
-            cmd: nosetests,
-            args: [file],
-            opts: {
-                stdio: "inherit"
-            }
-        }, function (error, result, code) {
-            done(code === 0);
-        });
-    });
+        //grunt.util.spawn({
+            //cmd: nosetests,
+            //args: [file],
+            //opts: {
+                //stdio: "inherit"
+            //}
+        //}, function (error, result, code) {
+            //done(code === 0);
+        //});
+    //});
 
     // Build documentation with Sphinx.
     grunt.registerTask("docs", "Build Tangelo documentation with Sphinx", function () {
