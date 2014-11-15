@@ -1,10 +1,11 @@
 import os
 import tangelo
 import tangelo.util
-import tangelo.autobahn.websocket as ab_websocket
-import tangelo.autobahn.wamp as wamp
+import autobahn.websocket as ab_websocket
+import autobahn.wamp as wamp
 import twisted.internet
 import threading
+import ws4py
 import sys
 
 
@@ -271,9 +272,9 @@ def VTKWebSocketAB(url, relay):
 
 
 def WebSocketRelay(hostname, port, key):
-    class Class(tangelo.ws4py.websocket.WebSocket):
+    class Class(ws4py.websocket.WebSocket):
         def __init__(self, *pargs, **kwargs):
-            tangelo.ws4py.websocket.WebSocket.__init__(self, *pargs, **kwargs)
+            ws4py.websocket.WebSocket.__init__(self, *pargs, **kwargs)
 
             scheme = "ws"
             if cherrypy.config.get("server.ssl_private_key"):

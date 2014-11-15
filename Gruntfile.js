@@ -234,8 +234,6 @@ module.exports = function (grunt) {
           files: {
               src: [
                   "tangelo/**/*.py",
-                  "!tangelo/tangelo/autobahn/**/*.py",
-                  "!tangelo/tangelo/ws4py/**/*.py",
                   "!tangelo/tangelo/minify_json.py"
               ]
           }
@@ -349,11 +347,11 @@ module.exports = function (grunt) {
         done = this.async();
 
         packages = [
-            "Sphinx",
-            "pep8",
-            "requests",
-            "nose",
-            "coverage"
+            "Sphinx==1.2.3",
+            "pep8==1.5.7",
+            "requests==2.4.3",
+            "nose==1.3.4",
+            "coverage==3.7.1"
         ];
 
         grunt.util.spawn({

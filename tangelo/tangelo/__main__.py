@@ -11,7 +11,7 @@ import signal
 import sys
 import time
 import tangelo.util
-import tangelo.ws4py.server
+import ws4py.server
 import json
 import re
 
@@ -420,7 +420,7 @@ def main():
     # plugin so we can set a priority on it that doesn't conflict with privilege
     # drop.
     tangelo.websocket.WebSocketLowPriorityPlugin(cherrypy.engine).subscribe()
-    cherrypy.tools.websocket = tangelo.ws4py.server.cherrypyserver.WebSocketTool()
+    cherrypy.tools.websocket = ws4py.server.cherrypyserver.WebSocketTool()
 
     # Replace the stock auth_digest and auth_basic tools with ones that have
     # slightly lower priority (so the AuthUpdate tool can run before them).
