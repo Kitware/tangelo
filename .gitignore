@@ -9,3 +9,4 @@ tangelo/README
 tangelo/www/docs
 tangelo/www/js
 jstest
+.coverage
