@@ -1,0 +1,46 @@
+#!python
+
+import os
+import urlparse
+import subprocess
+import sys
+
+def main():
+    retval = 0
+
+    # Get the pip executable from the same installation as the current script's
+    # python.
+    pip = os.path.join(sys.prefix, "bin/pip")
+
+    # Treat the arguments as a list of plugin URIs.
+    plugins = sys.argv[1:]
+    for plugin in plugins:
+        # Parse the URI.
+        spec = urlparse.urlparse(plugin)
+
+        if spec.scheme in ["", "file"]:
+            # If the URI is a file path, simply attempt to install its
+            # requirements, if any.
+            reqfile = os.path.join(spec.path, "requirements.txt")
+            if os.path.exists(reqfile):
+                code = subprocess.call([pip, "install", "-r", reqfile])
+                if code != 0:
+                    retval = 1
+            elif not os.path.exists(spec.path):
+                print >>sys.stderr, "error: plugin directory %s does not exist" % (spec.path)
+                retval = 1
+            else:
+                print >>sys.stderr, "plugin directory %s has no requirements.txt file, continuining" % (spec.path)
+        elif spec.scheme in ["http", "https", "git"]:
+            # TODO: use git to clone the repository, and the follow up by taking
+            # the "filesystem" actions as above.
+            print >>sys.stderr, "%s scheme processing unimplemented" % (spec.scheme)
+            retval = 2
+        else:
+            print >>sys.stderr, "error: unsupported URI scheme '%s'" % (spec.scheme)
+            retval = 1
+
+    return retval
+
+if __name__ == "__main__":
+    sys.exit(main())
