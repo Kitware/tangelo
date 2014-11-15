@@ -369,7 +369,7 @@ class Plugins(object):
                 return "Plugin '%s' is here, but there's no README!  If you know the authors of this plugin, you should get them to write one!" % (plugin)
         else:
             # Check for a possible service being named by the requested path.
-            base_path = os.path.join(plugin_path, "service")
+            base_path = os.path.join(plugin_path, "web")
             for i in range(1, len(path) + 1):
                 service_path = os.path.join(base_path, *(path[:i])) + ".py"
                 if os.path.exists(service_path):
@@ -380,4 +380,4 @@ class Plugins(object):
 
             # Reaching here means we should try to serve the requested path as a
             # static resource.
-            return cherrypy.lib.static.serve_file(os.path.join(plugin_path, "static", *path))
+            return cherrypy.lib.static.serve_file(os.path.join(base_path, *path))
