@@ -11,7 +11,9 @@ module.exports = function (grunt) {
         sphinx = path.resolve("venv/bin/sphinx-build"),
         pep8 = path.resolve("venv/bin/pep8"),
         nosetests = path.resolve("venv/bin/nosetests"),
+        coverage = path.resolve("venv/bin/coverage"),
         tangelo = path.resolve("venv/bin/tangelo"),
+        tangelo_dir = path.resolve("venv/lib/python2.7/site-packages/tangelo"),
         version = grunt.file.readJSON("package.json").version;
 
     // Project configuration.
@@ -96,6 +98,10 @@ module.exports = function (grunt) {
               }
           },
           gruntfile: {
+              options: {
+                  // Disable camelcase enforcement.
+                  "-W106": true
+              },
               src: "Gruntfile.js"
           },
           tangelo: {
@@ -212,6 +218,18 @@ module.exports = function (grunt) {
               }
           }
       },
+      nose_coverage: {
+          main: {
+              src: ["tests/*.py"]
+          }
+      },
+      coverage_report: {
+          options: {
+              threshold: 20,
+              html_dir: "jstest/nose_coverage"
+          },
+          main: {}
+      },
       pep8: {
           files: {
               src: [
@@ -220,11 +238,6 @@ module.exports = function (grunt) {
                   "!tangelo/tangelo/ws4py/**/*.py",
                   "!tangelo/tangelo/minify_json.py"
               ]
-          }
-      },
-      testRun: {
-          files: {
-              src: ["tests/*.py"]
           }
       },
       cleanup: {
@@ -339,7 +352,8 @@ module.exports = function (grunt) {
             "Sphinx",
             "pep8",
             "requests",
-            "nose"
+            "nose",
+            "coverage"
         ];
 
         grunt.util.spawn({
@@ -415,26 +429,103 @@ module.exports = function (grunt) {
     });
 
     // Run nose tests.
-    grunt.registerTask("test:server", ["continueOn", "testRun", "continueOff"]);
+    grunt.registerTask("test:server", [
+        "coverage:erase",
+        "nose_coverage",
+        "coverage:combine",
+        "coverage_report"
+    ]);
 
-    grunt.registerMultiTask("testRun", "Run nose for each test", function () {
-        this.filesSrc.forEach(function (file) {
-            grunt.task.run("nose:" + file);
-        });
-    });
-
-    grunt.registerTask("nose", "Run Tangelo tests with nose", function (file) {
+    grunt.registerMultiTask("nose_coverage", "Run server tests with coverage", function () {
         var done = this.async();
 
         grunt.util.spawn({
-            cmd: nosetests,
-            args: [file],
+            cmd: coverage,
+            args: ["run", "-a", "--source", tangelo_dir,
+                   nosetests, "--verbose", "--tests=" + this.filesSrc.join(",")],
             opts: {
                 stdio: "inherit"
             }
         }, function (error, result, code) {
             done(code === 0);
         });
+    });
+
+    grunt.registerTask("coverage", "Manipulate coverage results", function (action) {
+        var done;
+
+        switch (action) {
+            case "erase":
+            case "combine": {
+                done = this.async();
+                grunt.util.spawn({
+                    cmd: coverage,
+                    args: [action],
+                    opts: {
+                        stdio: "inherit"
+                    }
+                }, function (error, result, code) {
+                    done(code === 0);
+                });
+                break;
+            }
+
+            default: {
+                grunt.fail("illegal action '" + action + "'");
+            }
+        }
+    });
+
+    grunt.registerMultiTask("coverage_report", "Report coverage results", function () {
+        var done = this.async(),
+            options,
+            do_report,
+            files;
+
+        options = this.options({
+            threshold: 100
+        });
+
+        do_report = function (html_code) {
+            grunt.util.spawn({
+                cmd: coverage,
+                args: ["report", "--fail-under", options.threshold],
+                opts: {
+                    stdio: "inherit"
+                }
+            }, function (error, result, code) {
+                if (html_code !== 0) {
+                    grunt.warn("HTML generation failed");
+                }
+
+                if (code === 2) {
+                    grunt.warn("Required coverage level of " + options.threshold + "% not met!");
+                }
+
+                done(code === 0);
+            });
+        };
+
+        if (options.html_dir) {
+            if (fs.existsSync(options.html_dir)) {
+                files = fs.readdirSync(options.html_dir);
+                files.forEach(function (f) {
+                    fs.unlinkSync(path.join(options.html_dir, f));
+                });
+                fs.rmdirSync(options.html_dir);
+            }
+            grunt.util.spawn({
+                cmd: coverage,
+                args: ["html", "-d", options.html_dir],
+                opts: {
+                    stdio: "inherit"
+                }
+            }, function (error, result, code) {
+                do_report(code);
+            });
+        } else {
+            do_report(0);
+        }
     });
 
     // Build documentation with Sphinx.
