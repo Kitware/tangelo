@@ -234,8 +234,6 @@ module.exports = function (grunt) {
           files: {
               src: [
                   "tangelo/**/*.py",
-                  "!tangelo/tangelo/autobahn/**/*.py",
-                  "!tangelo/tangelo/ws4py/**/*.py",
                   "!tangelo/tangelo/minify_json.py"
               ]
           }

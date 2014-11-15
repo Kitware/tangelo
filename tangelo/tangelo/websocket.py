@@ -1,6 +1,5 @@
 import cherrypy
-from tangelo.ws4py.server.cherrypyserver import WebSocketPlugin
-import tangelo.ws4py.websocket
+from ws4py.server.cherrypyserver import WebSocketPlugin
 
 
 class WebSocketLowPriorityPlugin(WebSocketPlugin):
