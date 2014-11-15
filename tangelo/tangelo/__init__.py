@@ -261,14 +261,3 @@ def return_type(rettype):
 
         return converter
     return wrap
-
-
-# A return type converter for Bokeh plots.
-def bokeh(plot):
-    from bokeh.resources import CDN
-    from bokeh.embed import components
-    from bokeh.plot_object import PlotObject
-
-    script, div = components(plot, CDN)
-    return json.dumps({"script": script,
-                       "div": div})
