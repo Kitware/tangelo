@@ -46,7 +46,11 @@ module.exports = function (grunt) {
               stripBanners: true
           },
           dist: {
-              src: ["js/src/**/*.js"],
+              src: [
+                  "js/src/core/*.js",
+                  "js/src/widget/widget.js",
+                  "js/src/**/*.js"
+              ],
               dest: "tangelo/www/js/tangelo.js"
           }
       },
