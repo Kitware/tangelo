@@ -1,13 +1,7 @@
-/*jslint browser: true, nomen: true, unparam: true*/
-
 (function (tangelo, $) {
     "use strict";
 
-    if (!($ && $.widget)) {
-        return;
-    }
-
-    tangelo.widget("tangelo.bokeh", {
+    $.widget("tangelo.bokeh", {
         options: {
             url: null
         },
