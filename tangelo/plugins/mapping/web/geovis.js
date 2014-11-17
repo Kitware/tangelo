@@ -1,5 +1,3 @@
-/*jslint browser: true */
-
 (function (tangelo) {
     "use strict";
 
