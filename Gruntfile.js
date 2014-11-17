@@ -565,7 +565,8 @@ module.exports = function (grunt) {
             cmd: tangelo,
             args: ["--hostname", host,
                    "--port", port,
-                   "--root", "venv/share/tangelo/www"],
+                   "--root", "venv/share/tangelo/www",
+                   "--plugin-config", "plugin.conf"],
             opts: {
                 stdio: "inherit"
             }
