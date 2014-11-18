@@ -1,7 +1,9 @@
 (function (tangelo, $, google, d3) {
     "use strict";
 
-    tangelo.GoogleMapSVG = function (elem, mapoptions, cfg, cont) {
+    var mapping = tangelo.getPlugin("mapping");
+
+    mapping.GoogleMapSVG = function (elem, mapoptions, cfg, cont) {
         var that;
 
         // Obtain a unique id for this class.

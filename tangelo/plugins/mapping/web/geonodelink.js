@@ -15,7 +15,7 @@
 
         _create: function () {
             var that = this,
-                vegaspec = tangelo.vegaspec.geovis(that.options.worldGeometry);
+                vegaspec = tangelo.mapping.geovis(that.options.worldGeometry);
 
             vg.parse.spec(vegaspec, function (chart) {
                 that.vis = chart;
