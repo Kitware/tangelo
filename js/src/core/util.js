@@ -96,7 +96,7 @@
                 throw new Error("undefined accessor is not callable");
             };
             func.undefined = true;
-        } else if (tangelo.isFunction(spec)) {
+        } else if (_.isFunction(spec)) {
             func = spec.clone();
         } else if (spec.hasOwnProperty("value")) {
             func = function () {
