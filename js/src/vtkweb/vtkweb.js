@@ -5,7 +5,7 @@
 
     tangelo.vtkweb.processes = function (callback) {
         $.ajax({
-            url: tangelo.apiUrl("vtkweb"),
+            url: tangelo.pluginUrl("vtkweb"),
             dataType: "json",
             error: function (jqxhr) {
                 callback(undefined, jqxhr);
@@ -24,7 +24,7 @@
 
     tangelo.vtkweb.info = function (key, callback) {
         $.ajax({
-            url: tangelo.apiUrl("vtkweb", key),
+            url: tangelo.pluginUrl("vtkweb", key),
             dataType: "json",
             error: function (jqxhr) {
                 callback(undefined, jqxhr);
@@ -69,7 +69,7 @@
 
             // Fire off POST request to vtkweb service.
             $.ajax({
-                url: tangelo.apiUrl("vtkweb"),
+                url: tangelo.pluginUrl("vtkweb"),
                 type: "POST",
                 data: data,
                 dataType: "json",
@@ -123,7 +123,7 @@
 
         tangelo.vtkweb.terminate = function (key, callback) {
             $.ajax({
-                url: tangelo.apiUrl("vtkweb", key),
+                url: tangelo.pluginUrl("vtkweb", key),
                 type: "DELETE",
                 dataType: "json",
                 error: function (jqxhr) {

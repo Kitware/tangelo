@@ -3,11 +3,7 @@
 (function (tangelo) {
     "use strict";
 
-    // A function to generate a Tangelo API url.
-    tangelo.apiUrl = function (api) {
-        return [].concat(tangelo.apiRoot, api, Array.prototype.slice.call(arguments, 1)).join("/");
-    };
-
+    // A function to generate a Tangelo plugin url.
     tangelo.pluginUrl = function (plugin) {
         return [].concat(tangelo.pluginRoot, plugin, Array.prototype.slice.call(arguments, 1)).join("/");
     };

@@ -12,8 +12,7 @@ window.tangelo = {};
         return version;
     };
 
-    // The location of the API root.
-    tangelo.apiRoot = "/api";
+    // The root url for Tangelo plugins.
     tangelo.pluginRoot = "/plugin";
 
     // A namespace for plugins.
