@@ -1,11 +1,5 @@
-/*jslint browser: true, nomen: true */
-
 (function (tangelo, $, d3) {
     "use strict";
-
-    if (!($ && $.widget && d3)) {
-        return;
-    }
 
     if (!d3.selection.prototype.moveToFront) {
         d3.selection.prototype.moveToFront = function () {
@@ -47,7 +41,7 @@
         return findSink(d.parent);
     }
 
-    tangelo.widget("tangelo.dendrogram", {
+    $.widget("tangelo.dendrogram", {
         options: {
             // accessor to the node label
             label: tangelo.accessor({value: ""}),

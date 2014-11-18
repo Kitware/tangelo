@@ -1,15 +1,5 @@
-/*jslint browser: true, todo: true */
-
 (function (tangelo, $, google, d3) {
     "use strict";
-
-    if (!($ && google && d3)) {
-        tangelo.GoogleMapSVG = tangelo.unavailable({
-            plugin: "GoogleMapSVG",
-            required: ["JQuery", "Google Maps API", "d3"]
-        });
-        return;
-    }
 
     tangelo.GoogleMapSVG = function (elem, mapoptions, cfg, cont) {
         var that;

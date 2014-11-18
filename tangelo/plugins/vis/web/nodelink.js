@@ -1,13 +1,7 @@
-/*jslint browser: true, nomen: true */
-
 (function (tangelo, $, d3) {
     "use strict";
 
-    if (!($ && $.widget && d3)) {
-        return;
-    }
-
-    tangelo.widget("tangelo.nodelink", {
+    $.widget("tangelo.nodelink", {
         options: {
             nodeCharge:     tangelo.accessor({value: -130}),
             nodeColor:      tangelo.accessor({value: "steelblue"}),

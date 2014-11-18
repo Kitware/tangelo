@@ -1,12 +1,7 @@
-/*jslint browser: true, nomen: true, unparam: true*/
-
 (function (tangelo, geo, d3, $) {
     "use strict";
 
-    if (!($ && $.widget && d3 && geo)) {
-        return;
-    }
-    tangelo.widget("tangelo.geojsMap", {
+    $.widget("tangelo.geojsMap", {
         options: {
             // baseLayer,
             // initial center,

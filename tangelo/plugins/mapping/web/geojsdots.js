@@ -1,13 +1,7 @@
-/*jslint browser: true, unparam: true, nomen: true */
-
 (function (tangelo, $, d3, geo) {
     "use strict";
 
-    if (!($ && $.widget && d3 && geo)) {
-        return;
-    }
-
-    tangelo.widget("tangelo.geojsdots", $.tangelo.geojsMap, {
+    $.widget("tangelo.geojsdots", $.tangelo.geojsMap, {
         options: {
             latitude: tangelo.accessor({value: 0}),
             longitude: tangelo.accessor({value: 0}),
