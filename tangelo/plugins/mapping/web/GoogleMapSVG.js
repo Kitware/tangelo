@@ -50,18 +50,18 @@
     };
 
     // Enable the class to use Google Map overlays.
-    tangelo.GoogleMapSVG.prototype = new google.maps.OverlayView();
+    mapping.GoogleMapSVG.prototype = new google.maps.OverlayView();
 
     // Function to return the SVG DOM node, for generic manipulation.
-    tangelo.GoogleMapSVG.prototype.getSVG = function () {
+    mapping.GoogleMapSVG.prototype.getSVG = function () {
         return this.svg.node();
     };
 
-    tangelo.GoogleMapSVG.prototype.getMap = function () {
+    mapping.GoogleMapSVG.prototype.getMap = function () {
         return this.map;
     };
 
-    tangelo.GoogleMapSVG.prototype.computeCBArgs = function () {
+    mapping.GoogleMapSVG.prototype.computeCBArgs = function () {
         var el,
             mattrans,
             transtext;
@@ -123,7 +123,7 @@
     };
 
     // Attach event listeners to the map.
-    tangelo.GoogleMapSVG.prototype.attachListener = function (eventType, callback, how) {
+    mapping.GoogleMapSVG.prototype.attachListener = function (eventType, callback, how) {
         var that = this,
             attacher;
 
@@ -166,19 +166,19 @@
         });
     };
 
-    tangelo.GoogleMapSVG.prototype.on = function (eventType, callback) {
+    mapping.GoogleMapSVG.prototype.on = function (eventType, callback) {
         this.attachListener(eventType, callback, "always");
     };
 
-    tangelo.GoogleMapSVG.prototype.onceOn = function (eventType, callback) {
+    mapping.GoogleMapSVG.prototype.onceOn = function (eventType, callback) {
         this.attachListener(eventType, callback, "once");
     };
 
-    tangelo.GoogleMapSVG.prototype.trigger = function (eventType) {
+    mapping.GoogleMapSVG.prototype.trigger = function (eventType) {
         google.maps.event.trigger(this.map, eventType);
     };
 
-    tangelo.GoogleMapSVG.prototype.shift = function (what, x, y) {
+    mapping.GoogleMapSVG.prototype.shift = function (what, x, y) {
         d3.select(what)
             .style("-webkit-transform", "translate(" + x + "px, " + y + "px)")
             .style("-moz-transform", "translate(" + x + "px, " + y + "px)")
@@ -189,7 +189,7 @@
     // This function is part of the overlay interface - it will be called when a
     // new map element is added to the overlay (as in the constructor function
     // above).
-    tangelo.GoogleMapSVG.prototype.onAdd = function () {
+    mapping.GoogleMapSVG.prototype.onAdd = function () {
         // Put an SVG element in the mouse target overlay.
         this.svg = d3.select(this.getPanes().overlayMouseTarget)
             .append("svg")
@@ -205,6 +205,6 @@
     // This function has to be defined, but we wish to defer the actual draw
     // action to the user, vis the on() and onceOn() methods.
     //
-    // tangelo.GoogleMapSVG.prototype.draw = function () {};
-    tangelo.GoogleMapSVG.prototype.draw = $.noop;
+    // mapping.GoogleMapSVG.prototype.draw = function () {};
+    mapping.GoogleMapSVG.prototype.draw = $.noop;
 }(window.tangelo, window.jQuery, window.google, window.d3, window._));
