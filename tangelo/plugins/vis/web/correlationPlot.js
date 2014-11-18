@@ -1,4 +1,3 @@
-/*jslint browser: true, unparam: true, white: true, nomen: true*/
 (function (tangelo, d3, $) {
     "use strict";
 
@@ -279,11 +278,7 @@
         };
     }
 
-    if (!$ || !$.widget) {
-        return;
-    }
-
-    tangelo.widget("tangelo.correlationPlot", {
+    $.widget("tangelo.correlationPlot", {
         options: {
             variables: [],
             data: [],

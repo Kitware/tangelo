@@ -1,15 +1,5 @@
-/*jslint browser: true */
-
 (function (tangelo, $, d3) {
     "use strict";
-
-    if (!($ && d3)) {
-        tangelo.unavailable({
-            plugin: "controlPanel",
-            required: ["JQuery", "d3"]
-        });
-        return;
-    }
 
     function drawerToggle(divsel, buttonsel) {
         var div,

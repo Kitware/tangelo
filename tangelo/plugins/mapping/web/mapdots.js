@@ -1,13 +1,7 @@
-/*jslint browser: true, unparam: true, nomen: true */
-
 (function (tangelo, google, d3, $) {
     "use strict";
 
-    if (!(google && $ && $.widget && d3)) {
-        return;
-    }
-
-    tangelo.widget("tangelo.mapdots", {
+    $.widget("tangelo.mapdots", {
         options: {
             hoverContent: tangelo.accessor({value: ""}),
             size: tangelo.accessor({value: 1}),

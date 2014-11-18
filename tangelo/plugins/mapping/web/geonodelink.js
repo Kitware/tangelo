@@ -1,13 +1,7 @@
-/*jslint browser: true, unparam: true, nomen: true */
-
 (function (tangelo, $, vg) {
     "use strict";
 
-    if (!($ && $.widget && vg)) {
-        return;
-    }
-
-    tangelo.widget("tangelo.geonodelink", {
+    $.widget("tangelo.geonodelink", {
         options: {
             nodeLatitude: tangelo.accessor({value: 0}),
             nodeLongitude: tangelo.accessor({value: 0}),

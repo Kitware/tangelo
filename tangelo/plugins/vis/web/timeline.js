@@ -1,11 +1,5 @@
-/*jslint browser: true, nomen: true, unparam: true*/
-
 (function (tangelo, $, d3) {
     "use strict";
-
-    if (!($ && $.widget && d3)) {
-        return;
-    }
 
     function applyTransition(s, t) {
         if (t) {
@@ -14,7 +8,7 @@
         return s;
     }
 
-    tangelo.widget("tangelo.timeline", {
+    $.widget("tangelo.timeline", {
         options: {
             data: [],
             x: tangelo.accessor({field: "time"}),
