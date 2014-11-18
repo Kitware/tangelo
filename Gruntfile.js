@@ -224,7 +224,8 @@ module.exports = function (grunt) {
           all: {
               options: {
                   urls: ["http://localhost:50047/jstest/tests.html?coverage=true"],
-                  threshold: 20
+                  threshold: 20,
+                  verbose: true
               }
           }
       },
