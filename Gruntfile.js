@@ -14,7 +14,17 @@ module.exports = function (grunt) {
         coverage = path.resolve("venv/bin/coverage"),
         tangelo = path.resolve("venv/bin/tangelo"),
         tangelo_dir = path.resolve("venv/lib/python2.7/site-packages/tangelo"),
-        version = grunt.file.readJSON("package.json").version;
+        version = grunt.file.readJSON("package.json").version,
+        tangeloArgs;
+
+    tangeloArgs = function (hostname, port, root) {
+        return [
+            "--host", hostname,
+            "--port", port,
+            "--root", root,
+            "--plugin-config", "plugin.conf"
+        ];
+    };
 
     // Project configuration.
     grunt.initConfig({
@@ -214,7 +224,8 @@ module.exports = function (grunt) {
           all: {
               options: {
                   urls: ["http://localhost:50047/jstest/tests.html?coverage=true"],
-                  threshold: 20
+                  threshold: 20,
+                  verbose: true
               }
           }
       },
@@ -563,10 +574,7 @@ module.exports = function (grunt) {
 
         grunt.util.spawn({
             cmd: tangelo,
-            args: ["--hostname", host,
-                   "--port", port,
-                   "--root", "venv/share/tangelo/www",
-                   "--plugin-config", "plugin.conf"],
+            args: tangeloArgs(host, port, "venv/share/tangelo/www"),
             opts: {
                 stdio: "inherit"
             }
@@ -580,9 +588,7 @@ module.exports = function (grunt) {
 
         grunt.util.spawn({
             cmd: tangelo,
-            args: ["--hostname", "localhost",
-                   "--port", "50047",
-                   "--root", "."],
+            args: tangeloArgs("localhost", "50047", "."),
             opts: {
                 stdio: "inherit"
             }
@@ -616,10 +622,7 @@ module.exports = function (grunt) {
 
                 cmdline = {
                     cmd: tangelo,
-                    args: [
-                        "--port", "50047",
-                        "--root", "."
-                    ]
+                    args: tangeloArgs("localhost", "50047", ".")
                 };
 
                 console.log("Starting Tangelo server with: " + cmdline.cmd + " " + cmdline.args.join(" "));

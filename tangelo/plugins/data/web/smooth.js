@@ -1,5 +1,3 @@
-/*jslint browser: true, nomen: true, unparam: true, white: true*/
-
 /*
  * Defines a general 1D convolution smoother for tangelo.
  *
@@ -39,6 +37,8 @@
 (function (tangelo) {
     "use strict";
 
+    var dataPlugin = tangelo.getPlugin("data");
+
     // predefined kernels
     var kernels = {
             // simple moving average
@@ -59,7 +59,7 @@
             }
         };
 
-    tangelo.data.smooth = function (spec) {
+    dataPlugin.smooth = function (spec) {
         var x = tangelo.accessor(spec.x || {field: "x"}),
             y = tangelo.accessor(spec.y || {field: "y"}),
             set = spec.set,

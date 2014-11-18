@@ -1,4 +1,4 @@
-QUnit.module("tangelo.data.distanceCluster()");
+QUnit.module("tangelo.plugin.data.distanceCluster()");
 
 (function () {
     "use strict";
@@ -91,7 +91,7 @@ QUnit.module("tangelo.data.distanceCluster()");
             spec.clusterDistance = spec.clusterDistance || 10;
             spec.data = makeRandomData(N);
 
-            var obj = tangelo.data.distanceCluster(spec);
+            var obj = tangelo.plugin.data.distanceCluster(spec);
 
             spec.metric = spec.metric || metric;
             checkCluster(assert, obj.clusters, obj.singlets, spec);
@@ -119,7 +119,7 @@ QUnit.module("tangelo.data.distanceCluster()");
         spec.metric = function () {
             return 0;
         };
-        var obj = tangelo.data.distanceCluster(spec);
+        var obj = tangelo.plugin.data.distanceCluster(spec);
         assert.strictEqual(obj.clusters.length, 1);
         assert.strictEqual(obj.singlets.length, 0);
     });
@@ -130,7 +130,7 @@ QUnit.module("tangelo.data.distanceCluster()");
         spec.metric = function () {
             return 100;
         };
-        var obj = tangelo.data.distanceCluster(spec);
+        var obj = tangelo.plugin.data.distanceCluster(spec);
         assert.strictEqual(obj.clusters.length, 0);
         assert.strictEqual(obj.singlets.length, spec.data.length);
     });
@@ -151,7 +151,7 @@ QUnit.module("tangelo.data.distanceCluster()");
             },
             clusterDistance: 15
         };
-        obj = tangelo.data.distanceCluster(spec);
+        obj = tangelo.plugin.data.distanceCluster(spec);
 
         spec.metric = function (a, b) {
             var x = a[0] - b[0],
@@ -177,7 +177,7 @@ QUnit.module("tangelo.data.distanceCluster()");
             },
             clusterDistance: 15
         };
-        obj = tangelo.data.distanceCluster(spec);
+        obj = tangelo.plugin.data.distanceCluster(spec);
 
         spec.metric = function (a, b) {
             var x = a.loc.x - b.loc.x,

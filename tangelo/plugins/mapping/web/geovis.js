@@ -1,7 +1,9 @@
 (function (tangelo) {
     "use strict";
 
-    tangelo.vegaspec.geovis = function (worldGeometryFile) {
+    var mapping = tangelo.getPlugin("mapping");
+
+    mapping.geovis = function (worldGeometryFile) {
         var spec = {
             width: 800,
             height: 800,

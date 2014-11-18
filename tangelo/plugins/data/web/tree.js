@@ -1,9 +1,9 @@
-/*jslint browser: true */
-
 (function (tangelo) {
     "use strict";
 
-    tangelo.data.tree = function (spec) {
+    var dataPlugin = tangelo.getPlugin("data");
+
+    dataPlugin.tree = function (spec) {
         var id = tangelo.accessor(spec.id || {value: ""}),
             idChild = tangelo.accessor(spec.idChild || {value: ""}),
             children = tangelo.accessor(spec.children),

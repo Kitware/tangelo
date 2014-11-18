@@ -1,5 +1,3 @@
-/*jslint browser: true */
-
 /*
  * Defines a data clustering algorithm for tangelo based on
  * the maximum distance from the cluster center.
@@ -51,6 +49,8 @@
 
 (function (tangelo) {
     "use strict";
+
+    var dataPlugin = tangelo.getPlugin("data");
 
     // default metric: 2D euclidean metric
     function defaultMetric(xAcc, yAcc) {
@@ -150,8 +150,11 @@
             }
         });
 
-        return { singlets: singlets, clusters: groups };
+        return {
+            singlets: singlets,
+            clusters: groups
+        };
     }
 
-    tangelo.data.distanceCluster = cluster;
+    dataPlugin.distanceCluster = cluster;
 }(window.tangelo));

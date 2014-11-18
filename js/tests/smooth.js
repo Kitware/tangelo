@@ -1,4 +1,4 @@
-QUnit.module("tangelo.data.smooth()");
+QUnit.module("tangelo.plugin.data.smooth()");
 
 (function () {
     "use strict";
@@ -21,8 +21,8 @@ QUnit.module("tangelo.data.smooth()");
     }
 
     QUnit.test("Edge cases - empty data", function (assert) {
-        assert.deepEqual(tangelo.data.smooth({}), []);
-        assert.deepEqual(tangelo.data.smooth({data: []}), []);
+        assert.deepEqual(tangelo.plugin.data.smooth({}), []);
+        assert.deepEqual(tangelo.plugin.data.smooth({data: []}), []);
     });
 
     QUnit.test("Edge cases - non positive radius", function (assert) {
@@ -31,7 +31,7 @@ QUnit.module("tangelo.data.smooth()");
         data.forEach(function (d) {
             values.push(d.y);
         });
-        tangelo.data.smooth({
+        tangelo.plugin.data.smooth({
             data: data,
             radius: -1
         }).forEach(function (d) {
@@ -42,7 +42,7 @@ QUnit.module("tangelo.data.smooth()");
     QUnit.test("Edge cases - test in place data mutation", function (assert) {
         var data = makeData(25),
             obj = {};
-        tangelo.data.smooth({
+        tangelo.plugin.data.smooth({
             data: data,
             set: function (val, d, i) {
                 this[i]._obj1 = obj;
@@ -66,7 +66,7 @@ QUnit.module("tangelo.data.smooth()");
             mean += d.y;
         });
         mean = mean/n;
-        values = tangelo.data.smooth({
+        values = tangelo.plugin.data.smooth({
             data: data,
             radius: 0
         });
@@ -82,7 +82,7 @@ QUnit.module("tangelo.data.smooth()");
             values.push(d.y);
         });
         data.reverse();
-        assert.deepEqual(tangelo.data.smooth({
+        assert.deepEqual(tangelo.plugin.data.smooth({
             data: data,
             sorted: false,
             radius: 0
@@ -97,7 +97,7 @@ QUnit.module("tangelo.data.smooth()");
             mean += d.y;
         });
         mean = mean / n;
-        tangelo.data.smooth({
+        tangelo.plugin.data.smooth({
             data: data,
             kernel: "box",
             radius: 10
@@ -116,7 +116,7 @@ QUnit.module("tangelo.data.smooth()");
                 y: i
             });
         }
-        tangelo.data.smooth({
+        tangelo.plugin.data.smooth({
             data: data,
             kernel: "box",
             radius: 1.5,
@@ -143,7 +143,7 @@ QUnit.module("tangelo.data.smooth()");
             mean += d.y;
         });
         mean = mean / n;
-        tangelo.data.smooth({
+        tangelo.plugin.data.smooth({
             data: data,
             kernel: "gaussian",
             radius: 100
@@ -166,7 +166,7 @@ QUnit.module("tangelo.data.smooth()");
             });
         }
         data[50].y = 1;
-        tangelo.data.smooth({
+        tangelo.plugin.data.smooth({
             kernel: "gaussian",
             radius: sigma * 3,
             absolute: true,
@@ -207,7 +207,7 @@ QUnit.module("tangelo.data.smooth()");
 
         data[50].y = 1;
 
-        tangelo.data.smooth({
+        tangelo.plugin.data.smooth({
             kernel: expKernel,
             radius: radius,
             absolute: true,
@@ -234,7 +234,7 @@ QUnit.module("tangelo.data.smooth()");
             data = makeData(n),
             xCount = 0, yCount = 0;
 
-        tangelo.data.smooth({
+        tangelo.plugin.data.smooth({
             data: data,
             x: function (d) {
                 xCount += 1;
