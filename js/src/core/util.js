@@ -144,7 +144,7 @@
 
         if (spec === undefined || (tangelo.isObject(spec) && Object.keys(spec).length === 0)) {
             func = function () {
-                tangelo.fatalError("tangelo.accessor()", "I am an undefined accessor - you shouldn't be calling me!");
+                throw new Error("undefined accessor is not callable");
             };
             func.undefined = true;
         } else if (tangelo.isFunction(spec)) {
@@ -176,7 +176,7 @@
                 };
             }
         } else {
-            tangelo.fatalError("tangelo.accessor()", "unknown accessor spec " + spec);
+            throw new Error("unknown accessor spec " + spec);
         }
 
         func.accessor = true;

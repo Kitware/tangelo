@@ -92,7 +92,7 @@
         if (!absolute) {
             w = x(data[N - 1]) - x(data[0]);
             if (w < 0) {
-                tangelo.fatalError("Unsorted input detected.  Try spec.sorted=false");
+                throw new Error("Unsorted input detected.  Try spec.sorted=false");
             }
             radius = radius * w;
         }
@@ -101,7 +101,7 @@
         if (typeof kernel === "string") {
             kernel = kernels[kernel](radius);
             if (!kernel) {
-                tangelo.fatalError("Unknown kernel '" + kernel + "'");
+                throw new Error("Unknown kernel '" + kernel + "'");
             }
         }
 

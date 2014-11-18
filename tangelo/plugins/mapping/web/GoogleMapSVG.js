@@ -141,7 +141,7 @@
         } else if (how === "always") {
             attacher = google.maps.event.addListener;
         } else {
-            tangelo.fatalError("GoogleMapSVG.attachListener()", "illegal value for argument 'how'");
+            throw new Error("illegal value for argument 'how'");
         }
 
         attacher(this.map, eventType, function () {

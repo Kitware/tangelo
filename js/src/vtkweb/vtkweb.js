@@ -13,7 +13,7 @@
             success: function (keys) {
                 // If there was an error, bail out.
                 if (keys.error) {
-                    tangelo.fatalError("tangelo.vtkweb.processes()", keys.error);
+                    throw new Error(keys.error);
                 }
 
                 // Otherwise, pass the list of keys to the callback.
@@ -52,11 +52,11 @@
 
             // Look for required arguments.
             if (url === undefined) {
-                tangelo.fatalError("tangelo.vtkweb.launch()", "argument 'url' required");
+                throw new Error("argument 'url' required");
             }
 
             if (viewport === undefined) {
-                tangelo.fatalError("tangelo.vtkweb.launch()", "argument 'viewport' required");
+                throw new Error("argument 'viewport' required");
             }
 
             // Construct data object for POST request.
@@ -110,12 +110,12 @@
                                 viewport: vp
                             };
                         }, function (code, reason) {
-                            tangelo.fatalError("could not connect to VTKWeb server [code " + code + "]: " + reason);
+                            throw new Error(not connect to VTKWeb server [code " + code + "]: " + reason);
                         });
 
                         callback(report.key);
                     } else {
-                        tangelo.fatalError("tangelo.vtkweb.launch()", "unexpected report status '" + report.status + "'");
+                        throw new Error("unexpected report status '" + report.status + "'");
                     }
                 }
             });

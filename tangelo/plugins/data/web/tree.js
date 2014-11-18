@@ -12,7 +12,7 @@
             root;
 
         if (children.undefined) {
-            tangelo.fatalError("tangelo.data.tree()", "A 'children' accessor is required");
+            throw new Error("A 'children' accessor is required");
         }
 
         data.forEach(function (d) {

@@ -43,7 +43,7 @@
 
                 if (error) {
                     console.warn(error);
-                    tangelo.fatalError("girderBrowser", "could not retrieve items");
+                    throw new Error("could not retrieve items");
                 }
 
                 wait.remove();
@@ -79,7 +79,7 @@
 
                 if (error) {
                     console.warn(error);
-                    tangelo.fatalError("girderBrowser", "could not retrieve folders");
+                    throw new Error("could not retrieve folders");
                 }
 
                 $(el.node()).empty();
@@ -166,7 +166,7 @@
 
                             if (error) {
                                 console.warn(error);
-                                tangelo.fatalError("girderBrowser", "could not perform search");
+                                throw new Error("could not perform search");
                             }
 
                             menu.selectAll(".search-result")
@@ -213,7 +213,7 @@
         d3.json(api + "/user", function (error, users) {
             if (error) {
                 console.warn(error);
-                tangelo.fatalError("girderBrowser", "could not retrieve users");
+                throw new Error("could not retrieve users");
             }
 
             wait.remove();
@@ -242,7 +242,7 @@
             d3.json(api + "/collection", function (error, collections) {
                 if (error) {
                     console.warn(error);
-                    tangelo.fatalError("girderBrowser", "could not retrieve collections");
+                    throw new Error("could not retrieve collections");
                 }
 
                 if (collections.length > 0) {

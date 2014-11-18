@@ -16,16 +16,6 @@ window.tangelo = {};
     // A namespace for plugins.
     tangelo.plugin = {};
 
-    // An error bad enough to halt execution of the problem.
-    tangelo.fatalError = function (module, msg) {
-        if (msg === undefined) {
-            msg = module;
-            throw new Error(msg);
-        }
-
-        throw new Error("[" + module + "] " + msg);
-    };
-
     // Check for the required version number.
     tangelo.requireCompatibleVersion = function (reqvstr) {
         var reqv,
@@ -109,9 +99,9 @@ window.tangelo = {};
 
         // If either of them fails to parse, raise a fatal error.
         if (!tanv) {
-            tangelo.fatalError("tangelo.requireCompatibleVersion()", "tangelo version number is invalid: " + tangelo.version());
+            throw new Error("tangelo version number is invalid: " + tangelo.version());
         } else if (!reqv) {
-            tangelo.fatalError("tangelo.requireCompatibleVersion()", "invalid version string: " + reqvstr);
+            throw new Error("invalid version string: " + reqvstr);
         }
 
         // Run the compatibility rules.
