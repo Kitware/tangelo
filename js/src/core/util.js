@@ -33,10 +33,6 @@
         return oGetVars;
     };
 
-    tangelo.isObject = function (value) {
-        return Object.prototype.toString.call(value) === "[object Object]";
-    };
-
     tangelo.isString = function (value) {
         return Object.prototype.toString.call(value) === "[object String]";
     };
@@ -103,7 +99,7 @@
             // jscs: enable safeContextKeyword, disallowDanglingUnderscores
         };
 
-        if (spec === undefined || (tangelo.isObject(spec) && Object.keys(spec).length === 0)) {
+        if (spec === undefined || (_.isObject(spec) && _.keys(spec).length === 0)) {
             func = function () {
                 throw new Error("undefined accessor is not callable");
             };
