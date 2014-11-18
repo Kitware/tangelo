@@ -81,7 +81,7 @@
                         vp;
 
                     if (report.status === "failed" || report.status === "incomplete") {
-                        callback(undefined, tangelo.error(tangelo.error.APPLICATION_ERROR, report.reason));
+                        callback(undefined, {error: report.reason()});
                     } else if (report.status === "complete") {
                         connection = {
                             sessionURL: report.url
@@ -149,7 +149,7 @@
                     if (callback) {
                         // The second argument will be undefined if there was no
                         // error; the other arguments are always passed.
-                        callback(key, element, tangelo.error(tangelo.error.APPLICATION_ERROR, response.reason));
+                        callback(key, element, {error: reponse.reason});
                     } else if (element) {
                         $(element).empty();
                     }
