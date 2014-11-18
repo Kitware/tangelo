@@ -47,7 +47,7 @@
  *  For more examples, see testing/js-unit-tests/cluster.js in tangelo source.
  */
 
-(function (tangelo) {
+(function (tangelo, _) {
     "use strict";
 
     var dataPlugin = tangelo.getPlugin("data");
@@ -72,7 +72,7 @@
         c.center = function () {
             return c[0];
         };
-        c.id = tangelo.uniqueID();
+        c.id = _.uniqueId();
 
         // add tree-like structure to support possible heirachical clustering
         c.children = [];
@@ -157,4 +157,4 @@
     }
 
     dataPlugin.distanceCluster = cluster;
-}(window.tangelo));
+}(window.tangelo, window._));

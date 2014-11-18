@@ -1,4 +1,4 @@
-(function (tangelo, $, google, d3) {
+(function (tangelo, $, google, d3, _) {
     "use strict";
 
     var mapping = tangelo.getPlugin("mapping");
@@ -7,7 +7,7 @@
         var that;
 
         // Obtain a unique id for this class.
-        this.id = "gmsvg-" + tangelo.uniqueID();
+        this.id = _.uniqueId("gmsvg-");
 
         // Create a div element to put in the container element.
         this.mapdiv = d3.select(elem)
@@ -207,4 +207,4 @@
     //
     // tangelo.GoogleMapSVG.prototype.draw = function () {};
     tangelo.GoogleMapSVG.prototype.draw = $.noop;
-}(window.tangelo, window.jQuery, window.google, window.d3));
+}(window.tangelo, window.jQuery, window.google, window.d3, window._));

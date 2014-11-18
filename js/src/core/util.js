@@ -1,5 +1,3 @@
-/*jslint browser: true */
-
 (function (tangelo) {
     "use strict";
 
@@ -16,31 +14,6 @@
 
         return tangelo.plugin[plugin];
     };
-
-    // Returns a unique ID for use as, e.g., ids for dynamically generated html
-    // elements, etc.
-    tangelo.uniqueID = (function () {
-        var ids = {"": true},
-            letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-        return function (n) {
-            var id = "",
-                i;
-
-            n = n || 6;
-
-            while (ids.hasOwnProperty(id)) {
-                id = "";
-                for (i = 0; i < n; i += 1) {
-                    id += letters[Math.floor(Math.random() * 52)];
-                }
-            }
-
-            ids[id] = true;
-
-            return id;
-        };
-    }());
 
     // Returns an object representing the query arguments (code taken from
     // https://developer.mozilla.org/en-US/docs/Web/API/window.location).
@@ -182,4 +155,4 @@
         func.accessor = true;
         return func;
     };
-}(window.tangelo, window.jQuery));
+}(window.tangelo));
