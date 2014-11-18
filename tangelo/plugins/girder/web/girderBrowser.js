@@ -1,11 +1,5 @@
-/*jslint browser: true, nomen: true */
-
 (function ($, d3, tangelo) {
     "use strict";
-
-    if (!($ && d3)) {
-        return;
-    }
 
     $.fn.girderBrowser = function (cfg) {
         var me,

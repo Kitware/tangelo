@@ -1,11 +1,5 @@
-/*jslint browser: true */
-
 (function ($, d3) {
     "use strict";
-
-    if (!($ && d3)) {
-        return;
-    }
 
     $.fn.svgColorLegend = function (cfg) {
         var bbox,

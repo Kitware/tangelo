@@ -1,7 +1,7 @@
-/*jslint browser: true, nomen: true, unparam: true*/
-
 (function (tangelo) {
     "use strict";
+
+    var dataPlugin = tangelo.getPlugin("data");
 
     function makeBins(data, value, minArg, maxArg, nBins) {
         var min = Number.POSITIVE_INFINITY,
@@ -60,7 +60,7 @@
         return bins;
     }
 
-    tangelo.data.bin = function (spec) {
+    dataPlugin.bin = function (spec) {
         var maxBinValue;
 
         spec = spec || {};
