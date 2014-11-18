@@ -3,16 +3,7 @@
 
     // A function to generate a Tangelo plugin url.
     tangelo.pluginUrl = function (plugin) {
-        return [].concat(tangelo.pluginRoot, plugin, Array.prototype.slice.call(arguments, 1)).join("/");
-    };
-
-    // Standard way to access a plugin namespace.
-    tangelo.getPlugin = function (plugin) {
-        if (tangelo.plugin[plugin] === undefined) {
-            tangelo.plugin[plugin] = {};
-        }
-
-        return tangelo.plugin[plugin];
+        return [].concat("/plugin", plugin, Array.prototype.slice.call(arguments, 1)).join("/");
     };
 
     // Returns an object representing the query arguments (code taken from

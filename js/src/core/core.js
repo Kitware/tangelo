@@ -10,9 +10,15 @@ window.tangelo = {};
         return version;
     };
 
-    // The root url for Tangelo plugins.
-    tangelo.pluginRoot = "/plugin";
-
     // A namespace for plugins.
     tangelo.plugin = {};
+
+    // Standard way to access a plugin namespace.
+    tangelo.getPlugin = function (plugin) {
+        if (tangelo.plugin[plugin] === undefined) {
+            tangelo.plugin[plugin] = {};
+        }
+
+        return tangelo.plugin[plugin];
+    };
 }(window.tangelo));
