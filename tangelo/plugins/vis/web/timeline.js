@@ -73,7 +73,7 @@
             this._y = d3.scale.linear()
                 .domain(d3.extent(data, function (d) {
                     var val = yAcc(d);
-                    if (tangelo.isNumber(val) && !isNaN(val)) {
+                    if (_.isNumber(val) && !isNaN(val)) {
                         return val;
                     }
                     return undefined;
@@ -99,7 +99,7 @@
                 })
                 .defined(function (d) {
                     var val = that._y(yAcc(d));
-                    return tangelo.isNumber(val) && !isNaN(val);
+                    return _.isNumber(val) && !isNaN(val);
                 });
 
             // resize svg

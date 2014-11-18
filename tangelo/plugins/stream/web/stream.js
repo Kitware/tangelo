@@ -106,7 +106,7 @@
                         callback = flag;
                     } else if (tangelo.isBoolean(flag)) {
                         keepgoing = flag;
-                    } else if (tangelo.isNumber(flag)) {
+                    } else if (_.isNumber(flag)) {
                         delay = flag;
                     }
                 }

@@ -33,10 +33,6 @@
         return oGetVars;
     };
 
-    tangelo.isNumber = function (value) {
-        return typeof value === "number";
-    };
-
     tangelo.isBoolean = function (value) {
         return typeof value === "boolean";
     };
