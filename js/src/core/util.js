@@ -33,10 +33,6 @@
         return oGetVars;
     };
 
-    tangelo.isBoolean = function (value) {
-        return typeof value === "boolean";
-    };
-
     tangelo.isArray = function (value) {
         return Object.prototype.toString.call(value) === "[object Array]";
     };

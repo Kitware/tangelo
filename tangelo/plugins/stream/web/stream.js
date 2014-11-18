@@ -104,7 +104,7 @@
                 if (flag !== undefined) {
                     if (tangelo.isFunction(flag)) {
                         callback = flag;
-                    } else if (tangelo.isBoolean(flag)) {
+                    } else if (_.isBoolean(flag)) {
                         keepgoing = flag;
                     } else if (_.isNumber(flag)) {
                         delay = flag;
