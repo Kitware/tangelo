@@ -1,50 +1,10 @@
-/*jslint browser: true */
-
-(function (tangelo) {
+(function (tangelo, _) {
     "use strict";
 
-    // A function to generate a Tangelo API url.
-    tangelo.apiUrl = function (api) {
-        return [].concat(tangelo.apiRoot, api, Array.prototype.slice.call(arguments, 1)).join("/");
-    };
-
+    // A function to generate a Tangelo plugin url.
     tangelo.pluginUrl = function (plugin) {
-        return [].concat(tangelo.pluginRoot, plugin, Array.prototype.slice.call(arguments, 1)).join("/");
+        return [].concat("/plugin", plugin, Array.prototype.slice.call(arguments, 1)).join("/");
     };
-
-    // Standard way to access a plugin namespace.
-    tangelo.getPlugin = function (plugin) {
-        if (tangelo.plugin[plugin] === undefined) {
-            tangelo.plugin[plugin] = {};
-        }
-
-        return tangelo.plugin[plugin];
-    };
-
-    // Returns a unique ID for use as, e.g., ids for dynamically generated html
-    // elements, etc.
-    tangelo.uniqueID = (function () {
-        var ids = {"": true},
-            letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-        return function (n) {
-            var id = "",
-                i;
-
-            n = n || 6;
-
-            while (ids.hasOwnProperty(id)) {
-                id = "";
-                for (i = 0; i < n; i += 1) {
-                    id += letters[Math.floor(Math.random() * 52)];
-                }
-            }
-
-            ids[id] = true;
-
-            return id;
-        };
-    }());
 
     // Returns an object representing the query arguments (code taken from
     // https://developer.mozilla.org/en-US/docs/Web/API/window.location).
@@ -62,30 +22,6 @@
         }
 
         return oGetVars;
-    };
-
-    tangelo.isNumber = function (value) {
-        return typeof value === "number";
-    };
-
-    tangelo.isBoolean = function (value) {
-        return typeof value === "boolean";
-    };
-
-    tangelo.isArray = function (value) {
-        return Object.prototype.toString.call(value) === "[object Array]";
-    };
-
-    tangelo.isObject = function (value) {
-        return Object.prototype.toString.call(value) === "[object Object]";
-    };
-
-    tangelo.isString = function (value) {
-        return Object.prototype.toString.call(value) === "[object String]";
-    };
-
-    tangelo.isFunction = function (value) {
-        return Object.prototype.toString.call(value) === "[object Function]";
     };
 
     tangelo.absoluteUrl = function (path) {
@@ -146,12 +82,12 @@
             // jscs: enable safeContextKeyword, disallowDanglingUnderscores
         };
 
-        if (spec === undefined || (tangelo.isObject(spec) && Object.keys(spec).length === 0)) {
+        if (spec === undefined || (_.isObject(spec) && !_.isFunction(spec) && !_.isArray(spec) && _.keys(spec).length === 0)) {
             func = function () {
-                tangelo.fatalError("tangelo.accessor()", "I am an undefined accessor - you shouldn't be calling me!");
+                throw new Error("undefined accessor is not callable");
             };
             func.undefined = true;
-        } else if (tangelo.isFunction(spec)) {
+        } else if (_.isFunction(spec)) {
             func = spec.clone();
         } else if (spec.hasOwnProperty("value")) {
             func = function () {
@@ -180,10 +116,10 @@
                 };
             }
         } else {
-            tangelo.fatalError("tangelo.accessor()", "unknown accessor spec " + spec);
+            throw new Error("unknown accessor spec " + spec);
         }
 
         func.accessor = true;
         return func;
     };
-}(window.tangelo, window.jQuery));
+}(window.tangelo, window._));

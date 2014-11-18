@@ -20,7 +20,7 @@
             data.forEach(function (d) {
                 var v = Number(value(d));
                 if (!isFinite(v)) {
-                    tangelo.error("Invalid numeric value in data array: " + v.toString());
+                    throw new Error("Invalid numeric value in data array: " + v.toString());
                 } else {
                     if (v < min) {
                         min = v;
@@ -89,7 +89,7 @@
         spec.data.forEach(function (d) {
             var v = Number(spec.value(d));
             if (!isFinite(v)) {
-                tangelo.error("Invalid numeric value in data array: " + v.toString());
+                throw new Error("Invalid numeric value in data array: " + v.toString());
             }
 
             // loop through the bins to find where the data belongs

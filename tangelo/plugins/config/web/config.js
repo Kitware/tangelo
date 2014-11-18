@@ -15,7 +15,7 @@ tangelo.getPlugin("config").config = function (url, required, callback) {
     }
 
     // This allows a default value for the `required` parameter.
-    if (callback === undefined && tangelo.isFunction(required)) {
+    if (callback === undefined && _.isFunction(required)) {
         callback = required;
         required = false;
     }

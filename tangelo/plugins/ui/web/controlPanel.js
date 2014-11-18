@@ -1,4 +1,4 @@
-(function (tangelo, $, d3) {
+(function (tangelo, $, d3, _) {
     "use strict";
 
     function drawerToggle(divsel, buttonsel) {
@@ -61,7 +61,7 @@
 
                 state = "uncollapsed";
             } else {
-                tangelo.fatalError("drawerToggle()", "illegal state: " + state);
+                throw new Error("illegal state: " + state);
             }
         };
     }
@@ -82,7 +82,7 @@
 
         // Create a unique identifier to use with the various control panel
         // components.
-        tag = tangelo.uniqueID();
+        tag = _.uniqueId();
         id = s.attr("id");
         if (!id) {
             id = "tangelo-control-panel-" + tag;
@@ -116,4 +116,4 @@
         d3.select("#tangelo-drawer-handle-" + tag)
             .on("click", toggle);
     };
-}(window.tangelo, window.jQuery, window.d3));
+}(window.tangelo, window.jQuery, window.d3, window._));

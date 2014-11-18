@@ -217,7 +217,7 @@
                     return l([obj.source, obj.target]);
                 };
             } else {
-                tangelo.fatalError("$.dendrogram()", "illegal option for lineStyle: " + this.options.lineStyle);
+                throw new Error("illegal option for lineStyle: " + this.options.lineStyle);
             }
 
             // append new paths
@@ -281,7 +281,7 @@
                     } else if (pos === "below") {
                         val = "1.35em";
                     } else {
-                        tangelo.fatalError("$.dendrogram()", "Invalid labelPosition");
+                        throw new Error("Invalid labelPosition");
                     }
                     return val;
                 })

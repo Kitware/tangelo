@@ -5,7 +5,7 @@
 
     tangelo.vtkweb.processes = function (callback) {
         $.ajax({
-            url: tangelo.apiUrl("vtkweb"),
+            url: tangelo.pluginUrl("vtkweb"),
             dataType: "json",
             error: function (jqxhr) {
                 callback(undefined, jqxhr);
@@ -13,7 +13,7 @@
             success: function (keys) {
                 // If there was an error, bail out.
                 if (keys.error) {
-                    tangelo.fatalError("tangelo.vtkweb.processes()", keys.error);
+                    throw new Error(keys.error);
                 }
 
                 // Otherwise, pass the list of keys to the callback.
@@ -24,7 +24,7 @@
 
     tangelo.vtkweb.info = function (key, callback) {
         $.ajax({
-            url: tangelo.apiUrl("vtkweb", key),
+            url: tangelo.pluginUrl("vtkweb", key),
             dataType: "json",
             error: function (jqxhr) {
                 callback(undefined, jqxhr);
@@ -52,11 +52,11 @@
 
             // Look for required arguments.
             if (url === undefined) {
-                tangelo.fatalError("tangelo.vtkweb.launch()", "argument 'url' required");
+                throw new Error("argument 'url' required");
             }
 
             if (viewport === undefined) {
-                tangelo.fatalError("tangelo.vtkweb.launch()", "argument 'viewport' required");
+                throw new Error("argument 'viewport' required");
             }
 
             // Construct data object for POST request.
@@ -69,7 +69,7 @@
 
             // Fire off POST request to vtkweb service.
             $.ajax({
-                url: tangelo.apiUrl("vtkweb"),
+                url: tangelo.pluginUrl("vtkweb"),
                 type: "POST",
                 data: data,
                 dataType: "json",
@@ -81,7 +81,7 @@
                         vp;
 
                     if (report.status === "failed" || report.status === "incomplete") {
-                        callback(undefined, tangelo.error(tangelo.error.APPLICATION_ERROR, report.reason));
+                        callback(undefined, {error: report.reason()});
                     } else if (report.status === "complete") {
                         connection = {
                             sessionURL: report.url
@@ -110,12 +110,12 @@
                                 viewport: vp
                             };
                         }, function (code, reason) {
-                            tangelo.fatalError("could not connect to VTKWeb server [code " + code + "]: " + reason);
+                            throw new Error(not connect to VTKWeb server [code " + code + "]: " + reason);
                         });
 
                         callback(report.key);
                     } else {
-                        tangelo.fatalError("tangelo.vtkweb.launch()", "unexpected report status '" + report.status + "'");
+                        throw new Error("unexpected report status '" + report.status + "'");
                     }
                 }
             });
@@ -123,7 +123,7 @@
 
         tangelo.vtkweb.terminate = function (key, callback) {
             $.ajax({
-                url: tangelo.apiUrl("vtkweb", key),
+                url: tangelo.pluginUrl("vtkweb", key),
                 type: "DELETE",
                 dataType: "json",
                 error: function (jqxhr) {
@@ -149,7 +149,7 @@
                     if (callback) {
                         // The second argument will be undefined if there was no
                         // error; the other arguments are always passed.
-                        callback(key, element, tangelo.error(tangelo.error.APPLICATION_ERROR, response.reason));
+                        callback(key, element, {error: reponse.reason});
                     } else if (element) {
                         $(element).empty();
                     }
