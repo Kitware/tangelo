@@ -1,4 +1,4 @@
-(function (tangelo, $) {
+(function (tangelo, $, _) {
     "use strict";
 
     var streamPlugin = tangelo.getPlugin("stream");
@@ -102,7 +102,7 @@
                 //   between stream queries.
                 flag = callback(result, false);
                 if (flag !== undefined) {
-                    if (tangelo.isFunction(flag)) {
+                    if (_.isFunction(flag)) {
                         callback = flag;
                     } else if (_.isBoolean(flag)) {
                         keepgoing = flag;
@@ -137,4 +137,4 @@
             }
         });
     };
-}(window.tangelo, window.$));
+}(window.tangelo, window.$, window._));

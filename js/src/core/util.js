@@ -33,10 +33,6 @@
         return oGetVars;
     };
 
-    tangelo.isFunction = function (value) {
-        return Object.prototype.toString.call(value) === "[object Function]";
-    };
-
     tangelo.absoluteUrl = function (path) {
         var trailingSlash,
             pathname;
