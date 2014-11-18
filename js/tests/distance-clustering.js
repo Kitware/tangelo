@@ -1,6 +1,6 @@
 QUnit.module("tangelo.plugin.data.distanceCluster()");
 
-(function () {
+(function (_) {
     "use strict";
 
     // boilerplate for generating random points
@@ -186,4 +186,4 @@ QUnit.module("tangelo.plugin.data.distanceCluster()");
         };
         checkCluster(assert, obj.clusters, obj.singlets, spec);
     });
-}());
+}(window._));

@@ -1,4 +1,4 @@
-(function (tangelo) {
+(function (tangelo, _) {
     "use strict";
 
     // A function to generate a Tangelo plugin url.
@@ -82,7 +82,7 @@
             // jscs: enable safeContextKeyword, disallowDanglingUnderscores
         };
 
-        if (spec === undefined || (_.isObject(spec) && _.keys(spec).length === 0)) {
+        if (spec === undefined || (_.isObject(spec) && !_.isFunction(spec) && !_.isArray(spec) && _.keys(spec).length === 0)) {
             func = function () {
                 throw new Error("undefined accessor is not callable");
             };
@@ -122,4 +122,4 @@
         func.accessor = true;
         return func;
     };
-}(window.tangelo));
+}(window.tangelo, window._));

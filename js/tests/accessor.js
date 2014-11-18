@@ -88,11 +88,18 @@ QUnit.test("Unknown spec throws exception", function (assert) {
 QUnit.test("Clone a function (twice)", function (assert) {
     "use strict";
 
-    var id = function (d) {
+    var id,
+        clone1,
+        clone2;
+
+    id = function (d) {
         return d;
     };
+    clone1 = tangelo.accessor(id);
+    clone2 = tangelo.accessor(clone1);
 
-    assert.expect(1);
+    assert.expect(2);
 
-    assert.strictEqual(tangelo.accessor(tangelo.accessor(id))(10), 10);
+    assert.strictEqual(clone1(10), 10);
+    assert.strictEqual(clone2(10), 10);
 });
