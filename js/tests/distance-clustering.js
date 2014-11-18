@@ -30,9 +30,9 @@ QUnit.module("tangelo.plugin.data.distanceCluster()");
     }
 
     function checkCluster(assert, cluster, singlet, spec) {
-        assert.ok(Array.isArray(cluster));
+        assert.ok(_.isArray(cluster));
         cluster.forEach(function (c) {
-            assert.ok(Array.isArray(c));
+            assert.ok(_.isArray(c));
             assert.ok(c.length > 1);
             c.forEach(function (d) {
                 // check in place structure of data
@@ -63,7 +63,7 @@ QUnit.module("tangelo.plugin.data.distanceCluster()");
             });
         });
 
-        assert.ok(Array.isArray(singlet));
+        assert.ok(_.isArray(singlet));
         singlet.forEach(function (d) {
             assert.notStrictEqual(d, undefined);
             assert.notStrictEqual(d.cluster, undefined);
