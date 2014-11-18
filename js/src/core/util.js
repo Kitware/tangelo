@@ -33,10 +33,6 @@
         return oGetVars;
     };
 
-    tangelo.isString = function (value) {
-        return Object.prototype.toString.call(value) === "[object String]";
-    };
-
     tangelo.isFunction = function (value) {
         return Object.prototype.toString.call(value) === "[object Function]";
     };
