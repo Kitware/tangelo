@@ -2,7 +2,6 @@ import cgi
 import ConfigParser
 import datetime
 import sys
-import HTMLParser
 import os
 import cherrypy
 import json
@@ -14,25 +13,9 @@ import tangelo.util
 
 
 class Tangelo(object):
-    # An HTML parser for use in the error_page handler.
-    html = HTMLParser.HTMLParser()
-
-    # An in-band signal to treat HTML error messages as literal strings.
-    literal = "literal:::"
-
     def __init__(self, module_cache=None):
         # A dict containing information about imported modules.
         self.modules = tangelo.util.ModuleCache() if module_cache is None else module_cache
-
-    @staticmethod
-    def error_page(status, message, traceback, version):
-        if message.startswith(Tangelo.literal):
-            message = Tangelo.html.unescape(message[len(Tangelo.literal):])
-        return """<!doctype html>
-<h2>%s</h2>
-<p>%s
-<hr>
-<p><em>Powered by Tangelo</em> <img src=/favicon.ico>""" % (status, message)
 
     def invoke_service(self, module, *pargs, **kwargs):
         # TODO(choudhury): This method should attempt to load the named module,
@@ -65,8 +48,10 @@ class Tangelo(object):
 
         try:
             service = self.modules.get(module)
-        except tangelo.HTTPStatusCode as e:
-            result = e
+        except tangelo.util.ModuleCache.Error as e:
+            tangelo.http_status(501, "Error Importing Service")
+            tangelo.content_type("application/json")
+            result = e.error_dict()
         else:
             # Try to run the service - either it's in a function called
             # "run()", or else it's in a REST API consisting of at least one of
@@ -87,53 +72,42 @@ class Tangelo(object):
                     # of the API, and call it; or give a 405 error.
                     method = cherrypy.request.method
                     restfunc = service.__dict__.get(method.lower())
-                    if (restfunc is not None and
-                            hasattr(restfunc, "restful") and
-                            restfunc.restful):
+                    if (restfunc is not None and hasattr(restfunc, "restful") and restfunc.restful):
                         result = restfunc(*pargs, **kwargs)
                     else:
-                        result = tangelo.HTTPStatusCode(405,
-                                                        "Method not allowed")
-            except Exception as e:
+                        tangelo.http_status(405, "Method Not Allowed")
+                        tangelo.content_type("application/json")
+                        result = {"error": "Method '%s' is not allowed in this service" % (method)}
+            except:
                 bt = traceback.format_exc()
 
                 tangelo.log("ERROR", "Caught exception while executing service %s" %
                             (tangelo.request_path()))
                 tangelo.log("ERROR", bt)
 
-                result = tangelo.HTTPStatusCode("501 Error in Python Service",
-                                                Tangelo.literal + "There was an error " +
-                                                "executing service " +
-                                                "%s:<br><pre>%s</pre>" %
-                                                (tangelo.request_path(), bt))
+                tangelo.http_status(501, "Web Service Error")
+                tangelo.content_type("application/json")
+                result = {"error": "Error executing service",
+                          "module": tangelo.request_path(),
+                          "traceback": bt}
 
         # Restore the path to what it was originally.
         sys.path = origpath
 
-        # Check the type of the result to decide what result to finally return:
-        #
-        # 1. If it is an HTTPStatusCode object, raise a cherrypy HTTPError
-        # exception, which will cause the browser to do the right thing.
-        #
-        # 2. If it's not a string, try to convert it to one with json.dumps()
-        #
-        # 3. Otherwise, leave it alone.
-        #
-        # This allows the services to return a Python object if they wish, or
-        # to perform custom serialization (such as for MongoDB results, etc.).
-        if isinstance(result, tangelo.HTTPStatusCode):
-            if result.msg:
-                raise cherrypy.HTTPError(result.code, result.msg)
-            else:
-                raise cherrypy.HTTPError(result.code)
-        elif not isinstance(result, types.StringTypes):
+        # If the result is not a string, attempt to convert it to one via JSON
+        # serialization.  This allows services to return a Python object if they
+        # wish, or to perform custom serialization (such as for MongoDB results,
+        # etc.).
+        if not isinstance(result, types.StringTypes):
             try:
                 result = json.dumps(result)
             except TypeError as e:
-                msg = Tangelo.literal + "<p>A JSON type error occurred in service " + tangelo.request_path() + ":</p>"
-                msg += "<p><pre>" + cgi.escape(e.message) + "</pre></p>"
-
-                raise cherrypy.HTTPError("501 Error in Python Service", msg)
+                tangelo.http_status(501, "Web Service Error")
+                tangelo.content_type("application/json")
+                result = {"error": "JSON type error executing service",
+                          "message": e.message}
+            else:
+                tangelo.content_type("application/json")
 
         return result
 

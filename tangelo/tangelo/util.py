@@ -122,6 +122,16 @@ class NonBlockingReader(threading.Thread):
 
 
 class ModuleCache(object):
+    class Error(object):
+        def __init__(self, module, traceback):
+            self.module = module
+            self.traceback = traceback
+
+        def error_dict(self):
+            return {"error": "There was an error while trying to import service module",
+                    "module": self.module,
+                    "traceback": self.traceback}
+
     def __init__(self, config=True, http_error=True):
         self.config = config
         self.http_error = http_error
@@ -186,8 +196,4 @@ class ModuleCache(object):
             tangelo.log("TANGELO", bt)
 
             if self.http_error:
-                raise tangelo.HTTPStatusCode("501 Error in Python Service",
-                                             tangelo.server.Tangelo.literal + "There was an error while " +
-                                             "trying to import module " +
-                                             "%s:<br><pre>%s</pre>" %
-                                             (tangelo.request_path(), bt))
+                raise ModuleCache.Error(module=tangelo.request_path(), traceback=bt)

@@ -356,8 +356,7 @@ def main():
         cherrypy.config.update({"environment": "production",
                                 "log.screen": True,
                                 "server.socket_host": hostname,
-                                "server.socket_port": port,
-                                "error_page.default": tangelo.server.Tangelo.error_page})
+                                "server.socket_port": port})
     except IOError as e:
         tangelo.log("ERROR", "problem with config file %s: %s" % (e.filename, e.strerror))
         return 1

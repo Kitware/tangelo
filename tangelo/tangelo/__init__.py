@@ -159,12 +159,6 @@ def plugin_store():
     return cherrypy.config["plugin-store"][cherrypy.thread_data.pluginname]
 
 
-class HTTPStatusCode:
-    def __init__(self, code, msg=None):
-        self.code = code
-        self.msg = msg
-
-
 # A decorator that exposes functions as being part of a service's RESTful API.
 def restful(f):
     f.restful = True
@@ -214,9 +208,13 @@ def types(**typefuncs):
                     elif name in kwargs:
                         kwargs[name] = func(kwargs[name])
                     else:
-                        return HTTPStatusCode("400 Unknown Argument Name", "'%s' was registered for type conversion but did not appear in the arguments list" % (name))
+                        http_status(400, "Unknown Argument Name")
+                        content_type("application/json")
+                        return {"error": "'%s' was registered for type conversion but did not appear in the arguments list" % (name)}
             except ValueError as e:
-                return HTTPStatusCode("400 Input Value Conversion Failed", str(e))
+                http_status(400, "Input Value Conversion Failed")
+                content_type("application/json")
+                return {"error": str(e)}
 
             # Unroll `pargs` into a list of arguments that are in the correct
             # order.
@@ -256,7 +254,9 @@ def return_type(rettype):
             try:
                 result = rettype(result)
             except ValueError as e:
-                return HTTPStatusCode("500 Return Value Conversion Failed", str(e))
+                http_status(500, "Return Value Conversion Failed")
+                content_type("application/json")
+                return {"error": str(e)}
             return result
 
         return converter

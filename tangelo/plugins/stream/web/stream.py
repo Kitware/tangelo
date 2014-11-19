@@ -76,9 +76,10 @@ def stream_start(url, kwargs):
         # Get the service module.
         try:
             service = modules.get(module_path)
-        except tangelo.HTTPStatusCode as e:
-            tangelo.http_status(e.code)
-            return {"error": e.msg or ""}
+        except tangelo.util.ModuleCache.Error as e:
+            tangelo.http_status(501, "Error Importing Streaming Service")
+            tangelo.content_type("application/json")
+            return e.error_dict()
         else:
             # Check for a "stream" function inside the module.
             if "stream" not in dir(service):
