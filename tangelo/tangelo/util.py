@@ -122,7 +122,7 @@ class NonBlockingReader(threading.Thread):
 
 
 class ModuleCache(object):
-    class Error(object):
+    class Error(Exception):
         def __init__(self, module, traceback):
             self.module = module
             self.traceback = traceback
@@ -130,7 +130,7 @@ class ModuleCache(object):
         def error_dict(self):
             return {"error": "There was an error while trying to import service module",
                     "module": self.module,
-                    "traceback": self.traceback}
+                    "traceback": self.traceback.split("\n")}
 
     def __init__(self, config=True, http_error=True):
         self.config = config

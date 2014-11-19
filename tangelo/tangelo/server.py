@@ -322,25 +322,34 @@ class Plugins(object):
         if plugin not in self.plugins:
             tangelo.http_status(404, "Plugin Not Found")
             tangelo.content_type("application/json")
-            return json.dumps({"error": "Plugin '%s' was not found in the plugin registry" % (plugin)})
+            return json.dumps({"error": "Requested plugin not found in registry",
+                               "plugin": plugin})
 
         plugin_path = self.plugins[plugin]
 
         if len(path) == 0:
-            # Look for a README.md or REEADME.rst file in the plugin directory,
-            # and serve it if it exists, otherwise, just serve a friendly
-            # message.
-            readme = None
-            if os.path.exists(os.path.join(plugin_path, "README.md")):
-                readme = os.path.join(plugin_path, "README.md")
-            elif os.path.exists(os.path.join(plugin_path, "README.rst")):
-                readme = os.path.join(plugin_path, "README.rst")
+            # Perform a redirect to a trailing-slash path if there isn't one.
+            if tangelo.request_path()[-1] != "/":
+                raise cherrypy.HTTPRedirect("/plugin/%s/" % (plugin))
 
-            if readme is not None:
-                tangelo.content_type("text/plain")
-                return cherrypy.lib.static.serve_file(readme)
-            else:
-                return "Plugin '%s' is here, but there's no README!  If you know the authors of this plugin, you should get them to write one!" % (plugin)
+            # Look for an index file in the root of the plugin content
+            # directory, and serve it if found.
+            for index in (os.path.join(plugin_path, "web", i) for i in ["index.html", "index.htm"]):
+                if os.path.exists(index):
+                    return cherrypy.lib.static.serve_file(index)
+
+            # Look for a README file in the plugin directory, and serve it if
+            # found.
+            candidates = (os.path.join(plugin_path, f) for f in ["README.md", "README.rst", "README.txt", "README"])
+            for c in candidates:
+                if os.path.exists(c):
+                    return cherrypy.lib.static.serve_file(c)
+
+            # Finally, if all else fails, serve a friendly message confirming
+            # the existence of the plugin (in all cases, the 200 response code
+            # indicates this as well).
+            tangelo.content_type("text/plain")
+            return "Plugin '%s' is here, but there's no README!  If you know the authors of this plugin, you should get them to write one!" % (plugin)
         else:
             # Check for a possible service being named by the requested path.
             base_path = os.path.join(plugin_path, "web")
