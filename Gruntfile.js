@@ -450,7 +450,7 @@ module.exports = function (grunt) {
 
         grunt.util.spawn({
             cmd: coverage,
-            args: ["run", "-a", "--source", tangelo_dir, "--omit", "*minify_json*",
+            args: ["run", "-a", "--source", "%s,%s" % (tangelo_dir, "tangelo/plugins"), "--omit", "*minify_json*",
                    nosetests, "--verbose", "--tests=" + this.filesSrc.join(",")],
             opts: {
                 stdio: "inherit"
