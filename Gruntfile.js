@@ -223,7 +223,7 @@ module.exports = function (grunt) {
       /*jshint camelcase: true */
           all: {
               options: {
-                  urls: ["http://localhost:50047/jstest/tests.html?coverage=true"],
+                  urls: ["http://localhost:50047/jstest/tests.html?coverage=true&lights=4"],
                   threshold: 20,
                   verbose: true
               }

@@ -3,6 +3,9 @@
 
     // A function to generate a Tangelo plugin url.
     tangelo.pluginUrl = function (plugin) {
+        if (plugin === undefined) {
+            throw new Error("argument 'plugin' is required");
+        }
         return [].concat("/plugin", plugin, Array.prototype.slice.call(arguments, 1)).join("/");
     };
 
