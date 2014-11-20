@@ -4,6 +4,10 @@
 .. image:: https://pypip.in/d/tangelo/badge.svg
     :target: https://pypi.python.org/pypi/tangelo
 
+.. image:: https://pypip.in/license/tangelo/badge.svg
+    :target: http://www.apache.org/licenses/LICENSE-2.0.html
+    :alt: License
+
 .. image:: https://travis-ci.org/Kitware/tangelo.svg?branch=master
     :target: https://travis-ci.org/Kitware/tangelo
 
