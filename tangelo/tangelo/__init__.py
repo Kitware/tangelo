@@ -34,8 +34,12 @@ def http_status(code, message=None):
     cherrypy.response.status = "%s%s" % (code, " %s" % (message) if message is not None else "")
 
 
-def log(section, message):
-    cherrypy.log(message, section)
+def log(section, message=None):
+    if message is None:
+        message = section
+        section = "TANGELO"
+
+    cherrypy.log(str(message), section)
 
 
 def request_path():
