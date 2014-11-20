@@ -5,7 +5,7 @@
 
     streamPlugin.streams = function (callback) {
         $.ajax({
-            url: tangelo.pluginUrl("stream"),
+            url: tangelo.pluginUrl("stream", "stream"),
             type: "GET",
             dataType: "json",
             error: function (jqxhr) {
@@ -20,7 +20,7 @@
     streamPlugin.start = function (url, callback) {
         // Send an ajax request to get the stream started.
         $.ajax({
-            url: tangelo.pluginUrl("stream", "start", tangelo.absoluteUrl(url)),
+            url: tangelo.pluginUrl("stream", "stream", "start", tangelo.absoluteUrl(url)),
             type: "POST",
             dataType: "json",
             error: function (jqxhr) {
@@ -41,7 +41,7 @@
     /*jslint unparam: true */
     streamPlugin.query = function (key, callback) {
         $.ajax({
-            url: tangelo.pluginUrl("stream", "next", key),
+            url: tangelo.pluginUrl("stream", "stream", "next", key),
             type: "POST",
             dataType: "json",
             error: function (jqxhr) {
@@ -122,7 +122,7 @@
 
     streamPlugin.delete = function (key, callback) {
         $.ajax({
-            url: tangelo.pluginUrl("stream", key),
+            url: tangelo.pluginUrl("stream", "stream", key),
             dataType: "json",
             type: "DELETE",
             error: function (jqxhr) {
@@ -132,7 +132,7 @@
             },
             success: function (result) {
                 if (callback) {
-                    callback(result);
+                    callback(result.key);
                 }
             }
         });
