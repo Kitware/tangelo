@@ -1,4 +1,5 @@
 *.swp
+*.swo
 *.pyc
 node_modules
 venv
@@ -6,7 +7,7 @@ sdist
 configuration.json
 tangelo/MANIFEST
 tangelo/README
-tangelo/www/docs
-tangelo/www/js
-jstest
+tangelo/web/docs
+tangelo/web/js
+js/tests/results
 .coverage

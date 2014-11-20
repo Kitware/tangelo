@@ -57,7 +57,7 @@ module.exports = function (grunt) {
           },
           dist: {
               src: ["js/src/**/*.js"],
-              dest: "tangelo/www/js/tangelo.js"
+              dest: "tangelo/web/js/tangelo.js"
           }
       },
       uglify: {
@@ -66,7 +66,7 @@ module.exports = function (grunt) {
           },
           dist: {
               src: "<%= concat.dist.dest %>",
-              dest: "tangelo/www/js/tangelo.min.js"
+              dest: "tangelo/web/js/tangelo.min.js"
           }
       },
       jshint: {
@@ -191,19 +191,15 @@ module.exports = function (grunt) {
               expand: true,
               flatten: true,
               src: [
-                  "js/tests/lib/blanket.js",
                   "node_modules/grunt-blanket-qunit/reporter/grunt-reporter.js",
-                  "js/tests/*.js",
-                  "tangelo/www/js/tangelo.js",
-                  "tangelo/www/js/tangelo.min.js"
               ],
-              dest: "jstest/"
+              dest: "js/tests/results/js/"
           }
       },
       jade: {
           jstest: {
               files: {
-                  "jstest/tests.html": "js/tests/jade/qunitHarness.jade"
+                  "js/tests/results/js/index.html": "js/tests/jade/qunitHarness.jade"
               },
               options: {
                   client: false,
@@ -223,7 +219,7 @@ module.exports = function (grunt) {
       /*jshint camelcase: true */
           all: {
               options: {
-                  urls: ["http://localhost:50047/jstest/tests.html?coverage=true&lights=4"],
+                  urls: ["http://localhost:50047/results/js/index.html?coverage=true&lights=4"],
                   threshold: 20,
                   verbose: true
               }
@@ -237,7 +233,7 @@ module.exports = function (grunt) {
       coverage_report: {
           options: {
               threshold: 20,
-              html_dir: "jstest/nose_coverage"
+              html_dir: "js/tests/results/python"
           },
           main: {}
       },
@@ -254,12 +250,12 @@ module.exports = function (grunt) {
           venv: ["venv"],
           config: ["configuration.json"],
           sdist: ["sdist"],
-          jstest: ["jstest"],
+          test: ["js/tests/results"],
           package: [
               "tangelo/MANIFEST",
               "tangelo/README",
-              "tangelo/www/docs",
-              "tangelo/www/js"
+              "tangelo/web/docs",
+              "tangelo/web/js"
           ]
       }
     });
@@ -547,7 +543,7 @@ module.exports = function (grunt) {
                    "-D", "version=" + version,
                    "-D", "release=" + version,
                    "docs",
-                   "tangelo/www/docs"],
+                   "tangelo/web/docs"],
             opts: {
                 stdio: "inherit"
             }
@@ -574,7 +570,7 @@ module.exports = function (grunt) {
 
         grunt.util.spawn({
             cmd: tangelo,
-            args: tangeloArgs(host, port, "venv/share/tangelo/www"),
+            args: tangeloArgs(host, port, "venv/share/tangelo/web"),
             opts: {
                 stdio: "inherit"
             }
@@ -588,7 +584,7 @@ module.exports = function (grunt) {
 
         grunt.util.spawn({
             cmd: tangelo,
-            args: tangeloArgs("localhost", "50047", "."),
+            args: tangeloArgs("localhost", "50047", "js/tests"),
             opts: {
                 stdio: "inherit"
             }
@@ -622,7 +618,7 @@ module.exports = function (grunt) {
 
                 cmdline = {
                     cmd: tangelo,
-                    args: tangeloArgs("localhost", "50047", ".")
+                    args: tangeloArgs("localhost", "50047", "js/tests")
                 };
 
                 console.log("Starting Tangelo server with: " + cmdline.cmd + " " + cmdline.args.join(" "));
@@ -704,13 +700,13 @@ module.exports = function (grunt) {
     // Clean task.
     grunt.renameTask("clean", "cleanup");
     grunt.registerTask("clean:sdist", "cleanup:sdist");
-    grunt.registerTask("clean:jstest", "cleanup:jstest");
+    grunt.registerTask("clean:test", "cleanup:test");
     grunt.registerTask("clean:package", "cleanup:package");
     grunt.registerTask("clean:config", "cleanup:config");
     grunt.registerTask("clean:node", "cleanup:node");
     grunt.registerTask("clean:venv", "cleanup:venv");
     grunt.registerTask("clean", ["clean:sdist",
-                                 "clean:jstest",
+                                 "clean:test",
                                  "clean:package"]);
     grunt.registerTask("clean:all", ["clean",
                                      "clean:config",
