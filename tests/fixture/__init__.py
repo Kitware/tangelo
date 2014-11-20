@@ -24,7 +24,7 @@ def start_tangelo():
                                 "venv/bin/tangelo",
                                 "--host", host,
                                 "--port", port,
-                                "--root", "tests/www",
+                                "--root", "tests/web",
                                 "--plugin-config", "plugin.conf"],
                                stderr=subprocess.PIPE)
 

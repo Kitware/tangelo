@@ -26,8 +26,8 @@ data_files_list = [("share/tangelo/conf", ["assets/conf/tangelo.global.conf",
 
 # Include the website base files, excluding generated tests and compiled python
 # files.
-web_files = filter(lambda f: not (f.startswith("www/tests") or f.endswith(".pyc")),
-                   rcollect("www"))
+web_files = filter(lambda f: not (f.startswith("web/tests") or f.endswith(".pyc")),
+                   rcollect("web"))
 data_files_list += copy_with_dir(web_files, "share/tangelo")
 
 # Create the package.

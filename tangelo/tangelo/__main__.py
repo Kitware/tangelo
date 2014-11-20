@@ -281,7 +281,7 @@ def main():
     if root:
         root = tangelo.util.expandpath(root)
     else:
-        default_paths = map(tangelo.util.expandpath, [sys.prefix + "/share/tangelo/www", invocation_dir + "/share/tangelo/www"])
+        default_paths = map(tangelo.util.expandpath, [sys.prefix + "/share/tangelo/web", invocation_dir + "/share/tangelo/web"])
         tangelo.log("TANGELO", "Looking for default web content path")
         for path in default_paths:
             tangelo.log("TANGELO", "Trying %s" % (path))

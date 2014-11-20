@@ -37,7 +37,6 @@
         // directory, so strip off the final element.
         if (!trailingSlash) {
             pathname = window.location.pathname.split("/").slice(0, -1).join("/");
-            console.log(pathname);
         } else {
             pathname = window.location.pathname;
         }
