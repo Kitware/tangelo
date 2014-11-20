@@ -191,7 +191,7 @@ module.exports = function (grunt) {
               expand: true,
               flatten: true,
               src: [
-                  "node_modules/grunt-blanket-qunit/reporter/grunt-reporter.js",
+                  "node_modules/grunt-blanket-qunit/reporter/grunt-reporter.js"
               ],
               dest: "js/tests/results/js/"
           }
