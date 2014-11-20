@@ -25,22 +25,12 @@ tangelo.getPlugin("config").config = function (url, required, callback) {
 
     // Fire the request to the config service.
     $.ajax({
-        url: tangelo.pluginUrl("config", "config", url),
+        url: tangelo.pluginUrl("config", "config", url + (required ? "?required" : "")),
         dataType: "json",
         error: function (jqxhr) {
-            switch (jqxhr.statusCode()) {
+            switch (jqxhr.status) {
                 case 400:
-                    callback(undefined, jqxhr.response.error, jqxhr);
-                    break;
-
-                case 404:
-                    if (required) {
-                        callback(undefined, jqxhr.response.error, jqxhr);
-                    } else {
-                        // Pass in an empty config if the user did not require a
-                        // configuration file to be found.
-                        callback({});
-                    }
+                    callback(undefined, jqxhr.responseJSON, jqxhr);
                     break;
 
                 default:
@@ -49,7 +39,11 @@ tangelo.getPlugin("config").config = function (url, required, callback) {
             }
         },
         success: function (data) {
-            callback(data.result);
+            if (data.result) {
+                callback(data.result);
+            } else {
+                callback(undefined, data);
+            }
         }
     });
 };

@@ -200,7 +200,7 @@ class Plugins(object):
 
         exec("%s = sys.modules[self.base_package] = types.ModuleType(self.base_package)" % (self.base_package))
 
-    def refresh(self):
+    def refresh(self, report=False):
         if not os.path.exists(self.config_file):
             if self.mtime > 0:
                 tangelo.log("PLUGIN", self.missing_msg)
@@ -227,7 +227,8 @@ class Plugins(object):
             except ValueError:
                 return "Setting 'enabled' in configuration for plugin '%s' must be a boolean value!" % (plugin)
 
-            tangelo.log("PLUGIN", "Plugin '%s' %s" % (plugin, "enabled" if enabled else "disabled"))
+            if report:
+                tangelo.log("PLUGIN", "Plugin '%s' %s" % (plugin, "enabled" if enabled else "disabled"))
 
             if enabled:
                 # Extract the plugin path.
@@ -238,7 +239,8 @@ class Plugins(object):
 
                 self.plugins[plugin] = path
 
-                tangelo.log("PLUGIN", "path is %s" % (path))
+                if report:
+                    tangelo.log("PLUGIN", "path is %s" % (path))
 
                 # Check for a configuration file.
                 config_file = os.path.join(path, "config.json")

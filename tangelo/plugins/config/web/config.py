@@ -1,18 +1,25 @@
 import tangelo
 
-import json
 
-
-def run(*path):
+def run(*path, **query):
     if len(path) == 0:
         tangelo.http_status(400, "Missing Path")
         return {"error": "missing path to config file"}
 
+    required = query.get("required") is not None
+
     url = "/" + "/".join(path)
     directive = tangelo.tool.analyze_url(url)
-    if "target" not in directive or directive["target"].get("type") != "file":
-        tangelo.http_status(400, "Illegal Path")
-        return {"error": "illegal web path (path does not point to a config file)"}
+    if "target" in directive:
+        if directive["target"].get("type") == "404":
+            if required:
+                return {"error": "File not found",
+                        "file": url}
+            else:
+                return {"result": {}}
+        elif directive["target"].get("type") != "file":
+            tangelo.http_status(400, "Illegal Path")
+            return {"error": "illegal web path (path does not point to a config file)"}
 
     try:
         config = tangelo.util.load_service_config(directive["target"]["path"])

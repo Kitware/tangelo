@@ -1,4 +1,4 @@
-QUnit.module("stream.js");
+QUnit.module("stream plugin");
 
 QUnit.test("Stream status at startup", function (assert) {
     "use strict";
