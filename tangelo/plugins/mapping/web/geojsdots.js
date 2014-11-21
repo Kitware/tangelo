@@ -17,6 +17,7 @@
             this.element.on("rescale", function () {
                 that._rescale();
             });
+            this._update();
         },
 
         _rescale: function () {
