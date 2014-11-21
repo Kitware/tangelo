@@ -1,0 +1,190 @@
+<!doctype html>
+<meta charset=utf-8>
+
+<script src=https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false></script>
+<script src=http://code.jquery.com/jquery-1.11.0.min.js></script>
+<script src=http://code.jquery.com/ui/1.9.1/jquery-ui.min.js></script>
+<script src=http://d3js.org/d3.v3.js charset=utf-8></script>
+<script src=//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js></script>
+<script src=/plugin/tangelo/js/tangelo.js></script>
+<script src=/plugin/config/config.js></script>
+<script src=/plugin/ui/controlPanel.js></script>
+<script src=/plugin/ui/svgColorLegend.js></script>
+<script src=/plugin/mapping/GoogleMapSVG.js></script>
+<script src=index.js></script>
+
+<link href=http://bootswatch.com/cosmo/bootstrap.min.css rel=stylesheet type=text/css>
+<link href=http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css rel=stylesheet>
+<link href=//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css rel=stylesheet>
+<script src=http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js></script>
+
+<style>
+    html, body {
+        height: 100%;
+    }
+
+    body {
+        padding-top: 50px;
+    }
+
+    #control-panel {
+        background-color: lightgray;
+    }
+
+    #map img {
+        max-width: none;
+    }
+
+    .popover {
+        max-width: 1000px;
+        width: auto;
+    }
+</style>
+
+<title>Flickr Metadata Maps</title>
+
+<div id=info-panel class="modal fade">
+    <div class=modal-dialog>
+        <div class=modal-content>
+            <div class=modal-header>
+                <h3>Information</h3>
+            </div>
+
+            <div class=modal-body>
+                <p>Explore the locations where millions of Flickr photos were taken.</p>
+
+                <p>This application retrieves Flickr metadata stored in a database and
+                displays the locations on a Google map.  Use the controls to trigger a
+                new lookup, or change the visualization properties.</p>
+
+                <p>Hover over a location to see more information from that photo's
+                metadata.</p>
+            </div>
+
+            <div class=modal-footer>
+                <a class="btn btn-default" data-dismiss=modal>OK</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class=navbar-header>
+        <a class=navbar-brand href=/examples>Tangelo</a>
+    </div>
+
+    <ul class="nav navbar-nav">
+        <li class=active> <a>Flickr Maps</a>
+        <li><a style=cursor:pointer data-toggle=modal data-target=#info-panel><span class="glyphicon glyphicon-info-sign"></span> Info</a>
+    </ul>
+</div>
+
+<!-- Create a fullscreen Google map -->
+<div id=map style="width:100%; height:100%"></div>
+
+<div id=control-panel>
+    <div class=container>
+        <div class=row>
+            <div class=col-md-3>
+                <h4>Time filter <span id=time-filter-help class="glyphicon glyphicon-question-sign"></span></h4>
+                <div id=time-slider></div>
+                <code id=low></code>
+                <code id=high></code>
+                <a class="btn btn-default btn-xs" id=zoom>Zoom to range</a>
+                <a class="btn btn-default btn-xs disabled" id=unzoom>Unzoom</a>
+            </div>
+
+            <div class=col-md-3>
+                <h4>Hashtag filter <span id=hashtag-filter-help class="glyphicon glyphicon-question-sign"></span></h4>
+                <input id=hashtags type=text>
+            </div>
+
+            <div class=col-md-3>
+                <h4>Record count limit</h4>
+                <input id=record-limit type=text value=1000>
+            </div>
+
+            <div class=col-md-3>
+                <h4>&nbsp</h4>
+                <a id=abort class="btn btn-large"></a>
+            </div>
+        </div>
+
+        <div class=row>
+            <div class=col-md-3>
+                <h4>Day filter</h4>
+                <label class=checkbox>
+                    <input type=checkbox id=Sun> Sunday
+                </label>
+
+                <label class=checkbox>
+                    <input type=checkbox id=Mon> Monday
+                </label>
+
+                <label class=checkbox>
+                    <input type=checkbox id=Tue> Tuesday
+                </label>
+
+                <label class=checkbox>
+                    <input type=checkbox id=Wed> Wednesday
+                </label>
+
+                <label class=checkbox>
+                    <input type=checkbox id=Thu> Thursday
+                </label>
+
+                <label class=checkbox>
+                    <input type=checkbox id=Fri> Friday
+                </label>
+
+                <label class=checkbox>
+                    <input type=checkbox id=Sat> Saturday
+                </label>
+            </ul>
+        </div>
+
+        <div class=col-md-3>
+            <h4>Colormap</h4>
+
+            <div class=row>
+                <div class=col-md-3>
+                    <label class=radio>
+                        <input name=colormap type=radio id=month> Month
+                    </label>
+
+                    <label class=radio>
+                        <input name=colormap type=radio id=day> Day
+                    </label>
+
+                    <label class=radio>
+                        <input name=colormap type=radio id=rb> Recency (red-blue)
+                        <label class=checkbox>
+                            <input type=checkbox id=invert>Invert color scale
+                        </label>
+                    </label>
+
+                    <label class=radio>
+                        <input name=colormap type=radio id=none checked> None
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class=col-md-3>
+            <h4>Glyph size</h4>
+            <label class=radio>
+                <input name=size type=radio id=recency> Recency (earlier is larger)
+            </label>
+
+            <label class=radio>
+                <input name=size type=radio id=constant checked> Constant
+            </label>
+            <input type=text id=size class=span1 value=5>
+        </div>
+
+        <div class=col-md-3>
+            <h4>Opacity</h4>
+            <div id=opacity class=span2></div>
+        </div>
+    </div>
+</div>

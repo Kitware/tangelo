@@ -8,6 +8,7 @@ import tangelo.server
 def analyze_url(reqpath):
     target = None
     webroot = cherrypy.config.get("webroot")
+    plugins = cherrypy.config.get("plugins")
     save_data = {"target": None,
                  "do_auth": True}
 
@@ -17,6 +18,20 @@ def analyze_url(reqpath):
                 "argument": "/",
                 "save_data": save_data,
                 "target": target}
+
+    if plugins is not None and reqpath[0] == "/" and reqpath.split("/")[1] == "plugin":
+        plugin_comp = reqpath.split("/")
+        if len(plugin_comp) < 3:
+            return {"action": "ListPlugins",
+                    "target": None}
+
+        plugin = plugin_comp[2]
+        if plugin not in plugins.plugins:
+            return {"target": {"type": "404",
+                               "path": reqpath}}
+
+        webroot = plugins.plugins[plugin] + "/web"
+        reqpath = "/" + "/".join(plugin_comp[3:])
 
     # Compute "parallel" path component lists based on the web root and the
     # disk root.
