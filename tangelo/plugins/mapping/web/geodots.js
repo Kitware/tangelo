@@ -13,7 +13,7 @@
 
         _create: function () {
             var that = this,
-                vegaspec = tangelo.mapping.geovis(that.options.worldGeometry);
+                vegaspec = tangelo.plugin.mapping.geovis(that.options.worldGeometry);
 
             this.options = $.extend(true, {}, this._defaults, this.options);
 
