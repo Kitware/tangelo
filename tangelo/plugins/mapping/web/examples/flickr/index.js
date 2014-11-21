@@ -275,14 +275,14 @@ function retrieveData(initial) {
                                 };
 
                                 $(that.legend).svgColorLegend({
-                                    cmap_func: flickr.monthColor,
+                                    cmapFunc: flickr.monthColor,
                                     xoffset: $(window).width() - 100,
                                     yoffset: 50,
                                     categories: flickr.monthNames,
-                                    height_padding: 5,
-                                    width_padding: 7,
-                                    text_spacing: 19,
-                                    legend_margins: {
+                                    heightPadding: 5,
+                                    widthPadding: 7,
+                                    textSpacing: 19,
+                                    legendMargins: {
                                         top: 5,
                                         left: 5,
                                         bottom: 5,
@@ -298,14 +298,14 @@ function retrieveData(initial) {
                                 };
 
                                 $(that.legend).svgColorLegend({
-                                    cmap_func: flickr.dayColor,
+                                    cmapFunc: flickr.dayColor,
                                     xoffset: $(window).width() - 100,
                                     yoffset: 50,
                                     categories: flickr.dayNames,
-                                    height_padding: 5,
-                                    width_padding: 7,
-                                    text_spacing: 19,
-                                    legend_margins: {top: 5, left: 5, bottom: 5, right: 5},
+                                    heightPadding: 5,
+                                    widthPadding: 7,
+                                    textSpacing: 19,
+                                    legendMargins: {top: 5, left: 5, bottom: 5, right: 5},
                                     clear: true
                                 });
 
@@ -462,7 +462,7 @@ function retrieveData(initial) {
                     mapTypeId: google.maps.MapTypeId.ROADMAP
                 };
                 div = d3.select("#map").node();
-                flickr.map = new tangelo.GoogleMapSVG(div, options, gmap_cfg);
+                flickr.map = new tangelo.plugin.mapping.GoogleMapSVG(div, options, gmap_cfg);
                 flickr.map.on(["draw", "drag", "zoom_changed"], gmap_cfg.draw);
             }
         }
