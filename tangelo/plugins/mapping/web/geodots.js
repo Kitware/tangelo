@@ -12,34 +12,29 @@
         },
 
         _create: function () {
-            var that = this,
-                vegaspec = tangelo.plugin.mapping.geovis(that.options.worldGeometry);
+            var vegaspec = tangelo.plugin.mapping.geovis(this.options.worldGeometry);
 
-            this.options = $.extend(true, {}, this._defaults, this.options);
+            vg.parse.spec(vegaspec, _.bind(function (chart) {
+                this.vis = chart;
 
-            vg.parse.spec(vegaspec, function (chart) {
-                that.vis = chart;
-
-                that._update();
-            });
+                this._update();
+            }, this));
         },
 
         _update: function () {
-            var that = this;
-
             if (this.options.data) {
-                this.options.data.forEach(function (d) {
-                    d.latitude = that.options.latitude(d);
-                    d.longitude = that.options.longitude(d);
-                    d.size = that.options.size(d);
-                    d.color = that.options.color(d);
-                });
+                this.options.data.forEach(_.bind(function (d) {
+                    d.latitude = this.options.latitude(d);
+                    d.longitude = this.options.longitude(d);
+                    d.size = this.options.size(d);
+                    d.color = this.options.color(d);
+                }, this));
 
                 if (this.vis) {
                     this.vis({
-                        el: that.element.get(0),
+                        el: this.element.get(0),
                         data: {
-                            table: that.options.data,
+                            table: this.options.data,
                             links: []
                         }
                     }).update();
