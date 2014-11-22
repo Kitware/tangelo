@@ -100,6 +100,9 @@
                 //
                 // - If it returns a number, use that value as the new delay
                 //   between stream queries.
+                //
+                // - If it returns an object, assume the function is attempting
+                //   to set more than one of these parameters in one go.
                 flag = callback(result, false);
                 if (flag !== undefined) {
                     if (_.isFunction(flag)) {
@@ -108,6 +111,18 @@
                         keepgoing = flag;
                     } else if (_.isNumber(flag)) {
                         delay = flag;
+                    } else if (_.isObject(flag) && !_.isArray(flag)) {
+                        if (flag.callback !== undefined) {
+                            callback = flag.callback;
+                        }
+
+                        if (flag.continue !== undefined) {
+                            keepgoing = flag.continue;
+                        }
+
+                        if (flag.delay !== undefined) {
+                            delay = flag.delay;
+                        }
                     }
                 }
 
