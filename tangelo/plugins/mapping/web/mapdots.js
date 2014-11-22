@@ -39,11 +39,19 @@
                     .style("position", "absolute");
                 that.colorScale = d3.scale.category10();
 
+                that._update();
+
                 // Draw each marker as a separate SVG element.  We could use a
                 // single SVG, but what size would it have?
                 this.draw = function () {
                     var marker,
-                        ptransform = that.transform(this.getProjection());
+                        ptransform;
+
+                    if (!that.transform) {
+                        return;
+                    }
+                    
+                    ptransform = that.transform(this.getProjection());
 
                     marker = that.layer.selectAll("svg")
                         .data(that.options.data)

@@ -1,0 +1,5 @@
+{
+    "mongodb-server": "localhost",
+    "mongodb-db": "tangelo",
+    "mongodb-coll": "flickr_paris"
+}

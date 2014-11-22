@@ -1,4 +1,4 @@
-(function (tangelo, geo, d3, $) {
+(function (tangelo, geo, d3, $, _) {
     "use strict";
 
     $.widget("tangelo.geojsMap", {
@@ -35,17 +35,16 @@
                     node: node,
                     width: this.options.width,
                     height: this.options.height
-                },
-                that = this;
+                };
             this._map = geo.map(opts);
             this._map.createLayer("osm");
             this.svgLayer = this._map.createLayer("feature", {renderer: "d3Renderer"});
             this.svgGroup = this.svgLayer.renderer().canvas();
 
             this._resize();
-            $(window).resize(function () {
-                that._resize();
-            });
+            $(window).resize(_.bind(function () {
+                this._resize();
+            }, this));
             this.svgLayer.on(geo.event.d3Rescale, function (arg) {
                 $(node).trigger("rescale", arg.scale);
             });
@@ -75,4 +74,4 @@
      * User listens to events and respondes to them as necessary.
      *     "rescale"... the map zoomed in or out, so rescale features if necessary
      */
-}(window.tangelo, window.geo, window.d3, window.jQuery));
+}(window.tangelo, window.geo, window.d3, window.jQuery, window._));
