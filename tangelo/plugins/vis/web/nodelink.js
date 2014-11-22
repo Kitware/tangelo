@@ -28,6 +28,13 @@
 
             this.svg = d3.select(this.element.get(0))
                 .append("svg");
+
+            this._update();
+        },
+
+        _setOptions: function (options) {
+            this._super(options);
+            this._update();
         },
 
         _update: function () {
