@@ -47,6 +47,12 @@
             this._x = null;
             this._y = null;
             $(window).resize(this._update.bind(this));
+            this._update();
+        },
+
+        _setOptions: function (options) {
+            this._super(options);
+            this._update();
         },
 
         _update: function () {
