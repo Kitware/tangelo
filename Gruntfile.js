@@ -28,21 +28,6 @@ module.exports = function (grunt) {
 
     // Project configuration.
     grunt.initConfig({
-      // Task configuration.
-      prompt: {
-          configure: {
-              options: {
-                  questions: [
-                      {
-                          config: "virtualenv",
-                          type: "input",
-                          message: "Path to virtualenv?",
-                          default: "/usr/bin/virtualenv"
-                      }
-                  ]
-              }
-          }
-      },
       version: {
           src: [
               "tangelo/tangelo/__main__.py",
@@ -262,7 +247,6 @@ module.exports = function (grunt) {
 
     // These plugins provide necessary tasks.
     grunt.loadNpmTasks("grunt-continue");
-    grunt.loadNpmTasks("grunt-prompt");
     grunt.loadNpmTasks("grunt-version");
     grunt.loadNpmTasks("grunt-contrib-jshint");
     grunt.loadNpmTasks("grunt-jscs");
@@ -273,43 +257,62 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-contrib-copy");
     grunt.loadNpmTasks("grunt-contrib-clean");
 
-    // Read configuration from disk.
-    grunt.registerTask("readconfig", "Read configuration options from disk", function () {
-        var text;
-
-        try {
-            text = fs.readFileSync("configuration.json");
-            config = JSON.parse(text);
-        } catch (e) {
-            grunt.task.run("configure");
-            grunt.task.run("readconfig");
-            return;
-        }
-    });
-
     // Configuration task.
-    grunt.registerTask("configure", "Write configuration options to disk", function () {
-        var text;
+    grunt.registerTask("config", "Record configuration options", function (option, value) {
+        var defaultConfig,
+            readConfig,
+            writeConfig;
 
-        // If there is no config file already, then schedule the appropriate prompt
-        // task, followed by a retry of the current task, then bail.
-        if (!grunt.config("virtualenv")) {
-            grunt.task.run("prompt:configure");
-            grunt.task.run("configure");
-            return;
-        }
+        defaultConfig = function () {
+            return {
+                virtualenv: "virtualenv"
+            };
+        };
 
-        // Build a configuration object from the config values.
-        text = JSON.stringify({
-            virtualenv: grunt.config("virtualenv"),
-            python: grunt.config("python")
-        }, null, 4) + "\n";
+        readConfig = function () {
+            var text;
 
-        // Serialize to disk.
-        try {
-            fs.writeFileSync("configuration.json", text);
-        } catch (e) {
-            grunt.fail.warn("Could not write configuration.json" + e);
+            try {
+                text = fs.readFileSync("configuration.json");
+            } catch (e) {
+                config = defaultConfig();
+                return;
+            }
+
+            try {
+                config = JSON.parse(text);
+            } catch (e) {
+                grunt.fail.warn("configuration.json does not appear to contain JSON text");
+            }
+
+            if (Object.prototype.toString.call(config) !== "[object Object]") {
+                grunt.fail.warn("configuration.json does not contain a JSON object");
+            }
+        };
+
+        writeConfig = function () {
+            var text = JSON.stringify(config, null, 4) + "\n";
+            try {
+                fs.writeFileSync("configuration.json", text);
+            } catch (e) {
+                grunt.fail.warn("could not write configuration.json");
+            }
+        };
+
+        if (option === undefined) {
+            readConfig();
+            console.log(config);
+        } else if (defaultConfig().hasOwnProperty(option)) {
+            if (value === undefined) {
+                readConfig();
+                console.log(config[option]);
+            } else {
+                readConfig();
+                config[option] = value;
+                writeConfig();
+            }
+        } else {
+            grunt.fail.warn("Illegal configuration option '" + option + "'");
         }
     });
 
@@ -318,7 +321,9 @@ module.exports = function (grunt) {
         var done;
 
         if (!config) {
-            grunt.fail.warn("Task depends on 'readconfig' task");
+            grunt.task.run("config");
+            grunt.task.run("virtualenv");
+            return;
         }
 
         try {
@@ -715,7 +720,6 @@ module.exports = function (grunt) {
 
     // Default task.
     grunt.registerTask("default", ["version",
-                                   "readconfig",
                                    "virtualenv",
                                    "pydeps",
                                    "pep8",

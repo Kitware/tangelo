@@ -6,6 +6,6 @@ python:
 script:
     - npm install -g grunt-cli
     - npm install
-    - echo virtualenv | grunt
+    - grunt
     - grunt test:server
     - grunt test:client
