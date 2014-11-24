@@ -335,7 +335,7 @@ def main():
     global plugins
     plugins = tangelo.server.Plugins("tangelo.plugin", plugin_cfg_file, tangelo_server)
     cherrypy.tree.mount(plugins, "/plugin")
-    plugins.refresh()
+    plugins.refresh(report=True)
     cherrypy.config.update({"plugins": plugins})
 
     # Create a Girder API object if requested, and mount it at the requested

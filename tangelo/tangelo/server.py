@@ -193,7 +193,7 @@ class Plugins(object):
 
         self.config_dir = os.path.dirname(self.config_file)
         self.mtime = 0
-        self.plugins = None
+        self.plugins = {}
         self.missing_msg = "Plugin config file %s seems to have disappeared" % (self.config_file)
 
         self.modules = tangelo.util.ModuleCache(config=False, http_error=False)
@@ -219,7 +219,6 @@ class Plugins(object):
             return
 
         plugins = parser.sections()
-        self.plugins = {}
         for plugin in plugins:
             # See whether the plugin is enabled (default: yes)
             try:
@@ -230,7 +229,7 @@ class Plugins(object):
             if report:
                 tangelo.log("PLUGIN", "Plugin '%s' %s" % (plugin, "enabled" if enabled else "disabled"))
 
-            if enabled:
+            if enabled and plugin not in self.plugins:
                 # Extract the plugin path.
                 try:
                     path = os.path.join(self.config_dir, parser.get(plugin, "path"))
@@ -275,6 +274,39 @@ class Plugins(object):
                         exec('%s = sys.modules[module_name] = self.modules.get(init)' % (module_name))
                     finally:
                         sys.path = old_path
+
+                # Check for any apps that need to be mounted.
+                control_file = os.path.join(path, "control.py")
+                if os.path.exists(control_file):
+                    try:
+                        control = self.modules.get(control_file)
+                    except ImportError:
+                        tangelo.log("PLUGIN", "Could not import control module:")
+                        tangelo.log("PLUGIN", traceback.format_exc())
+                    else:
+                        if "app" in dir(control):
+                            try:
+                                apps = control.app(config)
+                            except:
+                                tangelo.log("PLUGIN", "Caught exception while trying to gather app list:")
+                                tangelo.log("PLUGIN", traceback.format_exc())
+                            else:
+                                for app in apps:
+                                    if len(app) == 2:
+                                        (app_obj, mountpoint) = app
+                                        app_config = {}
+                                    elif len(app) == 3:
+                                        (app_obj, app_config, mountpoint) = app
+                                    else:
+                                        tangelo.log("PLUGIN", "app mount spec should contain either 2 or 3 items")
+                                        continue
+
+                                    app_path = os.path.join("/plugin", plugin, mountpoint)
+                                    if app_path in cherrypy.tree.apps:
+                                        tangelo.log("PLUGIN", "Cannot mount an app at %s (app already mounted there)" % (app_path))
+                                    else:
+                                        cherrypy.tree.mount(app_obj, app_path, app_config)
+                                        tangelo.log("PLUGIN", "Mounting application at %s" % (app_path))
             else:
                 module_name = "%s.%s" % (self.base_package, plugin)
                 if module_name in sys.modules:
