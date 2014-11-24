@@ -102,7 +102,7 @@ class Tangelo(object):
             try:
                 result = json.dumps(result)
             except TypeError as e:
-                tangelo.http_status(501, "Web Service Error")
+                tangelo.http_status(400, "JSON Error")
                 tangelo.content_type("application/json")
                 result = {"error": "JSON type error executing service",
                           "message": e.message}
