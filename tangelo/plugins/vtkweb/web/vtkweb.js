@@ -3,9 +3,11 @@
 (function (tangelo, $, vtkWeb) {
     "use strict";
 
-    tangelo.vtkweb.processes = function (callback) {
+    var plugin = tangelo.getPlugin("vtkweb");
+
+    plugin.processes = function (callback) {
         $.ajax({
-            url: tangelo.pluginUrl("vtkweb"),
+            url: tangelo.pluginUrl("vtkweb", "vtkweb"),
             dataType: "json",
             error: function (jqxhr) {
                 callback(undefined, jqxhr);
@@ -22,9 +24,9 @@
         });
     };
 
-    tangelo.vtkweb.info = function (key, callback) {
+    plugin.info = function (key, callback) {
         $.ajax({
-            url: tangelo.pluginUrl("vtkweb", key),
+            url: tangelo.pluginUrl("vtkweb", "vtkweb", key),
             dataType: "json",
             error: function (jqxhr) {
                 callback(undefined, jqxhr);
@@ -38,7 +40,7 @@
     (function () {
         var table = {};
 
-        tangelo.vtkweb.launch = function (cfg) {
+        plugin.launch = function (cfg) {
             var data,
                 url = tangelo.absoluteUrl(cfg.url),
                 callback = cfg.callback,
@@ -47,7 +49,7 @@
                 viewport = cfg.viewport;
 
             if (timeout !== undefined) {
-                console.warn("[tangelo.vtkweb.launch] warning: timeout argument has no effect");
+                throw new Error("timeout argument unimplemented");
             }
 
             // Look for required arguments.
@@ -69,7 +71,7 @@
 
             // Fire off POST request to vtkweb service.
             $.ajax({
-                url: tangelo.pluginUrl("vtkweb"),
+                url: tangelo.pluginUrl("vtkweb", "vtkweb", url),
                 type: "POST",
                 data: data,
                 dataType: "json",
@@ -80,50 +82,44 @@
                     var connection,
                         vp;
 
-                    if (report.status === "failed" || report.status === "incomplete") {
-                        callback(undefined, {error: report.reason()});
-                    } else if (report.status === "complete") {
-                        connection = {
-                            sessionURL: report.url
-                        };
+                    connection = {
+                        sessionURL: report.url
+                    };
 
-                        vtkWeb.connect(connection, function (connection) {
-                            // Create a viewport and bind it to the specified
-                            // element/selector.
-                            vp = vtkWeb.createViewport({session: connection.session});
-                            vp.bind(viewport);
+                    vtkWeb.connect(connection, function (connection) {
+                        // Create a viewport and bind it to the specified
+                        // element/selector.
+                        vp = vtkWeb.createViewport({session: connection.session});
+                        vp.bind(viewport);
 
-                            // Force refresh on resize.
-                            $(window).resize(function () {
-                                if (vp) {
-                                    vp.render();
-                                }
-                            });
-
-                            // An initial render.
-                            vp.render();
-
-                            // Save the element and viewport for use in the
-                            // terminate() function.
-                            table[report.key] = {
-                                element: $(viewport).get(0),
-                                viewport: vp
-                            };
-                        }, function (code, reason) {
-                            throw new Error(not connect to VTKWeb server [code " + code + "]: " + reason);
+                        // Force refresh on resize.
+                        $(window).resize(function () {
+                            if (vp) {
+                                vp.render();
+                            }
                         });
 
-                        callback(report.key);
-                    } else {
-                        throw new Error("unexpected report status '" + report.status + "'");
-                    }
+                        // An initial render.
+                        vp.render();
+
+                        // Save the element and viewport for use in the
+                        // terminate() function.
+                        table[report.key] = {
+                            element: $(viewport).get(0),
+                            viewport: vp
+                        };
+                    }, function (code, reason) {
+                        throw new Error("not connect to VTKWeb server [code " + code + "]: " + reason);
+                    });
+
+                    callback(report.key);
                 }
             });
         };
 
-        tangelo.vtkweb.terminate = function (key, callback) {
+        plugin.terminate = function (key, callback) {
             $.ajax({
-                url: tangelo.pluginUrl("vtkweb", key),
+                url: tangelo.pluginUrl("vtkweb", "vtkweb", key),
                 type: "DELETE",
                 dataType: "json",
                 error: function (jqxhr) {

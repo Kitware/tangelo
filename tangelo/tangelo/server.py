@@ -89,7 +89,7 @@ class Tangelo(object):
                 tangelo.content_type("application/json")
                 result = {"error": "Error executing service",
                           "module": tangelo.request_path(),
-                          "traceback": bt}
+                          "traceback": bt.split("\n")}
 
         # Restore the path to what it was originally.
         sys.path = origpath
