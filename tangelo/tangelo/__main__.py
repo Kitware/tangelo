@@ -97,7 +97,7 @@ def shutdown(signum, frame):
 
     # Perform plugin shutdown operations.
     tangelo.log("TANGELO", "Shutting down plugins...")
-    plugins.teardown()
+    plugins.unload_all()
 
     # Perform CherryPy shutdown and exit.
     tangelo.log("TANGELO", "Stopping web server")
@@ -335,7 +335,7 @@ def main():
     global plugins
     plugins = tangelo.server.Plugins("tangelo.plugin", plugin_cfg_file, tangelo_server)
     cherrypy.tree.mount(plugins, "/plugin")
-    plugins.refresh(report=True)
+    plugins.refresh()
     cherrypy.config.update({"plugins": plugins})
 
     # Create a Girder API object if requested, and mount it at the requested

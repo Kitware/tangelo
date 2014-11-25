@@ -2,7 +2,7 @@ import cherrypy
 import os
 
 
-def app(config):
+def setup(config, store):
     import girder.events
     from girder import constants
     from girder import constants
@@ -42,6 +42,9 @@ def app(config):
         "staticRoot": "/plugin/girder/girder/static"
     })
 
-    root, appconf, _ = plugin_utilities.loadPlugins(plugins, root, appconf, root.api.v1)
+    # TODO: figure out how to load plugins without trashing the root config
+    # object.
+    #
+    # root, appconf, _ = plugin_utilities.loadPlugins(plugins, root, appconf, root.api.v1)
 
-    return [(root, appconf, "girder")]
+    return {"apps": [(root, appconf, "girder")]}
