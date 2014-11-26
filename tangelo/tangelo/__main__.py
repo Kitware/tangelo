@@ -17,7 +17,6 @@ import re
 
 import tangelo
 from tangelo.minify_json import json_minify
-import tangelo.info
 import tangelo.server
 import tangelo.tool
 import tangelo.util
@@ -285,10 +284,6 @@ def main():
     # Set the web root directory.
     cherrypy.config.update({"webroot": root})
 
-    # Set up the API path.
-    cherrypy.config.update({"apiroot": "/api"})
-    apiroot = cherrypy.config["apiroot"]
-
     # Place an empty dict to hold per-module configuration into the global
     # configuration object, and one for persistent per-module storage (the
     # latter can be manipulated by the service).
@@ -303,10 +298,6 @@ def main():
     module_cache = tangelo.util.ModuleCache()
     tangelo_server = tangelo.server.Tangelo(module_cache=module_cache)
     rootapp = cherrypy.Application(tangelo_server, "/")
-
-    # Create an info API object.
-    info = tangelo.info.TangeloInfo(version=tangelo_version)
-    cherrypy.tree.mount(info, apiroot + "/info", config={"/": {"request.dispatch": cherrypy.dispatch.MethodDispatcher()}})
 
     # Create a plugin server object.
     global plugins
