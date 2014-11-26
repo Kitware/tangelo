@@ -209,7 +209,7 @@ class Plugins(object):
     def load(self, plugin_name, path):
         tangelo.log("PLUGIN", "Loading plugin %s (from %s)" % (plugin_name, path))
 
-        self.plugins[plugin_name] = plugin = Plugins.Plugin(path)
+        plugin = Plugins.Plugin(path)
 
         # Check for a configuration file.
         config_file = os.path.join(path, "config.json")
@@ -262,6 +262,7 @@ class Plugins(object):
             except ImportError:
                 tangelo.log("PLUGIN", "Could not import control module:")
                 tangelo.log("PLUGIN", traceback.format_exc())
+                return
             else:
                 if "setup" in dir(control):
                     tangelo.log("PLUGIN", "...running plugin setup")
@@ -279,16 +280,19 @@ class Plugins(object):
                             elif len(app) == 3:
                                 (app_obj, app_config, mountpoint) = app
                             else:
-                                tangelo.log("PLUGIN", "app mount spec should contain either 2 or 3 items")
-                                continue
+                                tangelo.log("PLUGIN", "app mounting has %d item%s (should be either 2 or 3)" % (len(app), "" if len(app) == 1 else "s"))
+                                return
 
                             app_path = os.path.join("/plugin", plugin_name, mountpoint)
                             if app_path in cherrypy.tree.apps:
                                 tangelo.log("PLUGIN", "Failed to mount application at %s (app already mounted there)" % (app_path))
+                                return
                             else:
                                 cherrypy.tree.mount(app_obj, app_path, app_config)
                                 plugin.apps.append(app_path)
                                 tangelo.log("PLUGIN", "...mounting application at %s" % (app_path))
+
+        self.plugins[plugin_name] = plugin
 
     def unload(self, plugin_name):
         tangelo.log("PLUGIN", "Unloading plugin '%s'" % (plugin_name))
