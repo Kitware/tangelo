@@ -42,6 +42,10 @@ def setup(config, store):
         "staticRoot": "/plugin/girder/girder/static"
     })
 
+    root.api.v1.updateHtmlVars({
+        "staticRoot": "/plugin/girder/girder/static"
+    })
+
     # TODO: figure out how to load plugins without trashing the root config
     # object.
     #
