@@ -31,6 +31,7 @@ module.exports = function (grunt) {
       version: {
           src: [
               "tangelo/tangelo/__main__.py",
+              "tangelo/plugins/tangelo/web/version.py",
               "tangelo/setup.py",
               "js/src/core/core.js"
           ]
@@ -42,7 +43,7 @@ module.exports = function (grunt) {
           },
           dist: {
               src: ["js/src/**/*.js"],
-              dest: "tangelo/web/js/tangelo.js"
+              dest: "tangelo/plugins/tangelo/web/tangelo.js"
           }
       },
       uglify: {
@@ -51,7 +52,7 @@ module.exports = function (grunt) {
           },
           dist: {
               src: "<%= concat.dist.dest %>",
-              dest: "tangelo/web/js/tangelo.min.js"
+              dest: "tangelo/plugins/tangelo/web/tangelo.min.js"
           }
       },
       jshint: {
