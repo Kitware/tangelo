@@ -1,6 +1,3 @@
-/*jslint browser: true */
-/*globals $ */
-
 $(function () {
     "use strict";
 
@@ -29,12 +26,8 @@ $(function () {
             width: initSize.width,
             height: initSize.height,
             inner: initSize.inner,
-            label: {
-                field: "label"
-            },
-            value: {
-                field: "value"
-            }
+            label: tangelo.accessor({field: "label"}),
+            value: tangelo.accessor({field: "value"})
         };
 
     function updateInputOptions() {
@@ -145,7 +138,6 @@ $(function () {
 
     $("input:text[id='inner']").change(function () {
         var value = $(this).val();
-        console.log("val is " + value);
         resizeDonutChart(donutChartOptions.width, donutChartOptions.height, Math.round(value));
     });
 });
