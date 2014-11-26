@@ -17,7 +17,6 @@ import re
 
 import tangelo
 from tangelo.minify_json import json_minify
-import tangelo.girder
 import tangelo.info
 import tangelo.server
 import tangelo.tool
@@ -71,10 +70,6 @@ def read_config(cfgfile):
     config["cert"] = getstring("tangelo", "cert")
     config["root"] = getstring("tangelo", "root")
 
-    config["girder-host"] = getstring("girder", "girder-host")
-    config["girder-port"] = getint("girder", "girder-port")
-    config["girder-path"] = getstring("girder", "girder-path")
-
     return config
 
 
@@ -125,9 +120,6 @@ def main():
     p.add_argument("--version", action="store_true", help="display Tangelo version number")
     p.add_argument("--key", type=str, default=None, metavar="FILE", help="the path to the SSL key.  You must also specify --cert to serve content over https.")
     p.add_argument("--cert", type=str, default=None, metavar="FILE", help="the path to the SSL certificate.  You must also specify --key to serve content over https.")
-    p.add_argument("--girder-host", type=str, default=None, metavar="HOST", help="the hostname running Girder")
-    p.add_argument("--girder-port", type=int, default=None, metavar="PORT", help="the port on which Girder is running")
-    p.add_argument("--girder-path", type=str, default=None, metavar="PATH", help="the path on which to mount a Girder API")
     p.add_argument("--plugin-config", type=str, default="/etc/tangelo/plugin.conf", metavar="PATH", help="path to plugin configuration file")
     args = p.parse_args()
 
@@ -226,21 +218,6 @@ def main():
         tangelo.log("TANGELO", "\tUser: %s" % (user))
         tangelo.log("TANGELO", "\tGroup: %s" % (group))
 
-    # Girder options.  If no girder path is specified, we take this to mean we
-    # should NOT mount a Girder API.
-    girderconf = {}
-    girderconf["host"] = args.girder_host or config.get("girder-host") or "localhost"
-    girderconf["port"] = args.girder_port or config.get("girder-port") or 27017
-    girderconf["path"] = args.girder_path or config.get("girder-path")
-
-    if girderconf["path"] is not None:
-        tangelo.log("TANGELO", "Girder support enabled")
-        tangelo.log("TANGELO", "\tHost: %s" % (girderconf["host"]))
-        tangelo.log("TANGELO", "\tPort: %s" % (girderconf["port"]))
-        tangelo.log("TANGELO", "\tWeb path: %s" % (girderconf["path"]))
-    else:
-        tangelo.log("TANGELO", "Girder support disabled")
-
     # HTTPS support
     #
     # Grab the ssl key file.
@@ -337,13 +314,6 @@ def main():
     cherrypy.tree.mount(plugins, "/plugin")
     plugins.refresh()
     cherrypy.config.update({"plugins": plugins})
-
-    # Create a Girder API object if requested, and mount it at the requested
-    # path.
-    girder = None
-    if girderconf["path"]:
-        girder = tangelo.girder.TangeloGirder(girderconf["host"], girderconf["port"])
-        cherrypy.tree.mount(girder, apiroot + "/" + girderconf["path"], girder.config)
 
     # Mount the root application object.
     cherrypy.tree.mount(rootapp, config={"/": {"tools.auth_update.on": access_auth,
