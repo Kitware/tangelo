@@ -1,9 +1,7 @@
-/*jslint browser: true */
-
-(function (tangelo) {
+(function (tangelo, $, vg) {
     "use strict";
 
-    tangelo.vegaspec.parallelcoords = function (option) {
+    var parallelcoords = function (option) {
         var defSpec = {
             "width": option.width || 0,
             "height": option.height || 0,
@@ -120,4 +118,64 @@
         });
         return defSpec;
     };
-}(window.tangelo));
+
+    $.widget("tangelo.parallelCoords", {
+        options: {
+            width: 0,
+            height: 0,
+            data: null,
+            fields: null
+        },
+
+        _create: function () {
+            //this.options = $.extend(true, {}, this._defaults, this.options);
+            var // that = this,
+                vegaspec = parallelcoords(this.options);
+            vg.parse.spec(vegaspec, _.bind(function (chart) {
+                this.vis = chart;
+                this._update();
+            }, this));
+        },
+
+        _update: function () {
+            //var that = this;
+            var chart;
+
+            if (this.options.data && this.options.fields) {
+                if (this.vis) {
+                    if (this.options.width === 0 && this.options.height === 0) {
+                        this._setParentSize();
+                    }
+                    chart = this.vis({
+                        el: this.element.get(0),
+                        data: {
+                            table: this.options.data,
+                        }
+                    });
+                    
+                    chart.width(this.options.width)
+                        .height(this.options.height)
+                        .update();
+                }
+            }
+        },
+
+        _setParentSize: function () {
+            //var that = this;
+            this.options.width = this.element.parent().width() - 50;
+            this.options.height = this.element.parent().height() - 30;
+            if (this.option.width <= 0) {
+                this.option.width = 0;
+            }
+            if (this.option.height <= 0) {
+                this.option.height = 0;
+            }
+        },
+
+        resize: function (width, height) {
+            this.options.width = width;
+            this.options.height = height;
+            this._update();
+        }
+    });
+}(window.tangelo, window.jQuery, window.vg));

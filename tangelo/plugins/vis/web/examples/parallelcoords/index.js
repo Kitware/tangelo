@@ -1,14 +1,10 @@
-/*jslint browser: true */
-/*globals $ */
-
 $(function () {
     "use strict";
-
 
     var parallelCoords = {
             width: 0,
             height: 0,
-            data_url: "../data/cars.json",
+            data_url: "cars.json",
             fields: ["cyl", "dsp", "lbs", "hp", "acc", "mpg", "year"]
         },
         initSize = {
@@ -25,6 +21,7 @@ $(function () {
                 height: 320
             }
         };
+
     function updateSizeDisplay() {
         $('#width').val(Math.round(parallelCoords.width));
         $('#height').val(Math.round(parallelCoords.height));
