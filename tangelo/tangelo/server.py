@@ -218,13 +218,13 @@ class Plugins(object):
             try:
                 config = tangelo.util.load_service_config(config_file)
             except TypeError as e:
-                tangelo.log("PLUGIN", "Bad configuration in file %s: %s" % (config_file, e))
+                tangelo.log("PLUGIN", "\tBad configuration in file %s: %s" % (config_file, e))
                 return
             except IOError:
-                tangelo.log("PLUGIN", "Could not open config file %s" % (config_file))
+                tangelo.log("PLUGIN", "\tCould not open config file %s" % (config_file))
                 return
             except ValueError as e:
-                tangelo.log("PLUGIN", "Error reading config file %s: %s" % (config_file, e))
+                tangelo.log("PLUGIN", "\tError reading config file %s: %s" % (config_file, e))
                 return
 
         # Install the config and an empty dict as the plugin-level
@@ -236,11 +236,12 @@ class Plugins(object):
         # there in a virtual submodule of tangelo.plugin.
         python = os.path.join(path, "python")
         if os.path.exists(python):
-            tangelo.log("PLUGIN", "Loading python module content")
+            tangelo.log("PLUGIN", "\t...loading python module content")
 
             init = os.path.join(python, "__init__.py")
             if not os.path.exists(init):
-                tangelo.log("PLUGIN", "error:  plugin '%s' includes a 'python' directory but is missing __init.py__" % (plugin))
+                tangelo.log("PLUGIN", "\terror:  plugin '%s' includes a 'python' directory but is missing __init.py__" % (plugin))
+                return False
             else:
                 module_name = "%s.%s" % (self.base_package, plugin_name)
                 plugin.module = module_name
@@ -248,6 +249,11 @@ class Plugins(object):
                 sys.path.append(python)
                 try:
                     exec('%s = sys.modules[module_name] = self.modules.get(init)' % (module_name))
+                except:
+                    tangelo.log("PLUGIN", "\tCould not import python module content")
+                    tangelo.log("PLUGIN", "\t%s" % (traceback.format_exc()))
+                    sys.path = old_path
+                    return False
                 finally:
                     sys.path = old_path
 
@@ -255,23 +261,23 @@ class Plugins(object):
         # that need to be mounted.
         control_file = os.path.join(path, "control.py")
         if os.path.exists(control_file):
-            tangelo.log("PLUGIN", "...loading plugin control module")
+            tangelo.log("PLUGIN", "\t...loading plugin control module")
             try:
                 control = self.modules.get(control_file)
                 plugin.control = control
             except ImportError:
-                tangelo.log("PLUGIN", "Could not import control module:")
-                tangelo.log("PLUGIN", traceback.format_exc())
-                return
+                tangelo.log("PLUGIN", "\tCould not import control module:")
+                tangelo.log("PLUGIN", "\t%s" % (traceback.format_exc()))
+                return False
             else:
                 if "setup" in dir(control):
-                    tangelo.log("PLUGIN", "...running plugin setup")
+                    tangelo.log("PLUGIN", "\t...running plugin setup")
                     try:
                         setup = control.setup(config, cherrypy.config["plugin-store"][path])
                     except:
-                        tangelo.log("PLUGIN", "Caught exception while running setup:")
-                        tangelo.log("PLUGIN", traceback.format_exc())
-                        return
+                        tangelo.log("PLUGIN", "\tCaught exception while running setup:")
+                        tangelo.log("PLUGIN", "\t%s" % (traceback.format_exc()))
+                        return False
                     else:
                         for app in setup.get("apps", []):
                             if len(app) == 2:
@@ -280,19 +286,20 @@ class Plugins(object):
                             elif len(app) == 3:
                                 (app_obj, app_config, mountpoint) = app
                             else:
-                                tangelo.log("PLUGIN", "app mounting has %d item%s (should be either 2 or 3)" % (len(app), "" if len(app) == 1 else "s"))
-                                return
+                                tangelo.log("PLUGIN", "\tapp mount spec has %d item%s (should be either 2 or 3)" % (len(app), "" if len(app) == 1 else "s"))
+                                return False
 
                             app_path = os.path.join("/plugin", plugin_name, mountpoint)
                             if app_path in cherrypy.tree.apps:
-                                tangelo.log("PLUGIN", "Failed to mount application at %s (app already mounted there)" % (app_path))
-                                return
+                                tangelo.log("PLUGIN", "\tFailed to mount application at %s (app already mounted there)" % (app_path))
+                                return False
                             else:
                                 cherrypy.tree.mount(app_obj, app_path, app_config)
                                 plugin.apps.append(app_path)
-                                tangelo.log("PLUGIN", "...mounting application at %s" % (app_path))
+                                tangelo.log("PLUGIN", "\t...mounting application at %s" % (app_path))
 
         self.plugins[plugin_name] = plugin
+        return True
 
     def unload(self, plugin_name):
         tangelo.log("PLUGIN", "Unloading plugin '%s'" % (plugin_name))
@@ -354,7 +361,8 @@ class Plugins(object):
                     tangelo.log("PLUGIN", "error: configuration for plugin '%s' missing required setting 'path'" % (plugin))
                     continue
 
-                self.load(plugin, path)
+                if not self.load(plugin, path):
+                    tangelo.log("PLUGIN", "Plugin %s failed to load" % (plugin))
             elif not enabled and plugin in self.plugins:
                 self.unload(plugin)
 
