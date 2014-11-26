@@ -97,7 +97,7 @@ def shutdown(signum, frame):
 
     # Perform plugin shutdown operations.
     tangelo.log("TANGELO", "Shutting down plugins...")
-    plugins.teardown()
+    plugins.unload_all()
 
     # Perform CherryPy shutdown and exit.
     tangelo.log("TANGELO", "Stopping web server")
