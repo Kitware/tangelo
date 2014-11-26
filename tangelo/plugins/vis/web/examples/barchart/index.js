@@ -1,6 +1,3 @@
-/*jslint browser: true */
-/*globals $ */
-
 $(function () {
     "use strict";
 
@@ -25,12 +22,8 @@ $(function () {
             width: 0,
             height: 0,
             horizontal: false,
-            label: {
-                field: "x"
-            },
-            value: {
-                field: "y"
-            }
+            label: tangelo.accessor({field: "x"}),
+            value: tangelo.accessor({field: "y"})
         },
         margin = {
             resizable: {

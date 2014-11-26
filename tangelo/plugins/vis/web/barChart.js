@@ -1,9 +1,7 @@
-/*jslint browser: true */
-
-(function (tangelo) {
+(function (tangelo, $, vg) {
     "use strict";
 
-    tangelo.vegaspec.barchart = function (option) {
+    var barchart = function (option) {
         var defSpec = {
             width: option.width,
             height: option.height,
@@ -157,4 +155,77 @@
         }
         return defSpec;
     };
-}(window.tangelo));
+
+    $.widget("tangelo.barChart", {
+        options: {
+            label: tangelo.accessor({
+                value: 0
+            }),
+            value: tangelo.accessor({
+                value: 0
+            }),
+            width: 0,
+            height: 0,
+            data: null
+        },
+
+        _create: function () {
+            var vegaspec = barchart(this.options);
+            vg.parse.spec(vegaspec, _.bind(function (chart) {
+                this.vis = chart;
+                this.vegaspec = vegaspec;
+                this._update();
+            }, this));
+        },
+
+        _update: function () {
+            var chart;
+
+            if (this.options.data) {
+                _.each(this.options.data, function (d) {
+                    d.x = this.options.label(d);
+                    d.y = this.options.value(d);
+                }, this);
+                if (this.vis) {
+                    if (this.options.width === 0 && this.options.height === 0) {
+                        this._setParentSize();
+                    }
+                    chart = this.vis({
+                        el: this.element.get(0),
+                        data: {
+                            table: this.options.data
+                        }
+                    });
+
+                    chart.width(this.options.width)
+                        .height(this.options.height)
+                        .update();
+                }
+            }
+        },
+
+        _setParentSize: function () {
+            this.options.width = this.element.parent().width();
+            this.options.height = this.element.parent().height();
+
+            // Add the padding.
+            this.options.width -= this.vegaspec.padding.left + this.vegaspec.padding.right;
+            this.options.height -= this.vegaspec.padding.top + this.vegaspec.padding.bottom;
+
+            if (this.option.width <= 0) {
+                this.option.width = 0;
+            }
+
+            if (this.option.height <= 0) {
+                this.option.height = 0;
+            }
+        },
+
+        resize: function (width, height) {
+            this.options.width = width;
+            this.options.height = height;
+            this._update();
+        }
+
+    });
+}(window.tangelo, window.jQuery, window.vg));
