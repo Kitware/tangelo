@@ -3,90 +3,90 @@
 
     var parallelcoords = function (option) {
         var defSpec = {
-            "width": option.width || 0,
-            "height": option.height || 0,
-            "data": [{
-                "name": "table"
+            width: option.width || 0,
+            height: option.height || 0,
+            data: [{
+                name: "table"
             }, {
-                "name": "fields",
-                "values": option.fields
+                name: "fields",
+                values: option.fields
             }],
-            "scales": [{
-                "name": "ord",
-                "type": "ordinal",
-                "range": "width",
-                "points": true,
-                "domain": {
-                    "data": "fields",
-                    "field": "data"
+            scales: [{
+                name: "ord",
+                type: "ordinal",
+                range: "width",
+                points: true,
+                domain: {
+                    data: "fields",
+                    field: "data"
                 }
             }],
-            "axes": [],
-            "marks": [{
-                "type": "group",
-                "from": {
-                    "data": "table"
+            axes: [],
+            marks: [{
+                type: "group",
+                from: {
+                    data: "table"
                 },
-                "marks": [{
-                    "type": "line",
-                    "from": {
-                        "data": "fields"
+                marks: [{
+                    type: "line",
+                    from: {
+                        data: "fields"
                     },
-                    "properties": {
-                        "enter": {
-                            "x": {
-                                "scale": "ord",
-                                "field": "data"
+                    properties: {
+                        enter: {
+                            x: {
+                                scale: "ord",
+                                field: "data"
                             },
-                            "y": {
-                                "scale": {
-                                    "field": "data"
+                            y: {
+                                scale: {
+                                    field: "data"
                                 },
-                                "group": "data",
-                                "field": "data"
+                                group: "data",
+                                field: "data"
                             },
-                            "stroke": {
-                                "value": "steelblue"
+                            stroke: {
+                                value: "steelblue"
                             },
-                            "strokeWidth": {
-                                "value": 1
+                            strokeWidth: {
+                                value: 1
                             },
-                            "strokeOpacity": {
-                                "value": 0.3
+                            strokeOpacity: {
+                                value: 0.3
                             }
                         }
                     }
                 }]
             }, {
-                "type": "text",
-                "from": {
-                    "data": "fields"
+                type: "text",
+                from: {
+                    data: "fields"
                 },
-                "properties": {
-                    "enter": {
-                        "x": {
-                            "scale": "ord",
-                            "field": "data",
-                            "offset": -8
+                properties: {
+                    enter: {
+                        x: {
+                            scale: "ord",
+                            field: "data",
+                            offset: -8
                         },
-                        "y": {
-                            "group": "height",
-                            "offset": 6
+                        y: {
+                            group: "height",
+                            offset: 6
                         },
-                        "fontWeight": {
-                            "value": "bold"
+                        fontWeight: {
+                            value: "bold"
                         },
-                        "fill": {
-                            "value": "black"
+                        fill: {
+                            value: "black"
                         },
-                        "text": {
-                            "field": "data"
+                        text: {
+                            field: "data"
                         },
-                        "align": {
-                            "value": "right"
+                        align: {
+                            value: "right"
                         },
-                        "baseline": {
-                            "value": "top"
+                        baseline: {
+                            value: "top"
                         }
                     }
                 }
