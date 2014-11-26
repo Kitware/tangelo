@@ -8,6 +8,7 @@ configuration.json
 tangelo/MANIFEST
 tangelo/README
 tangelo/web/docs
-tangelo/web/js
+tangelo/plugins/tangelo/web/tangelo.js
+tangelo/plugins/tangelo/web/tangelo.min.js
 js/tests/results
 .coverage
