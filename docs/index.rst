@@ -63,7 +63,7 @@ Using Tangelo
     setup
     basic-usage
     python-services
-    advanced-usage
+    plugins
 
 Command Line Utilities
 ======================

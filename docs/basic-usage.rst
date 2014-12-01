@@ -7,6 +7,8 @@ straightforward.  This chapter explains how Tangelo serves web content, a best
 practices guide for organizing your content, and how to use HTTP authentication
 to protect your content.
 
+.. _web-content:
+
 Serving Web Content
 ===================
 
