@@ -18,7 +18,6 @@ import re
 import tangelo
 from tangelo.minify_json import json_minify
 import tangelo.server
-import tangelo.tool
 import tangelo.util
 import tangelo.websocket
 
@@ -299,6 +298,10 @@ def main():
     tangelo_server = tangelo.server.Tangelo(module_cache=module_cache)
     rootapp = cherrypy.Application(tangelo_server, "/")
 
+    # Place an AuthUpdate handler in the Tangelo object if access authorization
+    # is on.
+    tangelo_server.auth_update = tangelo.server.AuthUpdate(app=rootapp)
+
     # Create a plugin server object.
     global plugins
     plugins = tangelo.server.Plugins("tangelo.plugin", plugin_cfg_file, tangelo_server)
@@ -307,9 +310,7 @@ def main():
     cherrypy.config.update({"plugins": plugins})
 
     # Mount the root application object.
-    cherrypy.tree.mount(rootapp, config={"/": {"tools.auth_update.on": access_auth,
-                                               "tools.treat_url.on": True,
-                                               "tools.sessions.on": sessions},
+    cherrypy.tree.mount(rootapp, config={"/": {"tools.sessions.on": sessions},
                                          "/favicon.ico": {"tools.staticfile.on": True,
                                                           "tools.staticfile.filename": sys.prefix + "/share/tangelo/tangelo.ico"}})
 
@@ -395,14 +396,6 @@ def main():
     # Send SIGQUIT to an immediate, ungraceful shutdown instead.
     if platform.system() != "Windows":
         signal.signal(signal.SIGQUIT, die)
-
-    # Install the "treat_url" tool, which performs redirections and analyzes the
-    # request path to see what kind of resource is being requested, and the
-    # "auth update" tool, which checks for updated/new/deleted .htaccess files
-    # and updates the state of auth tools on various paths.
-    cherrypy.tools.treat_url = cherrypy.Tool("before_handler", tangelo.tool.treat_url, priority=0)
-    if access_auth:
-        cherrypy.tools.auth_update = tangelo.tool.AuthUpdate(point="before_handler", priority=1, app=rootapp)
 
     # Start the CherryPy engine.
     cherrypy.engine.start()
