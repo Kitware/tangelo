@@ -2,6 +2,8 @@ import cherrypy
 import os
 import tangelo
 import tangelo.util
+from tangelo.server import analyze_url
+from tangelo.server import Content
 import autobahn.websocket as ab_websocket
 import autobahn.wamp as wamp
 import twisted.internet.reactor
@@ -108,12 +110,12 @@ def post(*pargs, **query):
 
     program_url = "/" + "/".join(pargs)
 
-    directive = tangelo.tool.analyze_url(program_url)
-    if directive["target"].get("type") != "restricted":
+    content = analyze_url(program_url).content
+    if content is None or content.type != Content.File:
         tangelo.http_status(404, "Not Found")
         return {"error": "Could not find a script at %s" % (program_url)}
 
-    program = directive["target"]["path"]
+    program = content.path
 
     # Check the user arguments.
     userargs = args.split()
