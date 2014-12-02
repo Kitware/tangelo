@@ -3,6 +3,16 @@ import os
 
 
 def setup(config, store):
+    from girder.utility.server import setup_helper
+
+    config = {"server": {"api_root": "/plugin/girder/girder/api/v1",
+                         "static_root": "/plugin/girder/girder/static"}}
+    girder_app, config = setup_helper(cur_config=config)
+
+    return {"apps": [(girder_app, config, "girder")]}
+
+
+def setup2(config, store):
     import girder.events
     from girder import constants
     from girder import constants
@@ -49,6 +59,6 @@ def setup(config, store):
     # TODO: figure out how to load plugins without trashing the root config
     # object.
     #
-    # root, appconf, _ = plugin_utilities.loadPlugins(plugins, root, appconf, root.api.v1)
+    root, appconf, _ = plugin_utilities.loadPlugins(plugins, root, appconf, root.api.v1, cur_config={})
 
     return {"apps": [(root, appconf, "girder")]}
