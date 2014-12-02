@@ -42,9 +42,10 @@ class UrlAnalysis(object):
         self.pathcomp = None
 
 
-def analyze_url(reqpath):
+def analyze_url(raw_reqpath, plugins=None):
     webroot = cherrypy.config.get("webroot")
-    plugins = cherrypy.config.get("plugins")
+
+    reqpath = raw_reqpath
 
     analysis = UrlAnalysis()
 
@@ -67,8 +68,8 @@ def analyze_url(reqpath):
         webroot = plugins.plugins[plugin].path + "/web"
         reqpath = "/" + "/".join(plugin_comp[3:])
 
-    # Compute "parallel" path component lists based on the web root and the
-    # disk root.
+    # Compute "parallel" path component lists based on the web root and the disk
+    # root.
     if reqpath == "/":
         reqpathcomp = []
         pathcomp = [webroot]
@@ -138,11 +139,11 @@ def analyze_url(reqpath):
     #
     # Finally, if it is none of the above, then indicate a 404 error.
     if os.path.isdir(path):
-        if reqpath[-1] != "/":
-            analysis.directive = Directive(Directive.HTTPRedirect, argument=reqpath + "/")
+        if raw_reqpath[-1] != "/":
+            analysis.directive = Directive(Directive.HTTPRedirect, argument=raw_reqpath + "/")
             return analysis
         elif os.path.exists(path + os.path.sep + "index.html"):
-            analysis.directive = Directive(Directive.InternalRedirect, argument=reqpath + "index.html")
+            analysis.directive = Directive(Directive.InternalRedirect, argument=raw_reqpath + "index.html")
             return analysis
         else:
             analysis.content = Content(Content.Directory, path=path)
@@ -341,10 +342,13 @@ class AuthUpdate(object):
 
 
 class Tangelo(object):
-    def __init__(self, module_cache=None):
-        # A dict containing information about imported modules.
+    def __init__(self, module_cache=None, plugins=None):
         self.modules = tangelo.util.ModuleCache() if module_cache is None else module_cache
         self.auth_update = None
+        self.plugins = plugins
+
+        if self.plugins:
+            self.plugins.refresh()
 
     def invoke_service(self, module, *pargs, **kwargs):
         # TODO(choudhury): This method should attempt to load the named module,
@@ -492,6 +496,53 @@ class Tangelo(object):
         return result
 
     @cherrypy.expose
+    def plugin(self, *path, **args):
+        # Refresh the plugin registry.
+        if self.plugins:
+            error = self.plugins.refresh()
+            if error is not None:
+                tangelo.content_type("text/plain")
+                tangelo.http_status(400, "Bad Plugin Configuration")
+                return error
+
+        # Analyze the URL.
+        analysis = analyze_url(cherrypy.request.path_info, self.plugins)
+        directive = analysis.directive
+        content = analysis.content
+
+        if directive is not None:
+            if directive.type == Directive.HTTPRedirect:
+                raise cherrypy.HTTPRedirect(analysis.directive.argument)
+            elif directive.type == Directive.InternalRedirect:
+                raise cherrypy.InternalRedirect(analysis.directive.argument)
+            elif directive.type == Directive.ListPlugins:
+                tangelo.content_type("application/json")
+                plugin_list = self.plugins.plugin_list() if self.plugins else []
+                return json.dumps(plugin_list)
+            else:
+                raise RuntimeError("fatal internal error:  illegal directive type code %d" % (analysis.directive.type))
+
+        do_auth = self.auth_update and content is None or content.type != Content.NotFound
+        if do_auth:
+            self.auth_update.update(analysis.reqpathcomp, analysis.pathcomp)
+
+        if content is not None:
+            if content.type == Content.File:
+                return cherrypy.lib.static.serve_file(content.path)
+            elif content.type == Content.Directory:
+                return Tangelo.dirlisting(content.path, cherrypy.request.path_info)
+            elif content.type == Content.Service:
+                return self.invoke_service(content.path, *content.pargs, **args)
+            elif content.type == Content.NotFound:
+                raise cherrypy.lib.static.serve_file(content.path)
+            elif content.type == Content.Restricted:
+                raise cherrypy.HTTPError("403 Forbidden", "The path '%s' is forbidden" % (cherrypy.serving.request.path_info))
+            else:
+                raise RuntimeError("fatal error: illegal content type code %d" % (content.type))
+        else:
+            raise RuntimeError("fatal internal error:  analyze_url() returned analysis without directive or content")
+
+    @cherrypy.expose
     def default(self, *path, **args):
         analysis = analyze_url(cherrypy.request.path_info)
         directive = analysis.directive
@@ -534,10 +585,9 @@ class Plugins(object):
             self.module = None
             self.apps = []
 
-    def __init__(self, base_package, config_file, tangelo_server):
+    def __init__(self, base_package, config_file):
         self.base_package = base_package
         self.config_file = config_file
-        self.tangelo_server = tangelo_server
 
         self.config_dir = os.path.dirname(self.config_file)
         self.mtime = 0
@@ -547,6 +597,9 @@ class Plugins(object):
         self.modules = tangelo.util.ModuleCache(config=False, http_error=False)
 
         exec("%s = sys.modules[self.base_package] = types.ModuleType(self.base_package)" % (self.base_package))
+
+    def plugin_list(self):
+        return self.plugins.keys()
 
     def load(self, plugin_name, path):
         tangelo.log("PLUGIN", "Loading plugin %s (from %s)" % (plugin_name, path))
@@ -722,70 +775,3 @@ class Plugins(object):
     def unload_all(self):
         for plugin_name in self.plugins.keys():
             self.unload(plugin_name)
-
-    @cherrypy.expose
-    def index(self):
-        error = self.refresh()
-        if error is not None:
-            tangelo.content_type("text/plain")
-            tangelo.http_status(400, "Bad Plugin Configuration")
-            return error
-
-        tangelo.content_type("application/json")
-        return json.dumps(self.plugins.keys())
-
-    @cherrypy.expose
-    def default(self, plugin, *path, **query):
-        # Refresh the plugin registry.
-        error = self.refresh()
-        if error is not None:
-            tangelo.content_type("text/plain")
-            tangelo.http_status(400, "Bad Plugin Configuration")
-            return error
-
-        # If the named plugin isn't registered, bail out immediately.
-        if plugin not in self.plugins:
-            tangelo.http_status(404, "Plugin Not Found")
-            tangelo.content_type("application/json")
-            return json.dumps({"error": "Requested plugin not found in registry",
-                               "plugin": plugin})
-
-        plugin_path = self.plugins[plugin].path
-
-        if len(path) == 0:
-            # Perform a redirect to a trailing-slash path if there isn't one.
-            if tangelo.request_path()[-1] != "/":
-                raise cherrypy.HTTPRedirect("/plugin/%s/" % (plugin))
-
-            # Look for an index file in the root of the plugin content
-            # directory, and serve it if found.
-            for index in (os.path.join(plugin_path, "web", i) for i in ["index.html", "index.htm"]):
-                if os.path.exists(index):
-                    return cherrypy.lib.static.serve_file(index)
-
-            # Look for a README file in the plugin directory, and serve it if
-            # found.
-            candidates = (os.path.join(plugin_path, f) for f in ["README.md", "README.rst", "README.txt", "README"])
-            for c in candidates:
-                if os.path.exists(c):
-                    return cherrypy.lib.static.serve_file(c)
-
-            # Finally, if all else fails, serve a friendly message confirming
-            # the existence of the plugin (in all cases, the 200 response code
-            # indicates this as well).
-            tangelo.content_type("text/plain")
-            return "Plugin '%s' is here, but there's no README!  If you know the authors of this plugin, you should get them to write one!" % (plugin)
-        else:
-            # Check for a possible service being named by the requested path.
-            base_path = os.path.join(plugin_path, "web")
-            for i in range(1, len(path) + 1):
-                service_path = os.path.join(base_path, *(path[:i])) + ".py"
-                if os.path.exists(service_path):
-                    cherrypy.thread_data.pluginname = plugin_path
-                    val = self.tangelo_server.invoke_service(service_path, *path[i:], **query)
-                    cherrypy.thread_data.plugin_path = None
-                    return val
-
-            # Reaching here means we should try to serve the requested path as a
-            # static resource.
-            return cherrypy.lib.static.serve_file(os.path.join(base_path, *path))

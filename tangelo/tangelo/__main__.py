@@ -293,21 +293,19 @@ def main():
     cherrypy.config.update({"plugin-config": {}})
     cherrypy.config.update({"plugin-store": {}})
 
+    # Create a plugin manager.  It is marked global so that the plugins can be
+    # unloaded when Tangelo exits.
+    global plugins
+    plugins = tangelo.server.Plugins("tangelo.plugin", plugin_cfg_file)
+
     # Create an instance of the main handler object.
     module_cache = tangelo.util.ModuleCache()
-    tangelo_server = tangelo.server.Tangelo(module_cache=module_cache)
+    tangelo_server = tangelo.server.Tangelo(module_cache=module_cache, plugins=plugins)
     rootapp = cherrypy.Application(tangelo_server, "/")
 
     # Place an AuthUpdate handler in the Tangelo object if access authorization
     # is on.
     tangelo_server.auth_update = tangelo.server.AuthUpdate(app=rootapp)
-
-    # Create a plugin server object.
-    global plugins
-    plugins = tangelo.server.Plugins("tangelo.plugin", plugin_cfg_file, tangelo_server)
-    cherrypy.tree.mount(plugins, "/plugin")
-    plugins.refresh()
-    cherrypy.config.update({"plugins": plugins})
 
     # Mount the root application object.
     cherrypy.tree.mount(rootapp, config={"/": {"tools.sessions.on": sessions},
