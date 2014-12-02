@@ -495,21 +495,13 @@ class Tangelo(object):
 
         return result
 
-    @cherrypy.expose
-    def plugin(self, *path, **args):
-        # Refresh the plugin registry.
-        if self.plugins:
-            error = self.plugins.refresh()
-            if error is not None:
-                tangelo.content_type("text/plain")
-                tangelo.http_status(400, "Bad Plugin Configuration")
-                return error
-
+    def execute_analysis(self, query_args):
         # Analyze the URL.
         analysis = analyze_url(cherrypy.request.path_info, self.plugins)
         directive = analysis.directive
         content = analysis.content
 
+        # If any "directives" were found (i.e., redirections) perform them here.
         if directive is not None:
             if directive.type == Directive.HTTPRedirect:
                 raise cherrypy.HTTPRedirect(analysis.directive.argument)
@@ -522,19 +514,21 @@ class Tangelo(object):
             else:
                 raise RuntimeError("fatal internal error:  illegal directive type code %d" % (analysis.directive.type))
 
+        # If content was actually found at the URL, perform any htaccess updates
+        # now.
         do_auth = self.auth_update and content is None or content.type != Content.NotFound
         if do_auth:
             self.auth_update.update(analysis.reqpathcomp, analysis.pathcomp)
 
+        # Serve content here, either by serving a static file, generating a
+        # directory listing, executing a service, or barring the client entry.
         if content is not None:
-            if content.type == Content.File:
+            if content.type in [Content.File, Content.NotFound]:
                 return cherrypy.lib.static.serve_file(content.path)
             elif content.type == Content.Directory:
                 return Tangelo.dirlisting(content.path, cherrypy.request.path_info)
             elif content.type == Content.Service:
-                return self.invoke_service(content.path, *content.pargs, **args)
-            elif content.type == Content.NotFound:
-                raise cherrypy.lib.static.serve_file(content.path)
+                return self.invoke_service(content.path, *content.pargs, **query_args)
             elif content.type == Content.Restricted:
                 raise cherrypy.HTTPError("403 Forbidden", "The path '%s' is forbidden" % (cherrypy.serving.request.path_info))
             else:
@@ -543,38 +537,20 @@ class Tangelo(object):
             raise RuntimeError("fatal internal error:  analyze_url() returned analysis without directive or content")
 
     @cherrypy.expose
+    def plugin(self, *path, **args):
+        # Refresh the plugin registry.
+        if self.plugins:
+            error = self.plugins.refresh()
+            if error is not None:
+                tangelo.content_type("text/plain")
+                tangelo.http_status(400, "Bad Plugin Configuration")
+                return error
+
+        return self.execute_analysis(args)
+
+    @cherrypy.expose
     def default(self, *path, **args):
-        analysis = analyze_url(cherrypy.request.path_info)
-        directive = analysis.directive
-        content = analysis.content
-
-        if directive is not None:
-            if directive.type == Directive.HTTPRedirect:
-                raise cherrypy.HTTPRedirect(analysis.directive.argument)
-            elif directive.type == Directive.InternalRedirect:
-                raise cherrypy.InternalRedirect(analysis.directive.argument)
-            else:
-                raise RuntimeError("fatal internal error:  illegal directive type code %d" % (analysis.directive.type))
-
-        do_auth = self.auth_update and content is None or content.type != Content.NotFound
-        if do_auth:
-            self.auth_update.update(analysis.reqpathcomp, analysis.pathcomp)
-
-        if content is not None:
-            if content.type == Content.File:
-                return cherrypy.lib.static.serve_file(content.path)
-            elif content.type == Content.Directory:
-                return Tangelo.dirlisting(content.path, cherrypy.request.path_info)
-            elif content.type == Content.Service:
-                return self.invoke_service(content.path, *content.pargs, **args)
-            elif content.type == Content.NotFound:
-                raise cherrypy.lib.static.serve_file(content.path)
-            elif content.type == Content.Restricted:
-                raise cherrypy.HTTPError("403 Forbidden", "The path '%s' is forbidden" % (cherrypy.serving.request.path_info))
-            else:
-                raise RuntimeError("fatal error: illegal content type code %d" % (content.type))
-        else:
-            raise RuntimeError("fatal internal error:  analyze_url() returned analysis without directive or content")
+        return self.execute_analysis(args)
 
 
 class Plugins(object):
