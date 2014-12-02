@@ -18,7 +18,6 @@ import re
 import tangelo
 from tangelo.minify_json import json_minify
 import tangelo.server
-import tangelo.tool
 import tangelo.util
 import tangelo.websocket
 
@@ -301,7 +300,7 @@ def main():
 
     # Place an AuthUpdate handler in the Tangelo object if access authorization
     # is on.
-    tangelo_server.auth_update = tangelo.tool.AuthUpdate(app=rootapp)
+    tangelo_server.auth_update = tangelo.server.AuthUpdate(app=rootapp)
 
     # Create a plugin server object.
     global plugins
