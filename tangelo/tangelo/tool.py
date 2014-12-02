@@ -55,7 +55,7 @@ def analyze_url(reqpath):
             analysis.content = Content(Content.NotFound, path=reqpath)
             return analysis
 
-        webroot = plugins.plugins[plugin] + "/web"
+        webroot = plugins.plugins[plugin].path + "/web"
         reqpath = "/" + "/".join(plugin_comp[3:])
 
     # Compute "parallel" path component lists based on the web root and the
