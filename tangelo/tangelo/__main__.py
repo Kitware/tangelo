@@ -299,6 +299,10 @@ def main():
     tangelo_server = tangelo.server.Tangelo(module_cache=module_cache)
     rootapp = cherrypy.Application(tangelo_server, "/")
 
+    # Place an AuthUpdate handler in the Tangelo object if access authorization
+    # is on.
+    tangelo_server.auth_update = tangelo.tool.AuthUpdate(app=rootapp)
+
     # Create a plugin server object.
     global plugins
     plugins = tangelo.server.Plugins("tangelo.plugin", plugin_cfg_file, tangelo_server)
@@ -307,9 +311,7 @@ def main():
     cherrypy.config.update({"plugins": plugins})
 
     # Mount the root application object.
-    cherrypy.tree.mount(rootapp, config={"/": {"tools.auth_update.on": access_auth,
-                                               "tools.treat_url.on": True,
-                                               "tools.sessions.on": sessions},
+    cherrypy.tree.mount(rootapp, config={"/": {"tools.sessions.on": sessions},
                                          "/favicon.ico": {"tools.staticfile.on": True,
                                                           "tools.staticfile.filename": sys.prefix + "/share/tangelo/tangelo.ico"}})
 

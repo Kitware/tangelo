@@ -14,6 +14,7 @@ class Directive(object):
         self.type = t
         self.argument = argument
 
+
 class Content(object):
     NotFound = 1
     Directory = 2
@@ -26,12 +27,14 @@ class Content(object):
         self.path = path
         self.pargs = pargs
 
+
 class UrlAnalysis(object):
     def __init__(self):
         self.directive = None
         self.content = None
         self.reqpathcomp = None
         self.pathcomp = None
+
 
 def analyze_url(reqpath):
     webroot = cherrypy.config.get("webroot")
@@ -317,16 +320,7 @@ class AuthUpdate(cherrypy.Tool):
 
         return changed, None
 
-    def callable(self):
-        if not cherrypy.thread_data.do_auth:
-            return
-
-        # Grab the saved request and disk path lists.  The first component of
-        # both lists should be the "root" directory corresponding to the
-        # resource (either the webroot, or ~user/tangelo_html).
-        reqpathcomp = cherrypy.thread_data.reqpathcomp
-        pathcomp = cherrypy.thread_data.pathcomp
-
+    def callable(self, reqpathcomp, pathcomp):
         # The lengths of the lists should be equal.
         assert len(reqpathcomp) == len(pathcomp)
 
