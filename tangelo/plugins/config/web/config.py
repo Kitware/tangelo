@@ -1,4 +1,6 @@
 import tangelo
+from tangelo.server import analyze_url
+from tangelo.server import Content
 
 
 def run(*path, **query):
@@ -9,20 +11,20 @@ def run(*path, **query):
     required = query.get("required") is not None
 
     url = "/" + "/".join(path)
-    directive = tangelo.tool.analyze_url(url)
-    if "target" in directive:
-        if directive["target"].get("type") == "404":
-            if required:
-                return {"error": "File not found",
-                        "file": url}
-            else:
-                return {"result": {}}
-        elif directive["target"].get("type") != "file":
-            tangelo.http_status(400, "Illegal Path")
-            return {"error": "illegal web path (path does not point to a config file)"}
+    content = analyze_url(url).content
+
+    if content is None or content.type not in [Content.File, Content.NotFound]:
+        tangelo.http_status(400, "Illegal Path")
+        return {"error": "illegal web path (path does not point to a config file)"}
+    elif content.type == Content.NotFound:
+        if required:
+            return {"error": "File not found",
+                    "file": url}
+        else:
+            return {"result": {}}
 
     try:
-        config = tangelo.util.load_service_config(directive["target"]["path"])
+        config = tangelo.util.load_service_config(content.path)
     except IOError:
         tangelo.http_status(404)
         return {"error": "could not open file at %s" % (url)}

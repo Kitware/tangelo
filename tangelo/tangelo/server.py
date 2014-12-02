@@ -11,10 +11,355 @@ import tangelo
 import tangelo.util
 
 
+class Directive(object):
+    HTTPRedirect = 1
+    InternalRedirect = 2
+    ListPlugins = 3
+
+    def __init__(self, t, argument=None):
+        self.type = t
+        self.argument = argument
+
+
+class Content(object):
+    NotFound = 1
+    Directory = 2
+    File = 3
+    Service = 4
+    Restricted = 5
+
+    def __init__(self, t, path=None, pargs=None):
+        self.type = t
+        self.path = path
+        self.pargs = pargs
+
+
+class UrlAnalysis(object):
+    def __init__(self):
+        self.directive = None
+        self.content = None
+        self.reqpathcomp = None
+        self.pathcomp = None
+
+    def __str__(self):
+        import pprint
+        d = {}
+        for k, v in self.__dict__.iteritems():
+            if v is not None and k in ["content", "directive"]:
+                d[k] = v.__dict__
+            else:
+                d[k] = v
+        return pprint.pformat(d)
+
+
+def analyze_url(raw_reqpath):
+    webroot = cherrypy.config.get("webroot")
+    plugins = cherrypy.config.get("plugins")
+
+    reqpath = raw_reqpath
+
+    analysis = UrlAnalysis()
+
+    # If the request path is blank, redirect to /.
+    if reqpath == "":
+        analysis.directive = Directive(Directive.HTTPRedirect, argument="/")
+        return analysis
+
+    if plugins is not None and reqpath[0] == "/" and reqpath.split("/")[1] == "plugin":
+        plugin_comp = reqpath.split("/")
+        if len(plugin_comp) < 3:
+            analysis.directive = Directive(Directive.ListPlugins)
+            return analysis
+
+        plugin = plugin_comp[2]
+        if plugin not in plugins.plugins:
+            analysis.content = Content(Content.NotFound, path=reqpath)
+            return analysis
+
+        webroot = plugins.plugins[plugin].path + "/web"
+        reqpath = "/" + "/".join(plugin_comp[3:])
+
+    # Compute "parallel" path component lists based on the web root and the disk
+    # root.
+    if reqpath == "/":
+        reqpathcomp = []
+        pathcomp = [webroot]
+    else:
+        # Split the request path into path components, omitting the leading
+        # slash.
+        reqpathcomp = reqpath[1:].split("/")
+
+        # Compute the disk path the URL corresponds to.
+        #
+        # First check to see whether the path is absolute (i.e. rooted at
+        # webroot) or in a user home directory.
+        if reqpathcomp[0][0] == "~" and len(reqpathcomp[0]) > 1:
+            # Only treat this component as a home directory if there is
+            # actually text following the tilde (rather than making the server
+            # serve files from the home directory of whatever user account it
+            # is using to run).
+            pathcomp = [os.path.expanduser(reqpathcomp[0]) +
+                        os.path.sep +
+                        "tangelo_html"] + reqpathcomp[1:]
+        else:
+            pathcomp = [webroot] + reqpathcomp
+
+    # Save the request path and disk path components in the thread storage,
+    # slightly modifying the request path if it refers to an absolute path
+    # (indicated by being one element shorter than the disk path).
+    if len(reqpathcomp) == len(pathcomp) - 1:
+        reqpathcomp_save = [""] + reqpathcomp
+    elif len(reqpathcomp) == len(pathcomp):
+        reqpathcomp_save = ["/" + reqpathcomp[0]] + reqpathcomp[1:]
+    else:
+        raise RuntimeError("reqpathcomp and pathcomp lengths are wonky")
+
+    # If the path represents a directory and has a trailing slash, remove it
+    # (this will make the auth update step easier).
+    if (len(reqpathcomp_save) > 1 and
+            reqpathcomp_save[-1] == "" or
+            pathcomp[-1] == ""):
+        assert reqpathcomp_save[-1] == "" and pathcomp[-1] == ""
+        reqpathcomp_save = reqpathcomp_save[:-1]
+        pathcomp_save = pathcomp[:-1]
+    else:
+        pathcomp_save = pathcomp
+
+    analysis.reqpathcomp = reqpathcomp_save
+    analysis.pathcomp = pathcomp_save
+
+    # If pathcomp has more than one element, fuse the first two together.  This
+    # makes the search for a possible service below much simpler.
+    if len(pathcomp) > 1:
+        pathcomp = [pathcomp[0] + os.path.sep + pathcomp[1]] + pathcomp[2:]
+
+    # Form an actual path string.
+    path = os.path.sep.join(pathcomp)
+
+    # If the path is a directory, check for a trailing slash.  If missing,
+    # perform a redirect to the path WITH the trailing slash.  Otherwise, check
+    # for an index.html file in that directory; if found, perform an internal
+    # redirect to that file.  Otherwise, leave the path alone - it now
+    # represents a request for a directory listing.
+    #
+    # If instead the path isn't a directory, check to see if it's a regular
+    # file.  If it is, save the path in thread local storage - this will let
+    # the handler very quickly serve the file.
+    #
+    # If it is not a regular file, then check to see if it is a python service.
+    #
+    # Finally, if it is none of the above, then indicate a 404 error.
+    if os.path.isdir(path):
+        if raw_reqpath[-1] != "/":
+            analysis.directive = Directive(Directive.HTTPRedirect, argument=raw_reqpath + "/")
+            return analysis
+        elif os.path.exists(path + os.path.sep + "index.html"):
+            analysis.directive = Directive(Directive.InternalRedirect, argument=raw_reqpath + "index.html")
+            return analysis
+        else:
+            analysis.content = Content(Content.Directory, path=path)
+    elif os.path.exists(path):
+        # Don't serve Python files (if someone really wants to serve the program
+        # text, they can create a symlink with a different file extension and
+        # that will be served just fine).
+        if len(path) > 3 and path[-3:] == ".py":
+            analysis.content = Content(Content.Restricted, path=path)
+        else:
+            # Also do not serve config files that match up to Python files.
+            if (len(path) > 5 and
+                    path[-5:] == ".json" and
+                    os.path.exists(path[:-5] + ".py")):
+                analysis.content = Content(Content.Restricted, path=path)
+            else:
+                analysis.content = Content(Content.File, path=path)
+    else:
+        service_path = None
+        pargs = None
+        for i in range(len(pathcomp)):
+            service_path = os.path.sep.join(pathcomp[:(i + 1)]) + ".py"
+            if os.path.exists(service_path):
+                pargs = pathcomp[(i + 1):]
+                break
+
+        if pargs is None:
+            analysis.content = Content(Content.NotFound, path=path)
+        else:
+            analysis.content = Content(Content.Service, path=service_path, pargs=pargs)
+
+    return analysis
+
+
+class AuthUpdate(object):
+    # A list of acceptable authentication types.
+    allowed_auth_types = ["digest"]
+
+    def __init__(self, app=None):
+        self.app = app
+        self.security = {}
+
+    @staticmethod
+    def parse_htaccess(filename):
+        result = {"msg": None,
+                  "auth_type": None,
+                  "user_file": None,
+                  "realm": None,
+                  "userpass": None}
+
+        # Try to open and parse the file.
+        try:
+            with open(filename) as f:
+                lines = filter(lambda x: len(x) > 0,
+                               map(lambda x: x.strip().split(), f.readlines()))
+                keys = map(lambda x: x[0], lines)
+                values = map(lambda x: " ".join(x[1:]), lines)
+
+                for i, (k, v) in enumerate(zip(keys, values)):
+                    if k == "AuthType":
+                        if v not in AuthUpdate.allowed_auth_types:
+                            allowed = ", ".join(AuthUpdate.allowed_auth_types)
+                            result["msg"] = (
+                                "%s is not a supported " +
+                                "authentication type.  The " +
+                                "supported types are: %s") % (v, allowed)
+                            return result
+                        else:
+                            result["auth_type"] = v
+                    elif k in ["AuthPasswordFile", "AuthUserFile"]:
+                        result["user_file"] = v
+                    elif k == "AuthRealm":
+                        result["realm"] = v
+                    else:
+                        result["msg"] = (
+                            "Unknown key '%s' on " +
+                            "line %d of file '%s'") % (k, i + 1, filename)
+                        return result
+        except IOError:
+            result["msg"] = "Could not open file '%s'" % (filename)
+            return result
+
+        # Open the user file and parse out the username/passwords of those
+        # users in the correct realm.
+        recs = None
+        if result["user_file"] is not None:
+            try:
+                with open(result["user_file"]) as f:
+                    recs = filter(lambda x: x[1] == result["realm"],
+                                  map(lambda x: x.strip().split(":"),
+                                      f.readlines()))
+            except IOError:
+                result["msg"] = ("Could not open user " +
+                                 "password file '%s'") % (result["user_file"])
+                return result
+            except IndexError:
+                result["msg"] = ("Malformed content in user password file " +
+                                 "'%s' (some line has too " +
+                                 "few fields)") % (result["user_file"])
+                return result
+
+        try:
+            result["userpass"] = {x[0]: x[2] for x in recs}
+        except IndexError:
+            result["msg"] = ("Malformed content in user password file " +
+                             "'%s' (some line has too " +
+                             "few fields)") % (result["user_file"])
+            return result
+
+        return result
+
+    def htaccess(self, htfile, reqpath):
+        changed = False
+        if htfile is None:
+            if reqpath in self.security:
+                del self.security[reqpath]
+
+                cfg = self.app.config[reqpath]
+                for a in AuthUpdate.allowed_auth_types:
+                    key = "tools.auth_%s.on" % (a)
+                    if key in cfg:
+                        cfg[key] = False
+                    self.app.merge({reqpath: cfg})
+                    changed = True
+        else:
+            # Get the mtime of the htfile.
+            ht_mtime = os.stat(htfile).st_mtime
+
+            if (reqpath not in self.security or
+                    ht_mtime > self.security[reqpath]):
+                # We have either a new .htaccess file, or one that has
+                # been modified list the last request to this path.
+                htspec = AuthUpdate.parse_htaccess(htfile)
+                if htspec["msg"] is not None:
+                    tangelo.log("TANGELO", "[AuthUpdate] Could not register %s: %s" %
+                                (reqpath, htspec["msg"]))
+                    return changed, htspec["msg"]
+
+                # Create an auth config tool using the values in the htspec.
+                toolname = "tools.auth_%s." % (htspec["auth_type"])
+                passdict = (
+                    lambda realm, username: htspec["userpass"].get(username))
+                # TODO(choudhury): replace "deadbeef" with a nonce created
+                # randomly in the __init__() method.
+                auth_conf = {toolname + "on": True,
+                             toolname + "realm": htspec["realm"],
+                             toolname + "get_ha1": passdict,
+                             toolname + "key": "deadbeef"}
+
+                self.app.merge({reqpath: auth_conf})
+
+                # Store the mtime in the security table.
+                self.security[reqpath] = ht_mtime
+
+                changed = True
+
+        return changed, None
+
+    def update(self, reqpathcomp, pathcomp):
+        # The lengths of the lists should be equal.
+        assert len(reqpathcomp) == len(pathcomp)
+
+        # Create a list of paths to search, starting with the requested
+        # resource and moving towards the root.
+        paths = reversed(map(lambda i: ("/".join(reqpathcomp[:(i + 1)]) or "/",
+                                        os.path.sep.join(pathcomp[:(i + 1)])),
+                             range(len(reqpathcomp))))
+
+        # Check each path that represents a directory for a .htaccess file,
+        # then decide what to do based on the current auth state for that path.
+        for rpath, dpath in paths:
+            if os.path.isdir(dpath):
+                htfile = dpath + os.path.sep + ".htaccess"
+                if not os.path.exists(htfile):
+                    htfile = None
+
+                changed, msg = self.htaccess(htfile, rpath)
+                if msg is not None:
+                    raise cherrypy.HTTPError(401,
+                                             "There was an error in the " +
+                                             "HTTP authentication " +
+                                             "process: %s" % (msg))
+
+                # TODO(choudhury): I really don't understand why this hack is
+                # necessary.  Basically, when the auth_* tool is installed on
+                # the path in the htaccess() method, it doesn't seem to take
+                # hold until the next time the page is loaded.  So this hack
+                # forces a page reload, but it would be better to simply make
+                # the new config "take hold" instead.
+                if changed:
+                    raise cherrypy.HTTPRedirect(cherrypy.request.path_info)
+
+                # Don't bother updating the security table for higher paths -
+                # we'll process those later, when they are requested.
+                break
+
+
 class Tangelo(object):
-    def __init__(self, module_cache=None):
-        # A dict containing information about imported modules.
+    def __init__(self, module_cache=None, plugins=None):
         self.modules = tangelo.util.ModuleCache() if module_cache is None else module_cache
+        self.auth_update = None
+        self.plugins = plugins
+
+        if self.plugins:
+            self.plugins.refresh()
 
     def invoke_service(self, module, *pargs, **kwargs):
         # TODO(choudhury): This method should attempt to load the named module,
@@ -161,27 +506,62 @@ class Tangelo(object):
 
         return result
 
+    def execute_analysis(self, query_args):
+        # Analyze the URL.
+        analysis = analyze_url(cherrypy.request.path_info)
+        directive = analysis.directive
+        content = analysis.content
+
+        # If any "directives" were found (i.e., redirections) perform them here.
+        if directive is not None:
+            if directive.type == Directive.HTTPRedirect:
+                raise cherrypy.HTTPRedirect(analysis.directive.argument)
+            elif directive.type == Directive.InternalRedirect:
+                raise cherrypy.InternalRedirect(analysis.directive.argument)
+            elif directive.type == Directive.ListPlugins:
+                tangelo.content_type("application/json")
+                plugin_list = self.plugins.plugin_list() if self.plugins else []
+                return json.dumps(plugin_list)
+            else:
+                raise RuntimeError("fatal internal error:  illegal directive type code %d" % (analysis.directive.type))
+
+        # If content was actually found at the URL, perform any htaccess updates
+        # now.
+        do_auth = self.auth_update and content is None or content.type != Content.NotFound
+        if do_auth:
+            self.auth_update.update(analysis.reqpathcomp, analysis.pathcomp)
+
+        # Serve content here, either by serving a static file, generating a
+        # directory listing, executing a service, or barring the client entry.
+        if content is not None:
+            if content.type in [Content.File, Content.NotFound]:
+                return cherrypy.lib.static.serve_file(content.path)
+            elif content.type == Content.Directory:
+                return Tangelo.dirlisting(content.path, cherrypy.request.path_info)
+            elif content.type == Content.Service:
+                return self.invoke_service(content.path, *content.pargs, **query_args)
+            elif content.type == Content.Restricted:
+                raise cherrypy.HTTPError("403 Forbidden", "The path '%s' is forbidden" % (cherrypy.serving.request.path_info))
+            else:
+                raise RuntimeError("fatal error: illegal content type code %d" % (content.type))
+        else:
+            raise RuntimeError("fatal internal error:  analyze_url() returned analysis without directive or content")
+
+    @cherrypy.expose
+    def plugin(self, *path, **args):
+        # Refresh the plugin registry.
+        if self.plugins:
+            error = self.plugins.refresh()
+            if error is not None:
+                tangelo.content_type("text/plain")
+                tangelo.http_status(400, "Bad Plugin Configuration")
+                return error
+
+        return self.execute_analysis(args)
+
     @cherrypy.expose
     def default(self, *path, **args):
-        target = cherrypy.thread_data.target
-        if target is not None:
-            if target["type"] == "file":
-                return cherrypy.lib.static.serve_file(target["path"])
-            elif target["type"] == "dir":
-                return Tangelo.dirlisting(target["path"],
-                                          cherrypy.request.path_info)
-            elif target["type"] == "service":
-                return self.invoke_service(target["path"],
-                                           *target["pargs"],
-                                           **args)
-            elif target["type"] == "404":
-                raise cherrypy.lib.static.serve_file(target["path"])
-            elif target["type"] == "restricted":
-                raise cherrypy.HTTPError("403 Forbidden",
-                                         "The path '%s' is forbidden" % (cherrypy.serving.request.path_info))
-            else:
-                raise RuntimeError("Illegal target type '%s'" %
-                                   (target["type"]))
+        return self.execute_analysis(args)
 
 
 class Plugins(object):
@@ -192,10 +572,9 @@ class Plugins(object):
             self.module = None
             self.apps = []
 
-    def __init__(self, base_package, config_file, tangelo_server):
+    def __init__(self, base_package, config_file):
         self.base_package = base_package
         self.config_file = config_file
-        self.tangelo_server = tangelo_server
 
         self.config_dir = os.path.dirname(self.config_file)
         self.mtime = 0
@@ -205,6 +584,9 @@ class Plugins(object):
         self.modules = tangelo.util.ModuleCache(config=False, http_error=False)
 
         exec("%s = sys.modules[self.base_package] = types.ModuleType(self.base_package)" % (self.base_package))
+
+    def plugin_list(self):
+        return self.plugins.keys()
 
     def load(self, plugin_name, path):
         tangelo.log("PLUGIN", "Loading plugin %s (from %s)" % (plugin_name, path))
@@ -307,16 +689,16 @@ class Plugins(object):
         plugin = self.plugins[plugin_name]
 
         if plugin.module is not None:
-            tangelo.log("PLUGIN", "...removing module %s" % (plugin.module))
+            tangelo.log("PLUGIN", "\t...removing module %s" % (plugin.module))
             del sys.modules[plugin.module]
             exec("del %s" % (plugin.module))
 
         for app_path in plugin.apps:
-            tangelo.log("PLUGIN", "...unmounting app at %s" % (app_path))
+            tangelo.log("PLUGIN", "\t...unmounting app at %s" % (app_path))
             del cherrypy.tree.apps[app_path]
 
         if "teardown" in dir(plugin.control):
-            tangelo.log("PLUGIN", "...running teardown")
+            tangelo.log("PLUGIN", "\t...running teardown")
             try:
                 plugin.control.teardown(cherrypy.config["plugin-config"][plugin.path], cherrypy.config["plugin-store"][plugin.path])
             except:
@@ -380,70 +762,3 @@ class Plugins(object):
     def unload_all(self):
         for plugin_name in self.plugins.keys():
             self.unload(plugin_name)
-
-    @cherrypy.expose
-    def index(self):
-        error = self.refresh()
-        if error is not None:
-            tangelo.content_type("text/plain")
-            tangelo.http_status(400, "Bad Plugin Configuration")
-            return error
-
-        tangelo.content_type("application/json")
-        return json.dumps(self.plugins.keys())
-
-    @cherrypy.expose
-    def default(self, plugin, *path, **query):
-        # Refresh the plugin registry.
-        error = self.refresh()
-        if error is not None:
-            tangelo.content_type("text/plain")
-            tangelo.http_status(400, "Bad Plugin Configuration")
-            return error
-
-        # If the named plugin isn't registered, bail out immediately.
-        if plugin not in self.plugins:
-            tangelo.http_status(404, "Plugin Not Found")
-            tangelo.content_type("application/json")
-            return json.dumps({"error": "Requested plugin not found in registry",
-                               "plugin": plugin})
-
-        plugin_path = self.plugins[plugin].path
-
-        if len(path) == 0:
-            # Perform a redirect to a trailing-slash path if there isn't one.
-            if tangelo.request_path()[-1] != "/":
-                raise cherrypy.HTTPRedirect("/plugin/%s/" % (plugin))
-
-            # Look for an index file in the root of the plugin content
-            # directory, and serve it if found.
-            for index in (os.path.join(plugin_path, "web", i) for i in ["index.html", "index.htm"]):
-                if os.path.exists(index):
-                    return cherrypy.lib.static.serve_file(index)
-
-            # Look for a README file in the plugin directory, and serve it if
-            # found.
-            candidates = (os.path.join(plugin_path, f) for f in ["README.md", "README.rst", "README.txt", "README"])
-            for c in candidates:
-                if os.path.exists(c):
-                    return cherrypy.lib.static.serve_file(c)
-
-            # Finally, if all else fails, serve a friendly message confirming
-            # the existence of the plugin (in all cases, the 200 response code
-            # indicates this as well).
-            tangelo.content_type("text/plain")
-            return "Plugin '%s' is here, but there's no README!  If you know the authors of this plugin, you should get them to write one!" % (plugin)
-        else:
-            # Check for a possible service being named by the requested path.
-            base_path = os.path.join(plugin_path, "web")
-            for i in range(1, len(path) + 1):
-                service_path = os.path.join(base_path, *(path[:i])) + ".py"
-                if os.path.exists(service_path):
-                    cherrypy.thread_data.pluginname = plugin_path
-                    val = self.tangelo_server.invoke_service(service_path, *path[i:], **query)
-                    cherrypy.thread_data.plugin_path = None
-                    return val
-
-            # Reaching here means we should try to serve the requested path as a
-            # static resource.
-            return cherrypy.lib.static.serve_file(os.path.join(base_path, *path))

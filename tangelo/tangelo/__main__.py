@@ -18,12 +18,10 @@ import re
 import tangelo
 from tangelo.minify_json import json_minify
 import tangelo.server
-import tangelo.tool
 import tangelo.util
 import tangelo.websocket
 
 tangelo_version = "0.7.0-dev"
-plugins = None
 
 
 def read_config(cfgfile):
@@ -91,7 +89,9 @@ def shutdown(signum, frame):
 
     # Perform plugin shutdown operations.
     tangelo.log("TANGELO", "Shutting down plugins...")
-    plugins.unload_all()
+    plugins = cherrypy.config.get("plugins")
+    if plugins:
+        plugins.unload_all()
 
     # Perform CherryPy shutdown and exit.
     tangelo.log("TANGELO", "Stopping web server")
@@ -294,22 +294,22 @@ def main():
     cherrypy.config.update({"plugin-config": {}})
     cherrypy.config.update({"plugin-store": {}})
 
-    # Create an instance of the main handler object.
-    module_cache = tangelo.util.ModuleCache()
-    tangelo_server = tangelo.server.Tangelo(module_cache=module_cache)
-    rootapp = cherrypy.Application(tangelo_server, "/")
-
-    # Create a plugin server object.
-    global plugins
-    plugins = tangelo.server.Plugins("tangelo.plugin", plugin_cfg_file, tangelo_server)
-    cherrypy.tree.mount(plugins, "/plugin")
-    plugins.refresh()
+    # Create a plugin manager.  It is marked global so that the plugins can be
+    # unloaded when Tangelo exits.
+    plugins = tangelo.server.Plugins("tangelo.plugin", plugin_cfg_file)
     cherrypy.config.update({"plugins": plugins})
 
+    # Create an instance of the main handler object.
+    module_cache = tangelo.util.ModuleCache()
+    tangelo_server = tangelo.server.Tangelo(module_cache=module_cache, plugins=plugins)
+    rootapp = cherrypy.Application(tangelo_server, "/")
+
+    # Place an AuthUpdate handler in the Tangelo object if access authorization
+    # is on.
+    tangelo_server.auth_update = tangelo.server.AuthUpdate(app=rootapp)
+
     # Mount the root application object.
-    cherrypy.tree.mount(rootapp, config={"/": {"tools.auth_update.on": access_auth,
-                                               "tools.treat_url.on": True,
-                                               "tools.sessions.on": sessions},
+    cherrypy.tree.mount(rootapp, config={"/": {"tools.sessions.on": sessions},
                                          "/favicon.ico": {"tools.staticfile.on": True,
                                                           "tools.staticfile.filename": sys.prefix + "/share/tangelo/tangelo.ico"}})
 
@@ -395,14 +395,6 @@ def main():
     # Send SIGQUIT to an immediate, ungraceful shutdown instead.
     if platform.system() != "Windows":
         signal.signal(signal.SIGQUIT, die)
-
-    # Install the "treat_url" tool, which performs redirections and analyzes the
-    # request path to see what kind of resource is being requested, and the
-    # "auth update" tool, which checks for updated/new/deleted .htaccess files
-    # and updates the state of auth tools on various paths.
-    cherrypy.tools.treat_url = cherrypy.Tool("before_handler", tangelo.tool.treat_url, priority=0)
-    if access_auth:
-        cherrypy.tools.auth_update = tangelo.tool.AuthUpdate(point="before_handler", priority=1, app=rootapp)
 
     # Start the CherryPy engine.
     cherrypy.engine.start()

@@ -1,4 +1,6 @@
 import tangelo
+from tangelo.server import analyze_url
+from tangelo.server import Content
 import tangelo.util
 
 # Useful aliases for this service's necessary persistent data.
@@ -61,17 +63,16 @@ def get_stream_info(key):
 
 
 def stream_start(url, kwargs):
-    directive = tangelo.tool.analyze_url(url)
+    content = tangelo.server.analyze_url(url).content
 
-    if "target" not in directive or directive["target"].get("type") != "service":
-        tangelo.log("STREAM", json.dumps(directive, indent=4))
+    if content is None or content.type != Content.Service:
         tangelo.http_status(500, "Error Opening Streaming Service")
         return {"error": "could not open streaming service"}
     else:
         # Extract the path to the service and the list of positional
         # arguments.
-        module_path = directive["target"]["path"]
-        pargs = directive["target"]["pargs"]
+        module_path = content.path
+        pargs = content.pargs
 
         # Get the service module.
         try:
