@@ -41,6 +41,16 @@ class UrlAnalysis(object):
         self.reqpathcomp = None
         self.pathcomp = None
 
+    def __str__(self):
+        import pprint
+        d = {}
+        for k, v in self.__dict__.iteritems():
+            if v is not None and k in ["content", "directive"]:
+                d[k] = v.__dict__
+            else:
+                d[k] = v
+        return pprint.pformat(d)
+
 
 def analyze_url(raw_reqpath):
     webroot = cherrypy.config.get("webroot")
