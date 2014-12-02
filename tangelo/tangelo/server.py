@@ -42,8 +42,9 @@ class UrlAnalysis(object):
         self.pathcomp = None
 
 
-def analyze_url(raw_reqpath, plugins=None):
+def analyze_url(raw_reqpath):
     webroot = cherrypy.config.get("webroot")
+    plugins = cherrypy.config.get("plugins")
 
     reqpath = raw_reqpath
 
@@ -497,7 +498,7 @@ class Tangelo(object):
 
     def execute_analysis(self, query_args):
         # Analyze the URL.
-        analysis = analyze_url(cherrypy.request.path_info, self.plugins)
+        analysis = analyze_url(cherrypy.request.path_info)
         directive = analysis.directive
         content = analysis.content
 
@@ -678,16 +679,16 @@ class Plugins(object):
         plugin = self.plugins[plugin_name]
 
         if plugin.module is not None:
-            tangelo.log("PLUGIN", "...removing module %s" % (plugin.module))
+            tangelo.log("PLUGIN", "\t...removing module %s" % (plugin.module))
             del sys.modules[plugin.module]
             exec("del %s" % (plugin.module))
 
         for app_path in plugin.apps:
-            tangelo.log("PLUGIN", "...unmounting app at %s" % (app_path))
+            tangelo.log("PLUGIN", "\t...unmounting app at %s" % (app_path))
             del cherrypy.tree.apps[app_path]
 
         if "teardown" in dir(plugin.control):
-            tangelo.log("PLUGIN", "...running teardown")
+            tangelo.log("PLUGIN", "\t...running teardown")
             try:
                 plugin.control.teardown(cherrypy.config["plugin-config"][plugin.path], cherrypy.config["plugin-store"][plugin.path])
             except:

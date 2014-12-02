@@ -22,7 +22,6 @@ import tangelo.util
 import tangelo.websocket
 
 tangelo_version = "0.7.0-dev"
-plugins = None
 
 
 def read_config(cfgfile):
@@ -90,7 +89,9 @@ def shutdown(signum, frame):
 
     # Perform plugin shutdown operations.
     tangelo.log("TANGELO", "Shutting down plugins...")
-    plugins.unload_all()
+    plugins = cherrypy.config.get("plugins")
+    if plugins:
+        plugins.unload_all()
 
     # Perform CherryPy shutdown and exit.
     tangelo.log("TANGELO", "Stopping web server")
@@ -295,8 +296,8 @@ def main():
 
     # Create a plugin manager.  It is marked global so that the plugins can be
     # unloaded when Tangelo exits.
-    global plugins
     plugins = tangelo.server.Plugins("tangelo.plugin", plugin_cfg_file)
+    cherrypy.config.update({"plugins": plugins})
 
     # Create an instance of the main handler object.
     module_cache = tangelo.util.ModuleCache()
