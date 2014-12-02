@@ -9,6 +9,7 @@ import types
 
 import tangelo
 import tangelo.util
+from tangelo.tool import Content
 
 
 class Tangelo(object):
@@ -163,25 +164,20 @@ class Tangelo(object):
 
     @cherrypy.expose
     def default(self, *path, **args):
-        target = cherrypy.thread_data.target
-        if target is not None:
-            if target["type"] == "file":
-                return cherrypy.lib.static.serve_file(target["path"])
-            elif target["type"] == "dir":
-                return Tangelo.dirlisting(target["path"],
-                                          cherrypy.request.path_info)
-            elif target["type"] == "service":
-                return self.invoke_service(target["path"],
-                                           *target["pargs"],
-                                           **args)
-            elif target["type"] == "404":
-                raise cherrypy.lib.static.serve_file(target["path"])
-            elif target["type"] == "restricted":
-                raise cherrypy.HTTPError("403 Forbidden",
-                                         "The path '%s' is forbidden" % (cherrypy.serving.request.path_info))
+        content = cherrypy.thread_data.content
+        if content is not None:
+            if content.type == Content.File:
+                return cherrypy.lib.static.serve_file(content.path)
+            elif content.type == Content.Directory:
+                return Tangelo.dirlisting(content.path, cherrypy.request.path_info)
+            elif content.type == Content.Service:
+                 return self.invoke_service(content.path, *content.pargs, **args)
+            elif content.type == Content.NotFound:
+                raise cherrypy.lib.static.serve_file(content.path)
+            elif content.type == Content.Restricted:
+                raise cherrypy.HTTPError("403 Forbidden", "The path '%s' is forbidden" % (cherrypy.serving.request.path_info))
             else:
-                raise RuntimeError("Illegal target type '%s'" %
-                                   (target["type"]))
+                raise RuntimeError("fatal error: illegal content type code %d" % (content.type))
 
 
 class Plugins(object):

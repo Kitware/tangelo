@@ -5,30 +5,55 @@ import tangelo
 import tangelo.server
 
 
+class Directive(object):
+    HTTPRedirect = 1
+    InternalRedirect = 2
+    ListPlugins = 3
+
+    def __init__(self, t, argument=None):
+        self.type = t
+        self.argument = argument
+
+class Content(object):
+    NotFound = 1
+    Directory = 2
+    File = 3
+    Service = 4
+    Restricted = 5
+
+    def __init__(self, t, path=None, pargs=None):
+        self.type = t
+        self.path = path
+        self.pargs = pargs
+
+class UrlAnalysis(object):
+    def __init__(self):
+        self.directive = None
+        self.content = None
+        self.reqpathcomp = None
+        self.pathcomp = None
+
 def analyze_url(reqpath):
-    target = None
     webroot = cherrypy.config.get("webroot")
     plugins = cherrypy.config.get("plugins")
-    save_data = {"target": None,
-                 "do_auth": True}
+
+    analysis = UrlAnalysis()
 
     # If the request path is blank, redirect to /.
     if reqpath == "":
-        return {"action": "HTTPRedirect",
-                "argument": "/",
-                "save_data": save_data,
-                "target": target}
+        analysis.directive = Directive(Directive.HTTPRedirect, argument="/")
+        return analysis
 
     if plugins is not None and reqpath[0] == "/" and reqpath.split("/")[1] == "plugin":
         plugin_comp = reqpath.split("/")
         if len(plugin_comp) < 3:
-            return {"action": "ListPlugins",
-                    "target": None}
+            analysis.directive = Directive(Directive.ListPlugins)
+            return analysis
 
         plugin = plugin_comp[2]
         if plugin not in plugins.plugins:
-            return {"target": {"type": "404",
-                               "path": reqpath}}
+            analysis.content = Content(Content.NotFound, path=reqpath)
+            return analysis
 
         webroot = plugins.plugins[plugin] + "/web"
         reqpath = "/" + "/".join(plugin_comp[3:])
@@ -66,10 +91,7 @@ def analyze_url(reqpath):
     elif len(reqpathcomp) == len(pathcomp):
         reqpathcomp_save = ["/" + reqpathcomp[0]] + reqpathcomp[1:]
     else:
-        return {"action": "RuntimeError",
-                "message": "reqpathcomp and pathcomp lengths are wonky",
-                "save_data": save_data,
-                "target": target}
+        raise RuntimeError("reqpathcomp and pathcomp lengths are wonky")
 
     # If the path represents a directory and has a trailing slash, remove it
     # (this will make the auth update step easier).
@@ -82,8 +104,8 @@ def analyze_url(reqpath):
     else:
         pathcomp_save = pathcomp
 
-    save_data["reqpathcomp"] = reqpathcomp_save
-    save_data["pathcomp"] = pathcomp_save
+    analysis.reqpathcomp = reqpathcomp_save
+    analysis.pathcomp = pathcomp_save
 
     # If pathcomp has more than one element, fuse the first two together.  This
     # makes the search for a possible service below much simpler.
@@ -108,39 +130,30 @@ def analyze_url(reqpath):
     # Finally, if it is none of the above, then indicate a 404 error.
     if os.path.isdir(path):
         if reqpath[-1] != "/":
-            return {"action": "HTTPRedirect",
-                    "argument": reqpath + "/",
-                    "save_data": save_data,
-                    "target": target}
+            analysis.directive = Directive(Directive.HTTPRedirect, argument=reqpath + "/")
+            return analysis
         elif os.path.exists(path + os.path.sep + "index.html"):
-            return {"action": "InternalRedirect",
-                    "argument": reqpath + "index.html",
-                    "save_data": save_data,
-                    "target": target}
+            analysis.directive = Directive(Directive.InternalRedirect, argument=reqpath + "index.html")
+            return analysis
         else:
-            target = {"type": "dir",
-                      "path": path}
+            analysis.content = Content(Content.Directory, path=path)
     elif os.path.exists(path):
         # Don't serve Python files (if someone really wants to serve the program
         # text, they can create a symlink with a different file extension and
         # that will be served just fine).
         if len(path) > 3 and path[-3:] == ".py":
-            target = {"type": "restricted",
-                      "path": path}
+            analysis.content = Content(Content.Restricted, path=path)
         else:
             # Also do not serve config files that match up to Python files.
             if (len(path) > 5 and
                     path[-5:] == ".json" and
                     os.path.exists(path[:-5] + ".py")):
-                target = {"type": "restricted",
-                          "path": path}
+                analysis.content = Content(Content.Restricted, path=path)
             else:
-                target = {"type": "file",
-                          "path": path}
+                analysis.content = Content(Content.File, path=path)
     else:
         service_path = None
         pargs = None
-        # for i, comp in enumerate(pathcomp):
         for i in range(len(pathcomp)):
             service_path = os.path.sep.join(pathcomp[:(i + 1)]) + ".py"
             if os.path.exists(service_path):
@@ -148,33 +161,28 @@ def analyze_url(reqpath):
                 break
 
         if pargs is None:
-            target = {"type": "404",
-                      "path": path}
-            save_data["do_auth"] = False
+            analysis.content = Content(Content.NotFound, path=path)
         else:
-            target = {"type": "service",
-                      "path": service_path,
-                      "pargs": pargs}
+            analysis.content = Content(Content.Service, path=service_path, pargs=pargs)
 
-    return {"save_data": save_data,
-            "target": target}
+    return analysis
 
 
 def treat_url():
-    directive = analyze_url(cherrypy.request.path_info)
+    analysis = analyze_url(cherrypy.request.path_info)
 
-    cherrypy.thread_data.target = directive["target"]
-    cherrypy.thread_data.do_auth = directive["save_data"]["do_auth"]
-    cherrypy.thread_data.reqpathcomp = directive["save_data"]["reqpathcomp"]
-    cherrypy.thread_data.pathcomp = directive["save_data"]["pathcomp"]
+    cherrypy.thread_data.content = analysis.content
+    cherrypy.thread_data.do_auth = analysis.content is None or analysis.content.type != Content.NotFound
+    cherrypy.thread_data.reqpathcomp = analysis.reqpathcomp
+    cherrypy.thread_data.pathcomp = analysis.pathcomp
 
-    if "action" in directive:
-        if directive["action"] == "HTTPRedirect":
-            raise cherrypy.HTTPRedirect(directive["argument"])
-        elif directive["action"] == "InternalRedirect":
-            raise cherrypy.InternalRedirect(directive["argument"])
+    if analysis.directive is not None:
+        if analysis.directive.type == Directive.HTTPRedirect:
+            raise cherrypy.HTTPRedirect(analysis.directive.argument)
+        elif analysis.directive.type == Directive.InternalRedirect:
+            raise cherrypy.InternalRedirect(analysis.directive.argument)
         else:
-            raise RuntimeError("illegal action directive: '%s'" % (directive["action"]))
+            raise RuntimeError("fatal internal error:  illegal directive type code %d" % (analysis.directive.type))
 
 
 class AuthUpdate(cherrypy.Tool):
