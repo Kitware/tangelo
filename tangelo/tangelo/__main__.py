@@ -398,14 +398,6 @@ def main():
     if platform.system() != "Windows":
         signal.signal(signal.SIGQUIT, die)
 
-    # Install the "treat_url" tool, which performs redirections and analyzes the
-    # request path to see what kind of resource is being requested, and the
-    # "auth update" tool, which checks for updated/new/deleted .htaccess files
-    # and updates the state of auth tools on various paths.
-    cherrypy.tools.treat_url = cherrypy.Tool("before_handler", tangelo.tool.treat_url, priority=0)
-    if access_auth:
-        cherrypy.tools.auth_update = tangelo.tool.AuthUpdate(point="before_handler", priority=1, app=rootapp)
-
     # Start the CherryPy engine.
     cherrypy.engine.start()
     cherrypy.engine.block()

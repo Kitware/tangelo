@@ -182,7 +182,7 @@ class Tangelo(object):
 
         do_auth = self.auth_update and content is None or content.type != Content.NotFound
         if do_auth:
-            self.auth_update.callable(analysis.reqpathcomp, analysis.pathcomp)
+            self.auth_update.update(analysis.reqpathcomp, analysis.pathcomp)
 
         if content is not None:
             if content.type == Content.File:

@@ -188,20 +188,12 @@ def treat_url():
             raise RuntimeError("fatal internal error:  illegal directive type code %d" % (analysis.directive.type))
 
 
-class AuthUpdate(cherrypy.Tool):
+class AuthUpdate(object):
     # A list of acceptable authentication types.
     allowed_auth_types = ["digest"]
 
-    def __init__(self, point="before_handler", priority=50, app=None):
-        # cherrypy.Tool attributes.
-        self._name = None
-        self._point = point
-        self._priority = priority
-
-        # Private attributes.
+    def __init__(self, app=None):
         self.app = app
-
-        # A record of installed auth tools.
         self.security = {}
 
     @staticmethod
@@ -320,7 +312,7 @@ class AuthUpdate(cherrypy.Tool):
 
         return changed, None
 
-    def callable(self, reqpathcomp, pathcomp):
+    def update(self, reqpathcomp, pathcomp):
         # The lengths of the lists should be equal.
         assert len(reqpathcomp) == len(pathcomp)
 
