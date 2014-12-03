@@ -400,6 +400,19 @@ low-level REST API:
 Girder
 ------
 
+`Girder <http://girder.readthedocs.org/en/latest/>`_ is an open-source,
+high-performance data management platform.  The Girder plugin mounts a working
+instance of Girder in the plugin namespace so that its web client and REST API
+become available for use with Tangelo web applications.
+
+When the plugin is loaded, ``/plugin/girder/girder`` will serve out the web
+frontend to Girder, while ``/plugin/girder/girder/api/v1`` will point to the
+REST API documentation, as well as serving as the base URL for all API calls to
+Girder.
+
+For more information about how to use Girder, see its `documentation
+<http://girder.readthedocs.org/en/latest/>`_.
+
 Utilities
 =========
 
