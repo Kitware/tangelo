@@ -676,9 +676,9 @@ class Plugins(object):
                                 tangelo.log("PLUGIN", "\tFailed to mount application at %s (app already mounted there)" % (app_path))
                                 return False
                             else:
+                                tangelo.log("PLUGIN", "\t...mounting application at %s" % (app_path))
                                 cherrypy.tree.mount(app_obj, app_path, app_config)
                                 plugin.apps.append(app_path)
-                                tangelo.log("PLUGIN", "\t...mounting application at %s" % (app_path))
 
         self.plugins[plugin_name] = plugin
         return True
