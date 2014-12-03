@@ -1,99 +1,111 @@
-===================================
-    Tangelo JavaScript API
-===================================
+==================================
+    Tangelo JavaScript Library
+==================================
 
-The Tangelo clientside library (*tangelo.js*) contains many functions to help
-create rich web applications for performing visualization and other tasks.  The
-library is conceptually split up into several sections, reviewed here.
-
-Core Services
-=============
-
-The core functions represent basic support for creating web applications.
+The Tangelo clientside library (*tangelo.js*) contains functions to help work
+with Tangelo, including basic support for creating web applications.  These
+functions represent basic tasks that are widely useful in working with web
+applications; for advanced functionality and associated JavaScript/Python
+functions, see :ref:`bundled`.
 
 .. js:function:: tangelo.version()
+
+    :rtype: **string** -- the version string
 
     Returns a string representing Tangelo's current version number.  See
     :ref:`versioning` for more information on Tangelo version numbers.
 
-    :rtype: string
+.. js:function:: tangelo.getPlugin(pluginName)
 
-.. js:function:: tangelo.fatalError([module, ] msg)
+    :param pluginName string: The name of the plugin to retrieve
 
-    Throws a JavaScript error containing a message, and optionally the name of
-    the reporting module.  For example, the call
-    ``tangelo.fatalError("mymodule", "You can't divide by zero!");`` produces a
-    JavaScript ``Error`` exception with the message *[mymodule] You can't divide
-    by zero!*
+    :rtype: **object** -- the contents of the requested plugin
 
-    :param string module: reporting module name
-    :param string msg: message to report in exception
+    Returns an object containing the plugin contents for `pluginName`.  If
+    `pluginName` does not yet exist as a plugin, the function first creates it
+    as an empty object.
 
-.. js:function:: tangelo.error(code[[, message], jqxhr])
-
-    Returns an object encoding an error state that can be used as an "in-band"
-    error in a Tangelo JavaScript function.  If `message` is given, it is stored
-    in the object as the error message; if omitted, a default message will be
-    supplied based upon the error code `code`.  `jqxhr` is meant to be an ajax
-    object; if supplied, it will also be stored in the object for later
-    examination.
-
-    The available predefined values for `code` are
-    ``tangelo.error.AJAX_FAILURE`` and ``tangelo.error.APPLICATION_ERROR``.
-
-.. js:function:: tangelo.unavailable(cfg)
-
-    Returns a function that raises a fatal error telling the user about missing
-    JavaScript requirements needed to run some functionality.
-
-    Generally, when it is detected that the requirements for some function are
-    incomplete, the function can be implemented with ``tangelo.unavailable()``
-    in order to produce a useful error message at runtime.
-
-    *Example:*
+    This is a standard way to create and work with plugins.  For instance, if
+    ``foobar.js`` introduces the *foobar* clientside plugin, it may contain code
+    like this:
 
     .. code-block:: javascript
 
-        if (!foobar) {
-            coolLib.awesomeFeature = tangelo.unavailable({
-                plugin: "coolLib.awesomeFeature",
-                required: "foobar"
-            });
+        var plugin = tangelo.getPlugin("foobar");
+
+        plugin.awesomeFunction = function () { ... };
+
+        plugin.greatConstant = ...
+
+    The contents of this example plugin would hereafter be accessible via
+    ``tangelo.plugin.foobar``.
+
+.. js:function:: tangelo.pluginUrl(plugin[, *pathComponents])
+
+    :param string api: The name of the Tangelo plugin to construct a URL for.
+
+    :param string \*pathComponents: Any extra path components to be appended to
+        the constructed URL.
+
+    :rtype: **string** -- the URL corresponding to the requested plugin and path
+
+    Constructs and returns a URL for the named `plugin`, with optional trailing
+    path components listed in the remaining arguments to the function.
+
+    For example, a call to ``tangelo.pluginUrl("stream", "next", "a1b2c3d4e5")``
+    will return the string ``"/plugin/stream/next/a1b2c3d4e5"``.  This function is
+    useful for calls to, e.g., ``$.ajax()`` when engaging a Tangelo plugin.
+
+.. js:function:: tangelo.queryArguments()
+
+    :rtype: **object** -- the query arguments as key-value pairs
+
+    Returns an object whose key-value pairs are the query arguments passed to
+    the current web page.
+
+    This function may be useful to customize page content based on query
+    arguments, or for restoring state based on configuration options, etc.
+
+.. js:function:: tangelo.absoluteUrl(webpath)
+
+    :param string webpath: an absolute or relative web path
+    :rtype: **string** -- an absolute URL corresponding to the input webpath
+
+    Computes an absolute web path for `webpath` based on the current location.
+    If `webpath` is already an absolute path, it is returned unchanged;
+    if relative, the return value has the appropriate prefix computed and prepended.
+
+    For example, if called from a page residing at ``/foo/bar/index.html``,
+    ``tangelo.absoluteUrl("../baz/qux/blah.html")`` would yield
+    ``/foo/baz/qux/blah.html``, and ``tangelo.absoluteUrl("/one/two/three")``
+    would yield ``/one/two/three``.
+
+.. js:function:: tangelo.accessor([spec])
+
+    :param spec object: The accessor specification
+    :rtype: **function** -- the accessor function
+
+    Returns an *accessor function* that behaves according to the accessor
+    specification `spec`.  Accessor functions generally take as input a
+    JavaScript object, and return some value that may or may not be related to
+    that object.  For instance, ``tangelo.accessor({field: "mass"})`` returns a
+    function equivalent to:
+
+    .. code-block:: javascript
+
+        function (d) {
+            return d.mass;
         }
 
-    Note that the `cfg.required` may also be a list of strings, if there are
-    multiple requirements.
+    while ``tangelo.accessor({value: 47})`` return a constant function that
+    returns 47, regardless of its input.
 
-    :param string cfg.plugin: The functionality with missing requirements
+    As a special case, if `spec` is missing, or equal to the empty object
+    ``{}``, then the return value is the ``undefined accessor``, which simply
+    raises a fatal error when called.
 
-    :param cfg.required: The requirement(s)
-    :type cfg.required: string or list of string
-
-.. js:function:: tangelo.requireCompatibleVersion(requiredVersion)
-
-    Determines if `requiredVersion` represents a Tangelo version that is
-    compatible with the current version.  The notion of compatibility comes from
-    Tangelo's semantic versioning (see :ref:`versioning` for more information)
-    and works as follows:
-
-    **Development versions** are compatible if all components match.  That is to
-    say, the major and minor versions, the patchlevel (if any), and the tag text
-    must all match.
-
-    **Unstable versions** (those with major version 0) are compatible if the
-    major version numbers are both 0 and the minor version numbers match.
-
-    **Release versions** (those with major version greater than zero) are
-    compatible if the major version numbers match, and the required version's
-    minor version number is at most to Tangelo's minor version number.  In
-    case the minor version numbers are equal, the required patchlevel must be at
-    most equal to Tangelo's patchlevel as well.
-
-    These rules ensure that the required API is the same as the API exported by
-    Tangelo.
-
-    :param string requiredVersion: The version required by the calling application
-    :rtype: boolean
+    For more information of the semantics of the `spec` argument, see
+    :ref:`accessor`.
 
 Utilities
 =========
@@ -119,124 +131,6 @@ kinds of web applications.
         everything is well, or `could not open file` if, e.g., the file is missing.
         This may occur if, for example, the configuration file is optional.  If
         there is an ajax error, it will be passed in the `error` parameter.
-
-.. js:function:: tangelo.apiUrl(api[, *pathComponents])
-
-    Constructs and returns a URL for the named `api`, with optional trailing
-    path components listed in the remaining arguments to the function.
-
-    For example, a call to ``tangelo.apiUrl("stream", "next", "a1b2c3d4e5")``
-    will return the string ``"/api/stream/next/a1b2c3d4e5"``.  This function is
-    useful for calls to, e.g., ``$.ajax()`` when engaging a Tangelo API.
-
-    :param string api: The name of the Tangelo API to construct a URL for.
-
-    :param string \*pathComponents: Any extra path components to be appended to
-        the constructed URL.
-
-.. js:function:: tangelo.uniqueID(n)
-
-    Generates a identifier made up of `n` randomly chosen lower and upper case
-    letters, guaranteed to be unique during the run of a single web application.
-
-    This function can be useful when designing plugins that create DOM elements
-    that need to be referenced in a reliable way later.  The unique identifiers that
-    come from this function can be used in the ``id`` attribute of such
-    elements.
-
-    Be careful about calling this function with a small `n` - for example, a
-    sequence of 52 calls to ``tangelo.uniqueID(1)`` would take longer and longer
-    to randomly generate each single-letter string, while the 53rd call would
-    enter an infinite loop.  This is an extremely unlikely scenario but it bears
-    to keep it in mind.
-
-    :param integer n: The length of the desired identifier
-    :rtype: string
-
-.. js:function:: tangelo.queryArguments()
-
-    Returns an object whose key-value pairs are the query arguments passed to
-    the current web page.
-
-    This function may be useful to customize page content based on query
-    arguments, or for restoring state based on configuration options, etc.
-
-    :rtype: object
-
-.. js:function:: tangelo.isNumber(value)
-
-    Returns ``true`` is `value` is a number and ``false`` otherwise.
-
-    :param value: The value to test
-    :rtype: boolean
-
-.. js:function:: tangelo.isBoolean(value)
-
-    Returns ``true`` is `value` is a boolean and ``false`` otherwise.
-
-    :param value: The value to test
-    :rtype: boolean
-
-.. js:function:: tangelo.isArray(value)
-
-    Returns ``true`` is `value` is an array and ``false`` otherwise.
-
-    :param value: The value to test
-    :rtype: boolean
-
-.. js:function:: tangelo.isObject(value)
-
-    Returns ``true`` is `value` is an object and ``false`` otherwise.
-
-    :param value: The value to test
-    :rtype: boolean
-
-.. js:function:: tangelo.isString(value)
-
-    Returns ``true`` is `value` is a string and ``false`` otherwise.
-
-    :param value: The value to test
-    :rtype: boolean
-
-.. js:function:: tangelo.isFunction(value)
-
-    Returns ``true`` is `value` is a function and ``false`` otherwise.
-
-    :param value: The value to test
-    :rtype: boolean
-
-.. js:function:: tangelo.absoluteUrl(webpath)
-
-    Computes an absolute web path for `webpath` based on the current location.
-    If `webpath` is already an absolute path, it is returned unchanged;
-    if relative, the return value has the appropriate prefix computed and prepended.
-
-    :param string webpath: an absolute or relative web path
-    :rtype: string
-
-.. js:function:: tangelo.accessor([spec])
-
-    Returns an *accessor function* that behaves according to the accessor
-    specification `spec`.  Accessor functions generally take as input a
-    JavaScript object, and return some value that may or may not be related to
-    that object.  For instance, ``tangelo.accessor({field: "mass"})`` returns a
-    function equivalent to:
-
-    .. code-block:: javascript
-
-        function (d) {
-            return d.mass;
-        }
-
-    while ``tangelo.accessor({value: 47})`` return a constant function that
-    returns 47, regardless of its input.
-
-    As a special case, if `spec` is missing, or equal to the empty object
-    ``{}``, then the return value is the ``undefined accessor``, which simply
-    raises a fatal error when called.
-
-    For more information of the semantics of the `spec` argument, see
-    :ref:`accessor`.
 
 Data Transformation
 ===================
