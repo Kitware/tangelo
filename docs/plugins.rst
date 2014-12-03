@@ -25,8 +25,8 @@ An example plugin's file contents might be as follows:
 .. code-block:: none
 
     foobar/
-        README.md
         control.py
+        config.json
         python/
             __init__.py
             helper.py
@@ -93,34 +93,149 @@ with ``tangelo.plugin.foobar.helper``, and any functions and data exported by
 The bundled *bokeh* plugin contains an example of exporting a decorator function
 using this technique.
 
-README and Documentation
-------------------------
-
-You may have noticed that the example *foobar* plugin is structured to look like
-a GitHub repository, including a ``README.md`` file.  Indeed, if a plugin is
-developed on GitHub, then the standard GitHub README file will be served by
-Tangelo at ``/plugin/foobar`` by default.  This allows the developer to include
-some basic documentation or information in the README to be displayed to any
-user who browses to the root of the plugin's web presence.  This behavior is
-overridden by any ``web/index.html`` or ``web/index.htm`` file that may be
-present.
-
-In the absence of such an index file, Tangelo first searches for a sequence of
-files: ``README.md``, ``README.rst``, ``README.txt``, and finally ``README``.
-Whichever of these files is found first will be returned to the client as
-text.  If none of these are found, Tangelo serves a message informing the client
-that the plugin does exist, but there is no README.
-
-Of course, the plugin may simply serve documentation at ``web/index.html``,
-circumventing the inclusion of any README content.
-
 Setup and Teardown
 ==================
+
+The file ``foobar/control.py`` defines *setup* and *teardown* actions for each
+plugin.  For example, the contents of that file might be as follows:
+
+.. code-block:: python
+
+    import tangelo
+
+    def setup(config, store):
+        tangelo.log("FOOBAR", "Setting up foobar plugin!")
+
+    def teardown(config, store):
+        tangelo.log("FOOBAR", "Tearing down foobar plugin!")
+
+Whenever Tangelo loads (unloads) the foobar plugin, it will import
+``control.py`` as a module and execute any ``setup()`` (``teardown()``) function
+it finds, passing the configuration and persistent storage (see
+:ref:`plugin-config`) to it as arguments.  If during setup the function raises
+any exception, the exception will be printed to the log, and Tangelo will
+abandon loading the plugin and move to the next one.
+
+The ``setup()`` function can also cause arbitrary CherryPy applications to be
+mounted in the plugin's URL namespace.  ``setup()`` can optionally return a list
+of 3-tuples describing the applications to mount.  Each 3-tuple should contain a
+CherryPy application object, an optional configuration object associated with
+the application, and a string describing where to mount the application.  This
+string will automatically be prepended with the base URL of the plugin being set
+up.  For instance:
+
+.. code-block:: python
+
+    import tangelo.plugin.foobar
+
+    def setup(config, store):
+        app = tangelo.plugin.foobar.make_cherrypy_app()
+        appconf = tangelo.plugin.foobar.make_config()
+
+        return [(app, appconf, "/superapp")]
+
+When the ``foobar`` plugin is loaded, the URL ``/plugin/foobar/superapp`` will
+serve the CherryPy application implemented in ``app``.  Any such applications
+are also unmounted when the plugin is unloaded.
 
 .. _plugin-config:
 
 Configuration 
 =============
 
+Plugin configuration comes in two parts:  specifying which plugins to load, and
+specifying particular behavior for each plugin.
+
+Enabling Plugins
+----------------
+
+The Tangelo executable has an option ``--plugin-config`` that specifies a
+*plugin configuration file*.  This defaults to ``/etc/tangelo/plugin.conf``.
+The file is an INI style configuration file consisting of one section for each
+plugin under consideration.  The sections themselves are relatively simple:
+
+.. code-block:: cfg
+
+    [foobar]
+    enabled: true
+    path: /path/to/foobar/plugin
+
+    [quux]
+    enabled: false
+    path: path/to/quux
+
+Each contains a boolean flag, ``enabled``, and a string ``path`` describing
+where to find the plugin materials (i.e., the example directory shown above).
+Whenever this file changes and a client visits any plugin URL, Tangelo will
+compare the set of plugins enabled by the configuration file to the set of
+plugins currently enabled, and will load and unload plugins to bring the running
+plugins up to date.  For example, if you edit the example file above to change
+*quux*'s ``enabled`` flag to ``true``, then visit ``/plugin``, Tangelo will
+first load the *quux* plugin, then return a list of running plugins, which will
+now include *quux*.  Conversely, if you also changed *foobar*'s ``enabled`` flag
+to ``false`` (or comment out, or delete *foobar*'s entire section), *foobar*
+will additionally be unloaded.
+
+Configuring Plugins
+-------------------
+
+The file ``foobar/config.json`` contains a JSON object representing the plugin's
+configuration data.  This is the same format as web service configurations (see
+:ref:`configuration`), and can be read with the function
+``tangelo.plugin_config()``.
+
+Similarly, plugins also have a editable persistent store, accessed with the
+``tangelo.plugin_store()`` function.
+
+Both the configuration and the persistent store and passed as arguments to
+``setup()`` and ``teardown()`` in the control module.
+
 Loading and Unloading
 =====================
+
+When plugins are loaded or unloaded, Tangelo takes a sequence of particular
+steps to accomplish the effect.
+
+Loading a Plugin
+----------------
+
+Loading a plugin consists of the following actions:
+
+1. The configuration is loaded from ``config.json``.
+
+2. An empty persistent store is created.
+
+3. Any python content is set up by creating a virtual package called
+   ``tangelo.plugin.<pluginname>``, and exporting the contents of
+   ``python/__init__.py`` to it.
+
+4. The ``control.py`` module is loaded, and ``control.setup()`` is invoked,
+   passing the configuration and fresh persistent store to it.
+
+5. If ``setup()`` returns a result, the list of CherryPy apps expressed in the
+   ``"apps"`` property of it are mounted.
+
+6. The plugin name is added to the list of active plugins.
+
+Steps 3, 4, and 5 are not taken if the corresponding content is not present.  If
+any of those steps raises an exception, the exception is logged to disk and step
+6 will not be taken (i.e., the plugin will not be loaded).
+
+Unloading a Plugin
+------------------
+
+Unloading a plugins consists of the follow actions (which serve to undo the
+corresponding setup actions):
+
+1. Any python content present in ``tangelo.plugin.<pluginname>`` is torn down by
+   deleting the virtual package from the runtime.
+
+2. Any CherryPy applications are unmounted.
+
+3. If the control module contains a ``teardown()`` function, it is invoked,
+   passing the configuration and persistent store to it.
+
+4. The plugin name is removed from the list of active plugins.
+
+If an exception occurs during step 3, the ``teardown()`` function will not
+finish executing, but step 4 will still be taken.
