@@ -331,7 +331,7 @@ As with the Stream plugin's JavaScript functions, ``/plugin/vtkweb/vtkweb.js``
 defines a clientside plugin providing a clean, callback-based interface to the
 low-level REST API:
 
-.. js:function:: tangelo.vtkweb.processes(callback)
+.. js:function:: tangelo.plugin.vtkweb.processes(callback)
 
     :param function(keys) callback: The callback to invoke when the list of keys
         becomes available
@@ -339,7 +339,7 @@ low-level REST API:
     Asynchronously retrieves a list of VTK Web process keys, and invokes
     `callback` with the list.
 
-.. js:function:: tangelo.vtkweb.info(key, callback)
+.. js:function:: tangelo.plugin.vtkweb.info(key, callback)
 
     :param string key: The key for the requested VTK Web process
     :param function(object) callback: The callback to invoke when the info
@@ -362,7 +362,7 @@ low-level REST API:
 
     This function may be useful for debugging an errant VTK Web script.
 
-.. js:function:: tangelo.vtkweb.launch(cfg)
+.. js:function:: tangelo.plugin.vtkweb.launch(cfg)
 
     :param string cfg.url: A relative or absolute web path referring to a VTK
         Web script
@@ -383,7 +383,7 @@ low-level REST API:
     the process key as the first argument, and the error object describing any
     errors that occurred as the second (or ``undefined`` if there was no error).
 
-.. js:function:: tangelo.vtkweb.terminate(key[, callback])
+.. js:function:: tangelo.plugin.vtkweb.terminate(key[, callback])
 
     :param string key: The key of the process to terminate
     :param function(key,viewport,error) callback: A callback that will be
