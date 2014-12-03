@@ -416,8 +416,57 @@ For more information about how to use Girder, see its `documentation
 Utilities
 =========
 
+These plugins do not represent core, substantive functionality, but rather
+utility functions that significantly ease the process of creating web
+applications.
+
 Config
 ------
+
+Many web applications need to change their behavior depending on external
+resources or other factors.  For instance, if an application makes use of a
+Mongo database, a particular deployment of that application may wish to specify
+just which database to use.  To this end, the Config plugin works to provide a
+simple way to configure the runtime behavior of applications, by using a file
+containing a JSON object as a key-value store representing the configuration.
+
+The plugin provides a web service at ``/plugin/config/config`` that simply
+parses a JSON file and returns a JSON object representing the contents of the
+file.  The API is as follows:
+
+* ``GET /plugin/config/config/<absolute>/<webpath>/<to>/<json>/<file>[?required]``
+
+If the path specified does not point to a static file, or does not contain a
+valid JSON object, the call will result in an HTTP 4xx error, with the body
+expressing the particular reason for the error in a JSON response.  Otherwise,
+the service will parse the file and return the configuration object in the
+"result" field of the response.
+
+If the file does not exist, then the behavior of the service depends on the
+presence of absence of the ``required`` parameter:  when the call is made *with*
+the parameter, this results in a 404 error; otherwise, the service returns an
+empty object.  This is meant to express the use case where an application *can*
+use a configuration file if specified, falling back on defaults if there is
+none.
+
+The plugin also supplies a JavaScript plugin via ``/plugin/config/config.js``;
+like other JavaScript plugin components, it provides a callback-based function
+that engages the service on the user's behalf:
+
+.. js:function:: tangelo.plugin.config.config(url[, required], callback)
+
+    :param url string: An absolute or relative URL to the configuration file
+    :param required boolean: A flag indicating whether the configuration file is
+        required or not (default: ``false``)
+    :param callback(config) function: Callback invoked with configuration data
+        when it becomes available
+
+    Engages the config service using the file specified by `url`, invoking
+    `callback` with the configuration when it becomes available.  The optional
+    `required` flag, if set to ``true``, causes `callback` to be invoked with
+    ``undefined`` when the configuration file doesn't exist; when set to
+    ``false`` or not supplied, a non-existent configuration file results in
+    `callback` being invoked with ``{}``.
 
 SVG2PDF
 -------
