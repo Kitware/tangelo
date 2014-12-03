@@ -239,6 +239,164 @@ a clean, callback-based JavaScript API to the streaming REST service:
 VTKWeb
 ------
 
+The VTKWeb plugin is able to run VTK Web programs and display the result in real
+time on a webpage.  The interface is somewhat experimental at the moment and
+only supports running the program and interacting with it via the mouse.  In a
+later version, the ability to call functions and otherwise interact with VTK Web
+in a programmatic way will be added.
+
+In order to enable this funcationality, the plugin must be configured with a
+``vtkpython`` option set to the full path to a ``vtkpython`` executable in a
+build of VTK.
+
+The VTK Web REST API
+^^^^^^^^^^^^^^^^^^^^
+
+The VTK Web API is found at `/plugin/vtkweb/vtkweb`.  The API is RESTful and
+uses the following verbs:
+
+* ``POST /plugin/vtkweb/vtkweb/full/path/to/vtkweb/script.py`` launches the
+  named script (which must be given as an absolute path) and returns a JSON
+  object similar to the following:
+
+    .. code-block:: javascript
+
+        {
+            "status": "complete",
+            "url": "ws://localhost:8080/ws/d74a945ca7e3fe39629aa623149126bf/ws",
+            "key": "d74a945ca7e3fe39629aa623149126bf"
+        }
+
+  The ``url`` field contains a websocket endpoint that can be used to
+  communicate with the VTK web process.  There is a *vtkweb.js* file (included
+  in the Tangelo installation) that can use this information to hook up an HTML
+  viewport to interact with the program, though for use with Tangelo, it is much
+  simpler to use the JavaScript VTK Web library functions to abstract these
+  details away.  The ``key`` field is, similarly to the streaming API, a
+  hexadecimal string that identifies the process within Tangelo.
+
+  In any case, receiving a response with a ``status`` field reading "complete"
+  means that the process has started successfully.
+
+* ``GET /plugin/vtkweb/vtkweb`` returns a list of keys for all active VTK Web
+  processes.
+
+* ``GET /plugin/vtkweb/vtkweb/<key>`` returns information about a particular VTK
+  Web process.  For example:
+
+    .. code-block:: javascript
+
+        {
+            "status": "complete",
+            "process": "running",
+            "port": 52446,
+            "stderr": [],
+            "stdout": [
+                "2014-02-26 10:00:34-0500 [-] Starting factory <vtk.web.wamp.ReapingWampServerFactory instance at 0x272b2d8>\n",
+                "2014-02-26 10:00:34-0500 [-] ReapingWampServerFactory starting on 52446\n",
+                "2014-02-26 10:00:34-0500 [-] Log opened.\n",
+                "2014-02-26 10:00:34-0500 [VTKWebApp,0,127.0.0.1] Client has reconnected, cancelling reaper\n",
+                "2014-02-26 10:00:34-0500 [VTKWebApp,0,127.0.0.1] on_connect: connection count = 1\n"
+            ]
+        }
+
+  The ``status`` field indicates that the request for information was
+  successful, while the remaining fields give information about the running
+  process.  In particular, the ``stderr`` and ``stdout`` streams are queried for
+  any lines of text they contain, and these are delivered as well.  These can be
+  useful for debugging purposes.
+
+  If a process has ended, the ``process`` field will read ``terminated`` and
+  there will be an additional field ``returncode`` containing the exit code of
+  the process.
+
+* ``DELETE /plugin/vtkweb/vtkweb/<key>`` terminates the associated VTK process
+  and returns a response containing the key:
+
+    .. code-block:: javascript
+
+        {
+            "status": "complete",
+            "key": "d74a945ca7e3fe39629aa623149126bf"
+        }
+
+  As with the streaming ``DELETE`` action, the key is returned to help
+  differentiate which deletion has completed, in case multiple ``DELETE``
+  requests are in flight at the same time.
+
+JavaScript Support for VTK Web
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+As with the Stream plugin's JavaScript functions, ``/plugin/vtkweb/vtkweb.js``
+defines a clientside plugin providing a clean, callback-based interface to the
+low-level REST API:
+
+.. js:function:: tangelo.vtkweb.processes(callback)
+
+    :param function(keys) callback: The callback to invoke when the list of keys
+        becomes available
+
+    Asynchronously retrieves a list of VTK Web process keys, and invokes
+    `callback` with the list.
+
+.. js:function:: tangelo.vtkweb.info(key, callback)
+
+    :param string key: The key for the requested VTK Web process
+    :param function(object) callback: The callback to invoke when the info
+        report becomes available
+
+    Retrieves a status report about the VTK Web process keyed by `key`, then
+    invokes `callback` with it when it becomes available.
+
+    The report is a JavaScript object containing a ``status`` field indicating
+    whether the request succeeded ("complete") or not ("failed").  If the status
+    is "failed", the ``reason`` field will explain why.
+
+    A successful report will contain a ``process`` field that reads either
+    "running" or "terminated".  For a terminated process, the ``returncode``
+    field will contain the exit code of the process.
+
+    For running processes, there are additional fields: ``port``, reporting the
+    port number the process is running on, and ``stdout`` and ``stderr``, which
+    contain a list of lines coming from those two output streams.
+
+    This function may be useful for debugging an errant VTK Web script.
+
+.. js:function:: tangelo.vtkweb.launch(cfg)
+
+    :param string cfg.url: A relative or absolute web path referring to a VTK
+        Web script
+    :param string cfg.argstring: A string containing command line arguments to
+        pass to the launcher script
+    :param string cfg.viewport: A CSS selector for the ``div`` element to serve
+        as the graphics viewport for the running process
+    :param function(key,error) cfg.callback: A callback that reports the key of
+        the new process, or the error that occured
+
+    Attempts to launch a new VTK Web process by running a Python script found at
+    `cfg.url`, passing `cfg.argstring` as commandline arguments to the launcher
+    script.  If successful, the streaming image output will be sent to the first
+    DOM element matching the CSS selector given in `cfg.viewport`, which should
+    generally be a ``div`` element.
+
+    After the launch attempt succeeds or fails, `callback` is invoked, passing
+    the process key as the first argument, and the error object describing any
+    errors that occurred as the second (or ``undefined`` if there was no error).
+
+.. js:function:: tangelo.vtkweb.terminate(key[, callback])
+
+    :param string key: The key of the process to terminate
+    :param function(key,viewport,error) callback: A callback that will be
+        invoked upon completion of the termination attempt
+
+    Attempts to terminate the VTK Web process keyed by `key`.  If there is a
+    `callback`, it will be invoked with the key of the terminated process, the
+    DOM element that was the viewport for that process, and an error (if any).
+    The key is passed to the callback in case this function is called several
+    times at once, and you wish to distinguish between the termination of
+    different processes.  The DOM element is passed in case you wish to change
+    something about the appearance of the element upon termination.
+
 Girder
 ------
 
