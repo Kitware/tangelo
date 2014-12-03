@@ -239,7 +239,7 @@ module.exports = function (grunt) {
           package: [
               "tangelo/MANIFEST",
               "tangelo/README",
-              "tangelo/web/docs",
+              "tangelo/plugins/docs",
               "tangelo/web/js"
           ]
       }
@@ -548,7 +548,7 @@ module.exports = function (grunt) {
                    "-D", "version=" + version,
                    "-D", "release=" + version,
                    "docs",
-                   "tangelo/web/docs"],
+                   "tangelo/plugins/docs/web"],
             opts: {
                 stdio: "inherit"
             }

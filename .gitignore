@@ -7,7 +7,7 @@ sdist
 configuration.json
 tangelo/MANIFEST
 tangelo/README
-tangelo/web/docs
+tangelo/plugins/docs
 tangelo/web/js
 js/tests/results
 .coverage
