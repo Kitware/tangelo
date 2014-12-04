@@ -490,7 +490,7 @@ function getMinMaxDates(zoom) {
                 .replace("%db%", flickr.config.db)
                 .replace("%coll%", flickr.config.coll);
 
-            div.style("display", "auto")
+            div.style("display", null)
                 .html(html);
 
             return;
