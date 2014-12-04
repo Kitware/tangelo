@@ -82,6 +82,7 @@ The Tangelo API
 
     tangelo-py
     tangelo-js
+    bundled-plugins
 
 Tutorials
 =========
