@@ -100,7 +100,6 @@ Information for Developers
 
     coding-style-guide
     developing-visualizations
-    testing
 
 Indices and tables
 ==================

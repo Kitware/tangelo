@@ -5,8 +5,7 @@
 | tangelo [-h] [-c FILE] [-nc] [-a] [-na] [-p] [-np]
 |         [--hostname HOSTNAME] [--port PORT] [-u USERNAME]
 |         [-g GROUPNAME] [-r DIR] [--vtkpython FILE] [--verbose]
-|         [--version] [--key FILE] [--cert FILE] [--girder-host HOST]
-|         [--girder-port PORT] [--girder-path PATH]
+|         [--version] [--key FILE] [--cert FILE]
 
 Start a Tangelo server.
 
@@ -32,9 +31,6 @@ Optional argument                  Effect
 --version                          display Tangelo version number
 --key FILE                         the path to the SSL key. You must also specify --cert to serve content over https.
 --cert FILE                        the path to the SSL certificate. You must also specify --key to serve content over https.
---girder-host HOST                 the hostname running Girder
---girder-port PORT                 the port on which Girder is running
---girder-path PATH                 the path on which to mount a Girder API
 =================================  ============================================================================================================================
 
 Example Usage

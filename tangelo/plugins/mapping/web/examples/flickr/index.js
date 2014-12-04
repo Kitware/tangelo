@@ -477,19 +477,22 @@ function getMinMaxDates(zoom) {
     flickr.getMongoRange(flickr.config.server, flickr.config.db, flickr.config.coll, "datetaken", function (min, max) {
         var gmap_cfg,
             options,
-            div;
+            div,
+            html;
 
         if (min === null || max === null) {
-            d3.select("#map")
-                .style("font-size", "14pt")
-                .style("padding-top", "20%")
-                .style("padding-left", "20%")
-                .style("padding-right", "20%")
-                .style("text-align", "center")
-                .html("There doesn't seem to be a Mongo instance at <em>" + flickr.config.server + "</em>" +
-                    ", with database <em>" + flickr.config.db + "</em> and collection <em>" + flickr.config.coll + "</em>" +
-                    ", or there is no data there." +
-                    "  See these <a href=\"http://tangelo.readthedocs.org/en/latest/setup.html#flickr-metadata-maps\">instructions</a> for help setting this up.");
+            // Unhide the error message and fill in the runtime details.
+            div = d3.select("#map")
+                .select("div");
+
+            html = div.html()
+                .replace("%server%", flickr.config.server)
+                .replace("%db%", flickr.config.db)
+                .replace("%coll%", flickr.config.coll);
+
+            div.style("display", "auto")
+                .html(html);
+
             return;
         }
 

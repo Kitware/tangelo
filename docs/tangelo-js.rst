@@ -106,10 +106,3 @@ functions, see :ref:`bundled`.
 
     For more information of the semantics of the `spec` argument, see
     :ref:`accessor`.
-
-jQuery plugins
-==============
-
-Tangelo defines several `jQuery plugins <http://learn.jquery.com/plugins/>`_ to
-provide convenient behaviors or to implement common visualization methods.  See
-:ref:`jquery-widgets` for more information.
