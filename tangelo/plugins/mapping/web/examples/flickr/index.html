@@ -80,7 +80,15 @@
 </div>
 
 <!-- Create a fullscreen Google map -->
-<div id=map style="width:100%; height:100%"></div>
+<div id=map style="width:100%; height:100%">
+    <div style="display:hidden; font-size:14pt; padding-top:20%; padding-left:20%; padding-right:20%; text-align:center">
+        There doesn't seem to be a Mongo instance at <em>%server%</em>, with
+        database <em>%db%</em> and collection <em>%coll%</em>, or there is no
+        data there.  See these
+        <a href="http://tangelo.readthedocs.org/en/latest/setup.html#flickr-metadata-maps">instructions</a>
+        for help setting this up.
+    </div>
+</div>
 
 <div id=control-panel>
     <div class=container>

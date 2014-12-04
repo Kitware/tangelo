@@ -1,3 +1,5 @@
+.. _web-services:
+
 ===========================
     Tangelo Web Services
 ===========================
@@ -134,40 +136,35 @@ the Python back end via Ajax.
 Return Types
 ------------
 
-The type of the value returned from the ``run()`` function determines how Tangelo creates
-content for the associated web endpoint.  In the example above, the function
-returns a number; Tangelo receives this number and turns it into a string (which
-is then delivered to the ``success`` callback in the JavaScript code above).  In
-general, Tangelo follows this set of steps to determine what to do with the
-returned value from a Python service:
+The type of the value returned from the ``run()`` function determines how
+Tangelo creates content for the associated web endpoint.  Since web server
+communication occurs via textual data, all values returned by web services must
+eventually be converted to strings.  By default, Tangelo accomplishes this by
+considering all such values to be JSON-encoded.  For example, in the calculator
+example, the ``run()`` function returns Python ``int`` value ``47``; Tangelo
+takes this value and applies the standard function ``json.dump()`` to it,
+resulting in the string ``"47"``, which is delivered to the client for further
+processing.  Similarly, a service that returns a Python ``dict`` value will be
+converted to a general JSON-object, making it easy to return structured
+information from any given web service.
 
-#. If the ``run()`` function is decorated with a ``@tangelo.return_type()``
-   decorator (see :ref:`returntype`), the function that was passed to the decorator will transform the
-   function's native return value to a string, and that will be delivered as the
-   requested content.
+This means that, in the most general case, you can create your own types,
+equipped with methods for JSON encoding them, and use those are direct return
+values (see the `Python documentation
+<http://docs.python.org/2/library/json.html#json.JSONEncoder>`_ for information
+on custom JSON encoding).  Attempting to return a type that is not
+JSON-serializable results in a 400 error.
 
-#. Otherwise, if the return value is a **JSON-serializable Python object**,
-   Tangelo calls ``json.dumps()`` on it to convert it into a string, and then
-   delivers that string as the content.
-
-   Python's numeric types are JSON-serializable by default, as is the value
-   ``None``.  Lists and tuples of serializable items are converted into JSON
-   lists, while dictionaries with serializable keys and values are converted
-   into JSON objects.  Finally, any Python object *can be made*
-   JSON-serializable by extending ``json.JSONEncoder`` (see the
-   `Python documentation
-   <http://docs.python.org/2/library/json.html#json.JSONEncoder>`_ for more
-   information).
-
-   If a **non**-JSON-serializable object is returned, this will result in a
-   server error.
-
-#. Otherwise, if the return value is a **string**, then Tangelo treats the
-   return value as the final result; i.e., it delivers the return value without
-   changing it.
-
-#. Finally, if the return value **does not fit into any of the above
-   steps**, Tangelo will report a server error.
+The only exception to the default conversion behavior is that if the service
+returns a string directly, this value will not be JSON encoded (which entails
+surrounding it with double-quotes), but simply passed along unchanged.  This
+"escape hatch" enables a service to return any kind of data by encoding it as a
+string.  The ``tangelo.content_type()`` utility function can be used to specify
+the intended type of the returned data.  For instance,
+``tangelo.content_type("text/plain")`` followed by ``return "hello, world"``
+will result in a text result being sent to the client.  More complex types are
+also possible; e.g., a service might compute a PNG image, then send the PNG data
+back as a string after calling ``tangelo.content_type("application/png")``.
 
 .. _returntype:
 
@@ -177,8 +174,8 @@ Specifying a Custom Return Type Converter
 Similarly to the :py:func:`tangelo.types` decorator mentioned above, services
 can specify a custom return type via the :py:func:`tangelo.return_type`
 decorator.  It takes a single argument, a function to convert the object
-returned from the service function to a string (or other legal service return
-type; see :ref:`return-types`):
+returned from the service function to a string or JSON-serializable value (see
+:ref:`return-types`):
 
 .. code-block:: python
 
@@ -198,6 +195,31 @@ A more likely use case for this decorator is special-purpose JSON converters,
 such as Pymongo's ``bson.json_util.dumps()`` function, which can handle certain
 non-standard objects such as Python ``datetime`` objects when converting to JSON
 text.
+
+HTTP Status Codes
+=================
+
+When something goes wrong during execution of a web service, you may wish to
+signal to the client what happened.  The ``tangelo.http_status()`` function can
+be used to set the status code to indicate the class of problem.  For instance,
+if the service invocation does not include the proper required arguments, the
+service might signal the error by the following: ::
+
+    tangelo.http_status(400, "Required Argument Missing")
+
+Many HTTP status codes have `standard meanings
+<http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html>`_, including default
+titles (e.g., the default title for 400 is "Bad Request"); invoking
+``tangelo.http_status()`` with only a numerical code will use such a default
+title.  Otherwise, you may include a second string argument to provide a more
+specific description.
+
+Errors are generally signaled with *4xx* and *5xx* codes.  In these cases, the
+response body may be useful for providing specific information about the error
+to the client.  Such information can be provided as JSON, plain text, HTML, or
+any other feasible format.  Just make sure to call ``tangelo.content_type()`` to
+specify the MIME type of the response before using ``return`` to prepare and
+send the response.
 
 RESTful Services
 ================
@@ -238,6 +260,11 @@ REST verbs to just the set of commonly used ones and (2) exposing every function
 in the service as part of a REST interface (since some of those could simply be
 helper functions).
 
+Bear in mind that a function named ``run()`` will always take precedence over
+any functions marked with ``@tangelo.restful``.  This is because ``run()`` is
+meant to be agnostic to the HTTP method that was used to invoke it, and as such,
+has higher precedence when Tangelo is looking for a function to invoke.
+
 .. _configuration:
 
 Configuring Web Services
@@ -267,8 +294,8 @@ For instance, suppose the following service is implemented in `autodestruct.py`:
 
         starship.autodestruct(countdown)
 
-        return { "status": "complete",
-                 "message": "Auto destruct in %d seconds!" % (countdown) }
+        return {"status": "complete",
+                "message": "Auto destruct in %d seconds!" % (countdown)}
 
 Via the :py:func:`tangelo.config` function, this service attempts to match the
 input data against credentials stored in the module level configuration, which
@@ -289,3 +316,17 @@ cause the module to be reloaded the next time it is invoked.  The
 prevent an errant service from updating the configuration in a persistent way.
 For this reason, it is advisable to only call this function once, capturing the
 result in a variable, and retrieving values from it as needed.
+
+Persistent Storage for Web Services
+===================================
+
+In contrast to the read-only service configuration, each service also has access
+to a *persistent data store* that remembers changes made to it from invocation
+to invocation.  This may be accessed by invoking ``tangelo.store()`` within a
+service function.  Like ``tangelo.config()``, the store is a Python dictionary,
+but anything stored in it will be accessible from a subsequent invocation of the
+service.
+
+A very simple example would increment ``tangelo.store()["count"]`` on each
+invocation, allowing the service to "know" how many times it has been invoked
+before.

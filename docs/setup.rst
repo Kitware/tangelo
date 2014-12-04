@@ -102,26 +102,6 @@ key              The path to the SSL key                                        
 cert             The path to the SSL certificate                                     ``None`` [#https]_ [#unset]_
 ================ =================================================================   =================================
 
-The **[vtkpython]** section contains options related to :ref:`vtkweb` integration:
-
-================ =================================================================   =================================
-Option           Meaning                                                             Default value
-================ =================================================================   =================================
-vtkpython        The path to the ``vtkptyhon`` program                               ``None`` [#unset]_
-================ =================================================================   =================================
-
-The **[girder]** section contains options related to mounting a Girder API: [#gird]_
-
-================ =================================================================   =================================
-Option           Meaning                                                             Default value
-================ =================================================================   =================================
-host [#girdopt]_ The hostname running Girder                                         ``localhost``
-
-port [#girdopt]_ The port on which the Girder database is running                    ``27017``
-
-path [#girdopt]_ The path on which to mount a Girder API                             ``None`` [#unset]_
-================ =================================================================   =================================
-
 .. rubric:: Footnotes
 
 .. [#root] The first component of this path may vary by platform.  Technically,
@@ -139,16 +119,6 @@ path [#girdopt]_ The path on which to mount a Girder API                        
 .. [#https] You must also specify both key and cert to serve content over
     https.
 
-.. [#gird] `Girder <https://github.com/girder/girder>`_ will attempt to be
-    mounted if the girder-path is provided. The girder-path will be the root for
-    mounting the Girder static resources and API endpoints, and will be placed
-    under Tangelo's ``api`` path.  For instance, if the option is set to "girder",
-    then the Girder API will be accessible at ``/api/girder``. The ``girder``
-    Python library must be available to the Python environment.
-
-.. [#girdopt] On the command line, this option is prefixed by "girder-" to
-    encode the fact that the option comes from the [girder] configuration section.
-
 .. [#unset] That is to say, the option is simply unset by default, the
     equivalent of not mentioning the option at all in a configuration file.
 
@@ -160,18 +130,26 @@ about how Tangelo ought to behave, then implementing those decisions in a
 configuration file.
 
 For example, as the system administrator you might create a directory on the web
-server machine at ``/srv/tangelo`` which would serve as the web root.  The
-website front page and supporting materials could be placed here, with the
-*tangelo.js* and *tangelo.min.js* files copied from
-``/usr/share/tangelo/www/js/`` to ``/srv/tangelo/js`` so they can be easily
-accessed from user web applications.
+server machine at ``/srv/tangelo`` which would serve as the web root, containing
+the website front page and supporting materials.
 
-The hostname should reflect the desired external identity of the Tangelo server -
-perhaps *excelsior.starfleet.mil*.  As this is a "global" deployment, we want to
-listen on port 80 for connections.  Since we will need to start Tangelo as root
-(to gain access to the low-numbered ports), we should also specify a user and
-group to drop privileges to:  these can be the specially created user and group
-*tangelo*.
+You should then prepare a plugin configuration file that, at the very least,
+activates the Tangelo plugin:
+
+.. code-block:: cfg
+
+    [tangelo]
+    enabled: true
+    path: /usr/share/tangelo/plugins/tangelo
+
+This file can be saved to ``/etc/tangelo/plugins.conf``.
+
+It remains to configure Tangelo itself.  The hostname should reflect the desired
+external identity of the Tangelo server - perhaps *excelsior.starfleet.mil*.  As
+this is a "global" deployment, we want to listen on port 80 for connections.
+Since we will need to start Tangelo as root (to gain access to the low-numbered
+ports), we should also specify a user and group to drop privileges to:  these
+can be the specially created user and group *tangelo*.
 
 The corresponding configuration file might look like this:
 
@@ -249,44 +227,10 @@ configuration file is found at ``/etc/tangelo.conf``, but overriding the
 hostname and port with those parsed from the name.  This allows for a unique
 name for each Tangelo instance that corresponds to its unique web interface.
 
-Preparing Data for the Example Applications
-===========================================
+Preparing Data for Flickr Metadata Maps
+=======================================
 
-Tangelo comes with several :root:`example applications
-</examples>`, some of which require a bit of data setup
-before they will work.
-
-Named Entities
---------------
-
-In order to run the named entities example at http://localhost:8000/examples/ner/,
-you need to install NLTK and download some datasets.  The part of NLTK used by
-the examples also requires `NumPy <http://www.numpy.org/>`_.
-On Mac and Linux, simply run::
-
-    pip install nltk numpy
-
-In a Windows Git Bash shell::
-
-    /c/Python27/Scripts/pip install pyyaml nltk numpy
-
-To get the NLTK datasets needed, run the NLTK downloader from the command line
-as follows::
-
-    python -m nltk.downloader nltk.downloader maxent_ne_chunker maxent_treebank_pos_tagger punkt words
-
-If you are building Tangelo from source, be sure to use the appropriate
-Virtualenv when installing these packages.  For example, from the build
-directory::
-
-    ./venv/bin/pip install nltk numpy
-
-This will ensure that the packages are visible to tangelo when it runs.
-
-Flickr Metadata Maps
---------------------
-
-The :root:`Flickr Metadata Maps </examples/flickr>` application
+The :root:`Flickr Metadata Maps </plugin/mapping/examples/flickr>` application
 plots publicly available Flickr photo data on a Google map.  The application
 works by retrieving data from a Mongo database server, which by default is
 expected to live at *localhost*.  The steps to getting this application working
@@ -330,31 +274,6 @@ API**, and **upload the data to the MongoDB server**.
 
 Now the database should be set up to feed photo data to the Flickr app - reload
 the page and you should be able to explore Paris through photos.
-
-Enron Email Network
--------------------
-
-The :root:`Enron Email Network </examples/enron>` application
-visualizes the `enron email dataset <https://www.cs.cmu.edu/~enron/>`_ as a
-network of communication.  The original data has been processed into graph form,
-in a file hosted `here <http://midas3.kitware.com/midas/download/bitstream/339385/enron_email.json.gz>`_.
-Download this file, ``gunzip`` it, and then issue this command to upload the
-records to Mongo:
-
-   .. code-block:: none
-
-       mongoimport -d tangelo -c enron_email --file enron_email.json
-
-(Note: although ``enron_email.json`` contains one JSON-encoded object per line,
-keep in mind that the file as a whole does **not** constitute a single JSON
-object - the file is instead in a particular format recognized by Mongo.)
-
-As with the Flickr data prep above, you can modify this command line to install
-this data on another server or in a different database/collection.  If you do
-so, remember to also modify
-``/usr/share/tangelo/www/examples/enron/config.json`` to reflect these changes.
-
-Reload the Enron app and take a look at the email communication network.
 
 .. _versioning:
 

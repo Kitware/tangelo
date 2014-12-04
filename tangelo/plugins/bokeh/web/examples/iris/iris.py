@@ -1,6 +1,6 @@
 import tangelo.plugin.bokeh
 from bokeh.sampledata.iris import flowers
-from bokeh.plotting import *
+from bokeh.plotting import scatter
 
 
 @tangelo.return_type(tangelo.plugin.bokeh.bokeh)

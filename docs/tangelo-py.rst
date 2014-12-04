@@ -53,6 +53,18 @@ HTTP Interaction
     Returns the content type for the current request, as a string.  If `type`
     is specified, also sets the content type to the specified string.
 
+.. py:function:: tangelo.http_status(code[, message]):
+
+    Sets the HTTP status code for the current request's response.  `code` should
+    be an integer; optional `message` can give a concise description of the
+    code.  Omitting it results in a standard message; for instance,
+    ``tangelo.http_status(404)`` will send back a status of ``404 Not Found``.
+
+    This function can be called before returning, e.g., a ``dict`` describing in
+    detail what went wrong.  Then, the response will indicate the general error
+    while the body contains error details, which may be informational for the
+    client, or useful for debugging.
+
 .. py:function:: tangelo.header(header_name[, new_value])
 
     Returns the value associated to `header_name` in the HTTP headers, or
@@ -82,18 +94,6 @@ HTTP Interaction
     Returns the value currently associated to the session key `key`, or `None`
     if there is no such key.  If `value` is given, it will become newly associated
     to `key`.
-
-.. py:class:: tangelo.HTTPStatusCode(code[, description])
-
-    Constructs an HTTP status object signalling the status code given by ``code``
-    and a custom description of the status given by ``description``.  If
-    ``description`` is not specified, then a standard description will appear
-    based on the code (e.g., "Not Found" for code 404, etc.).
-
-    An ``HTTPStatusCode`` object can be returned from a Python service to cause
-    the server to raise that code instead of sending back a response.  This can
-    be useful to signal situations like bad arguments, failure to find the
-    requested object, etc.
 
 Web Services Utilities
 ======================
