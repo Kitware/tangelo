@@ -81,12 +81,72 @@
 
 <!-- Create a fullscreen Google map -->
 <div id=map style="width:100%; height:100%">
-    <div style="display:none; font-size:14pt; padding-top:20%; padding-left:20%; padding-right:20%; text-align:center">
-        There doesn't seem to be a Mongo instance at <em>%server%</em>, with
-        database <em>%db%</em> and collection <em>%coll%</em>, or there is no
-        data there.  See these
-        <a href="http://tangelo.readthedocs.org/en/latest/setup.html#flickr-metadata-maps">instructions</a>
-        for help setting this up.
+    <div style="display:none; padding-top:10%; padding-left:20%; padding-right:20%">
+        <p>
+            There doesn't seem to be a Mongo instance at <em>%server%</em>, with
+            database <em>%db%</em> and collection <em>%coll%</em>, or there is
+            no data there, or PyMongo is not installed.  Try these steps to get
+            things working:
+        </p>
+
+        <ol>
+            <li>
+                <p>
+                    <strong>Set up MongoDB.</strong> To set up a Mongo server
+                    you can consult the <a href=http://www.mongodb.org>MongoDB
+                        documentation</a>.  It is generally as straightforward
+                    as installing it via a package manager, then launching the
+                    ``mongod`` program, or starting it via your local service
+                    manager.
+                </p>
+            </li>
+
+            <li>
+                <p>
+
+                    <strong>Get photo data from Flickr.</strong>  For this step
+                    you will need a
+                    <a href=http://www.flickr.com/services/api/misc.api_keys.html>Flickr API key</a>.
+                    Armed with a key, you can run the
+                    <code>get-flickr-data.py</code> script, which can be found
+                    at <tt>/usr/share/tangelo/data/get-flickr-data.py</tt>.  You
+                    cun run it like this:
+
+                </p>
+
+                <p>&nbsp;&nbsp;&nbsp;&nbsp;<code>get-flickr-data.py <your API key> <maximum number of photos to retrieve> flickr_paris.json</code></p>
+
+                <p>
+                    If you do not want to retrieve the data yourself, you can
+                    use the
+                    <a href=http://midas3.kitware.com/midas/download/bitstream/339384/flickr_paris_1000.json.gz>hosted version</a>.
+                    This dataset was generated with this script, with a max
+                    count argument of 1000.
+                </p>
+            </li>
+
+            <li>
+                <p>
+                    <strong>Upload the data to Mongo.</strong> You can use this
+                    command to place the photo data into your MongoDB instance:
+                </p>
+
+                <p>&nbsp;&nbsp;&nbsp;&nbsp;<code>mongoimport -d tangelo -c flickr_paris --jsonArray --file flickr_paris.json</code></p>
+
+                <p>
+                    This command uses the MongoDB instance running on
+                    <strong>localhost</strong>, and places the photo metadata
+                    into the <strong>tangelo</strong> database, in a collection
+                    called <strong>flickr_paris</strong>.  If you edited the
+                    configuration file in Step 1 above, be sure to supply your
+                    custom hostname, and database/collection names in this step.
+                </p>
+            </li>
+        </ol>
+
+        Now the database should be set up to feed photo data to the
+        Flickr app - reload the page and you should be able to explore
+        Paris through photos.
     </div>
 </div>
 
