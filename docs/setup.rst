@@ -52,7 +52,7 @@ attacker.
 To run Tangelo using a particular configuration file, ``tangelo`` can be invoked
 with the ``-c`` or ``--config`` option: ::
 
-    tangelo -c ~/myconfig.yml
+    tangelo -c ~/myconfig.yaml
 
 When the flag is omitted, Tangelo will use default values for all
 configuration options (see :ref:`config-options` below).
@@ -134,7 +134,7 @@ activates the Tangelo plugin:
     enabled: true
     path: /usr/share/tangelo/plugins/tangelo
 
-This file can be saved to ``/etc/tangelo/plugins.yml``.
+This file can be saved to ``/etc/tangelo/plugin.conf``.
 
 It remains to configure Tangelo itself.  The hostname should reflect the desired
 external identity of the Tangelo server - perhaps *excelsior.starfleet.mil*.  As

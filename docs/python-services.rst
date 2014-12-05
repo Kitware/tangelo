@@ -299,7 +299,7 @@ For instance, suppose the following service is implemented in `autodestruct.py`:
 
 Via the :py:func:`tangelo.config` function, this service attempts to match the
 input data against credentials stored in the module level configuration, which
-is stored in `autodestruct.yml` a YAML file containing an associative array
+is stored in `autodestruct.yaml` a YAML file containing an associative array
 (i.e., a key-value store) at its top level:
 
 .. code-block:: yaml

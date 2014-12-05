@@ -5,7 +5,7 @@ QUnit.test("Non-required non-existing config file", function (assert) {
 
     QUnit.stop();
 
-    tangelo.plugin.config.config("/data/doesntexist.yml", false, function (config) {
+    tangelo.plugin.config.config("/data/doesntexist.yaml", false, function (config) {
         QUnit.start();
 
         assert.deepEqual(config, {}, "Non required config file should return empty object when file doesn't exist");
@@ -17,12 +17,12 @@ QUnit.test("Required non-existing config file", function (assert) {
 
     QUnit.stop();
 
-    tangelo.plugin.config.config("/data/doesntexist.yml", true, function (config, error) {
+    tangelo.plugin.config.config("/data/doesntexist.yaml", true, function (config, error) {
         QUnit.start();
 
         assert.strictEqual(config, undefined, "Required config file should return undefined when file doesn't exist");
         assert.ok(error.error, "'error' parameter contains an error message");
-        assert.strictEqual(error.file, "/data/doesntexist.yml", "'error' parameter named the missing file");
+        assert.strictEqual(error.file, "/data/doesntexist.yaml", "'error' parameter named the missing file");
     });
 });
 
@@ -31,7 +31,7 @@ QUnit.test("Non-required existing config file", function (assert) {
 
     QUnit.stop();
 
-    tangelo.plugin.config.config("/data/config.yml", false, function (config) {
+    tangelo.plugin.config.config("/data/config.yaml", false, function (config) {
         QUnit.start();
 
         assert.deepEqual(config, {captain: "picard", firstOfficer: "riker", counselor: "troi"}, "Non required config file should return correct config when file does exist");
@@ -43,7 +43,7 @@ QUnit.test("Required existing config file", function (assert) {
 
     QUnit.stop();
 
-    tangelo.plugin.config.config("/data/config.yml", true, function (config) {
+    tangelo.plugin.config.config("/data/config.yaml", true, function (config) {
         QUnit.start();
 
         assert.deepEqual(config, {captain: "picard", firstOfficer: "riker", counselor: "troi"}, "Required config file should return correct config when file does exist");
@@ -55,13 +55,13 @@ QUnit.test("default 'required' parameter value", function (assert) {
 
     QUnit.stop(2);
 
-    tangelo.plugin.config.config("/data/doesntexist.yml", function (config) {
+    tangelo.plugin.config.config("/data/doesntexist.yaml", function (config) {
         QUnit.start();
 
         assert.deepEqual(config, {}, "'required' defaults to false (non-existing config file)");
     });
 
-    tangelo.plugin.config.config("/data/config.yml", function (config) {
+    tangelo.plugin.config.config("/data/config.yaml", function (config) {
         QUnit.start();
 
         assert.deepEqual(config, {captain: "picard", firstOfficer: "riker", counselor: "troi"}, "'required' defaults to false (existing config file)");

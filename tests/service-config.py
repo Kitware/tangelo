@@ -14,7 +14,7 @@ def test_service_config():
 
 @nose.with_setup(fixture.start_tangelo, fixture.stop_tangelo)
 def test_config_protected():
-    result = requests.get(fixture.url("configured.yml"))
+    result = requests.get(fixture.url("configured.yaml"))
 
     assert result.status_code == 403
 

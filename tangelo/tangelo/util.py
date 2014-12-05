@@ -150,7 +150,7 @@ class ModuleCache(object):
             stamp = self.modules.get(module)
             mtime = os.path.getmtime(module)
 
-            config_file = module[:-2] + "yml"
+            config_file = module[:-2] + "yaml"
             config_mtime = None
 
             if self.config:
