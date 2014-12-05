@@ -16,21 +16,17 @@ The simplest way to launch a Tangelo server is to use this command: ::
     tangelo
 
 Tangelo's runtime behaviors are specified via configuration file and command
-line options.  Tangelo configuration files are INI-style files as read by the
-standard Python `ConfigParse
-<https://docs.python.org/2/library/configparser.html>`_ module.  These files
-consist of one or more `sections`, each of which contains one or more option
-settings.  A section begins with the section title, wrapped in square brackets.
-Options are given as key-value pairs:  the line starts with the name of the
+line options.  Tangelo configuration files are YAML files representing a
+key-value store ("associative array" in YAML jargon) at the top level.  Each
+options is specified as a key-value pair:  the line starts with the name of the
 key, then a colon followed by a space, and then the value.
 
 The example configuration found at
-``/usr/share/tangelo/conf/tangelo/local/conf`` reads something like the
+``/usr/share/tangelo/conf/tangelo.local.conf`` reads something like the
 following:
 
-.. code-block:: cfg
+.. code-block:: yaml
 
-    [tangelo]
     hostname: 0.0.0.0
     port:     8080
 
@@ -38,9 +34,8 @@ This minimal configuration file specifies that Tangelo should listen on all
 interfaces for connections on port 8080.  By contrast, ``tangelo.conf.global``
 looks like this:
 
-.. code-block:: cfg
+.. code-block:: yaml
 
-    [tangelo]
     hostname: 0.0.0.0
     port:     80
 
@@ -57,7 +52,7 @@ attacker.
 To run Tangelo using a particular configuration file, ``tangelo`` can be invoked
 with the ``-c`` or ``--config`` option: ::
 
-    tangelo -c ~/myconfig.json
+    tangelo -c ~/myconfig.yml
 
 When the flag is omitted, Tangelo will use default values for all
 configuration options (see :ref:`config-options` below).
@@ -76,8 +71,6 @@ The following tables, organized by section title, show what fields can be
 included in the configuration file, what they mean, and their default values if
 left unspecified.
 
-The **[tangelo]** section contains general server options:
-
 ================ =================================================================   =================================
 Option           Meaning                                                             Default value
 ================ =================================================================   =================================
@@ -87,7 +80,7 @@ port             The port number on which to listen for connections             
 
 root             The path to the directory to be served by Tangelo as the web root   ``/usr/share/tangelo/www`` [#root]_
 
-drop_privileges  Whether to drop privileges when started as the superuser            ``True``
+drop-privileges  Whether to drop privileges when started as the superuser            ``True``
 
 sessions         Wehther to enable server-side session tracking                      ``True``
 
@@ -95,7 +88,7 @@ user             The user account to drop privileges to                         
 
 group            The user group to drop privileges to                                ``nobody`` [#usergroup]_
 
-access_auth      Whether to protect directories containing a ``.htaccess`` file      ``True``
+access-auth      Whether to protect directories containing a ``.htaccess`` file      ``True``
 
 key              The path to the SSL key                                             ``None`` [#https]_ [#unset]_
 
@@ -116,7 +109,7 @@ cert             The path to the SSL certificate                                
     named "tangelo", that also has minimal permissions, but is only used to run
     Tangelo in privilege drop mode.
 
-.. [#https] You must also specify both key and cert to serve content over
+.. [#https] You must also specify both *key* and *cert* to serve content over
     https.
 
 .. [#unset] That is to say, the option is simply unset by default, the
@@ -136,13 +129,12 @@ the website front page and supporting materials.
 You should then prepare a plugin configuration file that, at the very least,
 activates the Tangelo plugin:
 
-.. code-block:: cfg
+.. code-block:: yaml
 
-    [tangelo]
     enabled: true
     path: /usr/share/tangelo/plugins/tangelo
 
-This file can be saved to ``/etc/tangelo/plugins.conf``.
+This file can be saved to ``/etc/tangelo/plugins.yml``.
 
 It remains to configure Tangelo itself.  The hostname should reflect the desired
 external identity of the Tangelo server - perhaps *excelsior.starfleet.mil*.  As
@@ -153,9 +145,8 @@ can be the specially created user and group *tangelo*.
 
 The corresponding configuration file might look like this:
 
-.. code-block:: cfg
+.. code-block:: yaml
 
-    [tangelo]
     # Network options.
     hostname: excelsior.starfleet.mil
     port: 80

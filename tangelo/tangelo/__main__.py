@@ -42,7 +42,7 @@ class Config(object):
             raise TypeError("Config file %s does not contain a top-level associative array")
 
         self.access_auth = d.get("access-auth")
-        self.drop_privileges = d.get("drop_privileges")
+        self.drop_privileges = d.get("drop-privileges")
         self.sessions = d.get("sessions")
         self.hostname = d.get("hostname")
         self.port = d.get("port")

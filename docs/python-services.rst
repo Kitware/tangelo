@@ -299,14 +299,13 @@ For instance, suppose the following service is implemented in `autodestruct.py`:
 
 Via the :py:func:`tangelo.config` function, this service attempts to match the
 input data against credentials stored in the module level configuration, which
-is stored in `autodestruct.json`:
+is stored in `autodestruct.yml` a YAML file containing an associative array
+(i.e., a key-value store) at its top level:
 
-.. code-block:: javascript
+.. code-block:: yaml
 
-    {
-        "officer": "picard",
-        "code": "echo november golf alpha golf echo four seven enable"
-    }
+    officer: picard
+    code: echo november golf alpha golf echo four seven enable
 
 The two files must have the same base name (`autodestruct` in this case) and be
 in the same location. Any time the module for a service is loaded, the

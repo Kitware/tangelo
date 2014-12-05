@@ -26,7 +26,7 @@ An example plugin's file contents might be as follows:
 
     foobar/
         control.py
-        config.json
+        config.yml
         python/
             __init__.py
             helper.py
@@ -179,9 +179,9 @@ will additionally be unloaded.
 Configuring Plugins
 -------------------
 
-The file ``foobar/config.json`` contains a JSON object representing the plugin's
-configuration data.  This is the same format as web service configurations (see
-:ref:`configuration`), and can be read with the function
+The file ``foobar/config.yml`` describes a YAML associative array representing
+the plugin's configuration data.  This is the same format as web service
+configurations (see :ref:`configuration`), and can be read with the function
 ``tangelo.plugin_config()``.
 
 Similarly, plugins also have a editable persistent store, accessed with the
@@ -201,7 +201,7 @@ Loading a Plugin
 
 Loading a plugin consists of the following actions:
 
-1. The configuration is loaded from ``config.json``.
+1. The configuration is loaded from ``config.yml``.
 
 2. An empty persistent store is created.
 
