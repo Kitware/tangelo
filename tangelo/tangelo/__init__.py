@@ -2,7 +2,6 @@ import cherrypy
 import copy
 import functools
 import inspect
-import json
 import os.path
 import sys
 from types import StringTypes

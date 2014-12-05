@@ -1,23 +1,16 @@
 #!python
 
 import argparse
-import ConfigParser
-import errno
-import itertools
 import os
 import cherrypy
 import platform
 import signal
 import sys
-import time
 import tangelo.util
 import ws4py.server
-import json
-import re
 import yaml
 
 import tangelo
-from tangelo.minify_json import json_minify
 import tangelo.server
 import tangelo.util
 import tangelo.websocket

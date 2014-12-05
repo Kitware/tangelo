@@ -1,7 +1,6 @@
 import cherrypy
 import errno
 import imp
-import json
 import os
 import os.path
 import md5
