@@ -1,4 +1,3 @@
-import ConfigParser
 import datetime
 import sys
 import os
@@ -6,6 +5,7 @@ import cherrypy
 import json
 import traceback
 import types
+import yaml
 
 import tangelo
 import tangelo.util
@@ -167,7 +167,7 @@ def analyze_url(raw_reqpath):
         else:
             # Also do not serve config files that match up to Python files.
             if (len(path) > 5 and
-                    path[-5:] == ".json" and
+                    path[-5:] == ".yaml" and
                     os.path.exists(path[:-5] + ".py")):
                 analysis.content = Content(Content.Restricted, path=path)
             else:
@@ -594,7 +594,7 @@ class Plugins(object):
         plugin = Plugins.Plugin(path)
 
         # Check for a configuration file.
-        config_file = os.path.join(path, "config.json")
+        config_file = os.path.join(path, "config.yaml")
         config = {}
         if os.path.exists(config_file):
             try:
@@ -719,27 +719,33 @@ class Plugins(object):
         if mtime <= self.mtime:
             return
 
-        parser = ConfigParser.RawConfigParser({"enabled": "true"})
-        files = parser.read(self.config_file)
-        if len(files) == 0:
+        try:
+            with open(self.config_file) as f:
+                plugins = yaml.safe_load(f.read())
+        except IOError:
             tangelo.log("PLUGIN", self.missing_msg)
             return
+        except yaml.YAMLError as e:
+            tangelo.log("PLUGIN", "error reading plugin config file: %s" % (e))
+            return
 
-        plugins = parser.sections()
+        if not isinstance(plugins, dict):
+            tangelo.log("PLUGIN", "plugin config file does not contain a top-level associative array")
+            return
+
         seen = set()
-        for plugin in plugins:
-            # See whether the plugin is enabled (default: yes)
-            try:
-                enabled = parser.getboolean(plugin, "enabled")
-            except ValueError:
+        for plugin, conf in plugins.iteritems():
+            # See whether the plugin is enabled (yes by default).
+            enabled = conf.get("enabled", True)
+            if not isinstance(enabled, bool):
                 tangelo.log("PLUGIN", "error:  setting 'enabled' in configuration for plugin '%s' must be a boolean value!" % (plugin))
                 continue
 
             if enabled and plugin not in self.plugins:
                 # Extract the plugin path.
                 try:
-                    path = os.path.join(self.config_dir, parser.get(plugin, "path"))
-                except ConfigParser.NoOptionError:
+                    path = os.path.join(self.config_dir, conf["path"])
+                except KeyError:
                     tangelo.log("PLUGIN", "error: configuration for plugin '%s' missing required setting 'path'" % (plugin))
                     continue
 

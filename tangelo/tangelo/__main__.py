@@ -1,22 +1,16 @@
 #!python
 
 import argparse
-import ConfigParser
-import errno
-import itertools
 import os
 import cherrypy
 import platform
 import signal
 import sys
-import time
 import tangelo.util
 import ws4py.server
-import json
-import re
+import yaml
 
 import tangelo
-from tangelo.minify_json import json_minify
 import tangelo.server
 import tangelo.util
 import tangelo.websocket
@@ -24,50 +18,39 @@ import tangelo.websocket
 tangelo_version = "0.7.0-dev"
 
 
-def read_config(cfgfile):
-    if cfgfile is None:
-        return {}
+class Config(object):
+    def __init__(self, filename=None):
+        self.access_auth = None
+        self.drop_privileges = None
+        self.sessions = None
+        self.hostname = None
+        self.port = None
+        self.user = None
+        self.group = None
+        self.key = None
+        self.cert = None
+        self.root = None
 
-    def getboolean(section, key):
-        try:
-            return cfg.getboolean(section, key)
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return None
+        if filename is not None:
+            self.load(filename)
 
-    def getint(section, key):
-        try:
-            return cfg.getint(section, key)
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return None
+    def load(self, filename):
+        with open(filename) as f:
+            d = yaml.safe_load(f.read())
 
-    def getstring(section, key):
-        try:
-            return cfg.get(section, key)
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return None
+        if not isinstance(d, dict):
+            raise TypeError("Config file %s does not contain a top-level associative array")
 
-    # Read the config file.
-    cfg = ConfigParser.RawConfigParser()
-    files = cfg.read(cfgfile)
-
-    # Signal error if file could not be read.
-    if len(files) == 0:
-        raise IOError(2, "Could not open configuration file", cfgfile)
-
-    # Populate a dictionary with the values from the config.
-    config = {}
-    config["access_auth"] = getboolean("tangelo", "access_auth")
-    config["drop_privileges"] = getboolean("tangelo", "drop_privileges")
-    config["sessions"] = getboolean("tangelo", "sessions")
-    config["hostname"] = getstring("tangelo", "hostname")
-    config["port"] = getint("tangelo", "port")
-    config["user"] = getstring("tangelo", "user")
-    config["group"] = getstring("tangelo", "group")
-    config["key"] = getstring("tangelo", "key")
-    config["cert"] = getstring("tangelo", "cert")
-    config["root"] = getstring("tangelo", "root")
-
-    return config
+        self.access_auth = d.get("access-auth")
+        self.drop_privileges = d.get("drop-privileges")
+        self.sessions = d.get("sessions")
+        self.hostname = d.get("hostname")
+        self.port = d.get("port")
+        self.user = d.get("user")
+        self.group = d.get("group")
+        self.key = d.get("key")
+        self.cert = d.get("cert")
+        self.root = d.get("root")
 
 
 def polite(signum, frame):
@@ -159,16 +142,12 @@ def main():
     # Get a dict representing the contents of the config file.
     try:
         ok = False
-        config = read_config(cfg_file)
+        config = Config(cfg_file)
         ok = True
-    except IOError as e:
+    except (IOError, TypeError) as e:
         tangelo.log("ERROR", "%s" % (e))
-    except ConfigParser.MissingSectionHeaderError:
-        tangelo.log("ERROR", "Config file '%s' has no section headers" % (cfg_file))
-    except ConfigParser.ParsingError as e:
-        tangelo.log("ERROR", "Config file '%s' has syntax errors:" % (cfg_file))
-        for lineno, text in e.errors:
-            tangelo.log("ERROR", "\tline %d: %s" % (lineno, text))
+    except yaml.YAMLError as e:
+        tangelo.log("ERROR", "error while parsing config file: %s" % (e))
     finally:
         if not ok:
             return 1
@@ -176,8 +155,8 @@ def main():
     # Determine whether to use access auth.
     access_auth = True
     if args.access_auth is None and args.no_access_auth is None:
-        if config.get("access_auth") is not None:
-            access_auth = config.get("access_auth")
+        if config.access_auth is not None:
+            access_auth = config.access_auth
     else:
         access_auth = (args.access_auth is not None) or (not args.no_access_auth)
 
@@ -186,16 +165,16 @@ def main():
     # Determine whether to perform privilege drop.
     drop_privileges = True
     if args.drop_privileges is None and args.no_drop_privileges is None:
-        if config.get("drop_privileges") is not None:
-            drop_privileges = config.get("drop_privileges")
+        if config.drop_privileges is not None:
+            drop_privileges = config.drop_privileges
     else:
         drop_privileges = (args.drop_privileges is not None) or (not args.no_drop_privileges)
 
     # Determine whether to enable sessions.
     sessions = True
     if args.sessions is None and args.no_sessions is None:
-        if config.get("sessions") is not None:
-            sessions = config.get("sessions")
+        if config.sessions is not None:
+            sessions = config.sessions
     else:
         sessions = (args.sessions is not None) or (not args.no_sessions)
 
@@ -204,10 +183,10 @@ def main():
     # Extract the rest of the arguments, giving priority first to command line
     # arguments, then to the configuration file (if any), and finally to a
     # hard-coded default value.
-    hostname = args.hostname or config.get("hostname") or "localhost"
-    port = args.port or config.get("port") or 8080
-    user = args.user or config.get("user") or "nobody"
-    group = args.group or config.get("group") or "nobody"
+    hostname = args.hostname or config.hostname or "localhost"
+    port = args.port or config.port or 8080
+    user = args.user or config.user or "nobody"
+    group = args.group or config.group or "nobody"
 
     tangelo.log("TANGELO", "Hostname: %s" % (hostname))
     tangelo.log("TANGELO", "Port: %d" % (port))
@@ -220,12 +199,12 @@ def main():
     # HTTPS support
     #
     # Grab the ssl key file.
-    ssl_key = args.key or config.get("key")
+    ssl_key = args.key or config.key
     if ssl_key is not None:
         ssl_key = tangelo.util.expandpath(ssl_key)
 
     # Grab the cert file.
-    ssl_cert = args.cert or config.get("cert")
+    ssl_cert = args.cert or config.cert
     if ssl_cert is not None:
         ssl_cert = tangelo.util.expandpath(ssl_cert)
 
@@ -253,7 +232,7 @@ def main():
     # TODO(choudhury): shouldn't we *only* check the invocation_dir option?  We
     # shouldn't pick up a stray web directory that happens to be found in /usr
     # if we're invoking tangelo from a totally different location.
-    root = args.root or config.get("root")
+    root = args.root or config.root
     if root:
         root = tangelo.util.expandpath(root)
     else:

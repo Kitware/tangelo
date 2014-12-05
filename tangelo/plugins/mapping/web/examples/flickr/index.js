@@ -571,7 +571,7 @@ window.onload = function () {
     // Create control panel.
     $("#control-panel").controlPanel();
 
-    tangelo.plugin.config.config("config.json", true, function (config) {
+    tangelo.plugin.config.config("config.yaml", true, function (config) {
         var buttons,
             i,
             checkbox,
@@ -581,7 +581,7 @@ window.onload = function () {
             redraw;
 
         if (!config["mongodb-server"] || !config["mongodb-db"] || !config["mongodb-coll"]) {
-            throw new Error("config.json must have 'mongodb-server', 'mongodb-db', and 'mongodb-coll' fields");
+            throw new Error("config.yaml must have 'mongodb-server', 'mongodb-db', and 'mongodb-coll' fields");
         }
 
         flickr.config = {};
