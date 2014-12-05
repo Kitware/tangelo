@@ -9,16 +9,22 @@ import socket
 import threading
 import traceback
 import Queue
+import yaml
 
 import tangelo
-from tangelo.minify_json import json_minify
 
 
 def load_service_config(path):
-    with open(path) as f:
-        config = json.loads(json_minify(f.read()))
-        if type(config) != dict:
-            raise TypeError("Service module configuration file does not contain a key-value store (i.e., a JSON Object)")
+    try:
+        with open(path) as f:
+            config = yaml.safe_load(f.read())
+    except yaml.YAMLError as e:
+        # Convert the error to a built-in exception so the yaml dependency
+        # doesn't leak into other modules.
+        raise ValueError(str(e))
+
+    if type(config) != dict:
+        raise TypeError("Service module configuration file does not contain a key-value store (i.e., a JSON Object)")
 
     return config
 
@@ -168,8 +174,7 @@ class ModuleCache(object):
                         tangelo.log("TANGELO", "Could not open config file %s" % (config_file))
                         raise
                     except ValueError as e:
-                        tangelo.log("TANGELO", "Error reading config file %s: %s" %
-                                    (config_file, e))
+                        tangelo.log("TANGELO", "Error reading config file %s: %s" % (config_file, e))
                         raise
                 else:
                     config = {}

@@ -46,7 +46,7 @@ class Config(object):
             d = yaml.safe_load(f.read())
 
         if not isinstance(d, dict):
-            raise ValueError("Config file %s does not contain a top-level associative array")
+            raise TypeError("Config file %s does not contain a top-level associative array")
 
         self.access_auth = d.get("access-auth")
         self.drop_privileges = d.get("drop_privileges")
@@ -151,12 +151,10 @@ def main():
         ok = False
         config = Config(cfg_file)
         ok = True
-    except ValueError as e:
-        tangelo.log("ERROR", "%s" % (e))
-    except IOError as e:
+    except (IOError, TypeError) as e:
         tangelo.log("ERROR", "%s" % (e))
     except yaml.YAMLError as e:
-        tangelo.log("ERROR", "config file error: %s" % (e))
+        tangelo.log("ERROR", "error while parsing config file: %s" % (e))
     finally:
         if not ok:
             return 1
