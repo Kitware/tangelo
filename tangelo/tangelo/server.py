@@ -719,6 +719,8 @@ class Plugins(object):
         if mtime <= self.mtime:
             return
 
+        self.mtime = mtime
+
         try:
             with open(self.config_file) as f:
                 plugins = yaml.safe_load(f.read())

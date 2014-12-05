@@ -196,8 +196,10 @@ class ModuleCache(object):
         except:
             bt = traceback.format_exc()
 
-            tangelo.log("TANGELO", "Error importing module %s" % (tangelo.request_path()))
+            tangelo.log("TANGELO", "Error importing module %s" % (module))
             tangelo.log("TANGELO", bt)
 
             if self.http_error:
-                raise ModuleCache.Error(module=tangelo.request_path(), traceback=bt)
+                raise ModuleCache.Error(module=module, traceback=bt)
+            else:
+                raise
