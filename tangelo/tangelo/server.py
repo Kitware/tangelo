@@ -166,9 +166,9 @@ def analyze_url(raw_reqpath):
             analysis.content = Content(Content.Restricted, path=path)
         else:
             # Also do not serve config files that match up to Python files.
-            if (len(path) > 5 and
-                    path[-5:] == ".json" and
-                    os.path.exists(path[:-5] + ".py")):
+            if (len(path) > 4 and
+                    path[-4:] == ".yml" and
+                    os.path.exists(path[:-4] + ".py")):
                 analysis.content = Content(Content.Restricted, path=path)
             else:
                 analysis.content = Content(Content.File, path=path)
@@ -594,7 +594,7 @@ class Plugins(object):
         plugin = Plugins.Plugin(path)
 
         # Check for a configuration file.
-        config_file = os.path.join(path, "config.json")
+        config_file = os.path.join(path, "config.yml")
         config = {}
         if os.path.exists(config_file):
             try:
