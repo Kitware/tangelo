@@ -392,10 +392,11 @@ class Tangelo(object):
 
         try:
             service = self.modules.get(module)
-        except tangelo.util.ModuleCache.Error as e:
+        except:
             tangelo.http_status(501, "Error Importing Service")
             tangelo.content_type("application/json")
-            result = e.error_dict()
+            result = {"error": "Could not import module %s" % (tangelo.request_path()),
+                      "traceback": traceback.format_exc().split("\n")}
         else:
             # Try to run the service - either it's in a function called
             # "run()", or else it's in a REST API consisting of at least one of
@@ -423,17 +424,15 @@ class Tangelo(object):
                         tangelo.content_type("application/json")
                         result = {"error": "Method '%s' is not allowed in this service" % (method)}
             except:
-                bt = traceback.format_exc()
+                stacktrace = traceback.format_exc()
 
-                tangelo.log("ERROR", "Caught exception while executing service %s" %
-                            (tangelo.request_path()))
-                tangelo.log("ERROR", bt)
+                tangelo.log("SERVICE", "Could not execute service %s:\n%s" % (tangelo.request_path(), stacktrace))
 
                 tangelo.http_status(501, "Web Service Error")
                 tangelo.content_type("application/json")
                 result = {"error": "Error executing service",
                           "module": tangelo.request_path(),
-                          "traceback": bt.split("\n")}
+                          "traceback": stacktrace.split("\n")}
 
         # Restore the path to what it was originally.
         sys.path = origpath
@@ -581,7 +580,7 @@ class Plugins(object):
         self.plugins = {}
         self.missing_msg = "Plugin config file %s seems to have disappeared" % (self.config_file)
 
-        self.modules = tangelo.util.ModuleCache(config=False, http_error=False)
+        self.modules = tangelo.util.ModuleCache(config=False)
 
         exec("%s = sys.modules[self.base_package] = types.ModuleType(self.base_package)" % (self.base_package))
 
@@ -632,8 +631,7 @@ class Plugins(object):
                 try:
                     exec('%s = sys.modules[module_name] = self.modules.get(init)' % (module_name))
                 except:
-                    tangelo.log("PLUGIN", "\tCould not import python module content")
-                    tangelo.log("PLUGIN", "\t%s" % (traceback.format_exc()))
+                    tangelo.log("PLUGIN", "Could not import python module content:\n%s" % (traceback.format_exc()))
                     sys.path = old_path
                     return False
                 finally:
@@ -647,9 +645,8 @@ class Plugins(object):
             try:
                 control = self.modules.get(control_file)
                 plugin.control = control
-            except ImportError:
-                tangelo.log("PLUGIN", "\tCould not import control module:")
-                tangelo.log("PLUGIN", "\t%s" % (traceback.format_exc()))
+            except:
+                tangelo.log("PLUGIN", "Could not import control module:\n%s" % (traceback.format_exc()))
                 return False
             else:
                 if "setup" in dir(control):
@@ -657,8 +654,7 @@ class Plugins(object):
                     try:
                         setup = control.setup(config, cherrypy.config["plugin-store"][path])
                     except:
-                        tangelo.log("PLUGIN", "\tCaught exception while running setup:")
-                        tangelo.log("PLUGIN", "\t%s" % (traceback.format_exc()))
+                        tangelo.log("PLUGIN", "Could not set up plugin:\n%s" % (traceback.format_exc()))
                         return False
                     else:
                         for app in setup.get("apps", []):
@@ -702,8 +698,7 @@ class Plugins(object):
             try:
                 plugin.control.teardown(cherrypy.config["plugin-config"][plugin.path], cherrypy.config["plugin-store"][plugin.path])
             except:
-                tangelo.log("PLUGIN", "Caught exception while running teardown:")
-                tangelo.log("PLUGIN", traceback.format_exc())
+                tangelo.log("PLUGIN", "Could not run teardown:\n%s", (traceback.format_exc()))
 
         del self.plugins[plugin_name]
 

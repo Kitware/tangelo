@@ -6,7 +6,6 @@ import os.path
 import md5
 import socket
 import threading
-import traceback
 import Queue
 import yaml
 
@@ -127,79 +126,57 @@ class NonBlockingReader(threading.Thread):
 
 
 class ModuleCache(object):
-    class Error(Exception):
-        def __init__(self, module, traceback):
-            self.module = module
-            self.traceback = traceback
-
-        def error_dict(self):
-            return {"error": "There was an error while trying to import service module",
-                    "module": self.module,
-                    "traceback": self.traceback.split("\n")}
-
-    def __init__(self, config=True, http_error=True):
+    def __init__(self, config=True):
         self.config = config
-        self.http_error = http_error
         self.modules = {}
 
     def get(self, module):
         # Import the module if not already imported previously (or if the module
         # to import, or its configuration file, has been updated since the last
         # import).
-        try:
-            stamp = self.modules.get(module)
-            mtime = os.path.getmtime(module)
+        stamp = self.modules.get(module)
+        mtime = os.path.getmtime(module)
 
-            config_file = module[:-2] + "yaml"
-            config_mtime = None
+        config_file = module[:-2] + "yaml"
+        config_mtime = None
+
+        if self.config:
+            if os.path.exists(config_file):
+                config_mtime = os.path.getmtime(config_file)
+
+        if (stamp is None or
+                mtime > stamp["mtime"] or
+                (config_mtime is not None and
+                 config_mtime > stamp["mtime"])):
+
+            # Load any configuration the module might carry with it.
+            if config_mtime is not None:
+                try:
+                    config = load_service_config(config_file)
+                except TypeError as e:
+                    tangelo.log("TANGELO", "Bad configuration in file %s: %s" % (config_file, e))
+                    raise
+                except IOError:
+                    tangelo.log("TANGELO", "Could not open config file %s" % (config_file))
+                    raise
+                except ValueError as e:
+                    tangelo.log("TANGELO", "Error reading config file %s: %s" % (config_file, e))
+                    raise
+            else:
+                config = {}
 
             if self.config:
-                if os.path.exists(config_file):
-                    config_mtime = os.path.getmtime(config_file)
+                cherrypy.config["module-config"][module] = config
+                cherrypy.config["module-store"][module] = {}
 
-            if (stamp is None or
-                    mtime > stamp["mtime"] or
-                    (config_mtime is not None and
-                     config_mtime > stamp["mtime"])):
+            # Remove .py to get the module name
+            name = module[:-3]
 
-                # Load any configuration the module might carry with it.
-                if config_mtime is not None:
-                    try:
-                        config = load_service_config(config_file)
-                    except TypeError as e:
-                        tangelo.log("TANGELO", "Bad configuration in file %s: %s" % (config_file, e))
-                        raise
-                    except IOError:
-                        tangelo.log("TANGELO", "Could not open config file %s" % (config_file))
-                        raise
-                    except ValueError as e:
-                        tangelo.log("TANGELO", "Error reading config file %s: %s" % (config_file, e))
-                        raise
-                else:
-                    config = {}
+            # Load the module.
+            service = imp.load_source(name, module)
+            self.modules[module] = {"module": service,
+                                    "mtime": max(mtime, config_mtime)}
+        else:
+            service = stamp["module"]
 
-                if self.config:
-                    cherrypy.config["module-config"][module] = config
-                    cherrypy.config["module-store"][module] = {}
-
-                # Remove .py to get the module name
-                name = module[:-3]
-
-                # Load the module.
-                service = imp.load_source(name, module)
-                self.modules[module] = {"module": service,
-                                        "mtime": max(mtime, config_mtime)}
-            else:
-                service = stamp["module"]
-
-            return service
-        except:
-            bt = traceback.format_exc()
-
-            tangelo.log("TANGELO", "Error importing module %s" % (module))
-            tangelo.log("TANGELO", bt)
-
-            if self.http_error:
-                raise ModuleCache.Error(module=module, traceback=bt)
-            else:
-                raise
+        return service
