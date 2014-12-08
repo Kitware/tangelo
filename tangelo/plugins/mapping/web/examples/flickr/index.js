@@ -173,8 +173,6 @@ flickr.refreshMap = function () {
                 y: d.location[1]
             };
 
-            //console.log(loc);
-
             return loc;
         })
         .style("radius", radius)
