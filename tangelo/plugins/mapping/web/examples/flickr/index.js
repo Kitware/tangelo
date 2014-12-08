@@ -82,22 +82,22 @@ flickr.refreshMap = function () {
                 return flickr.monthColor(d.month);
             };
 
-/*                    $(this.legend).svgColorLegend({*/
-                //cmapFunc: flickr.monthColor,
-                //xoffset: $(window).width() - 100,
-                //yoffset: 50,
-                //categories: flickr.monthNames,
-                //heightPadding: 5,
-                //widthPadding: 7,
-                //textSpacing: 19,
-                //legendMargins: {
-                    //top: 5,
-                    //left: 5,
-                    //bottom: 5,
-                    //right: 5
-                //},
-                //clear: true
-            //});
+            $(flickr.legend).svgColorLegend({
+                cmapFunc: flickr.monthColor,
+                xoffset: $(window).width() - 100,
+                yoffset: 50,
+                categories: flickr.monthNames,
+                heightPadding: 5,
+                widthPadding: 7,
+                textSpacing: 19,
+                legendMargins: {
+                    top: 5,
+                    left: 5,
+                    bottom: 5,
+                    right: 5
+                },
+                clear: true
+            });
 
             retval = colormap;
         } else if (which === 'day') {
@@ -105,21 +105,23 @@ flickr.refreshMap = function () {
                 return flickr.dayColor(d.day);
             };
 
-/*                    $(this.legend).svgColorLegend({*/
-                //cmapFunc: flickr.dayColor,
-                //xoffset: $(window).width() - 100,
-                //yoffset: 50,
-                //categories: flickr.dayNames,
-                //heightPadding: 5,
-                //widthPadding: 7,
-                //textSpacing: 19,
-                //legendMargins: {top: 5, left: 5, bottom: 5, right: 5},
-                //clear: true
-            //});
+            $(flickr.legend).svgColorLegend({
+                cmapFunc: flickr.dayColor,
+                xoffset: $(window).width() - 100,
+                yoffset: 50,
+                categories: flickr.dayNames,
+                heightPadding: 5,
+                widthPadding: 7,
+                textSpacing: 19,
+                legendMargins: {top: 5, left: 5, bottom: 5, right: 5},
+                clear: true
+            });
 
             retval = colormap;
         } else if (which === 'rb') {
-            //d3.select(this.legend).selectAll("*").remove();
+            d3.select(flickr.legend)
+                .selectAll("*")
+                .remove();
 
             invert = document.getElementById("invert").checked;
             range = invert ? ['blue', 'red'] : ['red', 'blue'];
@@ -131,7 +133,10 @@ flickr.refreshMap = function () {
                 return scale(i);
             };
         } else {
-            //d3.select(this.legend).selectAll("*").remove();
+            d3.select(flickr.legend)
+                .selectAll("*")
+                .remove();
+
             retval = "pink";
         }
 
@@ -762,5 +767,13 @@ window.onload = function () {
         })
             .createFeature("point")
             .data([]);
+
+        flickr.legend = flickr.map.createLayer("feature", {
+            renderer: "d3Renderer",
+            sticky: false
+        })
+            .canvas()
+            .append("g")
+            .node();
     });
 };
