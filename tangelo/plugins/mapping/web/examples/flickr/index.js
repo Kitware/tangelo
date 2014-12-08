@@ -38,6 +38,154 @@ flickr.dayNames = [
     "Sat"
 ];
 
+flickr.refreshMap = function () {
+    "use strict";
+
+    var days,
+        data,
+        N,
+        color,
+        radius,
+        opacity;
+
+    data = flickr.locationData.slice();
+
+    days = _.filter(flickr.dayNames, function (d) {
+        return document.getElementById(d).checked;
+    });
+
+    if (days.length > 0) {
+        data = _.filter(flickr.locationData, function (d) {
+            return days.indexOf(d.day) !== -1;
+        });
+    }
+
+    N = flickr.locationData.length === 1 ? 2 : flickr.locationData.length;
+
+    color = (function () {
+        var which,
+            colormap,
+            legend,
+            retval,
+            invert,
+            range,
+            scale;
+
+        // Determine which radio button is currently
+        // selected.
+        which = $("input[name=colormap]:radio:checked").attr("id");
+
+        // Generate a colormap function to return, and place a color legend
+        // based on it.
+        if (which === 'month') {
+            colormap = function (d) {
+                return flickr.monthColor(d.month);
+            };
+
+/*                    $(this.legend).svgColorLegend({*/
+                //cmapFunc: flickr.monthColor,
+                //xoffset: $(window).width() - 100,
+                //yoffset: 50,
+                //categories: flickr.monthNames,
+                //heightPadding: 5,
+                //widthPadding: 7,
+                //textSpacing: 19,
+                //legendMargins: {
+                    //top: 5,
+                    //left: 5,
+                    //bottom: 5,
+                    //right: 5
+                //},
+                //clear: true
+            //});
+
+            retval = colormap;
+        } else if (which === 'day') {
+            colormap = function (d) {
+                return flickr.dayColor(d.day);
+            };
+
+/*                    $(this.legend).svgColorLegend({*/
+                //cmapFunc: flickr.dayColor,
+                //xoffset: $(window).width() - 100,
+                //yoffset: 50,
+                //categories: flickr.dayNames,
+                //heightPadding: 5,
+                //widthPadding: 7,
+                //textSpacing: 19,
+                //legendMargins: {top: 5, left: 5, bottom: 5, right: 5},
+                //clear: true
+            //});
+
+            retval = colormap;
+        } else if (which === 'rb') {
+            //d3.select(this.legend).selectAll("*").remove();
+
+            invert = document.getElementById("invert").checked;
+            range = invert ? ['blue', 'red'] : ['red', 'blue'];
+            scale = d3.scale.linear()
+                .domain([0, N - 1])
+                .range(range);
+
+            retval = function (d, i) {
+                return scale(i);
+            };
+        } else {
+            //d3.select(this.legend).selectAll("*").remove();
+            retval = "pink";
+        }
+
+        return retval;
+    }());
+
+    radius = (function () {
+        var which,
+            retval,
+            size;
+
+        // Determine which radio button is selected.
+        which = $("input[name=size]:radio:checked").attr("id");
+
+        // Generate a radius function to return.
+        if (which === 'recency') {
+            retval = function (d, i) {
+                return 5 + 15 * (N - 1 - i) / (N - 1);
+            };
+        } else {
+            // Get the size value.
+            size = parseFloat(d3.select("#size").node().value);
+            if (isNaN(size) || size <= 0.0) {
+                size = 5.0;
+            }
+
+            retval = size;
+        }
+
+        return retval;
+    }());
+
+    opacity = flickr.opacityslider.slider("value") / 100;
+
+    flickr.dots.data(data)
+        .position(function (d) {
+            var loc = {
+                x: d.location[0],
+                y: d.location[1]
+            };
+
+            //console.log(loc);
+
+            return loc;
+        })
+        .style("radius", radius)
+        .style("fillColor", color)
+        .style("strokeColor", "black")
+        .style("fillOpacity", opacity)
+        .style("strokeWidth", 1)
+        .draw();
+    flickr.map.draw();
+};
+
 flickr.getMongoRange = function (host, db, coll, field, callback) {
     "use strict";
 
@@ -109,7 +257,7 @@ function setConfigDefaults() {
     d3.select("#mongodb-coll").property("value", cfg.coll);
 }
 
-function retrieveData(initial) {
+function retrieveData() {
     "use strict";
 
     var times,
@@ -166,9 +314,10 @@ function retrieveData(initial) {
         success: function (response) {
             var N,
                 data,
-                gmap_cfg,
-                options,
-                div;
+                color,
+                radius,
+                opacity,
+                days;
 
             // Remove the stored XHR object.
             flickr.currentAjax = null;
@@ -207,7 +356,9 @@ function retrieveData(initial) {
             // Store the retrieved values.
             flickr.locationData = data;
 
-            if (initial) {
+            flickr.refreshMap();
+
+            if (false) {
                 // Create the map object.
                 gmap_cfg = {
                     initialize: function (svg) {
@@ -516,7 +667,7 @@ function getMinMaxDates(zoom) {
 
         // Finally, retrieve the initial data to bootstrap the
         // application.
-        retrieveData(true);
+        retrieveData();
 
         // Add the 'retrieveData' behavior to the slider's onchange callback
         // (which starts out ONLY doing the 'displayFunc' part).
@@ -562,7 +713,7 @@ function retrieveDataSynthetic() {
     flickr.map.locations(locs);
 
     // After data is reloaded to the map-overlay object, redraw the map.
-    flickr.map.trigger("draw");
+    flickr.refreshMap();
 }
 
 window.onload = function () {
@@ -669,14 +820,14 @@ window.onload = function () {
         // they are clicked.
         buttons = document.getElementsByName("colormap");
         redraw = function () {
-            flickr.map.trigger("draw");
+            flickr.refreshMap();
         };
         for (i = 0; i < buttons.length; i += 1) {
             buttons[i].onclick = redraw;
         }
         checkbox = document.getElementById("invert");
         checkbox.onclick = function () {
-            flickr.map.trigger("draw");
+            flickr.refreshMap()
         };
 
         // Direct the day filter checkboxes to redraw the map when clicked.
@@ -811,5 +962,31 @@ window.onload = function () {
                 // Disable the button.
                 d3.select("#abort").classed("disabled", true);
             });
+
+        // Create a GeoJS map object.
+        flickr.map = geo.map({
+            node: "#map",
+            center: {
+                x: 2.33,
+                y: 48.86
+            },
+            zoom: 11
+        });
+
+        flickr.map.createLayer("osm", {
+            baseUrl: "http://otile1.mqcdn.com/tiles/1.0.0/map/"
+        });
+
+        $(window).resize(function () {
+            var map = flickr.map;
+            map.resize(0, 0, map.node().width(), map.node().height());
+        });
+
+        flickr.dots = flickr.map.createLayer("feature", {
+            renderer: "d3Renderer"
+            //renderer: "vglRenderer"
+        })
+            .createFeature("point")
+            .data([]);
     });
 };
