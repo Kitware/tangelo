@@ -38,6 +38,192 @@ flickr.dayNames = [
     "Sat"
 ];
 
+flickr.refreshMap = function () {
+    "use strict";
+
+    var days,
+        data,
+        N,
+        color,
+        radius,
+        opacity;
+
+    data = flickr.locationData.slice();
+
+    days = _.filter(flickr.dayNames, function (d) {
+        return document.getElementById(d).checked;
+    });
+
+    if (days.length > 0) {
+        data = _.filter(flickr.locationData, function (d) {
+            return days.indexOf(d.day) !== -1;
+        });
+    }
+
+    N = flickr.locationData.length === 1 ? 2 : flickr.locationData.length;
+
+    color = (function () {
+        var which,
+            colormap,
+            legend,
+            retval,
+            invert,
+            range,
+            scale;
+
+        // Determine which radio button is currently
+        // selected.
+        which = $("input[name=colormap]:radio:checked").attr("id");
+
+        // Generate a colormap function to return, and place a color legend
+        // based on it.
+        if (which === 'month') {
+            colormap = function (d) {
+                return flickr.monthColor(d.month);
+            };
+
+            $(flickr.legend).svgColorLegend({
+                cmapFunc: flickr.monthColor,
+                xoffset: $(window).width() - 100,
+                yoffset: 50,
+                categories: flickr.monthNames,
+                heightPadding: 5,
+                widthPadding: 7,
+                textSpacing: 19,
+                legendMargins: {
+                    top: 5,
+                    left: 5,
+                    bottom: 5,
+                    right: 5
+                },
+                clear: true
+            });
+
+            retval = colormap;
+        } else if (which === 'day') {
+            colormap = function (d) {
+                return flickr.dayColor(d.day);
+            };
+
+            $(flickr.legend).svgColorLegend({
+                cmapFunc: flickr.dayColor,
+                xoffset: $(window).width() - 100,
+                yoffset: 50,
+                categories: flickr.dayNames,
+                heightPadding: 5,
+                widthPadding: 7,
+                textSpacing: 19,
+                legendMargins: {top: 5, left: 5, bottom: 5, right: 5},
+                clear: true
+            });
+
+            retval = colormap;
+        } else if (which === 'rb') {
+            d3.select(flickr.legend)
+                .selectAll("*")
+                .remove();
+
+            invert = document.getElementById("invert").checked;
+            range = invert ? ['blue', 'red'] : ['red', 'blue'];
+            scale = d3.scale.linear()
+                .domain([0, N - 1])
+                .range(range);
+
+            retval = function (d, i) {
+                return scale(i);
+            };
+        } else {
+            d3.select(flickr.legend)
+                .selectAll("*")
+                .remove();
+
+            retval = "pink";
+        }
+
+        return retval;
+    }());
+
+    radius = (function () {
+        var which,
+            retval,
+            size;
+
+        // Determine which radio button is selected.
+        which = $("input[name=size]:radio:checked").attr("id");
+
+        // Generate a radius function to return.
+        if (which === 'recency') {
+            retval = function (d, i) {
+                return 5 + 15 * (N - 1 - i) / (N - 1);
+            };
+        } else {
+            // Get the size value.
+            size = parseFloat(d3.select("#size").node().value);
+            if (isNaN(size) || size <= 0.0) {
+                size = 5.0;
+            }
+
+            retval = size;
+        }
+
+        return retval;
+    }());
+
+    opacity = flickr.opacityslider.slider("value") / 100;
+
+    flickr.dots.data(data)
+        .position(function (d) {
+            var loc = {
+                x: d.location[0],
+                y: d.location[1]
+            };
+
+            return loc;
+        })
+        .style("radius", radius)
+        .style("fillColor", color)
+        .style("strokeColor", "black")
+        .style("fillOpacity", opacity)
+        .style("strokeWidth", 1)
+        .draw();
+
+    flickr.dots.select()
+        .style("cursor", "crosshair")
+        .each(function (d) {
+            var cfg,
+                msg,
+                before,
+                after,
+                date;
+
+            date = new Date(d.datetaken.$date);
+
+            msg = "";
+            msg += "<b>Date:</b> " + flickr.dateformat(date) + "<br>\n";
+            msg += "<b>Location:</b> (" + d.location[1] + ", " + d.location[0] + ")<br>\n";
+            msg += "<b>Owner:</b> " + d.owner + "<br>\n";
+            msg += "<b>Description:</b> " + d.title + "<br>\n";
+            if (d.url) {
+                msg += "<img src=" + d.url + ">";
+            }
+
+            cfg = {
+                html: true,
+                container: "body",
+                placement: "right",
+                trigger: "hover",
+                content: msg,
+                delay: {
+                    show: 0,
+                    hide: 0
+                }
+            };
+            $(this).popover(cfg);
+        });
+
+    flickr.map.draw();
+};
+
 flickr.getMongoRange = function (host, db, coll, field, callback) {
     "use strict";
 
@@ -109,7 +295,7 @@ function setConfigDefaults() {
     d3.select("#mongodb-coll").property("value", cfg.coll);
 }
 
-function retrieveData(initial) {
+function retrieveData() {
     "use strict";
 
     var times,
@@ -166,9 +352,10 @@ function retrieveData(initial) {
         success: function (response) {
             var N,
                 data,
-                gmap_cfg,
-                options,
-                div;
+                color,
+                radius,
+                opacity,
+                days;
 
             // Remove the stored XHR object.
             flickr.currentAjax = null;
@@ -207,264 +394,7 @@ function retrieveData(initial) {
             // Store the retrieved values.
             flickr.locationData = data;
 
-            if (initial) {
-                // Create the map object.
-                gmap_cfg = {
-                    initialize: function (svg) {
-                        // Add an SVG group whose contents will change or
-                        // disappear based on the active colormap.
-                        this.legend = d3.select(svg).append("g").node();
-                        this.trigger("draw");
-                    },
-
-                    draw: function (d) {
-                        var data,
-                            days,
-                            N,
-                            that,
-                            color,
-                            radius,
-                            opacity,
-                            markers,
-                            svg = d.svg,
-                            proj = d.projection,
-                            trans = d.translation;
-
-                        this.shift(svg, -trans.x, -trans.y);
-
-                        // Process the data by adjoining pixel locations to each
-                        // entry.
-                        data = flickr.locationData.map(function (d) {
-                            d.pixelLocation = proj.fromLatLngToContainerPixel(new google.maps.LatLng(d.location[1], d.location[0]));
-                            return d;
-                        });
-
-                        // Filter the results by day (if any of the boxes is checked).
-                        days = flickr.dayNames.filter(function (d) {
-                            return document.getElementById(d).checked;
-                        });
-                        if (days.length > 0) {
-                            data = data.filter(function (d) {
-                                return days.indexOf(d.day) !== -1;
-                            });
-                        }
-
-                        // Grab the total number of data items.
-                        N = data.length;
-
-                        // Select a colormapping function based on the radio buttons.
-                        that = this;
-                        color = (function () {
-                            var which,
-                                colormap,
-                                legend,
-                                retval,
-                                invert,
-                                range,
-                                scale;
-
-                            // Determine which radio button is currently
-                            // selected.
-                            which = $("input[name=colormap]:radio:checked").attr("id");
-
-                            // Generate a colormap function to return, and place a color legend
-                            // based on it.
-                            if (which === 'month') {
-                                colormap = function (d) {
-                                    return flickr.monthColor(d.month);
-                                };
-
-                                $(that.legend).svgColorLegend({
-                                    cmapFunc: flickr.monthColor,
-                                    xoffset: $(window).width() - 100,
-                                    yoffset: 50,
-                                    categories: flickr.monthNames,
-                                    heightPadding: 5,
-                                    widthPadding: 7,
-                                    textSpacing: 19,
-                                    legendMargins: {
-                                        top: 5,
-                                        left: 5,
-                                        bottom: 5,
-                                        right: 5
-                                    },
-                                    clear: true
-                                });
-
-                                retval = colormap;
-                            } else if (which === 'day') {
-                                colormap = function (d) {
-                                    return flickr.dayColor(d.day);
-                                };
-
-                                $(that.legend).svgColorLegend({
-                                    cmapFunc: flickr.dayColor,
-                                    xoffset: $(window).width() - 100,
-                                    yoffset: 50,
-                                    categories: flickr.dayNames,
-                                    heightPadding: 5,
-                                    widthPadding: 7,
-                                    textSpacing: 19,
-                                    legendMargins: {top: 5, left: 5, bottom: 5, right: 5},
-                                    clear: true
-                                });
-
-                                retval = colormap;
-                            } else if (which === 'rb') {
-                                d3.select(that.legend).selectAll("*").remove();
-
-                                invert = document.getElementById("invert").checked;
-                                range = invert ? ['blue', 'red'] : ['red', 'blue'];
-                                scale = d3.scale.linear()
-                                    .domain([0, N - 1])
-                                    .range(range);
-
-                                retval = function (d, i) {
-                                    return scale(i);
-                                };
-                            } else {
-                                d3.select(that.legend).selectAll("*").remove();
-                                retval = "pink";
-                            }
-
-                            return retval;
-                        }());
-
-                        // Select a radius function as well.
-                        radius = (function () {
-                            var which,
-                                retval,
-                                size;
-
-                            // Determine which radio button is selected.
-                            which = $("input[name=size]:radio:checked").attr("id");
-
-                            // Generate a radius function to return.
-                            if (which === 'recency') {
-                                retval = function (d, i) {
-                                    return 5 + 15 * (N - 1 - i) / (N - 1);
-                                };
-                            } else {
-                                // Get the size value.
-                                size = parseFloat(d3.select("#size").node().value);
-                                if (isNaN(size) || size <= 0.0) {
-                                    size = 5.0;
-                                }
-
-                                retval = size;
-                            }
-
-                            return retval;
-                        }());
-
-                        // Get the opacity value.
-                        opacity = flickr.opacityslider.slider("value") / 100;
-
-                        // Compute a data join with the current list of marker locations, using
-                        // the MongoDB unique id value as the key function.
-                        //
-                        /*jslint nomen: true */
-                        markers = d3.select(svg)
-                            .selectAll("circle")
-                            .data(data, function (d) {
-                                return d._id.$oid;
-                            });
-                        /*jslint nomen: false */
-
-                        // For the enter selection, create new circle elements, and attach a
-                        // title element to each one.  In the update selection (which includes
-                        // the newly added circles), set the proper location and fade in new
-                        // elements.  Fade out circles in the exit selection.
-                        //
-                        // TODO(choudhury): the radius of the marker should depend on the zoom
-                        // level - smaller circles at lower zoom levels.
-                        markers.enter()
-                            .append("circle")
-                            .style("opacity", 0.0)
-                            .style("cursor", "crosshair")
-                            .attr("r", 0)
-                            .each(function (d) {
-                                var cfg,
-                                    msg,
-                                    date;
-
-                                date = new Date(d.datetaken.$date);
-
-                                msg = "";
-                                msg += "<b>Date:</b> " + flickr.dateformat(date) + "<br>\n";
-                                msg += "<b>Location:</b> (" + d.location[1] + ", " + d.location[0] + ")<br>\n";
-                                msg += "<b>Owner:</b> " + d.owner + "<br>\n";
-                                msg += "<b>Description:</b> " + d.title + "<br>\n";
-                                if (d.url) {
-                                    msg += "<img src=" + d.url + ">";
-                                }
-
-                                cfg = {
-                                    html: true,
-                                    container: "body",
-                                    placement: "right",
-                                    trigger: "hover",
-                                    content: msg,
-                                    delay: {
-                                        show: 0,
-                                        hide: 0
-                                    }
-                                };
-                                $(this).popover(cfg)
-                                    .on("shown.bs.popover", function () {
-                                        window.setTimeout(function () {
-                                            var top = +$(".popover").css("top").split("px")[0],
-                                                imgHeight = +$(".popover img").height();
-
-                                            $(".popover").css("top", (top - imgHeight/2 + 10) + "px");
-                                        }, 200);
-                                    });
-                            });
-
-                        // This is to prevent division by zero if there is only one data
-                        // element.
-                        if (N === 1) {
-                            N = 2;
-                        }
-                        markers
-                            .attr("cx", function (d) {
-                                return d.pixelLocation.x;
-                            })
-                            .attr("cy", function (d) {
-                                return d.pixelLocation.y;
-                            })
-                            .style("fill", color)
-                                //.style("fill-opacity", 0.6)
-                                .style("fill-opacity", 1.0)
-                                .style("stroke", "black")
-                                .transition()
-                                .duration(500)
-                                //.attr("r", function(d, i) { return 5 + 15*(N-1-i)/(N-1); })
-                                .attr("r", radius)
-                                //.style("opacity", 1.0);
-                                .style("opacity", opacity);
-                            //.style("opacity", function(d, i){ return 0.3 + 0.7*i/(N-1); });
-
-                        markers.exit()
-                            .transition()
-                            .duration(500)
-                            .style("opacity", 0.0)
-                            .remove();
-                    }
-                };
-
-                // Some options for initializing the google map.
-                //
-                // Set to Paris, with good view of the Seine.
-                options = {
-                    zoom: 13,
-                    center: new google.maps.LatLng(48.86, 2.33),
-                    mapTypeId: google.maps.MapTypeId.ROADMAP
-                };
-                div = d3.select("#map").node();
-                flickr.map = new tangelo.plugin.mapping.GoogleMapSVG(div, options, gmap_cfg);
-                flickr.map.on(["draw", "drag", "zoom_changed"], gmap_cfg.draw);
-            }
+            flickr.refreshMap();
         }
     });
 }
@@ -516,7 +446,7 @@ function getMinMaxDates(zoom) {
 
         // Finally, retrieve the initial data to bootstrap the
         // application.
-        retrieveData(true);
+        retrieveData();
 
         // Add the 'retrieveData' behavior to the slider's onchange callback
         // (which starts out ONLY doing the 'displayFunc' part).
@@ -562,7 +492,7 @@ function retrieveDataSynthetic() {
     flickr.map.locations(locs);
 
     // After data is reloaded to the map-overlay object, redraw the map.
-    flickr.map.trigger("draw");
+    flickr.refreshMap();
 }
 
 window.onload = function () {
@@ -669,14 +599,14 @@ window.onload = function () {
         // they are clicked.
         buttons = document.getElementsByName("colormap");
         redraw = function () {
-            flickr.map.trigger("draw");
+            flickr.refreshMap();
         };
         for (i = 0; i < buttons.length; i += 1) {
             buttons[i].onclick = redraw;
         }
         checkbox = document.getElementById("invert");
         checkbox.onclick = function () {
-            flickr.map.trigger("draw");
+            flickr.refreshMap()
         };
 
         // Direct the day filter checkboxes to redraw the map when clicked.
@@ -811,5 +741,39 @@ window.onload = function () {
                 // Disable the button.
                 d3.select("#abort").classed("disabled", true);
             });
+
+        // Create a GeoJS map object.
+        flickr.map = geo.map({
+            node: "#map",
+            center: {
+                x: 2.33,
+                y: 48.86
+            },
+            zoom: 11
+        });
+
+        flickr.map.createLayer("osm", {
+            baseUrl: "http://otile1.mqcdn.com/tiles/1.0.0/map/"
+        });
+
+        $(window).resize(function () {
+            var map = flickr.map;
+            map.resize(0, 0, map.node().width(), map.node().height());
+        });
+
+        flickr.dots = flickr.map.createLayer("feature", {
+            renderer: "d3Renderer"
+            //renderer: "vglRenderer"
+        })
+            .createFeature("point")
+            .data([]);
+
+        flickr.legend = flickr.map.createLayer("feature", {
+            renderer: "d3Renderer",
+            sticky: false
+        })
+            .canvas()
+            .append("g")
+            .node();
     });
 };
