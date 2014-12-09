@@ -6,6 +6,8 @@ import urlparse
 import subprocess
 import sys
 
+import tangelo.util
+
 descriptions = {"install": "Download/prepare a Tangelo plugin for use",
                 "enable": "Enable a Tangelo plugin",
                 "disable": "Disable a Tangelo plugin",
@@ -21,6 +23,33 @@ class ShellCommand(object):
 
 pip = ShellCommand("TANGELO_PIP", os.path.join(sys.prefix, "bin/pip"))
 git = ShellCommand("TANGELO_GIT", "git")
+
+def dump_yaml(data, filename):
+    # Dump to YAML.
+    s = yaml.dump(data, default_flow_style=4)
+
+    # Compute a string of letters that does not appear in the YAML string.
+    while True:
+        sentinel = "".join(random.choice(string.ascii_uppercase) for _ in range(8))
+        if sentinel not in s:
+            break
+
+    # Replace all intra-object linebreaks with the sentinel.
+    s = s.replace("\n    ", sentinel)
+
+    # Replace all inter-object linebreaks with double linebreaks.
+    s = s.replace("\n", "\n\n")
+
+    # Replace the sentinels with intra-object linebreaks.
+    s = s.replace(sentinel, "\n    ")
+
+    # The last two characters of the string should be newlines; replace them
+    # with a single newline.
+    if s[-2:] == "\n\n":
+        s = s[:-1]
+
+    with open(filename, "w") as f:
+        f.write(s)
 
 def usage():
     msg = ["usage: tangelo-plugin <subcommand> [...]",
@@ -105,15 +134,44 @@ def enable_args(args, on):
     sys.argv[0] += " %s" % (op)
 
     p = argparse.ArgumentParser(description=descriptions[op])
-    p.add_argument("-p", "--plugin", type=str, required=True, metavar="PLUGIN", help="The name of the plugin to %s" % (op))
+    p.add_argument("-n", "--name", type=str, required=True, metavar="PLUGIN", help="The name of the plugin to %s" % (op))
+    p.add_argument("-p", "--path", type=str, default=None, metavar="PATH", help="Path to plugin, for updating/creating config file entry")
     p.add_argument("-c", "--config", type=str, default="./plugin.conf", metavar="FILE", help="The plugin config file to update (default: plugin.conf)")
 
     return p.parse_args(args)
 
-def enable(plugin, config, on):
-    print plugin
-    print config
-    print on
+def enable(plugin, config_file, on, path=None):
+    try:
+        config = tangelo.util.Config(config_file)
+    except (IOError, TypeError, yaml.YAMLError) as e:
+        print >>sys.stderr, "error: could not read plugin config file %s:\n%s" % (config, e)
+        return 1
+
+    if plugin not in config:
+        if on:
+            # This path means there is no entry for the plugin in the config
+            # file and we wish to enable it - that requires a path from which to
+            # create a new entry.  If we're disabling the plugin instead,
+            # there's no need to do anything - it's already disabled by virtue
+            # of not existing.
+
+            if path is None:
+                print >>sys.stderr, "path argument is required to create new plugin entry for %s"
+                return 1
+
+            config[plugin] = {"path": path,
+                              "enabled": on}
+    else:
+        config[plugin]["enabled"] = on
+
+    try:
+        dump_yaml(config, config_file)
+    except IOError as e:
+        print >>sys.stderr, "error: could not write updated config to %s:\n%s" % (config_file, e)
+        return 1
+
+    print "Plugin %s %s" % (plugin, "enabled" if on else "disabled")
+    return 0
 
 def main():
     # Examine the first argument.

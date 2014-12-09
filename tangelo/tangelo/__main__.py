@@ -18,41 +18,6 @@ import tangelo.websocket
 tangelo_version = "0.7.0-dev"
 
 
-class Config(object):
-    def __init__(self, filename=None):
-        self.access_auth = None
-        self.drop_privileges = None
-        self.sessions = None
-        self.hostname = None
-        self.port = None
-        self.user = None
-        self.group = None
-        self.key = None
-        self.cert = None
-        self.root = None
-
-        if filename is not None:
-            self.load(filename)
-
-    def load(self, filename):
-        with open(filename) as f:
-            d = yaml.safe_load(f.read())
-
-        if not isinstance(d, dict):
-            raise TypeError("Config file %s does not contain a top-level associative array")
-
-        self.access_auth = d.get("access-auth")
-        self.drop_privileges = d.get("drop-privileges")
-        self.sessions = d.get("sessions")
-        self.hostname = d.get("hostname")
-        self.port = d.get("port")
-        self.user = d.get("user")
-        self.group = d.get("group")
-        self.key = d.get("key")
-        self.cert = d.get("cert")
-        self.root = d.get("root")
-
-
 def polite(signum, frame):
     tangelo.log("TANGELO", "Already shutting down.  To force shutdown immediately, send SIGQUIT (Ctrl-\\).")
 
@@ -142,7 +107,7 @@ def main():
     # Get a dict representing the contents of the config file.
     try:
         ok = False
-        config = Config(cfg_file)
+        config = tangelo.util.Config(cfg_file)
         ok = True
     except (IOError, TypeError) as e:
         tangelo.log("ERROR", "%s" % (e))
