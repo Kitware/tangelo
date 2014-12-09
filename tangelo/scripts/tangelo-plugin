@@ -7,14 +7,15 @@ import subprocess
 import sys
 
 descriptions = {"install": "Download/prepare a Tangelo plugin for use",
-                "enable": lambda on: "%s a Tangelo plugin" % ("Enable" if on else "Disable")}
+                "enable": "Enable a Tangelo plugin",
+                "disable": "Disable a Tangelo plugin",
 
 def usage():
     msg = ["usage: tangelo-plugin <subcommand> [...]",
            "",
            "tangelo-plugin install -- %s" % (descriptions["install"]),
-           "tangelo-plugin enable -- %s" % (descriptions["enable"](True)),
-           "tangelo-plugin disable -- %s" % (descriptions["enable"](False)),
+           "tangelo-plugin enable -- %s" % (descriptions["enable"]),
+           "tangelo-plugin disable -- %s" % (descriptions["disable"]),
            "",
            "For more help on these subcommands, issue the subcommand with a '-h' flag."]
 
@@ -40,7 +41,7 @@ def enable_args(args, on):
     op = "enable" if on else "disable"
     sys.argv[0] += " %s" % (op)
 
-    p = argparse.ArgumentParser(description=descriptions["enable"](on))
+    p = argparse.ArgumentParser(description=descriptions[op])
     p.add_argument("-p", "--plugin", type=str, required=True, metavar="PLUGIN", help="The name of the plugin to %s" % (op))
     p.add_argument("-c", "--config", type=str, default="./plugin.conf", metavar="FILE", help="The plugin config file to update (default: plugin.conf)")
 
