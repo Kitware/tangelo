@@ -3,30 +3,45 @@
 import argparse
 import os
 import urlparse
+import random
+import string
 import subprocess
 import sys
-
-import tangelo.util
+import yaml
 
 descriptions = {"install": "Download/prepare a Tangelo plugin for use",
                 "enable": "Enable a Tangelo plugin",
                 "disable": "Disable a Tangelo plugin",
+                "remove": "Remove a plugin entry altogether",
                 "batch": "Download/prepare/enable/disable all plugins in a configuration file"}
+
 
 class ShellCommand(object):
     def __init__(self, environ_var, default):
         self.command = os.environ.get(environ_var) or default
 
     def __call__(self, *args):
-        self.code = subprocess.call(self.command, *args)
+        print self.command
+        self.code = subprocess.call([self.command] + list(args))
         return self.code == 0
 
 pip = ShellCommand("TANGELO_PIP", os.path.join(sys.prefix, "bin/pip"))
 git = ShellCommand("TANGELO_GIT", "git")
 
+
+def read_plugin_config(filename):
+    with open(filename) as f:
+        config = yaml.safe_load(f.read())
+
+    if not isinstance(config, dict):
+        raise TypeError("plugin config file does not contain top-level associative array")
+
+    return config
+
+
 def dump_yaml(data, filename):
     # Dump to YAML.
-    s = yaml.dump(data, default_flow_style=4)
+    s = yaml.dump(data, default_flow_style=False, indent=4)
 
     # Compute a string of letters that does not appear in the YAML string.
     while True:
@@ -51,6 +66,7 @@ def dump_yaml(data, filename):
     with open(filename, "w") as f:
         f.write(s)
 
+
 def usage():
     msg = ["usage: tangelo-plugin <subcommand> [...]",
            "",
@@ -64,6 +80,7 @@ def usage():
     print >>sys.stderr, "\n".join(msg)
     return 1
 
+
 def batch_args(args):
     sys.argv[0] += " batch"
 
@@ -72,8 +89,27 @@ def batch_args(args):
 
     return p.parse_args(args)
 
-def batch(config):
-    print config
+
+def batch(config_file):
+    try:
+        config = read_plugin_config(config_file)
+    except (IOError, TypeError, yaml.YAMLError) as e:
+        print >>sys.stderr, "error: could not read plugin config file %s:\n%s" % (config_file, e)
+        return 1
+
+    for name in config:
+        plugin = config[name]
+
+        if plugin["enabled"]:
+            print "Installing plugin %s" % (name)
+            if "path" not in plugin:
+                print >>sys.stderr, "error: plugin has no 'path' property - skipping"
+                continue
+
+            code = install(plugin["path"], url=plugin.get("url"), prepare=True)
+            if code != 0:
+                print >>sys.stderr, "error: failed to install plugin %s" % (name)
+
 
 def install_args(args):
     sys.argv[0] += " install"
@@ -84,6 +120,7 @@ def install_args(args):
     p.add_argument("--no-prepare", action="store_true", help="do not run the plugin preparation (installing dependencies, etc.)")
 
     return p.parse_args(args)
+
 
 def install(path, url=None, prepare=None):
     if url is not None:
@@ -109,7 +146,7 @@ def install(path, url=None, prepare=None):
             print "Installing Python dependencies..."
             success = pip("install", "-r", req_file)
 
-            if not sucesss:
+            if not success:
                 print >>sys.stderr, "error: pip exited with error code %d" % (pip.code)
                 return 1
 
@@ -126,8 +163,40 @@ def install(path, url=None, prepare=None):
 
             print "Informational message:\n%s" % (text)
 
-    print "Plugin installed%s" % (" and prepared" if prepare else "")
     return 0
+
+
+def remove_args(args):
+    sys.argv[0] += " remove"
+
+    p = argparse.ArgumentParser(description=descriptions["remove"])
+    p.add_argument("-n", "--name", type=str, required=True, metavar="PLUGIN", help="The name of the plugin to remove")
+    p.add_argument("-c", "--config", type=str, default="./plugin.conf", metavar="FILE", help="The plugin config file to update (default: plugin.conf)")
+
+    return p.parse_args(args)
+
+
+def remove(plugin, config_file):
+    try:
+        config = read_plugin_config(config_file)
+    except (IOError, TypeError, yaml.YAMLError) as e:
+        print >>sys.stderr, "error: could not read plugin config file %s:\n%s" % (config_file, e)
+        return 1
+
+    if plugin not in config:
+        print >>sys.stderr, "error: plugin %s not present in %s" % (plugin, config_file)
+        return 1
+
+    del config[plugin]
+
+    try:
+        dump_yaml(config, config_file)
+    except IOError as e:
+        print >>sys.stderr, "error: could not write updated config to %s:\n%s" % (config_file, e)
+        return 1
+
+    return 0
+
 
 def enable_args(args, on):
     op = "enable" if on else "disable"
@@ -140,11 +209,12 @@ def enable_args(args, on):
 
     return p.parse_args(args)
 
+
 def enable(plugin, config_file, on, path=None):
     try:
-        config = tangelo.util.Config(config_file)
+        config = read_plugin_config(config_file)
     except (IOError, TypeError, yaml.YAMLError) as e:
-        print >>sys.stderr, "error: could not read plugin config file %s:\n%s" % (config, e)
+        print >>sys.stderr, "error: could not read plugin config file %s:\n%s" % (config_file, e)
         return 1
 
     if plugin not in config:
@@ -156,7 +226,7 @@ def enable(plugin, config_file, on, path=None):
             # of not existing.
 
             if path is None:
-                print >>sys.stderr, "path argument is required to create new plugin entry for %s"
+                print >>sys.stderr, "path argument is required to create new plugin entry for %s" % (plugin)
                 return 1
 
             config[plugin] = {"path": path,
@@ -170,8 +240,8 @@ def enable(plugin, config_file, on, path=None):
         print >>sys.stderr, "error: could not write updated config to %s:\n%s" % (config_file, e)
         return 1
 
-    print "Plugin %s %s" % (plugin, "enabled" if on else "disabled")
     return 0
+
 
 def main():
     # Examine the first argument.
@@ -186,10 +256,13 @@ def main():
         return install(args.path, url=args.url, prepare=not args.no_prepare)
     elif subcommand == "enable":
         args = enable_args(args, True)
-        return enable(args.plugin, args.config, True)
+        return enable(args.name, args.config, True, path=args.path)
     elif subcommand == "disable":
         args = enable_args(args, False)
-        return enable(args.plugin, args.config, False)
+        return enable(args.name, args.config, False)
+    elif subcommand == "remove":
+        args = remove_args(args)
+        return remove(args.name, args.config)
     elif subcommand == "batch":
         args = batch_args(args)
         return batch(args.config)
