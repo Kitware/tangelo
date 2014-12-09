@@ -11,6 +11,16 @@ descriptions = {"install": "Download/prepare a Tangelo plugin for use",
                 "disable": "Disable a Tangelo plugin",
                 "batch": "Download/prepare/enable/disable all plugins in a configuration file"}
 
+class ShellCommand(object):
+    def __init__(self, environ_var, default):
+        self.command = os.environ.get(environ_var) or default
+
+    def __call__(self, *args):
+        return subprocess.call(self.command, *args)
+
+pip = ShellCommand("TANGELO_PIP", os.path.join(sys.prefix, "bin/pip"))
+git = ShellCommand("TANGELO_GIT", "git")
+
 def usage():
     msg = ["usage: tangelo-plugin <subcommand> [...]",
            "",
@@ -66,8 +76,6 @@ def enable(plugin, config, on):
     print on
 
 def main():
-    retval = 0
-
     # Examine the first argument.
     if len(sys.argv) < 2:
         return usage()
@@ -89,10 +97,6 @@ def main():
         return batch(args.config)
     else:
         return usage()
-
-    # Get the pip executable from the same installation as the current script's
-    # python.
-    pip = os.path.join(sys.prefix, "bin/pip")
 
     # Treat the arguments as a list of plugin URIs.
     plugins = sys.argv[1:]
