@@ -1,12 +1,77 @@
 #!python
 
+import argparse
 import os
 import urlparse
 import subprocess
 import sys
 
+descriptions = {"install": "Download/prepare a Tangelo plugin for use",
+                "enable": lambda on: "%s a Tangelo plugin" % ("Enable" if on else "Disable")}
+
+def usage():
+    msg = ["usage: tangelo-plugin <subcommand> [...]",
+           "",
+           "tangelo-plugin install -- %s" % (descriptions["install"]),
+           "tangelo-plugin enable -- %s" % (descriptions["enable"](True)),
+           "tangelo-plugin disable -- %s" % (descriptions["enable"](False)),
+           "",
+           "For more help on these subcommands, issue the subcommand with a '-h' flag."]
+
+    print >>sys.stderr, "\n".join(msg)
+    return 1
+
+def install_args(args):
+    sys.argv[0] += " install"
+
+    p = argparse.ArgumentParser(description=descriptions["install"])
+    p.add_argument("-u", "--url", type=str, default=None, metavar="URL", help="URL of a Git repository hosting the pluigin")
+    p.add_argument("-p", "--path", type=str, required=True, metavar="PATH", help="Location of plugin on disk, or location to install plugin via Git")
+    p.add_argument("--no-prepare", action="store_true", help="do not run the plugin preparation (installing dependencies, etc.)")
+
+    return p.parse_args(args)
+
+def install(path, url=None, prepare=None):
+    print url
+    print path
+    print prepare
+
+def enable_args(args, on):
+    op = "enable" if on else "disable"
+    sys.argv[0] += " %s" % (op)
+
+    p = argparse.ArgumentParser(description=descriptions["enable"](on))
+    p.add_argument("-p", "--plugin", type=str, required=True, metavar="PLUGIN", help="The name of the plugin to %s" % (op))
+    p.add_argument("-c", "--config", type=str, default="./plugin.conf", metavar="FILE", help="The plugin config file to update (default: plugin.conf)")
+
+    return p.parse_args(args)
+
+def enable(plugin, config, on):
+    print plugin
+    print config
+    print on
+
 def main():
     retval = 0
+
+    # Examine the first argument.
+    if len(sys.argv) < 2:
+        return usage()
+
+    subcommand = sys.argv[1]
+    args = sys.argv[2:]
+
+    if subcommand == "install":
+        args = install_args(args)
+        return install(args.path, url=args.url, prepare=not args.no_prepare)
+    elif subcommand == "enable":
+        args = enable_args(args, True)
+        return enable(args.plugin, args.config, True)
+    elif subcommand == "disable":
+        args = enable_args(args, False)
+        return enable(args.plugin, args.config, False)
+    else:
+        return usage()
 
     # Get the pip executable from the same installation as the current script's
     # python.
