@@ -9,6 +9,7 @@ import sys
 descriptions = {"install": "Download/prepare a Tangelo plugin for use",
                 "enable": "Enable a Tangelo plugin",
                 "disable": "Disable a Tangelo plugin",
+                "batch": "Download/prepare/enable/disable all plugins in a configuration file"}
 
 def usage():
     msg = ["usage: tangelo-plugin <subcommand> [...]",
@@ -16,11 +17,23 @@ def usage():
            "tangelo-plugin install -- %s" % (descriptions["install"]),
            "tangelo-plugin enable -- %s" % (descriptions["enable"]),
            "tangelo-plugin disable -- %s" % (descriptions["disable"]),
+           "tangelo-plugin batch -- %s" % (descriptions["batch"]),
            "",
            "For more help on these subcommands, issue the subcommand with a '-h' flag."]
 
     print >>sys.stderr, "\n".join(msg)
     return 1
+
+def batch_args(args):
+    sys.argv[0] += " batch"
+
+    p = argparse.ArgumentParser(description=descriptions["batch"])
+    p.add_argument("-c", "--config", type=str, required=True, metavar="FILE", help="Config file with plugins to batch-process")
+
+    return p.parse_args(args)
+
+def batch(config):
+    print config
 
 def install_args(args):
     sys.argv[0] += " install"
@@ -71,6 +84,9 @@ def main():
     elif subcommand == "disable":
         args = enable_args(args, False)
         return enable(args.plugin, args.config, False)
+    elif subcommand == "batch":
+        args = batch_args(args)
+        return batch(args.config)
     else:
         return usage()
 
