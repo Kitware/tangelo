@@ -16,7 +16,8 @@ class ShellCommand(object):
         self.command = os.environ.get(environ_var) or default
 
     def __call__(self, *args):
-        return subprocess.call(self.command, *args)
+        self.code = subprocess.call(self.command, *args)
+        return self.code == 0
 
 pip = ShellCommand("TANGELO_PIP", os.path.join(sys.prefix, "bin/pip"))
 git = ShellCommand("TANGELO_GIT", "git")
@@ -56,9 +57,48 @@ def install_args(args):
     return p.parse_args(args)
 
 def install(path, url=None, prepare=None):
-    print url
-    print path
-    print prepare
+    if url is not None:
+        if os.path.exists(path):
+            print >>sys.stderr, "URL specified but path %s already exists" % (path)
+            return 1
+
+        # Clone git repository
+        print "Cloning git repository..."
+        success = git("clone", url, path)
+
+        if not success:
+            print >>sys.stderr, "error: git exited with error code %d" % (git.code)
+            return 1
+
+    if not os.path.exists(path):
+        print >>sys.stderr, "Path %s does not exist" % (path)
+
+    if prepare:
+        # Install pip requirements
+        req_file = os.path.join(path, "requirements.txt")
+        if os.path.exists(req_file):
+            print "Installing Python dependencies..."
+            success = pip("install", "-r", req_file)
+
+            if not sucesss:
+                print >>sys.stderr, "error: pip exited with error code %d" % (pip.code)
+                return 1
+
+        # Display informational message
+        info_file = os.path.join(path, "info.txt")
+        if os.path.exists(info_file):
+            try:
+                with open(info_file) as f:
+                    text = f.read()
+            except IOError as e:
+                print >>sys.stderr, "error: could not open file %s for reading" % (info_file)
+                print >>sys.stderr, e
+                return 1
+
+            print "Informational message:\n%s" % (text)
+
+    print "Plugin installed%s" % (" and prepared" if prepare else "")
+    return 0
 
 def enable_args(args, on):
     op = "enable" if on else "disable"
