@@ -1,0 +1,7 @@
+Before using this plugin, you will need to install the Girder web client by
+issuing the following command:
+
+    girder-install web
+
+This installs the materials necessary to actually interact with the Girder
+server directly from the browser, or via a Tangelo application.

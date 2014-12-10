@@ -12,6 +12,85 @@ import yaml
 import tangelo
 
 
+class PluginConfig(object):
+    properties = ["name", "enabled", "url", "path"]
+
+    def __init__(self, filename=None):
+        self.plugin_order = []
+        self.plugins = {}
+
+        if filename is not None:
+            self.load(filename)
+
+    def load(self, filename):
+        with open(filename) as f:
+            try:
+                plugins = yaml.safe_load(f.read())
+            except yaml.YAMLError as e:
+                raise ValueError(e.message)
+
+        # This enables an empty file to represent an empty list instead.
+        if plugins is None:
+            plugins = []
+
+        if not isinstance(plugins, list):
+            raise TypeError("plugin config file %s does not contain a top-level list" % (filename))
+
+        for i, p in enumerate(plugins):
+            if "name" not in p:
+                raise ValueError("plugin config file %s, entry %d, is missing required 'name' property" % (filename, i + 1))
+
+            name = p["name"]
+            if name in self.plugins:
+                raise ValueError("plugin config file %s, entry %d, contains duplicate name %s" % (filename, i + 1, name))
+
+            del p["name"]
+
+            self.plugin_order.append(name)
+            self.plugins[name] = p
+
+    def dump(self, filename):
+        def stringify(name, rec):
+            lines = ["- name: %s" % (name)]
+
+            if "enabled" in rec:
+                lines.append("  enabled: %s" % ("true" if rec["enabled"] else "false"))
+
+            if "url" in rec:
+                lines.append("  url: %s" % (rec["url"]))
+
+            lines.append("  path: %s" % (rec["path"]))
+
+            for prop in rec:
+                if prop not in PluginConfig.properties:
+                    lines.append("  %s: %s" % (prop, rec[prop]))
+
+            return "\n".join(lines)
+
+        text = "\n\n".join(map(lambda name: stringify(name, self.plugins[name]), self.plugin_order)) + "\n"
+
+        with open(filename, "w") as f:
+            f.write(text)
+
+    def add(self, name, path, **other):
+        if name in self.plugins:
+            raise ValueError("name '%s' already present in config" % (name))
+
+        self.plugins[name] = {"name": name,
+                              "path": path}
+        self.plugins[name].update(**other)
+
+        self.plugin_order.append(name)
+
+    def remove(self, name):
+        if name not in self.plugins:
+            raise ValueError("name '%s' not present in config" % (name))
+
+        del self.plugins[name]
+
+        self.plugin_order.remove(name)
+
+
 def load_service_config(path):
     try:
         with open(path) as f:

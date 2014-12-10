@@ -1,0 +1,263 @@
+#!python
+
+import argparse
+import os
+import urlparse
+import subprocess
+import sys
+
+import tangelo.util
+
+descriptions = {"install": "Download/prepare a Tangelo plugin for use",
+                "enable": "Enable a Tangelo plugin",
+                "disable": "Disable a Tangelo plugin",
+                "remove": "Remove a plugin entry altogether",
+                "batch": "Download/prepare/enable/disable all plugins in a configuration file"}
+
+
+class ShellCommand(object):
+    def __init__(self, environ_var, default):
+        self.command = os.environ.get(environ_var) or default
+
+    def __call__(self, *args):
+        print self.command
+        self.code = subprocess.call([self.command] + list(args))
+        return self.code == 0
+
+pip = ShellCommand("TANGELO_PIP", os.path.join(sys.prefix, "bin/pip"))
+git = ShellCommand("TANGELO_GIT", "git")
+
+
+def usage():
+    msg = ["usage: tangelo-plugin <subcommand> [...]",
+           "",
+           "tangelo-plugin install -- %s" % (descriptions["install"]),
+           "tangelo-plugin enable -- %s" % (descriptions["enable"]),
+           "tangelo-plugin disable -- %s" % (descriptions["disable"]),
+           "tangelo-plugin batch -- %s" % (descriptions["batch"]),
+           "",
+           "For more help on these subcommands, issue the subcommand with a '-h' flag."]
+
+    print >>sys.stderr, "\n".join(msg)
+    return 1
+
+
+def batch_args(args):
+    sys.argv[0] += " batch"
+
+    p = argparse.ArgumentParser(description=descriptions["batch"])
+    p.add_argument("-c", "--config", type=str, required=True, metavar="FILE", help="Config file with plugins to batch-process")
+
+    return p.parse_args(args)
+
+
+def batch(config_file):
+    try:
+        config = tangelo.util.PluginConfig(config_file)
+    except IOError as e:
+        print >>sys.stderr, "error: could not read plugin config file %s:\n%s" % (config_file, e)
+        return 1
+    except (TypeError, ValueError) as e:
+        print >>sys.stdder, "error reading plugin config file %s:\n%s" % (config_file, e)
+        return 1
+
+    for name, plugin in config.plugins.iteritems():
+        if plugin.get("enabled", True):
+            print "Installing plugin %s" % (name)
+            if "path" not in plugin:
+                print >>sys.stderr, "error: plugin has no 'path' property - skipping"
+                continue
+
+            code = install(plugin["path"], url=plugin.get("url"), prepare=True)
+            if code != 0:
+                print >>sys.stderr, "error: failed to install plugin %s" % (name)
+
+
+def install_args(args):
+    sys.argv[0] += " install"
+
+    p = argparse.ArgumentParser(description=descriptions["install"])
+    p.add_argument("-u", "--url", type=str, default=None, metavar="URL", help="URL of a Git repository hosting the pluigin")
+    p.add_argument("-p", "--path", type=str, required=True, metavar="PATH", help="Location of plugin on disk, or location to install plugin via Git")
+    p.add_argument("--no-prepare", action="store_true", help="do not run the plugin preparation (installing dependencies, etc.)")
+
+    return p.parse_args(args)
+
+
+def install(path, url=None, prepare=None):
+    if url is not None:
+        if os.path.exists(path):
+            print >>sys.stderr, "URL specified but path %s already exists" % (path)
+            return 1
+
+        # Clone git repository
+        print "Cloning git repository..."
+        success = git("clone", url, path)
+
+        if not success:
+            print >>sys.stderr, "error: git exited with error code %d" % (git.code)
+            return 1
+
+    if not os.path.exists(path):
+        print >>sys.stderr, "Path %s does not exist" % (path)
+
+    if prepare:
+        # Install pip requirements
+        req_file = os.path.join(path, "requirements.txt")
+        if os.path.exists(req_file):
+            print "Installing Python dependencies..."
+            success = pip("install", "-r", req_file)
+
+            if not success:
+                print >>sys.stderr, "error: pip exited with error code %d" % (pip.code)
+                return 1
+
+        # Display informational message
+        info_file = os.path.join(path, "info.txt")
+        if os.path.exists(info_file):
+            try:
+                with open(info_file) as f:
+                    text = f.read()
+            except IOError as e:
+                print >>sys.stderr, "error: could not open file %s for reading" % (info_file)
+                print >>sys.stderr, e
+                return 1
+
+            print "Informational message:\n%s" % (text)
+
+    return 0
+
+
+def remove_args(args):
+    sys.argv[0] += " remove"
+
+    p = argparse.ArgumentParser(description=descriptions["remove"])
+    p.add_argument("-n", "--name", type=str, required=True, metavar="PLUGIN", help="The name of the plugin to remove")
+    p.add_argument("-c", "--config", type=str, default="./plugin.conf", metavar="FILE", help="The plugin config file to update (default: plugin.conf)")
+
+    return p.parse_args(args)
+
+
+def remove(plugin, config_file):
+    try:
+        config = tangelo.util.PluginConfig(config_file)
+    except (IOError) as e:
+        print >>sys.stderr, "error: could not read plugin config file %s:\n%s" % (config_file, e)
+        return 1
+    except (TypeError, ValueError) as e:
+        print >>sys.stderr, "error reading plugin config file %s:\n%s" % (config_file, e)
+        return 1
+
+    try:
+        config.remove(plugin)
+    except ValueError as e:
+        print >>sys.stderr, "error: %s" % (e)
+        return 1
+
+    try:
+        config.dump(config_file)
+    except IOError as e:
+        print >>sys.stderr, "error: could not write updated config to %s:\n%s" % (config_file, e)
+        return 1
+
+    return 0
+
+
+def enable_args(args, on):
+    op = "enable" if on else "disable"
+    sys.argv[0] += " %s" % (op)
+
+    p = argparse.ArgumentParser(description=descriptions[op])
+    p.add_argument("-n", "--name", type=str, required=True, metavar="PLUGIN", help="The name of the plugin to %s" % (op))
+    p.add_argument("-p", "--path", type=str, default=None, metavar="PATH", help="Path to plugin, for updating/creating config file entry")
+    p.add_argument("-c", "--config", type=str, default="./plugin.conf", metavar="FILE", help="The plugin config file to update (default: plugin.conf)")
+
+    return p.parse_args(args)
+
+
+def enable(plugin, config_file, on, path=None):
+    try:
+        config = tangelo.util.PluginConfig(config_file)
+    except IOError as e:
+        print >>sys.stderr, "error: could not read plugin config file %s:\n%s" % (config_file, e)
+        return 1
+    except (TypeError, ValueError) as e:
+        print >>sys.stderr, "error reading plugin config file %s:\n%s" % (config_file, e)
+        return 1
+
+    if plugin not in config.plugins:
+        if path is None:
+            print >>sys.stderr, "path argument is required to create new plugin entry for %s" % (plugin)
+            return 1
+
+        config.add(plugin, path=path, enabled=on)
+    else:
+        config.plugins[plugin]["enabled"] = on
+
+    try:
+        config.dump(config_file)
+    except IOError as e:
+        print >>sys.stderr, "error: could not write updated config to %s:\n%s" % (config_file, e)
+        return 1
+
+    return 0
+
+
+def main():
+    # Examine the first argument.
+    if len(sys.argv) < 2:
+        return usage()
+
+    subcommand = sys.argv[1]
+    args = sys.argv[2:]
+
+    if subcommand == "install":
+        args = install_args(args)
+        return install(args.path, url=args.url, prepare=not args.no_prepare)
+    elif subcommand == "enable":
+        args = enable_args(args, True)
+        return enable(args.name, args.config, True, path=args.path)
+    elif subcommand == "disable":
+        args = enable_args(args, False)
+        return enable(args.name, args.config, False)
+    elif subcommand == "remove":
+        args = remove_args(args)
+        return remove(args.name, args.config)
+    elif subcommand == "batch":
+        args = batch_args(args)
+        return batch(args.config)
+    else:
+        return usage()
+
+    # Treat the arguments as a list of plugin URIs.
+    plugins = sys.argv[1:]
+    for plugin in plugins:
+        # Parse the URI.
+        spec = urlparse.urlparse(plugin)
+
+        if spec.scheme in ["", "file"]:
+            # If the URI is a file path, simply attempt to install its
+            # requirements, if any.
+            reqfile = os.path.join(spec.path, "requirements.txt")
+            if os.path.exists(reqfile):
+                code = subprocess.call([pip, "install", "-r", reqfile])
+                if code != 0:
+                    retval = 1
+            elif not os.path.exists(spec.path):
+                print >>sys.stderr, "error: plugin directory %s does not exist" % (spec.path)
+                retval = 1
+            else:
+                print >>sys.stderr, "plugin directory %s has no requirements.txt file, continuining" % (spec.path)
+        elif spec.scheme in ["http", "https", "git"]:
+            # TODO: use git to clone the repository, and the follow up by taking
+            # the "filesystem" actions as above.
+            print >>sys.stderr, "%s scheme processing unimplemented" % (spec.scheme)
+            retval = 2
+        else:
+            print >>sys.stderr, "error: unsupported URI scheme '%s'" % (spec.scheme)
+            retval = 1
+
+    return retval
+
+if __name__ == "__main__":
+    sys.exit(main())
