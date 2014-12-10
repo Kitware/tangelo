@@ -3,11 +3,10 @@
 import argparse
 import os
 import urlparse
-import random
-import string
 import subprocess
 import sys
-import yaml
+
+import tangelo.util
 
 descriptions = {"install": "Download/prepare a Tangelo plugin for use",
                 "enable": "Enable a Tangelo plugin",
@@ -27,44 +26,6 @@ class ShellCommand(object):
 
 pip = ShellCommand("TANGELO_PIP", os.path.join(sys.prefix, "bin/pip"))
 git = ShellCommand("TANGELO_GIT", "git")
-
-
-def read_plugin_config(filename):
-    with open(filename) as f:
-        config = yaml.safe_load(f.read())
-
-    if not isinstance(config, dict):
-        raise TypeError("plugin config file does not contain top-level associative array")
-
-    return config
-
-
-def dump_yaml(data, filename):
-    # Dump to YAML.
-    s = yaml.dump(data, default_flow_style=False, indent=4)
-
-    # Compute a string of letters that does not appear in the YAML string.
-    while True:
-        sentinel = "".join(random.choice(string.ascii_uppercase) for _ in range(8))
-        if sentinel not in s:
-            break
-
-    # Replace all intra-object linebreaks with the sentinel.
-    s = s.replace("\n    ", sentinel)
-
-    # Replace all inter-object linebreaks with double linebreaks.
-    s = s.replace("\n", "\n\n")
-
-    # Replace the sentinels with intra-object linebreaks.
-    s = s.replace(sentinel, "\n    ")
-
-    # The last two characters of the string should be newlines; replace them
-    # with a single newline.
-    if s[-2:] == "\n\n":
-        s = s[:-1]
-
-    with open(filename, "w") as f:
-        f.write(s)
 
 
 def usage():
@@ -92,15 +53,16 @@ def batch_args(args):
 
 def batch(config_file):
     try:
-        config = read_plugin_config(config_file)
-    except (IOError, TypeError, yaml.YAMLError) as e:
+        config = tangelo.util.PluginConfig(config_file)
+    except IOError as e:
         print >>sys.stderr, "error: could not read plugin config file %s:\n%s" % (config_file, e)
         return 1
+    except (TypeError, ValueError) as e:
+        print >>sys.stdder, "error reading plugin config file %s:\n%s" % (config_file, e)
+        return 1
 
-    for name in config:
-        plugin = config[name]
-
-        if plugin["enabled"]:
+    for name, plugin in config.plugins.iteritems():
+        if plugin.get("enabled", True):
             print "Installing plugin %s" % (name)
             if "path" not in plugin:
                 print >>sys.stderr, "error: plugin has no 'path' property - skipping"
@@ -178,19 +140,22 @@ def remove_args(args):
 
 def remove(plugin, config_file):
     try:
-        config = read_plugin_config(config_file)
-    except (IOError, TypeError, yaml.YAMLError) as e:
+        config = tangelo.util.PluginConfig(config_file)
+    except (IOError) as e:
         print >>sys.stderr, "error: could not read plugin config file %s:\n%s" % (config_file, e)
         return 1
-
-    if plugin not in config:
-        print >>sys.stderr, "error: plugin %s not present in %s" % (plugin, config_file)
+    except (TypeError, ValueError) as e:
+        print >>sys.stderr, "error reading plugin config file %s:\n%s" % (config_file, e)
         return 1
 
-    del config[plugin]
+    try:
+        config.remove(plugin)
+    except ValueError as e:
+        print >>sys.stderr, "error: %s" % (e)
+        return 1
 
     try:
-        dump_yaml(config, config_file)
+        config.dump(config_file)
     except IOError as e:
         print >>sys.stderr, "error: could not write updated config to %s:\n%s" % (config_file, e)
         return 1
@@ -212,30 +177,25 @@ def enable_args(args, on):
 
 def enable(plugin, config_file, on, path=None):
     try:
-        config = read_plugin_config(config_file)
-    except (IOError, TypeError, yaml.YAMLError) as e:
+        config = tangelo.util.PluginConfig(config_file)
+    except IOError as e:
         print >>sys.stderr, "error: could not read plugin config file %s:\n%s" % (config_file, e)
         return 1
+    except (TypeError, ValueError) as e:
+        print >>sys.stderr, "error reading plugin config file %s:\n%s" % (config_file, e)
+        return 1
 
-    if plugin not in config:
-        if on:
-            # This path means there is no entry for the plugin in the config
-            # file and we wish to enable it - that requires a path from which to
-            # create a new entry.  If we're disabling the plugin instead,
-            # there's no need to do anything - it's already disabled by virtue
-            # of not existing.
+    if plugin not in config.plugins:
+        if path is None:
+            print >>sys.stderr, "path argument is required to create new plugin entry for %s" % (plugin)
+            return 1
 
-            if path is None:
-                print >>sys.stderr, "path argument is required to create new plugin entry for %s" % (plugin)
-                return 1
-
-            config[plugin] = {"path": path,
-                              "enabled": on}
+        config.add(plugin, path=path, enabled=on)
     else:
-        config[plugin]["enabled"] = on
+        config.plugins[plugin]["enabled"] = on
 
     try:
-        dump_yaml(config, config_file)
+        config.dump(config_file)
     except IOError as e:
         print >>sys.stderr, "error: could not write updated config to %s:\n%s" % (config_file, e)
         return 1

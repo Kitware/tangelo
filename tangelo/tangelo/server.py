@@ -5,7 +5,6 @@ import cherrypy
 import json
 import traceback
 import types
-import yaml
 
 import tangelo
 import tangelo.util
@@ -717,21 +716,19 @@ class Plugins(object):
         self.mtime = mtime
 
         try:
-            with open(self.config_file) as f:
-                plugins = yaml.safe_load(f.read())
+            config = tangelo.util.PluginConfig(self.config_file)
         except IOError:
             tangelo.log("PLUGIN", self.missing_msg)
             return
-        except yaml.YAMLError as e:
+        except TypeError:
+            tangelo.log("PLUGIN", "plugin config file does not contain a top-level associative array")
+            return
+        except ValueError as e:
             tangelo.log("PLUGIN", "error reading plugin config file: %s" % (e))
             return
 
-        if not isinstance(plugins, dict):
-            tangelo.log("PLUGIN", "plugin config file does not contain a top-level associative array")
-            return
-
         seen = set()
-        for plugin, conf in plugins.iteritems():
+        for plugin, conf in config.plugins.iteritems():
             # See whether the plugin is enabled (yes by default).
             enabled = conf.get("enabled", True)
             if not isinstance(enabled, bool):
