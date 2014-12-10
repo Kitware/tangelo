@@ -226,8 +226,7 @@ module.exports = function (grunt) {
       pep8: {
           files: {
               src: [
-                  "tangelo/**/*.py",
-                  "!tangelo/tangelo/minify_json.py"
+                  "tangelo/**/*.py"
               ]
           }
       },
@@ -452,7 +451,7 @@ module.exports = function (grunt) {
 
         grunt.util.spawn({
             cmd: coverage,
-            args: ["run", "-a", "--source", "%s,%s" % (tangelo_dir, "tangelo/plugin"), "--omit", "*minify_json*",
+            args: ["run", "-a", "--source", "%s,%s" % (tangelo_dir, "tangelo/plugin"),
                    nosetests, "--verbose", "--tests=" + this.filesSrc.join(",")],
             opts: {
                 stdio: "inherit"
