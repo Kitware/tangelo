@@ -25,15 +25,11 @@ data_files_list = [("share/tangelo/conf", ["assets/conf/tangelo.global.conf",
                    ("share/tangelo/data", ["assets/data/get-flickr-data.py"]),
                    ("share/tangelo", ["assets/images/tangelo.ico"])]
 
-# Include the website base files, excluding generated tests and compiled python
-# files.
-web_files = filter(lambda f: not (f.startswith("web/tests") or f.endswith(".pyc")),
-                   rcollect("web"))
-data_files_list += copy_with_dir(web_files, "share/tangelo")
+# Include the website base files.
+data_files_list += copy_with_dir(rcollect("web"), "share/tangelo")
 
 # Include the bundled plugins.
-plugin_files = rcollect("plugin")
-data_files_list += copy_with_dir(plugin_files, "share/tangelo")
+data_files_list += copy_with_dir(rcollect("plugin"), "share/tangelo")
 
 # Create the package.
 distutils.core.setup(name="tangelo",
