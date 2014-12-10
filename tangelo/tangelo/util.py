@@ -29,6 +29,10 @@ class PluginConfig(object):
             except yaml.YAMLError as e:
                 raise ValueError(e.message)
 
+        # This enables an empty file to represent an empty list instead.
+        if plugins is None:
+            plugins = []
+
         if not isinstance(plugins, list):
             raise TypeError("plugin config file %s does not contain a top-level list" % (filename))
 
