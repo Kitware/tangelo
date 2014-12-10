@@ -151,23 +151,24 @@ Enabling Plugins
 
 The Tangelo executable has an option ``--plugin-config`` that specifies a
 *plugin configuration file*.  This defaults to ``/etc/tangelo/plugin.conf``.
-The file is an INI style configuration file consisting of one section for each
-plugin under consideration.  The sections themselves are relatively simple:
+The file is a YAML configuration file consisting of a list of objects, one for each
+plugin under consideration.  The objects themselves are relatively simple:
 
-.. code-block:: cfg
+.. code-block:: yaml
 
-    [foobar]
-    enabled: true
-    path: /path/to/foobar/plugin
+    - name: foobar
+      enabled: true
+      path: /path/to/foobar/plugin
 
-    [quux]
-    enabled: false
-    path: path/to/quux
+    - name: quux
+      enabled: false
+      path: path/to/quux
 
-Each contains a boolean flag, ``enabled``, and a string ``path`` describing
-where to find the plugin materials (i.e., the example directory shown above).
-Whenever this file changes and a client visits any plugin URL, Tangelo will
-compare the set of plugins enabled by the configuration file to the set of
+Each contains a required ``name`` property, an optional ``enabled`` boolean flag
+(which, if omitted, defaults to ``true``), and a string ``path`` property
+describing where to find the plugin materials (i.e., the example directory shown
+above).  Whenever this file changes and a client visits any plugin URL, Tangelo
+will compare the set of plugins enabled by the configuration file to the set of
 plugins currently enabled, and will load and unload plugins to bring the running
 plugins up to date.  For example, if you edit the example file above to change
 *quux*'s ``enabled`` flag to ``true``, then visit ``/plugin``, Tangelo will
