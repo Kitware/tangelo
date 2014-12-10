@@ -22,7 +22,7 @@ module.exports = function (grunt) {
             "--host", hostname,
             "--port", port,
             "--root", root,
-            "--plugin-config", "plugin.conf"
+            "--plugin-config", "venv/share/tangelo/plugin/plugin.conf"
         ];
     };
 
@@ -31,7 +31,7 @@ module.exports = function (grunt) {
       version: {
           src: [
               "tangelo/tangelo/__main__.py",
-              "tangelo/plugins/tangelo/web/version.py",
+              "tangelo/plugin/tangelo/web/version.py",
               "tangelo/setup.py",
               "js/src/core/core.js"
           ]
@@ -43,7 +43,7 @@ module.exports = function (grunt) {
           },
           dist: {
               src: ["js/src/**/*.js"],
-              dest: "tangelo/plugins/tangelo/web/tangelo.js"
+              dest: "tangelo/plugin/tangelo/web/tangelo.js"
           }
       },
       uglify: {
@@ -52,7 +52,7 @@ module.exports = function (grunt) {
           },
           dist: {
               src: "<%= concat.dist.dest %>",
-              dest: "tangelo/plugins/tangelo/web/tangelo.min.js"
+              dest: "tangelo/plugin/tangelo/web/tangelo.min.js"
           }
       },
       jshint: {
@@ -240,7 +240,7 @@ module.exports = function (grunt) {
           package: [
               "tangelo/MANIFEST",
               "tangelo/README",
-              "tangelo/plugins/docs",
+              "tangelo/plugin/docs",
               "tangelo/web/js"
           ]
       }
@@ -452,7 +452,7 @@ module.exports = function (grunt) {
 
         grunt.util.spawn({
             cmd: coverage,
-            args: ["run", "-a", "--source", "%s,%s" % (tangelo_dir, "tangelo/plugins"), "--omit", "*minify_json*",
+            args: ["run", "-a", "--source", "%s,%s" % (tangelo_dir, "tangelo/plugin"), "--omit", "*minify_json*",
                    nosetests, "--verbose", "--tests=" + this.filesSrc.join(",")],
             opts: {
                 stdio: "inherit"
@@ -549,7 +549,7 @@ module.exports = function (grunt) {
                    "-D", "version=" + version,
                    "-D", "release=" + version,
                    "docs",
-                   "tangelo/plugins/docs/web"],
+                   "tangelo/plugin/docs/web"],
             opts: {
                 stdio: "inherit"
             }

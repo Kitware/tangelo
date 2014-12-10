@@ -1,5 +1,6 @@
 import distutils.core
 import os
+import os.path
 
 
 # Recursively collect all files in a given directory.
@@ -12,7 +13,7 @@ def rcollect(path):
 
 
 def copy_with_dir(files, base):
-    return [(base + "/" + os.path.dirname(f), [f]) for f in files]
+    return [(os.path.join(base, os.path.dirname(f)), [f]) for f in files]
 
 # Build up a list of extra files to install.
 #
@@ -29,6 +30,10 @@ data_files_list = [("share/tangelo/conf", ["assets/conf/tangelo.global.conf",
 web_files = filter(lambda f: not (f.startswith("web/tests") or f.endswith(".pyc")),
                    rcollect("web"))
 data_files_list += copy_with_dir(web_files, "share/tangelo")
+
+# Include the bundled plugins.
+plugin_files = rcollect("plugin")
+data_files_list += copy_with_dir(plugin_files, "share/tangelo")
 
 # Create the package.
 distutils.core.setup(name="tangelo",
