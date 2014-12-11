@@ -21,7 +21,9 @@ def start_tangelo():
     if process is not None:
         raise RuntimeError("start_tangelo() called twice without a stop_tangelo() in between")
 
-    if platform.platform().split("-")[0] == "Windows":
+    windows = platform.platform().split("-")[0] == "Windows"
+
+    if windows:
         coverage_args = []
         tangelo = ["venv/Scripts/python", "venv/Scripts/tangelo"]
     else:
@@ -35,13 +37,14 @@ def start_tangelo():
                                stderr=subprocess.PIPE)
 
     buf = []
+    endl = "\r\n" if windows else "\n"
     while True:
         line = process.stderr.readline()
         buf.append(line)
 
-        if line.endswith("ENGINE Bus STARTED\n"):
+        if line.endswith("ENGINE Bus STARTED" + endl):
             return 0
-        elif line.endswith("ENGINE Bus EXITED\n") or process.poll() is not None:
+        elif line.endswith("ENGINE Bus EXITED" + endl) or process.poll() is not None:
             process = None
             raise RuntimeError("Could not start Tangelo:\n%s" % ("".join(buf)))
 
