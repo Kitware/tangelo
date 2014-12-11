@@ -1,3 +1,4 @@
+import platform
 import subprocess
 import sys
 import time
@@ -20,12 +21,17 @@ def start_tangelo():
     if process is not None:
         raise RuntimeError("start_tangelo() called twice without a stop_tangelo() in between")
 
-    process = subprocess.Popen(["venv/bin/coverage", "run", "-p", "--source", "venv/lib/python2.7/site-packages/tangelo,venv/share/tangelo/plugin",
-                                "venv/bin/tangelo",
-                                "--host", host,
-                                "--port", port,
-                                "--root", "tests/web",
-                                "--plugin-config", "venv/share/tangelo/plugin/plugin.conf"],
+    if platform.platform().split("-")[0] == "Windows":
+        coverage_args = []
+        tangelo = ["venv/Scripts/python", "venv/Scripts/tangelo"]
+    else:
+        coverage_args = ["venv/bin/coverage", "run", "-p", "--source", "venv/lib/python2.7/site-packages/tangelo,venv/share/tangelo/plugin"]
+        tangelo = ["venv/bin/tangelo"]
+
+    process = subprocess.Popen(coverage_args + tangelo + ["--host", host,
+                                                          "--port", port,
+                                                          "--root", "tests/web",
+                                                          "--plugin-config", "venv/share/tangelo/plugin/plugin.conf"],
                                stderr=subprocess.PIPE)
 
     buf = []

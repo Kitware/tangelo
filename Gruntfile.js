@@ -8,14 +8,13 @@ module.exports = function (grunt) {
         windows = /^win/.test(process.platform),
         bin = windows ? "venv/Scripts/" : "venv/bin/",
         lib = windows ? "venv/Lib/" : "venv/lib/",
-        exe = windows ? ".exe" : "",
         zipExt = windows ? ".zip" : ".tar.gz",
         config,
         python = path.resolve(bin + "python"),
         pip = path.resolve(bin + "pip"),
         sphinx = path.resolve(bin + "sphinx-build"),
         pep8 = path.resolve(bin + "pep8"),
-        nosetests = path.resolve(bin + "nosetests" + exe),
+        nosetests = path.resolve(bin + "nosetests"),
         coverage = path.resolve(bin + "coverage"),
         tangelo_script = path.resolve(bin + "tangelo"),
         tangelo = windows ? python : tangelo_script,
@@ -446,26 +445,44 @@ module.exports = function (grunt) {
     });
 
     // Run nose tests.
-    grunt.registerTask("test:server", [
-        "coverage:erase",
-        "nose_coverage",
-        "coverage:combine",
-        "coverage_report"
-    ]);
+    if (windows) {
+        grunt.registerTask("test:server", [
+            "nose_coverage"
+        ]);
+    } else {
+        grunt.registerTask("test:server", [
+            "coverage:erase",
+            "nose_coverage",
+            "coverage:combine",
+            "coverage_report"
+        ]);
+    }
 
     grunt.registerMultiTask("nose_coverage", "Run server tests with coverage", function () {
         var done = this.async();
 
-        grunt.util.spawn({
-            cmd: coverage,
-            args: ["run", "-a", "--source", "%s,%s" % (tangelo_dir, "tangelo/plugin"),
-                   nosetests, "--verbose", "--tests=" + this.filesSrc.join(",")],
-            opts: {
-                stdio: "inherit"
-            }
-        }, function (error, result, code) {
-            done(code === 0);
-        });
+        if (windows) {
+            grunt.util.spawn({
+                cmd: nosetests,
+                args: ["--verbose", "--tests=" + this.filesSrc.join(",")],
+                opts: {
+                    stdio: "inherit"
+                }
+            }, function (error, result, code) {
+                done(code === 0);
+            });
+        } else {
+            grunt.util.spawn({
+                cmd: coverage,
+                args: ["run", "-a", "--source", "%s,%s" % (tangelo_dir, "tangelo/plugin"),
+                       nosetests, "--verbose", "--tests=" + this.filesSrc.join(",")],
+                opts: {
+                    stdio: "inherit"
+                }
+            }, function (error, result, code) {
+                done(code === 0);
+            });
+        }
     });
 
     grunt.registerTask("coverage", "Manipulate coverage results", function (action) {
