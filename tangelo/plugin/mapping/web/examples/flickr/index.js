@@ -460,6 +460,40 @@ function getMinMaxDates(zoom) {
             flickr.displayFunc(low, high);
             retrieveData();
         });
+
+        // Create a GeoJS map object.
+        flickr.map = geo.map({
+            node: "#map",
+            center: {
+                x: 2.33,
+                y: 48.86
+            },
+            zoom: 11
+        });
+
+        flickr.map.createLayer("osm", {
+            baseUrl: "http://otile1.mqcdn.com/tiles/1.0.0/map/"
+        });
+
+        $(window).resize(function () {
+            var map = flickr.map;
+            map.resize(0, 0, map.node().width(), map.node().height());
+        });
+
+        flickr.dots = flickr.map.createLayer("feature", {
+            renderer: "d3Renderer"
+            //renderer: "vglRenderer"
+        })
+            .createFeature("point")
+            .data([]);
+
+        flickr.legend = flickr.map.createLayer("feature", {
+            renderer: "d3Renderer",
+            sticky: false
+        })
+            .canvas()
+            .append("g")
+            .node();
     });
 }
 
@@ -742,38 +776,5 @@ window.onload = function () {
                 d3.select("#abort").classed("disabled", true);
             });
 
-        // Create a GeoJS map object.
-        flickr.map = geo.map({
-            node: "#map",
-            center: {
-                x: 2.33,
-                y: 48.86
-            },
-            zoom: 11
-        });
-
-        flickr.map.createLayer("osm", {
-            baseUrl: "http://otile1.mqcdn.com/tiles/1.0.0/map/"
-        });
-
-        $(window).resize(function () {
-            var map = flickr.map;
-            map.resize(0, 0, map.node().width(), map.node().height());
-        });
-
-        flickr.dots = flickr.map.createLayer("feature", {
-            renderer: "d3Renderer"
-            //renderer: "vglRenderer"
-        })
-            .createFeature("point")
-            .data([]);
-
-        flickr.legend = flickr.map.createLayer("feature", {
-            renderer: "d3Renderer",
-            sticky: false
-        })
-            .canvas()
-            .append("g")
-            .node();
     });
 };
