@@ -84,7 +84,7 @@ HTTP Interaction
     Returns the content type for the current request, as a string.  If `type`
     is specified, also sets the content type to the specified string.
 
-.. py:function:: tangelo.http_status(code[, message]):
+.. py:function:: tangelo.http_status(code[, message])
 
     Sets the HTTP status code for the current request's response.  `code` should
     be an integer; optional `message` can give a concise description of the
