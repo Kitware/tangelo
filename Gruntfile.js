@@ -13,9 +13,21 @@ module.exports = function (grunt) {
         nosetests = path.resolve("venv/bin/nosetests"),
         coverage = path.resolve("venv/bin/coverage"),
         tangelo = path.resolve("venv/bin/tangelo"),
-        tangelo_dir = path.resolve("venv/lib/python2.7/site-packages/tangelo"),
+        tangelo_dir = path.resolve("venv/lib/python-2.7/site-packages/tangelo"),
         version = grunt.file.readJSON("package.json").version,
-        tangeloArgs;
+        tangeloArgs,
+        isWin = /^win/.test(process.platform);
+
+    if (isWin) {
+        python = path.resolve("venv/Scripts/python");
+        pip = path.resolve("venv/Scripts/pip");
+        sphinx = path.resolve("venv/Scripts/sphinx-build");
+        pep8 = path.resolve("venv/Scripts/pep8");
+        nosetests = path.resolve("venv/Scripts/nosetests");
+        coverage = path.resolve("venv/Scripts/coverage");
+        tangelo = path.resolve("venv/Scripts/tangelo");
+        tangelo_dir = path.resolve("venv/Lib/site-packages/tangelo");
+    }
 
     tangeloArgs = function (hostname, port, root) {
         return [
@@ -153,7 +165,6 @@ module.exports = function (grunt) {
               requireDotNotation: true,
               requireSpaceAfterLineComment: true,
               disallowNewlineBeforeBlockStatements: true,
-              validateLineBreaks: "LF",
               validateIndentation: 4,
               validateParameterSeparator: ", ",
               safeContextKeyword: ["that"]
@@ -425,7 +436,7 @@ module.exports = function (grunt) {
 
         grunt.util.spawn({
             cmd: pip,
-            args: ["install", "--upgrade", "sdist/tangelo-" + version + ".tar.gz"],
+            args: ["install", "--upgrade", "sdist/tangelo-" + version + (isWin ? ".zip" : ".tar.gz")],
             opts: {
                 stdio: "inherit"
             }
@@ -574,8 +585,8 @@ module.exports = function (grunt) {
         }
 
         grunt.util.spawn({
-            cmd: tangelo,
-            args: tangeloArgs(host, port, "venv/share/tangelo/web"),
+            cmd: python,
+            args: [tangelo].concat(tangeloArgs(host, port, "venv/share/tangelo/web")),
             opts: {
                 stdio: "inherit"
             }
