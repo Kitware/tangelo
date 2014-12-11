@@ -33,12 +33,32 @@ def http_status(code, message=None):
     cherrypy.response.status = "%s%s" % (code, " %s" % (message) if message is not None else "")
 
 
-def log(section, message=None):
+def log(section, message=None, color=None):
     if message is None:
         message = section
         section = "TANGELO"
 
+    if color is not None:
+        section = "%s%s%s" % (color, section, "\033[0m")
+        message = "%s%s%s" % (color, message, "\033[0m")
+
     cherrypy.log(str(message), section)
+
+
+def log_error(section, message=None):
+    log(section, message, color="\033[1;91m")
+
+
+def log_success(section, message=None):
+    log(section, message, color="\033[32m")
+
+
+def log_warning(section, message=None):
+    log(section, message, color="\033[1;33m")
+
+
+def log_info(section, message=None):
+    log(section, message, color="\033[1;35m")
 
 
 def request_path():
