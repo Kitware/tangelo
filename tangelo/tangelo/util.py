@@ -3,6 +3,7 @@ import errno
 import imp
 import os
 import os.path
+import platform
 import md5
 import socket
 import threading
@@ -10,6 +11,10 @@ import Queue
 import yaml
 
 import tangelo
+
+
+def windows():
+    return platform.platform().split("-")[0] == "Windows"
 
 
 class PluginConfig(object):

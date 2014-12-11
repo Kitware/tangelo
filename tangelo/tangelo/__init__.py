@@ -6,6 +6,8 @@ import os.path
 import sys
 from types import StringTypes
 
+import tangelo.util
+
 
 def content_type(t=None):
     r = cherrypy.response.headers['Content-type']
@@ -38,7 +40,7 @@ def log(section, message=None, color=None):
         message = section
         section = "TANGELO"
 
-    if color is not None:
+    if not tangelo.util.windows() and color is not None:
         section = "%s%s%s" % (color, section, "\033[0m")
         message = "%s%s%s" % (color, message, "\033[0m")
 
