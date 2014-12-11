@@ -233,13 +233,13 @@ class ModuleCache(object):
                 try:
                     config = load_service_config(config_file)
                 except TypeError as e:
-                    tangelo.log("TANGELO", "Bad configuration in file %s: %s" % (config_file, e))
+                    tangelo.log_warning("TANGELO", "Bad configuration in file %s: %s" % (config_file, e))
                     raise
                 except IOError:
-                    tangelo.log("TANGELO", "Could not open config file %s" % (config_file))
+                    tangelo.log_warning("TANGELO", "Could not open config file %s" % (config_file))
                     raise
                 except ValueError as e:
-                    tangelo.log("TANGELO", "Error reading config file %s: %s" % (config_file, e))
+                    tangelo.log_warning("TANGELO", "Error reading config file %s: %s" % (config_file, e))
                     raise
             else:
                 config = {}

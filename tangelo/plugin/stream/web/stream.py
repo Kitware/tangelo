@@ -96,7 +96,7 @@ def stream_start(url, kwargs):
                 except Exception as e:
                     stacktrace = traceback.format_exc()
 
-                    tangelo.log("STREAM", "Could not execute service %s:\n%s" % (tangelo.request_path(), stacktrace))
+                    tangelo.log_warning("STREAM", "Could not execute service %s:\n%s" % (tangelo.request_path(), stacktrace))
 
                     tangelo.http_status(500, "Streaming Service Raised Exception")
                     tangelo.content_type("application/json")
