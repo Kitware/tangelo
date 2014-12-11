@@ -1,3 +1,4 @@
+import platform
 import subprocess
 import sys
 import time
@@ -20,22 +21,30 @@ def start_tangelo():
     if process is not None:
         raise RuntimeError("start_tangelo() called twice without a stop_tangelo() in between")
 
-    process = subprocess.Popen(["venv/bin/coverage", "run", "-p", "--source", "venv/lib/python2.7/site-packages/tangelo,venv/share/tangelo/plugin",
-                                "venv/bin/tangelo",
-                                "--host", host,
-                                "--port", port,
-                                "--root", "tests/web",
-                                "--plugin-config", "venv/share/tangelo/plugin/plugin.conf"],
+    windows = platform.platform().split("-")[0] == "Windows"
+
+    if windows:
+        coverage_args = []
+        tangelo = ["venv/Scripts/python", "venv/Scripts/tangelo"]
+    else:
+        coverage_args = ["venv/bin/coverage", "run", "-p", "--source", "venv/lib/python2.7/site-packages/tangelo,venv/share/tangelo/plugin"]
+        tangelo = ["venv/bin/tangelo"]
+
+    process = subprocess.Popen(coverage_args + tangelo + ["--host", host,
+                                                          "--port", port,
+                                                          "--root", "tests/web",
+                                                          "--plugin-config", "venv/share/tangelo/plugin/plugin.conf"],
                                stderr=subprocess.PIPE)
 
     buf = []
+    endl = "\r\n" if windows else "\n"
     while True:
         line = process.stderr.readline()
         buf.append(line)
 
-        if line.endswith("ENGINE Bus STARTED\n"):
+        if line.endswith("ENGINE Bus STARTED" + endl):
             return 0
-        elif line.endswith("ENGINE Bus EXITED\n") or process.poll() is not None:
+        elif line.endswith("ENGINE Bus EXITED" + endl) or process.poll() is not None:
             process = None
             raise RuntimeError("Could not start Tangelo:\n%s" % ("".join(buf)))
 
