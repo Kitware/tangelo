@@ -5,37 +5,32 @@ module.exports = function (grunt) {
 
     var fs = require("fs"),
         path = require("path"),
+        windows = /^win/.test(process.platform),
+        bin = windows ? "venv/Scripts/" : "venv/bin/",
+        lib = windows ? "venv/Lib/" : "venv/lib/",
+        zipExt = windows ? ".zip" : ".tar.gz",
         config,
-        python = path.resolve("venv/bin/python"),
-        pip = path.resolve("venv/bin/pip"),
-        sphinx = path.resolve("venv/bin/sphinx-build"),
-        pep8 = path.resolve("venv/bin/pep8"),
-        nosetests = path.resolve("venv/bin/nosetests"),
-        coverage = path.resolve("venv/bin/coverage"),
-        tangelo = path.resolve("venv/bin/tangelo"),
-        tangelo_dir = path.resolve("venv/lib/python-2.7/site-packages/tangelo"),
+        python = path.resolve(bin + "python"),
+        pip = path.resolve(bin + "pip"),
+        sphinx = path.resolve(bin + "sphinx-build"),
+        pep8 = path.resolve(bin + "pep8"),
+        nosetests = path.resolve(bin + "nosetests"),
+        coverage = path.resolve(bin + "coverage"),
+        tangelo_script = path.resolve(bin + "tangelo"),
+        tangelo = windows ? python : tangelo_script,
+        tangelo_dir = path.resolve(lib + "python-2.7/site-packages/tangelo"),
         version = grunt.file.readJSON("package.json").version,
-        tangeloArgs,
-        isWin = /^win/.test(process.platform);
-
-    if (isWin) {
-        python = path.resolve("venv/Scripts/python");
-        pip = path.resolve("venv/Scripts/pip");
-        sphinx = path.resolve("venv/Scripts/sphinx-build");
-        pep8 = path.resolve("venv/Scripts/pep8");
-        nosetests = path.resolve("venv/Scripts/nosetests");
-        coverage = path.resolve("venv/Scripts/coverage");
-        tangelo = path.resolve("venv/Scripts/tangelo");
-        tangelo_dir = path.resolve("venv/Lib/site-packages/tangelo");
-    }
+        tangeloArgs;
 
     tangeloArgs = function (hostname, port, root) {
-        return [
+        var args = windows ? [tangelo_script] : [];
+
+        return args.concat([
             "--host", hostname,
             "--port", port,
             "--root", root,
             "--plugin-config", "venv/share/tangelo/plugin/plugin.conf"
-        ];
+        ]);
     };
 
     // Project configuration.
@@ -436,7 +431,7 @@ module.exports = function (grunt) {
 
         grunt.util.spawn({
             cmd: pip,
-            args: ["install", "--upgrade", "sdist/tangelo-" + version + (isWin ? ".zip" : ".tar.gz")],
+            args: ["install", "--upgrade", "sdist/tangelo-" + version + zipExt],
             opts: {
                 stdio: "inherit"
             }
@@ -585,8 +580,8 @@ module.exports = function (grunt) {
         }
 
         grunt.util.spawn({
-            cmd: python,
-            args: [tangelo].concat(tangeloArgs(host, port, "venv/share/tangelo/web")),
+            cmd: tangelo,
+            args: tangeloArgs(host, port, "venv/share/tangelo/web"),
             opts: {
                 stdio: "inherit"
             }
