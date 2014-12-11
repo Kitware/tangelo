@@ -27,6 +27,8 @@ An example plugin's file contents might be as follows:
     foobar/
         control.py
         config.yaml
+        requirements.txt
+        info.txt
         python/
             __init__.py
             helper.py
@@ -176,6 +178,35 @@ first load the *quux* plugin, then return a list of running plugins, which will
 now include *quux*.  Conversely, if you also changed *foobar*'s ``enabled`` flag
 to ``false`` (or comment out, or delete *foobar*'s entire section), *foobar*
 will additionally be unloaded.
+
+Plugin Setup
+------------
+
+Some plugins may need to be set up before they can be properly used.  Plugin
+setup consists of two steps:  installing Python dependencies, if any, and
+consulting any informational messages supplied by the plugin.
+
+In the example *foobar* plugin, note that the root directory includes a
+``requirements.txt`` file.  This is simply a `pip requirements file
+<https://pip.pypa.io/en/latest/user_guide.html#requirements-files>`_ declaring
+what Python packages the plugin needs to run.  You can install these with a
+command similar to ``pip install -r foobar/requirements.txt``.
+
+Secondly, some plugins may require some other action to be taken before they
+work.  The plugin authors can describe any such instructions in the ``info.txt``
+file.  After installing the requirements, you should read this file to see if
+anything else is required.  For instance, a package may need to bootstrap after
+it's installed by fetching further resources or updates from the web; in this
+case, ``info.txt`` would explain just how to accomplish this bootstrapping.
+
+These steps constitute a standard procedure when retrieving a new plugin for use
+with your local Tangelo installation.  For instance, if the *foobar* plugin
+resides in a GitHub repository, you would first find a suitable location on your
+local computer to clone that repository.  Then you would invoke ``pip`` to
+install the required dependencies, then take any action specified by
+``info.txt``, and finally create an entry in the Tangelo plugin configuration
+file.  When Tangelo is started (or when the plugin registry is refreshed), the
+new plugin will be running.
 
 Configuring Plugins
 -------------------
