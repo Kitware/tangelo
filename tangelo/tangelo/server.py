@@ -288,8 +288,7 @@ class AuthUpdate(object):
                 # been modified list the last request to this path.
                 htspec = AuthUpdate.parse_htaccess(htfile)
                 if htspec["msg"] is not None:
-                    tangelo.log("TANGELO", "[AuthUpdate] Could not register %s: %s" %
-                                (reqpath, htspec["msg"]))
+                    tangelo.log_error("TANGELO", "[AuthUpdate] Could not register %s: %s" % (reqpath, htspec["msg"]))
                     return changed, htspec["msg"]
 
                 # Create an auth config tool using the values in the htspec.
@@ -425,7 +424,7 @@ class Tangelo(object):
             except:
                 stacktrace = traceback.format_exc()
 
-                tangelo.log("SERVICE", "Could not execute service %s:\n%s" % (tangelo.request_path(), stacktrace))
+                tangelo.log_warning("SERVICE", "Could not execute service %s:\n%s" % (tangelo.request_path(), stacktrace))
 
                 tangelo.http_status(501, "Web Service Error")
                 tangelo.content_type("application/json")
@@ -598,13 +597,13 @@ class Plugins(object):
             try:
                 config = tangelo.util.load_service_config(config_file)
             except TypeError as e:
-                tangelo.log("PLUGIN", "\tBad configuration in file %s: %s" % (config_file, e))
+                tangelo.log_warning("PLUGIN", "\tBad configuration in file %s: %s" % (config_file, e))
                 return
             except IOError:
-                tangelo.log("PLUGIN", "\tCould not open config file %s" % (config_file))
+                tangelo.log_warning("PLUGIN", "\tCould not open config file %s" % (config_file))
                 return
             except ValueError as e:
-                tangelo.log("PLUGIN", "\tError reading config file %s: %s" % (config_file, e))
+                tangelo.log_warning("PLUGIN", "\tError reading config file %s: %s" % (config_file, e))
                 return
 
         # Install the config and an empty dict as the plugin-level
@@ -620,7 +619,7 @@ class Plugins(object):
 
             init = os.path.join(python, "__init__.py")
             if not os.path.exists(init):
-                tangelo.log("PLUGIN", "\terror:  plugin '%s' includes a 'python' directory but is missing __init.py__" % (plugin))
+                tangelo.log_warning("PLUGIN", "\terror:  plugin '%s' includes a 'python' directory but is missing __init.py__" % (plugin))
                 return False
             else:
                 module_name = "%s.%s" % (self.base_package, plugin_name)
@@ -630,7 +629,7 @@ class Plugins(object):
                 try:
                     exec('%s = sys.modules[module_name] = self.modules.get(init)' % (module_name))
                 except:
-                    tangelo.log("PLUGIN", "Could not import python module content:\n%s" % (traceback.format_exc()))
+                    tangelo.log_warning("PLUGIN", "Could not import python module content:\n%s" % (traceback.format_exc()))
                     sys.path = old_path
                     return False
                 finally:
@@ -645,7 +644,7 @@ class Plugins(object):
                 control = self.modules.get(control_file)
                 plugin.control = control
             except:
-                tangelo.log("PLUGIN", "Could not import control module:\n%s" % (traceback.format_exc()))
+                tangelo.log_warning("PLUGIN", "Could not import control module:\n%s" % (traceback.format_exc()))
                 return False
             else:
                 if "setup" in dir(control):
@@ -653,7 +652,7 @@ class Plugins(object):
                     try:
                         setup = control.setup(config, cherrypy.config["plugin-store"][path])
                     except:
-                        tangelo.log("PLUGIN", "Could not set up plugin:\n%s" % (traceback.format_exc()))
+                        tangelo.log_warning("PLUGIN", "Could not set up plugin:\n%s" % (traceback.format_exc()))
                         return False
                     else:
                         for app in setup.get("apps", []):
@@ -663,12 +662,12 @@ class Plugins(object):
                             elif len(app) == 3:
                                 (app_obj, app_config, mountpoint) = app
                             else:
-                                tangelo.log("PLUGIN", "\tapp mount spec has %d item%s (should be either 2 or 3)" % (len(app), "" if len(app) == 1 else "s"))
+                                tangelo.log_warning("PLUGIN", "\tapp mount spec has %d item%s (should be either 2 or 3)" % (len(app), "" if len(app) == 1 else "s"))
                                 return False
 
                             app_path = os.path.join("/plugin", plugin_name, mountpoint)
                             if app_path in cherrypy.tree.apps:
-                                tangelo.log("PLUGIN", "\tFailed to mount application at %s (app already mounted there)" % (app_path))
+                                tangelo.log_warning("PLUGIN", "\tFailed to mount application at %s (app already mounted there)" % (app_path))
                                 return False
                             else:
                                 tangelo.log("PLUGIN", "\t...mounting application at %s" % (app_path))
@@ -697,14 +696,14 @@ class Plugins(object):
             try:
                 plugin.control.teardown(cherrypy.config["plugin-config"][plugin.path], cherrypy.config["plugin-store"][plugin.path])
             except:
-                tangelo.log("PLUGIN", "Could not run teardown:\n%s", (traceback.format_exc()))
+                tangelo.log_warning("PLUGIN", "Could not run teardown:\n%s", (traceback.format_exc()))
 
         del self.plugins[plugin_name]
 
     def refresh(self):
         if not os.path.exists(self.config_file):
             if self.mtime > 0:
-                tangelo.log("PLUGIN", self.missing_msg)
+                tangelo.log_warning("PLUGIN", self.missing_msg)
                 self.mtime = 0
             self.plugins = {}
             return
@@ -718,13 +717,13 @@ class Plugins(object):
         try:
             config = tangelo.util.PluginConfig(self.config_file)
         except IOError:
-            tangelo.log("PLUGIN", self.missing_msg)
+            tangelo.log_warning("PLUGIN", self.missing_msg)
             return
         except TypeError:
-            tangelo.log("PLUGIN", "plugin config file does not contain a top-level associative array")
+            tangelo.log_warning("PLUGIN", "plugin config file does not contain a top-level associative array")
             return
         except ValueError as e:
-            tangelo.log("PLUGIN", "error reading plugin config file: %s" % (e))
+            tangelo.log_warning("PLUGIN", "error reading plugin config file: %s" % (e))
             return
 
         seen = set()
@@ -732,7 +731,7 @@ class Plugins(object):
             # See whether the plugin is enabled (yes by default).
             enabled = conf.get("enabled", True)
             if not isinstance(enabled, bool):
-                tangelo.log("PLUGIN", "error:  setting 'enabled' in configuration for plugin '%s' must be a boolean value!" % (plugin))
+                tangelo.log_warning("PLUGIN", "error:  setting 'enabled' in configuration for plugin '%s' must be a boolean value!" % (plugin))
                 continue
 
             if enabled and plugin not in self.plugins:
@@ -740,11 +739,11 @@ class Plugins(object):
                 try:
                     path = os.path.join(self.config_dir, conf["path"])
                 except KeyError:
-                    tangelo.log("PLUGIN", "error: configuration for plugin '%s' missing required setting 'path'" % (plugin))
+                    tangelo.log_warning("PLUGIN", "error: configuration for plugin '%s' missing required setting 'path'" % (plugin))
                     continue
 
                 if not self.load(plugin, path):
-                    tangelo.log("PLUGIN", "Plugin %s failed to load" % (plugin))
+                    tangelo.log_warning("PLUGIN", "Plugin %s failed to load" % (plugin))
             elif not enabled and plugin in self.plugins:
                 self.unload(plugin)
 

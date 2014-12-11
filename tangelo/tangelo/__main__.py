@@ -54,16 +54,16 @@ class Config(object):
 
 
 def polite(signum, frame):
-    tangelo.log("TANGELO", "Already shutting down.  To force shutdown immediately, send SIGQUIT (Ctrl-\\).")
+    tangelo.log_warning("TANGELO", "Already shutting down.  To force shutdown immediately, send SIGQUIT (Ctrl-\\).")
 
 
 def die(signum, frame):
-    tangelo.log("TANGELO", "Received quit signal.  Exiting immediately.")
+    tangelo.log_error("TANGELO", "Received quit signal.  Exiting immediately.")
     os.kill(os.getpid(), signal.SIGKILL)
 
 
 def shutdown(signum, frame):
-    tangelo.log("TANGELO", "Received interrupt signal, performing graceful shutdown")
+    tangelo.log_info("TANGELO", "Received interrupt signal, performing graceful shutdown")
 
     # Disbale the shutdown handler (i.e., for repeated Ctrl-C etc.) for the
     # "polite" shutdown signals.
@@ -71,17 +71,17 @@ def shutdown(signum, frame):
         signal.signal(sig, polite)
 
     # Perform plugin shutdown operations.
-    tangelo.log("TANGELO", "Shutting down plugins...")
+    tangelo.log_info("TANGELO", "Shutting down plugins...")
     plugins = cherrypy.config.get("plugins")
     if plugins:
         plugins.unload_all()
 
     # Perform CherryPy shutdown and exit.
-    tangelo.log("TANGELO", "Stopping web server")
+    tangelo.log_info("TANGELO", "Stopping web server")
     cherrypy.engine.stop()
     cherrypy.engine.exit()
 
-    tangelo.log("TANGELO", "Be seeing you.")
+    tangelo.log_success("TANGELO", "Be seeing you.")
 
 
 def main():
@@ -112,15 +112,15 @@ def main():
 
     # Make sure user didn't specify conflicting flags.
     if args.access_auth and args.no_access_auth:
-        tangelo.log("ERROR", "can't specify both --access-auth (-a) and --no-access-auth (-na) together")
+        tangelo.log_error("ERROR", "can't specify both --access-auth (-a) and --no-access-auth (-na) together")
         return 1
 
     if args.drop_privileges and args.no_drop_privileges:
-        tangelo.log("ERROR", "can't specify both --drop-privileges (-p) and --no-drop-privileges (-np) together")
+        tangelo.log_error("ERROR", "can't specify both --drop-privileges (-p) and --no-drop-privileges (-np) together")
         return 1
 
     if args.no_sessions and args.sessions:
-        tangelo.log("ERROR", "can't specify both --sessions (-s) and --no-sessions (-ns) together")
+        tangelo.log_error("ERROR", "can't specify both --sessions (-s) and --no-sessions (-ns) together")
         sys.exit(1)
 
     # Figure out where this is being called from - that will be useful for a
@@ -145,9 +145,9 @@ def main():
         config = Config(cfg_file)
         ok = True
     except (IOError, TypeError) as e:
-        tangelo.log("ERROR", "%s" % (e))
+        tangelo.log_error("TANGELO", "error: %s" % (e))
     except yaml.YAMLError as e:
-        tangelo.log("ERROR", "error while parsing config file: %s" % (e))
+        tangelo.log_error("TANGELO", "error while parsing config file: %s" % (e))
     finally:
         if not ok:
             return 1
@@ -220,7 +220,7 @@ def main():
         tangelo.log("TANGELO", "\tSSL Cert file: %s" % (ssl_cert))
         tangelo.log("TANGELO", "\tSSL Key file: %s" % (ssl_key))
     elif not (ssl_key is None and ssl_cert is None):
-        tangelo.log("ERROR", "error: SSL key or SSL cert missing")
+        tangelo.log_error("TANGELO", "error: SSL key or SSL cert missing")
         return 1
     else:
         tangelo.log("TANGELO", "HTTPS disabled")
@@ -237,9 +237,9 @@ def main():
         root = tangelo.util.expandpath(root)
     else:
         default_paths = map(tangelo.util.expandpath, [sys.prefix + "/share/tangelo/web", invocation_dir + "/share/tangelo/web"])
-        tangelo.log("TANGELO", "Looking for default web content path")
+        tangelo.log_info("TANGELO", "Looking for default web content path")
         for path in default_paths:
-            tangelo.log("TANGELO", "Trying %s" % (path))
+            tangelo.log_info("TANGELO", "Trying %s" % (path))
             if os.path.exists(path):
                 root = path
                 break
@@ -247,7 +247,7 @@ def main():
         # TODO(choudhury): by default, should we simply serve from the current
         # directory?  This is how SimpleHTTPServer works, for example.
         if not root:
-            tangelo.log("ERROR", "could not find default web root directory")
+            tangelo.log_error("TANGELO", "could not find default web root directory")
             return 1
 
     tangelo.log("TANGELO", "Serving content from %s" % (root))
@@ -256,7 +256,7 @@ def main():
     # exist.
     plugin_cfg_file = tangelo.util.expandpath(args.plugin_config)
     if not os.path.exists(plugin_cfg_file):
-        tangelo.log("TANGELO", "Plugin configuration file %s does not exist - create it to load plugins at runtime" % (plugin_cfg_file))
+        tangelo.log_info("TANGELO", "Plugin configuration file %s does not exist - create it to load plugins at runtime" % (plugin_cfg_file))
     else:
         tangelo.log("TANGELO", "Using plugin configuration file '%s'" % (plugin_cfg_file))
 
@@ -299,7 +299,7 @@ def main():
                                 "server.socket_host": hostname,
                                 "server.socket_port": port})
     except IOError as e:
-        tangelo.log("ERROR", "problem with config file %s: %s" % (e.filename, e.strerror))
+        tangelo.log_error("TANGELO", "problem with config file %s: %s" % (e.filename, e.strerror))
         return 1
 
     # Try to drop privileges if requested, since we've bound to whatever port
@@ -345,7 +345,7 @@ def main():
                 value = group
                 gid = to_signed(grp.getgrnam(group).gr_gid)
             except KeyError:
-                tangelo.log("ERROR", "no such %s '%s' to drop privileges to" % (mode, value))
+                tangelo.log_error("TANGELO", "no such %s '%s' to drop privileges to" % (mode, value))
                 return 1
 
             # Set the process home directory to be the dropped-down user's.
@@ -377,6 +377,7 @@ def main():
 
     # Start the CherryPy engine.
     cherrypy.engine.start()
+    tangelo.log_success("TANGELO", "Server is running")
     cherrypy.engine.block()
 
 if __name__ == "__main__":

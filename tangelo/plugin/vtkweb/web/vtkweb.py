@@ -26,7 +26,7 @@ def initialize():
     vtkpython = config.get("vtkpython", None)
     if not vtkpython:
         msg = "No 'vtkpython' option specified in configuration plugin"
-        tangelo.log("VTKWEB", "[initialization] fatal error: %s" % (msg))
+        tangelo.log_warning("VTKWEB", "[initialization] fatal error: %s" % (msg))
 
         # Construct a run() function that will mask the restful API and just
         # inform the caller about the configuration problem.
@@ -50,9 +50,9 @@ def initialize():
     if twisted.internet.reactor.running:
         threads = [t for t in threading.enumerate() if t.name == "tangelo-vtkweb-plugin"]
         if len(threads) > 0:
-            tangelo.log("VTKWEB", "[initialization] A reactor started by a previous loading of this plugin is already running")
+            tangelo.log_warning("VTKWEB", "[initialization] A reactor started by a previous loading of this plugin is already running")
         else:
-            tangelo.log("VTKWEB", "[initialization] A reactor started by someone other than this plugin is already running")
+            tangelo.log_warning("VTKWEB", "[initialization] A reactor started by someone other than this plugin is already running")
     else:
         # Start the Twisted reactor, but in a separate thread so it doesn't
         # block the CherryPy main loop.  Mark the thread as "daemon" so that
@@ -62,7 +62,7 @@ def initialize():
         reactor.daemon = True
         reactor.start()
 
-        tangelo.log("VTKWEB", "[initialization] Starting Twisted reactor")
+        tangelo.log_info("VTKWEB", "[initialization] Starting Twisted reactor")
 
 initialize()
 
@@ -141,13 +141,13 @@ def post(*pargs, **query):
         cmdline.extend(["--sslKey", ssl_key, "--sslCert", ssl_cert])
 
     # Launch the requested process.
-    tangelo.log("VTKWEB", "Starting process: %s" % (" ".join(cmdline)))
+    tangelo.log_info("VTKWEB", "Starting process: %s" % (" ".join(cmdline)))
     try:
         process = subprocess.Popen(cmdline,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
     except (OSError, IOError) as e:
-        tangelo.log("VTKWEB", "Error:  could not launch VTKWeb process")
+        tangelo.log_warning("VTKWEB", "Error: could not launch VTKWeb process")
         return {"error": e.strerror}
 
     # Capture the new process's stdout and stderr streams in
@@ -235,11 +235,11 @@ def delete(key=None):
         return {"error": "Key %s not in process table" % (key)}
 
     # Terminate the process.
-    tangelo.log("VTKWEB", "Shutting down process %s" % (key))
+    tangelo.log_info("VTKWEB", "Shutting down process %s" % (key))
     proc = processes[key]
     proc["process"].terminate()
     proc["process"].wait()
-    tangelo.log("VTKWEB", "Process terminated")
+    tangelo.log_success("VTKWEB", "Process terminated")
 
     # Remove the process entry from the table.
     del processes[key]
@@ -286,16 +286,14 @@ def WebSocketRelay(hostname, port, key):
                 scheme = "wss"
             url = "%s://%s:%d/ws" % (scheme, hostname, port)
 
-            tangelo.log("VTKWEB", "websocket created at %s:%d/%s (proxy to %s)" %
-                        (hostname, port, key, url))
+            tangelo.log_info("VTKWEB", "websocket created at %s:%d/%s (proxy to %s)" % (hostname, port, key, url))
 
             self.client = VTKWebSocketAB(url, self)
 
         def closed(self, code, reason=None):
             # TODO(choudhury): figure out if recovery, etc. is possible if the
             # socket is closed for some reason.
-            tangelo.log("VTKWEB", "websocket at %s:%d/%s closed with code %d (%s)" %
-                        (hostname, port, key, code, reason))
+            tangelo.log_info("VTKWEB", "websocket at %s:%d/%s closed with code %d (%s)" % (hostname, port, key, code, reason))
 
         def received_message(self, msg):
             self.client.send(msg.data)
