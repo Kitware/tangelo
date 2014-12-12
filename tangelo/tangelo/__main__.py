@@ -102,7 +102,7 @@ def main():
     p.add_argument("--version", action="store_true", help="display Tangelo version number")
     p.add_argument("--key", type=str, default=None, metavar="FILE", help="the path to the SSL key.  You must also specify --cert to serve content over https.")
     p.add_argument("--cert", type=str, default=None, metavar="FILE", help="the path to the SSL certificate.  You must also specify --key to serve content over https.")
-    p.add_argument("--plugin-config", type=str, default="/etc/tangelo/plugin.conf", metavar="PATH", help="path to plugin configuration file")
+    p.add_argument("--plugin-config", type=str, default=None, metavar="PATH", help="path to plugin configuration file")
     args = p.parse_args()
 
     # If version flag is present, print the version number and exit.
@@ -252,11 +252,21 @@ def main():
 
     tangelo.log("TANGELO", "Serving content from %s" % (root))
 
-    # Check for the existence of a plugin configuration file - warn if it doesn'
-    # exist.
-    plugin_cfg_file = tangelo.util.expandpath(args.plugin_config)
+    # Compute a default plugin configuration if it was not supplied.
+    if args.plugin_config is None:
+        default_paths = map(tangelo.util.expandpath, [sys.prefix + "/share/tangelo/plugin/plugin.conf", invocation_dir + "/share/tangelo/plugin/plugin.conf"])
+        tangelo.log_info("TANGELO", "Looking for default plugin configuration file")
+        for path in default_paths:
+            tangelo.log_info("TANGELO", "Trying %s" % (path))
+            if os.path.exists(path):
+                plugin_cfg_file = path
+                break
+    else:
+        plugin_cfg_file = tangelo.util.expandpath(args.plugin_config)
+
+    # Warn if plugin file doesn't exist.
     if not os.path.exists(plugin_cfg_file):
-        tangelo.log_info("TANGELO", "Plugin configuration file %s does not exist - create it to load plugins at runtime" % (plugin_cfg_file))
+        tangelo.log_warning("TANGELO", "Plugin configuration file %s does not exist - create it to load plugins at runtime" % (plugin_cfg_file))
     else:
         tangelo.log("TANGELO", "Using plugin configuration file '%s'" % (plugin_cfg_file))
 
