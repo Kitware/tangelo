@@ -60,7 +60,7 @@ def log_warning(section, message=None):
 
 
 def log_info(section, message=None):
-    log(section, message, color="\033[1;35m")
+    log(section, message, color="\033[35m")
 
 
 def request_path():
