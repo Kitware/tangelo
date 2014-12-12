@@ -102,7 +102,14 @@ Do not omit the ``--no-ff`` flag!  The commit message should read "Release
     git tag -a v1.2
     git push --tags
 
-**8. Upload the package to PyPI.**
+**8. Upload the package to PyPI.**  Unpack the built package file, and then use
+the ``upload`` option to ``setup.py``:
+
+.. code-block:: shell
+
+    cd sdist
+    tar xzvf tangelo-1.2.0.tar.gz
+    ../venv/bin/python setup.py sdist upload
 
 **9. Merge into develop.** The changes made on the release branch must be
 merged back into ``develop`` as well, so that development may continue there:
