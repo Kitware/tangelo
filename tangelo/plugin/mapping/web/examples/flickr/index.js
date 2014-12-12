@@ -274,6 +274,9 @@ flickr.getMongoRange = function (host, db, coll, field, callback) {
                     callback(min, max);
                 }
             });
+        },
+        error: function () {
+            callback(null, null);
         }
     });
 };
