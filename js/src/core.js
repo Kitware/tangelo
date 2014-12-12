@@ -6,7 +6,7 @@ window.tangelo = {};
 
     // Tangelo version number.
     tangelo.version = function () {
-        var version = "0.7.0-dev";
+        var version = "0.8.0";
         return version;
     };
 

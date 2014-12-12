@@ -15,7 +15,7 @@ import tangelo.server
 import tangelo.util
 import tangelo.websocket
 
-tangelo_version = "0.7.0-dev"
+tangelo_version = "0.8.0"
 
 
 class Config(object):
