@@ -236,7 +236,9 @@ def main():
     if root:
         root = tangelo.util.expandpath(root)
     else:
-        default_paths = map(tangelo.util.expandpath, [sys.prefix + "/share/tangelo/web", invocation_dir + "/share/tangelo/web"])
+        default_paths = map(tangelo.util.expandpath, [sys.prefix + "/share/tangelo/web",
+                                                      invocation_dir + "/share/tangelo/web",
+                                                      "/usr/local/share/tangelo/web"])
         tangelo.log_info("TANGELO", "Looking for default web content path")
         for path in default_paths:
             tangelo.log_info("TANGELO", "Trying %s" % (path))
@@ -254,7 +256,10 @@ def main():
 
     # Compute a default plugin configuration if it was not supplied.
     if args.plugin_config is None:
-        default_paths = map(tangelo.util.expandpath, [sys.prefix + "/share/tangelo/plugin/plugin.conf", invocation_dir + "/share/tangelo/plugin/plugin.conf"])
+        plugin_cfg_file = None
+        default_paths = map(tangelo.util.expandpath, [sys.prefix + "/share/tangelo/plugin/plugin.conf",
+                                                      invocation_dir + "/share/tangelo/plugin/plugin.conf",
+                                                      "/usr/local/share/tangelo/plugin/plugin.conf"])
         tangelo.log_info("TANGELO", "Looking for default plugin configuration file")
         for path in default_paths:
             tangelo.log_info("TANGELO", "Trying %s" % (path))
@@ -265,7 +270,9 @@ def main():
         plugin_cfg_file = tangelo.util.expandpath(args.plugin_config)
 
     # Warn if plugin file doesn't exist.
-    if not os.path.exists(plugin_cfg_file):
+    if plugin_cfg_file is None:
+        tangelo.log_warning("TANGELO", "Could not find a default plugin configuration file")
+    elif not os.path.exists(plugin_cfg_file):
         tangelo.log_warning("TANGELO", "Plugin configuration file %s does not exist - create it to load plugins at runtime" % (plugin_cfg_file))
     else:
         tangelo.log("TANGELO", "Using plugin configuration file '%s'" % (plugin_cfg_file))
