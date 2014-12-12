@@ -112,13 +112,18 @@
                     (Be sure to use the same <code>pip</code> that you used to
                     install Tangelo.  For example, if you built Tangelo from
                     source, then you should use
-                    <code><tangelo-source-dir>/venv/bin/pip</code>.)
+                    <code>&lt;tangelo-source-dir&gt;/venv/bin/pip</code>.)
                 </p>
             </li>
 
             <li>
                 <p>
-                    <strong>Get photo data from Flickr.</strong>  For this step
+                    <strong>Get Flickr photo data.</strong> Download the hosted
+                    <a href=http://midas3.kitwarein.com/midas/download/item/315558/flickr_paris.json>Flickr data file</a>.
+                </p>
+
+                <p>
+                    You can also download data from Flickr yourself.  To do this
                     you will need a
                     <a href=http://www.flickr.com/services/api/misc.api_keys.html>Flickr API key</a>.
                     Armed with a key, you can run the
@@ -127,14 +132,11 @@
                     can run it like this:
                 </p>
 
-                <p>&nbsp;&nbsp;&nbsp;&nbsp;<code>get-flickr-data.py <your API key> <maximum number of photos to retrieve> flickr_paris.json</code></p>
+                <p>&nbsp;&nbsp;&nbsp;&nbsp;<code>get-flickr-data.py &lt;API key&gt; &lt;max photos to retrieve&gt; flickr_paris.json</code></p>
 
                 <p>
-                    If you do not want to retrieve the data yourself, you can
-                    use the
-                    <a href=http://midas3.kitware.com/midas/download/bitstream/339384/flickr_paris_1000.json.gz>hosted version</a>.
-                    This dataset was generated with this script, with a max
-                    count argument of 1000.
+                    The hosted version mentioned above was generated with this
+                    script, with a max count argument of 1000.
                 </p>
             </li>
 
