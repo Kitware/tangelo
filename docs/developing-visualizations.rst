@@ -7,7 +7,7 @@
 Creating jQuery Widgets
 =======================
 
-Tangelo visualizations are implemented as jQuery widgets. They extend the
+Tangelo visualizations can be implemented as jQuery widgets. They extend the
 base jQuery UI widget class, but otherwise do not need to depend on anything
 else from jQuery UI.
 

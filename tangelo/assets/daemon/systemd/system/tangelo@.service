@@ -1,0 +1,6 @@
+[Unit]
+Description=Tangelo Web Server on %I
+After=network.target
+
+[Service]
+ExecStart=/usr/lib/systemd/scripts/launch-tangelo.sh %I

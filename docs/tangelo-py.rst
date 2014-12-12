@@ -11,12 +11,45 @@ formatting errors; and web service utilities to supercharge Python services.
 Core Services
 =============
 
-.. py:function:: tangelo.log(msg[, context])
+.. py:function:: tangelo.log([context, ]msg)
 
-    Writes a message ``msg`` to the log file.  If ``context`` is supplied, it
-    will be prepended to the message within the log file.  This function may be
-    useful for debugging or otherwise tracking a service's activities as it
-    runs.
+    Writes a message ``msg`` to the log file.  The optional ``context`` is a
+    descriptive tag that will be prepended to the message within the log file
+    (defaulting to "TANGELO" if omitted).  Common context tags used internally
+    in Tangelo include "TANGELO" (to describe startup/shutdown activities), and
+    "ENGINE" (which describes actions being taken by CherryPy).  This function
+    may be useful for debugging or otherwise tracking a service's activities as
+    it runs.
+
+.. py:function:: tangelo.log_info([context, ]msg)
+
+    Variant of :py:func:`tangelo.log` that writes out messages in purple.
+    Informational messages are those that simply declare a helpful description
+    of what the system is doing at the moment.  For example, when a plugin is
+    about to perform initialization, a call like ``tangelo.log_info("FOOBAR",
+    "About to initialize...")`` may be appropriate.
+
+.. py:function:: tangelo.log_warning([context, ]msg)
+
+    Variant of :py:func:`tangelo.log` that writes out messages in yellow.
+    Warnings are messages indicating that something did not work out as
+    expected, but not so bad as to compromise the continued running of the
+    system.  For example, if Tangelo is unable to load a plugin for any reason,
+    Tangelo itself is able to continue running - this constitutes a warning
+    about the failed plugin loading.
+
+.. py:function:: tangelo.log_error([context, ]msg)
+
+    Variant of :py:func:`tangelo.log` that writes out messages in red.  Errors
+    describe conditions that prevent the further functioning of the system.
+    Generally, you will not need to call this function.
+
+.. py:function:: tangelo.log_success([context, ]msg)
+
+    Variant of :py:func:`tangelo.log` that writes out messages in green.  This
+    is meant to declare that some operation went as expected.  It is generally
+    not needed because the absence of errors and warnings can generally be
+    regarded as a success condition.
 
 .. py:function:: tangelo.abspath(webpath)
 
@@ -48,8 +81,33 @@ HTTP Interaction
 
 .. py:function:: tangelo.content_type([type])
 
-    Returns the content type for the current request, as a string.  If ``type``
+    Returns the content type for the current request, as a string.  If `type`
     is specified, also sets the content type to the specified string.
+
+.. py:function:: tangelo.http_status(code[, message])
+
+    Sets the HTTP status code for the current request's response.  `code` should
+    be an integer; optional `message` can give a concise description of the
+    code.  Omitting it results in a standard message; for instance,
+    ``tangelo.http_status(404)`` will send back a status of ``404 Not Found``.
+
+    This function can be called before returning, e.g., a ``dict`` describing in
+    detail what went wrong.  Then, the response will indicate the general error
+    while the body contains error details, which may be informational for the
+    client, or useful for debugging.
+
+.. py:function:: tangelo.header(header_name[, new_value])
+
+    Returns the value associated to `header_name` in the HTTP headers, or
+    ``None`` if the header is not present.
+
+    If `new_value` is supplied, the header value will additionally be replaced
+    by that value.
+
+.. py:function:: tangelo.request_header(header_name)
+
+    Returns the value associated to `header_name` in the request headers, or
+    ``None`` if the header is not present.
 
 .. py:function:: tangelo.request_path()
 
@@ -62,17 +120,11 @@ HTTP Interaction
     This can be useful, e.g., for retrieving data submitted in the body for a
     POST request.
 
-.. py:class:: tangelo.HTTPStatusCode(code[, description])
+.. py:function:: tangelo.session(key[, value])
 
-    Constructs an HTTP status object signalling the status code given by ``code``
-    and a custom description of the status given by ``description``.  If
-    ``description`` is not specified, then a standard description will appear
-    based on the code (e.g., "Not Found" for code 404, etc.).
-
-    An ``HTTPStatusCode`` object can be returned from a Python service to cause
-    the server to raise that code instead of sending back a response.  This can
-    be useful to signal situations like bad arguments, failure to find the
-    requested object, etc.
+    Returns the value currently associated to the session key `key`, or `None`
+    if there is no such key.  If `value` is given, it will become newly associated
+    to `key`.
 
 Web Services Utilities
 ======================
@@ -93,6 +145,11 @@ Web Services Utilities
     in every function wishing to change the path, but prevents shadowing of
     expected locations by modules with the same name in other directories, and
     the uncontrolled growth of the ``sys.path`` variable.
+
+.. py:function:: tangelo.config()
+
+    Returns a copy of the service configuration dictionary (see
+    :ref:`configuration`).
 
 .. py:decorator:: tangelo.restful
 
@@ -119,15 +176,15 @@ Web Services Utilities
     all lowercase letters before searching the Python module for a matching
     function to call.
 
-.. py:decorator:: tangelo.types([ptype1,...,ptypeN],kwarg1=kwtype1,...,kwargN=kwtypeN)
+.. py:decorator:: tangelo.types(arg1=type1,...,argN=typeN)
 
-    Decorates a service by converting it from a function of several string arguments
-    to a function taking typed arguments.  Each argument to ``tangelo.types()`` is a
-    function that converts strings to some other type - the standard Python
-    functions ``int()``, ``float()``, and ``json.loads()`` are good examples.  The
-    positional and keyword arguments represent the types of the positional and
-    keyword arguments, respectively, of the function.  For example, the following
-    code snippet
+    Decorates a service by converting it from a function of several string
+    arguments to a function taking typed arguments.  Each argument to
+    ``tangelo.types()`` is a function that converts strings to some other type -
+    the standard Python functions ``int()``, ``float()``, and ``json.loads()``
+    are good examples.  The functions are passed in as keyword arguments, with
+    the keyword naming an argument in the decorated function.  For example, the
+    following code snippet
 
     .. code-block:: python
 
@@ -136,7 +193,7 @@ Web Services Utilities
         def stringfunc(a, b):
             return a + b
 
-        @types(int, int)
+        @tangelo.types(a=int, b=int)
         def intfunc(a, b):
             return a + b
 

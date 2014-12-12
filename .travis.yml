@@ -4,10 +4,8 @@ python:
     - 2.7
 
 script:
-    - mkdir build
-    - cd build
-    - pip install virtualenv
-    - cmake ..
-    - make
-    - ctest -V -S ../cmake/travis-build.cmake
-    - ctest -V -S ../cmake/travis-submit.cmake
+    - npm install -g grunt-cli
+    - npm install
+    - grunt
+    - grunt test:server
+    - grunt test:client

@@ -1,5 +1,0 @@
-{
-    "host": "localhost",
-    "database": "tangelo",
-    "collection": "enron_email"
-}
