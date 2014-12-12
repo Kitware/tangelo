@@ -40,7 +40,7 @@ module.exports = function (grunt) {
               "tangelo/tangelo/__main__.py",
               "tangelo/plugin/tangelo/web/version.py",
               "tangelo/setup.py",
-              "js/src/core/core.js"
+              "js/src/core.js"
           ]
       },
       concat: {
