@@ -16,21 +16,17 @@ The simplest way to launch a Tangelo server is to use this command: ::
     tangelo
 
 Tangelo's runtime behaviors are specified via configuration file and command
-line options.  Tangelo configuration files are INI-style files as read by the
-standard Python `ConfigParse
-<https://docs.python.org/2/library/configparser.html>`_ module.  These files
-consist of one or more `sections`, each of which contains one or more option
-settings.  A section begins with the section title, wrapped in square brackets.
-Options are given as key-value pairs:  the line starts with the name of the
+line options.  Tangelo configuration files are YAML files representing a
+key-value store ("associative array" in YAML jargon) at the top level.  Each
+options is specified as a key-value pair:  the line starts with the name of the
 key, then a colon followed by a space, and then the value.
 
 The example configuration found at
-``/usr/share/tangelo/conf/tangelo/local/conf`` reads something like the
+``/usr/share/tangelo/conf/tangelo.local.conf`` reads something like the
 following:
 
-.. code-block:: cfg
+.. code-block:: yaml
 
-    [tangelo]
     hostname: 0.0.0.0
     port:     8080
 
@@ -38,9 +34,8 @@ This minimal configuration file specifies that Tangelo should listen on all
 interfaces for connections on port 8080.  By contrast, ``tangelo.conf.global``
 looks like this:
 
-.. code-block:: cfg
+.. code-block:: yaml
 
-    [tangelo]
     hostname: 0.0.0.0
     port:     80
 
@@ -57,7 +52,7 @@ attacker.
 To run Tangelo using a particular configuration file, ``tangelo`` can be invoked
 with the ``-c`` or ``--config`` option: ::
 
-    tangelo -c ~/myconfig.json
+    tangelo -c ~/myconfig.yaml
 
 When the flag is omitted, Tangelo will use default values for all
 configuration options (see :ref:`config-options` below).
@@ -76,8 +71,6 @@ The following tables, organized by section title, show what fields can be
 included in the configuration file, what they mean, and their default values if
 left unspecified.
 
-The **[tangelo]** section contains general server options:
-
 ================ =================================================================   =================================
 Option           Meaning                                                             Default value
 ================ =================================================================   =================================
@@ -87,7 +80,7 @@ port             The port number on which to listen for connections             
 
 root             The path to the directory to be served by Tangelo as the web root   ``/usr/share/tangelo/www`` [#root]_
 
-drop_privileges  Whether to drop privileges when started as the superuser            ``True``
+drop-privileges  Whether to drop privileges when started as the superuser            ``True``
 
 sessions         Wehther to enable server-side session tracking                      ``True``
 
@@ -95,31 +88,11 @@ user             The user account to drop privileges to                         
 
 group            The user group to drop privileges to                                ``nobody`` [#usergroup]_
 
-access_auth      Whether to protect directories containing a ``.htaccess`` file      ``True``
+access-auth      Whether to protect directories containing a ``.htaccess`` file      ``True``
 
 key              The path to the SSL key                                             ``None`` [#https]_ [#unset]_
 
 cert             The path to the SSL certificate                                     ``None`` [#https]_ [#unset]_
-================ =================================================================   =================================
-
-The **[vtkpython]** section contains options related to :ref:`vtkweb` integration:
-
-================ =================================================================   =================================
-Option           Meaning                                                             Default value
-================ =================================================================   =================================
-vtkpython        The path to the ``vtkptyhon`` program                               ``None`` [#unset]_
-================ =================================================================   =================================
-
-The **[girder]** section contains options related to mounting a Girder API: [#gird]_
-
-================ =================================================================   =================================
-Option           Meaning                                                             Default value
-================ =================================================================   =================================
-host [#girdopt]_ The hostname running Girder                                         ``localhost``
-
-port [#girdopt]_ The port on which the Girder database is running                    ``27017``
-
-path [#girdopt]_ The path on which to mount a Girder API                             ``None`` [#unset]_
 ================ =================================================================   =================================
 
 .. rubric:: Footnotes
@@ -136,18 +109,8 @@ path [#girdopt]_ The path on which to mount a Girder API                        
     named "tangelo", that also has minimal permissions, but is only used to run
     Tangelo in privilege drop mode.
 
-.. [#https] You must also specify both key and cert to serve content over
+.. [#https] You must also specify both *key* and *cert* to serve content over
     https.
-
-.. [#gird] `Girder <https://github.com/girder/girder>`_ will attempt to be
-    mounted if the girder-path is provided. The girder-path will be the root for
-    mounting the Girder static resources and API endpoints, and will be placed
-    under Tangelo's ``api`` path.  For instance, if the option is set to "girder",
-    then the Girder API will be accessible at ``/api/girder``. The ``girder``
-    Python library must be available to the Python environment.
-
-.. [#girdopt] On the command line, this option is prefixed by "girder-" to
-    encode the fact that the option comes from the [girder] configuration section.
 
 .. [#unset] That is to say, the option is simply unset by default, the
     equivalent of not mentioning the option at all in a configuration file.
@@ -160,24 +123,30 @@ about how Tangelo ought to behave, then implementing those decisions in a
 configuration file.
 
 For example, as the system administrator you might create a directory on the web
-server machine at ``/srv/tangelo`` which would serve as the web root.  The
-website front page and supporting materials could be placed here, with the
-*tangelo.js* and *tangelo.min.js* files copied from
-``/usr/share/tangelo/www/js/`` to ``/srv/tangelo/js`` so they can be easily
-accessed from user web applications.
+server machine at ``/srv/tangelo`` which would serve as the web root, containing
+the website front page and supporting materials.
 
-The hostname should reflect the desired external identity of the Tangelo server -
-perhaps *excelsior.starfleet.mil*.  As this is a "global" deployment, we want to
-listen on port 80 for connections.  Since we will need to start Tangelo as root
-(to gain access to the low-numbered ports), we should also specify a user and
-group to drop privileges to:  these can be the specially created user and group
-*tangelo*.
+You should then prepare a plugin configuration file that, at the very least,
+activates the Tangelo plugin:
+
+.. code-block:: yaml
+
+    enabled: true
+    path: /usr/share/tangelo/plugins/tangelo
+
+This file can be saved to ``/etc/tangelo/plugin.conf``.
+
+It remains to configure Tangelo itself.  The hostname should reflect the desired
+external identity of the Tangelo server - perhaps *excelsior.starfleet.mil*.  As
+this is a "global" deployment, we want to listen on port 80 for connections.
+Since we will need to start Tangelo as root (to gain access to the low-numbered
+ports), we should also specify a user and group to drop privileges to:  these
+can be the specially created user and group *tangelo*.
 
 The corresponding configuration file might look like this:
 
-.. code-block:: cfg
+.. code-block:: yaml
 
-    [tangelo]
     # Network options.
     hostname: excelsior.starfleet.mil
     port: 80
@@ -248,113 +217,6 @@ number (*8080*) from the name, then launches Tangelo using whatever
 configuration file is found at ``/etc/tangelo.conf``, but overriding the
 hostname and port with those parsed from the name.  This allows for a unique
 name for each Tangelo instance that corresponds to its unique web interface.
-
-Preparing Data for the Example Applications
-===========================================
-
-Tangelo comes with several :root:`example applications
-</examples>`, some of which require a bit of data setup
-before they will work.
-
-Named Entities
---------------
-
-In order to run the named entities example at http://localhost:8000/examples/ner/,
-you need to install NLTK and download some datasets.  The part of NLTK used by
-the examples also requires `NumPy <http://www.numpy.org/>`_.
-On Mac and Linux, simply run::
-
-    pip install nltk numpy
-
-In a Windows Git Bash shell::
-
-    /c/Python27/Scripts/pip install pyyaml nltk numpy
-
-To get the NLTK datasets needed, run the NLTK downloader from the command line
-as follows::
-
-    python -m nltk.downloader nltk.downloader maxent_ne_chunker maxent_treebank_pos_tagger punkt words
-
-If you are building Tangelo from source, be sure to use the appropriate
-Virtualenv when installing these packages.  For example, from the build
-directory::
-
-    ./venv/bin/pip install nltk numpy
-
-This will ensure that the packages are visible to tangelo when it runs.
-
-Flickr Metadata Maps
---------------------
-
-The :root:`Flickr Metadata Maps </examples/flickr>` application
-plots publicly available Flickr photo data on a Google map.  The application
-works by retrieving data from a Mongo database server, which by default is
-expected to live at *localhost*.  The steps to getting this application working
-are to **set up a MongoDB server**, **retrieve photo metadata via the Flickr
-API**, and **upload the data to the MongoDB server**.
-
-#. **Set up MongoDB.**  To set up a Mongo server you can consult the `MongoDB
-   documentation <http://www.mongodb.org>`_.  It is generally as
-   straightforward as installing it via a package manager, then launching the
-   ``mongod`` program, or starting it via your local service manager.
-
-  By default, the Flickr application assumes that the server is running on the
-  same host as Tangelo.  To change this, you can edit the configuration file for
-  the app, found at ``/usr/share/tangelo/www/examples/flickr/config.json``.
-
-#. **Get photo data from Flickr.**  For this step you will need a `Flickr API
-   key <http://www.flickr.com/services/api/misc.api_keys.html>`_.  Armed with a
-   key, you can run the ``get-flickr-data.py`` script, which can be found at
-   ``/usr/share/tangelo/data/get-flickr-data.py``.  You cun run it like this:
-
-   .. code-block:: none
-
-       get-flickr-data.py <your API key> <maximum number of photos to retrieve> >flickr_paris.json
-
-   If you do not want to retrieve the data yourself, you can use the
-   `hosted version <http://midas3.kitware.com/midas/download/bitstream/339384/flickr_paris_1000.json.gz>`_.
-   This dataset was generated with this script, with a max count argument of 1000.
-
-#. **Upload the data to Mongo.** You can use this command to place the photo
-   data into your MongoDB instance:
-
-   .. code-block:: none
-
-        mongoimport -d tangelo -c flickr_paris --jsonArray --file flickr_paris.json
-
-   This command uses the MongoDB instance running on **localhost**, and places
-   the photo metadata into the **tangelo** database, in a collection called
-   **flickr_paris**.  If you edited the configuration file in Step 1 above, be
-   sure to supply your custom hostname, and database/collection names in this
-   step.
-
-Now the database should be set up to feed photo data to the Flickr app - reload
-the page and you should be able to explore Paris through photos.
-
-Enron Email Network
--------------------
-
-The :root:`Enron Email Network </examples/enron>` application
-visualizes the `enron email dataset <https://www.cs.cmu.edu/~enron/>`_ as a
-network of communication.  The original data has been processed into graph form,
-in a file hosted `here <http://midas3.kitware.com/midas/download/bitstream/339385/enron_email.json.gz>`_.
-Download this file, ``gunzip`` it, and then issue this command to upload the
-records to Mongo:
-
-   .. code-block:: none
-
-       mongoimport -d tangelo -c enron_email --file enron_email.json
-
-(Note: although ``enron_email.json`` contains one JSON-encoded object per line,
-keep in mind that the file as a whole does **not** constitute a single JSON
-object - the file is instead in a particular format recognized by Mongo.)
-
-As with the Flickr data prep above, you can modify this command line to install
-this data on another server or in a different database/collection.  If you do
-so, remember to also modify
-``/usr/share/tangelo/www/examples/enron/config.json`` to reflect these changes.
-
-Reload the Enron app and take a look at the email communication network.
 
 .. _versioning:
 

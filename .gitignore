@@ -1,5 +1,14 @@
 *.swp
+*.swo
 *.pyc
-.vagrant
-build
-CMakeLists.txt.user
+node_modules
+venv
+sdist
+configuration.json
+tangelo/MANIFEST
+tangelo/README
+tangelo/plugin/tangelo/web/tangelo.js
+tangelo/plugin/tangelo/web/tangelo.min.js
+tangelo/plugin/docs
+js/tests/results
+.coverage

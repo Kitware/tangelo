@@ -1,27 +1,14 @@
-Coding Style Guidelines
-=======================
+===============================
+    Coding Style Guidelines
+===============================
 
-JavaScript is
-`notorious <http://shop.oreilly.com/product/9780596517748.do>`__ for its
-mix of powerful, expressive programming constructs and its poor,
-sometimes broken language features. It is therefore prone to easily
-hidden, difficult to track programming errors. To mitigate this problem,
-Tangelo avoids many of the poor practices by using
-`JSLint <http://www.jslint.com>`__ to enforce strict coding practices.
-JSLint is a static analysis tool that warns about several such poor
-coding practices, as well as a particular stylistic convention, which is
-documented in this article.
+This section concerns written code format in Tangelo, with the goal of clear,
+readable, and consistent code.  The build process uses ``jshint`` and ``jscs``
+to catch possible code and style errors.  This document describes some of the
+coding practices employed to help make Tangelo more reliable.
 
-Though JSLint is used as something of a gold standard, there are other
-conventions that JSLint has no opinion on, such as programming patterns
-for implementing namespaces or constructing objects. The preferred
-practices for Tangelo are also listed here.
-
-Code style
-----------
-
-This section concerns written code *format*, with the goal of clear,
-readbale, and consistent code.
+Code Style Rules
+----------------
 
 Indentation
 ~~~~~~~~~~~
@@ -145,8 +132,8 @@ a space.
 **Blank lines.** Blank lines should be used to set apart sequences of
 statements that logically belong together.
 
-Chained if/else-if/else statements.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Chained if/else-if/else statements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A common programming pattern is to test a sequence of conditions,
 selecting a single action to take when one of them is satisfied. In
@@ -257,6 +244,7 @@ variables before they are defined, etc. It can be enabled by including
 
     function foobaz() {
         "use strict";
+
         .
         .
         .
@@ -266,7 +254,7 @@ variables before they are defined, etc. It can be enabled by including
 mode.
 
 A note on ``try...catch`` blocks
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------
 
 JSLint complains if the exception name bound to a ``catch`` block is the
 same as the exception name bound to a previous ``catch`` block. This is
@@ -281,7 +269,7 @@ unique exception names for each ``catch`` block.
 in the JSLint output. **This rule is subject to change in the future.**
 
 A note on *"eval is evil"*
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 
 JSLint claims that ``eval`` is evil. However, it is actually
 *dangerous*, and not evil. Accordingly, ``eval`` should be kept away

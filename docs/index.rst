@@ -63,7 +63,7 @@ Using Tangelo
     setup
     basic-usage
     python-services
-    advanced-usage
+    plugins
 
 Command Line Utilities
 ======================
@@ -82,6 +82,7 @@ The Tangelo API
 
     tangelo-py
     tangelo-js
+    bundled-plugins
 
 Tutorials
 =========
@@ -99,7 +100,6 @@ Information for Developers
 
     coding-style-guide
     developing-visualizations
-    testing
 
 Indices and tables
 ==================

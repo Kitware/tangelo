@@ -1,0 +1,19 @@
+<!doctype html>
+
+<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+<script src="http://code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+<script src="/plugin/tangelo/js/tangelo.js"></script>
+<script src="/plugin/bokeh/bokeh.js"></script>
+<script src="http://cdn.pydata.org/bokeh-0.6.0.js"></script>
+
+<link rel="stylesheet" type="text/css" href="http://cdn.pydata.org/bokeh-0.6.0.css">
+
+<div class="iris-plot"></div>
+
+<script>
+    $(function () {
+        $(".iris-plot").bokeh({
+            url: "iris"
+        });
+    });
+</script>
