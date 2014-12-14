@@ -35,6 +35,12 @@ of the release being created.
 of the repository, updating the version number to *1.2.0*.  Be sure to use the
 *major.minor.patch* format.
 
+Also edit ``js/tests/tangelo-version.js``, ``tests/tangelo-version.py``, and
+``tests/commandline-version.py`` to bump the version numbers there manually (in
+each file, the expected version string is contained in a variable named
+``expected``).  This is done by hand to ensure that the version tests are
+deployed correctly for step 6 below.
+
 **4. Build Tangelo.** Issue the following commands to create a fresh build of
 Tangelo from scratch:
 
@@ -47,10 +53,6 @@ Tangelo from scratch:
 This should result in a virtual environment with a newly built Tangelo.  Bumping
 the version number in the previous step means that Grunt should have also
 updated the version string in all parts of the code that require it.
-
-Also edit ``js/tests/tangelo-version.js`` to bump the version number there
-manually.  This part is done by hand to ensure that the version tests are
-deployed correctly for step 6 below.
 
 **5. Commit.** Make a commit on the release branch containing the version number
 update:
@@ -124,9 +126,14 @@ and ``develop`` one commit ahead of the same, prepared release branch point.
 **11. Bump the version number again.**  The version number on the ``develop``
 branch needs to be changed again, to add a *-dev* suffix.  In our example, the
 version number will now be *1.2.0-dev*.  This entails editing ``package.json``
-once more, as well as ``js/tests/tangelo-version.js``.
+once more, as well as ``js/tests/tangelo-version.js``,
+``tests/tangelo-version.py``, and ``tests/commandline-version.py``.
 
-**12. Commit.** Commit the change so that ``develop`` is ready to go:
+**12. Test again.**  Run the tests one more time, to verify that the version
+number bump happened correctly, and to catch anything weird that may have
+happened as well.
+
+**13. Commit.** Commit the change so that ``develop`` is ready to go:
 
 .. code-block:: shell
 
