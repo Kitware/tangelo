@@ -1,5 +1,6 @@
-/*global module:false*/
-/*jshint node:true*/
+/*global module:false */
+/*jshint node:true */
+/*jshint camelcase:false */
 module.exports = function (grunt) {
     "use strict";
 
@@ -63,106 +64,19 @@ module.exports = function (grunt) {
           }
       },
       jshint: {
-          options: {
-              // Enforcing options (for strict checking, should be true by
-              // default; set to false indicates departure from this policy).
-              bitwise: true,
-              camelcase: true,
-              curly: true,
-              eqeqeq: true,
-              forin: true,
-              immed: true,
-              latedef: true,
-              newcap: true,
-              noempty: false,
-              nonbsp: true,
-              nonew: true,
-              plusplus: false,
-              quotmark: "double",
-              undef: true,
-              unused: true,
-              strict: true,
-              maxparams: false,
-              maxdepth: false,
-              maxstatements: false,
-              maxcomplexity: false,
-              maxlen: false,
-
-              // Relaxing options (for strict checking, should be false by
-              // default; set to true indicates departure from this policy).
-              eqnull: true,
-
-              // Environment options.
-              browser: true,
-
-              // Globals.
-              globals: {
-                  console: false
-              }
-          },
           gruntfile: {
-              options: {
-                  // Disable camelcase enforcement.
-                  "-W106": true
-              },
               src: "Gruntfile.js"
           },
           tangelo: {
               src: ["js/src/**/*.js"]
           },
           test: {
-              options: {
-                  globals: {
-                      QUnit: false,
-                      tangelo: false
-                  }
-              },
               src: ["js/tests/*.js"]
           }
       },
       jscs: {
           options: {
-              requireCurlyBraces: true,
-              requireSpaceAfterKeywords: true,
-              requireSpaceBeforeBlockStatements: true,
-              requireParenthesesAroundIIFE: true,
-              requireSpacesInConditionalExpression: true,
-              requireSpacesInAnonymousFunctionExpression: {
-                  beforeOpeningRoundBrace: true,
-                  beforeOpeningCurlyBrace: true
-              },
-              requireSpacesInNamedFunctionExpression: {
-                  beforeOpeningCurlyBrace: true
-              },
-              requireSpacesInFunctionDeclaration: {
-                  beforeOpeningCurlyBrace: true
-              },
-              requireMultipleVarDecl: true,
-              requireBlocksOnNewline: true,
-              disallowPaddingNewlinesInBlocks: true,
-              disallowEmptyBlocks: true,
-              disallowQuotedKeysInObjects: true,
-              disallowSpaceAfterObjectKeys: true,
-              requireSpaceBeforeObjectValues: true,
-              requireCommaBeforeLineBreak: true,
-              requireOperatorBeforeLineBreak: true,
-              disallowSpaceAfterPrefixUnaryOperators: true,
-              disallowSpaceBeforePostfixUnaryOperators: true,
-              disallowImplicitTypeConversion: ["numeric", "boolean", "binary", "string"],
-              disallowMultipleLineStrings: true,
-              disallowMultipleLineBreaks: true,
-              disallowMixedSpacesAndTabs: true,
-              disallowTrailingWhitespace: true,
-              disallowTrailingComma: true,
-              disallowKeywordsOnNewLine: ["else if", "else"],
-              requireLineFeedAtFileEnd: true,
-              requireCapitalizedConstructors: true,
-              requireDotNotation: true,
-              requireSpaceAfterLineComment: true,
-              disallowNewlineBeforeBlockStatements: true,
-              validateIndentation: 4,
-              validateParameterSeparator: ", ",
-              safeContextKeyword: ["that"]
+              config: ".jscsrc"
           },
           gruntfile: {
               src: ["Gruntfile.js"]
@@ -206,9 +120,7 @@ module.exports = function (grunt) {
               }
           }
       },
-      /*jshint camelcase: false */
       blanket_qunit: {
-      /*jshint camelcase: true */
           all: {
               options: {
                   urls: ["http://localhost:50047/results/js/index.html?coverage=true&lights=4"],
