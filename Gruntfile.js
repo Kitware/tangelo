@@ -1,6 +1,6 @@
-/*global module:false*/
+/*global module:false */
 /*jshint node:true */
-/*jshint -W106*/
+/*jshint camelcase:false */
 module.exports = function (grunt) {
     "use strict";
 
@@ -120,9 +120,7 @@ module.exports = function (grunt) {
               }
           }
       },
-      /*jshint camelcase: false */
       blanket_qunit: {
-      /*jshint camelcase: true */
           all: {
               options: {
                   urls: ["http://localhost:50047/results/js/index.html?coverage=true&lights=4"],
