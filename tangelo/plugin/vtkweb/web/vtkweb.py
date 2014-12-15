@@ -53,17 +53,9 @@ def initialize():
     if twisted.internet.reactor.running:
         threads = [t for t in threading.enumerate() if t.name == "tangelo-vtkweb-plugin"]
         if len(threads) > 0:
-            tangelo.log_warning(
-                "VTKWEB",
-                "[initialization] A reactor started by a "
-                "previous loading of this plugin is already running"
-            )
+            tangelo.log_warning("VTKWEB", "[initialization] A reactor started by a previous loading of this plugin is already running")
         else:
-            tangelo.log_warning(
-                "VTKWEB",
-                "[initialization] A reactor started by someone other "
-                "than this plugin is already running"
-            )
+            tangelo.log_warning("VTKWEB", "[initialization] A reactor started by someone other than this plugin is already running")
     else:
         # Start the Twisted reactor, but in a separate thread so it doesn't
         # block the CherryPy main loop.  Mark the thread as "daemon" so that
