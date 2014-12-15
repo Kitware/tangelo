@@ -13,11 +13,13 @@ import ws4py
 import sys
 import time
 
+vtkpython = None
+weblauncher = None
+
 
 def initialize():
     global vtkpython
     global weblauncher
-    global processes
 
     # Get the module config.
     config = tangelo.plugin_config()
@@ -44,21 +46,34 @@ def initialize():
     weblauncher = os.path.realpath("%s/../include/vtkweb-launcher.py" % (os.path.dirname(__file__)))
 
     # Initialize a table of VTKWeb processes.
-    tangelo.plugin_store()["processes"] = processes = {}
+    if tangelo.plugin_store().get("processes") is None:
+        tangelo.plugin_store()["processes"] = {}
 
     # Check to see if a reactor is running already.
     if twisted.internet.reactor.running:
         threads = [t for t in threading.enumerate() if t.name == "tangelo-vtkweb-plugin"]
         if len(threads) > 0:
-            tangelo.log_warning("VTKWEB", "[initialization] A reactor started by a previous loading of this plugin is already running")
+            tangelo.log_warning(
+                "VTKWEB",
+                "[initialization] A reactor started by a "
+                "previous loading of this plugin is already running"
+            )
         else:
-            tangelo.log_warning("VTKWEB", "[initialization] A reactor started by someone other than this plugin is already running")
+            tangelo.log_warning(
+                "VTKWEB",
+                "[initialization] A reactor started by someone other "
+                "than this plugin is already running"
+            )
     else:
         # Start the Twisted reactor, but in a separate thread so it doesn't
         # block the CherryPy main loop.  Mark the thread as "daemon" so that
         # when Tangelo's main thread exits, the reactor thread will be killed
         # immediately.
-        reactor = threading.Thread(target=twisted.internet.reactor.run, kwargs={"installSignalHandlers": False}, name="tangelo-vtkweb-plugin")
+        reactor = threading.Thread(
+            target=twisted.internet.reactor.run,
+            kwargs={"installSignalHandlers": False},
+            name="tangelo-vtkweb-plugin"
+        )
         reactor.daemon = True
         reactor.start()
 
@@ -69,6 +84,9 @@ initialize()
 
 @tangelo.restful
 def get(key=None):
+
+    processes = tangelo.plugin_store()["processes"]
+
     # If no key was supplied, return list of running processes.
     if key is None:
         return processes.keys()
@@ -104,6 +122,8 @@ def post(*pargs, **query):
     args = query.get("args", "")
     timeout = float(query.get("timeout", 0))
 
+    processes = tangelo.plugin_store()["processes"]
+
     if len(pargs) == 0:
         tangelo.http_status(400, "Required Argument Missing")
         return {"error": "No program path was specified"}
@@ -111,7 +131,7 @@ def post(*pargs, **query):
     program_url = "/" + "/".join(pargs)
 
     content = analyze_url(program_url).content
-    if content is None or content.type != Content.File:
+    if content is None or content.type not in (Content.File, Content.Restricted):
         tangelo.http_status(404, "Not Found")
         return {"error": "Could not find a script at %s" % (program_url)}
 
@@ -225,6 +245,8 @@ def post(*pargs, **query):
 def delete(key=None):
     # TODO(choudhury): shut down a vtkweb process by key after a given timeout.
 
+    processes = tangelo.plugin_store()["processes"]
+
     if key is None:
         tangelo.http_status(400, "Required Argument Missing")
         return {"error": "'key' argument is required"}
@@ -286,14 +308,22 @@ def WebSocketRelay(hostname, port, key):
                 scheme = "wss"
             url = "%s://%s:%d/ws" % (scheme, hostname, port)
 
-            tangelo.log_info("VTKWEB", "websocket created at %s:%d/%s (proxy to %s)" % (hostname, port, key, url))
+            tangelo.log_info(
+                "VTKWEB",
+                "websocket created at %s:%d/%s (proxy to %s)" % (hostname, port, key, url)
+            )
 
             self.client = VTKWebSocketAB(url, self)
 
         def closed(self, code, reason=None):
             # TODO(choudhury): figure out if recovery, etc. is possible if the
             # socket is closed for some reason.
-            tangelo.log_info("VTKWEB", "websocket at %s:%d/%s closed with code %d (%s)" % (hostname, port, key, code, reason))
+            tangelo.log_info(
+                "VTKWEB",
+                "websocket at %s:%d/%s closed with code %d (%s)" % (
+                    hostname, port, key, code, reason
+                )
+            )
 
         def received_message(self, msg):
             self.client.send(msg.data)
