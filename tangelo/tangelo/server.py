@@ -39,6 +39,7 @@ class UrlAnalysis(object):
         self.content = None
         self.reqpathcomp = None
         self.pathcomp = None
+        self.plugin_path = None
 
     def __str__(self):
         import pprint
@@ -75,6 +76,7 @@ def analyze_url(raw_reqpath):
             analysis.content = Content(Content.NotFound, path=reqpath)
             return analysis
 
+        analysis.plugin_path = plugins.plugins[plugin].path
         webroot = plugins.plugins[plugin].path + "/web"
         reqpath = "/" + "/".join(plugin_comp[3:])
 
@@ -536,6 +538,7 @@ class Tangelo(object):
             elif content.type == Content.Directory:
                 return Tangelo.dirlisting(content.path, cherrypy.request.path_info)
             elif content.type == Content.Service:
+                cherrypy.thread_data.pluginpath = analysis.plugin_path
                 return self.invoke_service(content.path, *content.pargs, **query_args)
             elif content.type == Content.Restricted:
                 raise cherrypy.HTTPError("403 Forbidden", "The path '%s' is forbidden" % (cherrypy.serving.request.path_info))
