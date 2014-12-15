@@ -1,5 +1,4 @@
 import impala
-import json
 
 
 def convert(value, type):

@@ -28,13 +28,9 @@ import imp
 
 # import to process args
 import sys
-import os
 
 # import vtk modules.
 from vtk.web import server, wamp, protocols
-
-# import annotations
-from autobahn.wamp import exportRpc
 
 try:
     import argparse

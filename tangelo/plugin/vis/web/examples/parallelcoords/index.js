@@ -1,10 +1,12 @@
+/*globals $, d3 */
+
 $(function () {
     "use strict";
 
     var parallelCoords = {
             width: 0,
             height: 0,
-            data_url: "cars.json",
+            dataUrl: "cars.json",
             fields: ["cyl", "dsp", "lbs", "hp", "acc", "mpg", "year"]
         },
         initSize = {
@@ -23,8 +25,8 @@ $(function () {
         };
 
     function updateSizeDisplay() {
-        $('#width').val(Math.round(parallelCoords.width));
-        $('#height').val(Math.round(parallelCoords.height));
+        $("#width").val(Math.round(parallelCoords.width));
+        $("#height").val(Math.round(parallelCoords.height));
     }
 
     function resizeChart(width, height, option) {
@@ -42,32 +44,36 @@ $(function () {
     }
 
     function disableInput() {
-        $('#width').prop("readonly", "readonly");
-        $('#height').prop("readonly", "readonly");
+        $("#width").prop("readonly", "readonly");
+        $("#height").prop("readonly", "readonly");
     }
 
     function enableInput() {
-        $('#width').prop("readonly", "");
-        $('#height').prop("readonly", "");
+        $("#width").prop("readonly", "");
+        $("#height").prop("readonly", "");
     }
 
     function createResizableContainer() {
         $("#bar-chart-panel").remove();
         $("#content").remove();
-        $("#content-wrapper").append('<div id="bar-chart-panel" class="ui-widget-content"><div id="content"></div></div>');
+        $("#content-wrapper").append("<div id=bar-chart-panel class=ui-widget-content><div id=content></div></div>");
         $("#bar-chart-panel").resizable({
             resize: function (eve, ui) {
-                if (!eve) { return; }
+                if (!eve) {
+                    return;
+                }
                 resizeChart(ui.size.width - margin.resizable.width, ui.size.height - margin.resizable.height);
             },
             stop: function (eve, ui) {
-                if (!eve) { return; }
+                if (!eve) {
+                    return;
+                }
                 resizeChart(ui.size.width - margin.resizable.width, ui.size.height - margin.resizable.height);
             }
         });
     }
 
-    d3.json(parallelCoords.data_url, function (error, json) {
+    d3.json(parallelCoords.dataUrl, function (error, json) {
         if (error) {
             console.log(error);
             return;
@@ -91,7 +97,7 @@ $(function () {
             disableInput();
             $("#content").remove();
             $("#bar-chart-panel").remove();
-            $("#content-wrapper").append('<div id="content"></div>');
+            $("#content-wrapper").append("<div id=content></div>");
             parallelCoords.width = $(window).width() - margin.windows.width;
             parallelCoords.height = $(window).height() - margin.windows.height;
             $("#content").parallelCoords(parallelCoords);
@@ -101,7 +107,7 @@ $(function () {
             $(window).off("resize", windowResizer);
             $("#content").remove();
             $("#bar-chart-panel").remove();
-            $("#content-wrapper").append('<div id="content"></div>');
+            $("#content-wrapper").append("<div id=content></div>");
             enableInput();
             $("#content").parallelCoords(parallelCoords);
         }
@@ -122,4 +128,3 @@ $(function () {
         resizeChart(parallelCoords.width, Math.round(value), true);
     });
 });
-

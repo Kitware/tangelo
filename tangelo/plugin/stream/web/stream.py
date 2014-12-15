@@ -1,5 +1,4 @@
 import tangelo
-from tangelo.server import analyze_url
 from tangelo.server import Content
 import tangelo.util
 
@@ -93,7 +92,7 @@ def stream_start(url, kwargs):
                 # Call the stream function and capture its result.
                 try:
                     stream = service.stream(*pargs, **kwargs)
-                except Exception as e:
+                except Exception:
                     stacktrace = traceback.format_exc()
 
                     tangelo.log_warning("STREAM", "Could not execute service %s:\n%s" % (tangelo.request_path(), stacktrace))

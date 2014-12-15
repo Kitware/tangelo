@@ -1,3 +1,5 @@
+/*globals d3, _, $, tangelo, geo */
+
 var flickr = {};
 flickr.map = null;
 flickr.timeslider = null;
@@ -65,7 +67,6 @@ flickr.refreshMap = function () {
     color = (function () {
         var which,
             colormap,
-            legend,
             retval,
             invert,
             range,
@@ -77,7 +78,7 @@ flickr.refreshMap = function () {
 
         // Generate a colormap function to return, and place a color legend
         // based on it.
-        if (which === 'month') {
+        if (which === "month") {
             colormap = function (d) {
                 return flickr.monthColor(d.month);
             };
@@ -100,7 +101,7 @@ flickr.refreshMap = function () {
             });
 
             retval = colormap;
-        } else if (which === 'day') {
+        } else if (which === "day") {
             colormap = function (d) {
                 return flickr.dayColor(d.day);
             };
@@ -118,13 +119,13 @@ flickr.refreshMap = function () {
             });
 
             retval = colormap;
-        } else if (which === 'rb') {
+        } else if (which === "rb") {
             d3.select(flickr.legend)
                 .selectAll("*")
                 .remove();
 
             invert = document.getElementById("invert").checked;
-            range = invert ? ['blue', 'red'] : ['red', 'blue'];
+            range = invert ? ["blue", "red"] : ["red", "blue"];
             scale = d3.scale.linear()
                 .domain([0, N - 1])
                 .range(range);
@@ -152,7 +153,7 @@ flickr.refreshMap = function () {
         which = $("input[name=size]:radio:checked").attr("id");
 
         // Generate a radius function to return.
-        if (which === 'recency') {
+        if (which === "recency") {
             retval = function (d, i) {
                 return 5 + 15 * (N - 1 - i) / (N - 1);
             };
@@ -192,8 +193,6 @@ flickr.refreshMap = function () {
         .each(function (d) {
             var cfg,
                 msg,
-                before,
-                after,
                 date;
 
             date = new Date(d.datetaken.$date);
@@ -281,23 +280,6 @@ flickr.getMongoRange = function (host, db, coll, field, callback) {
     });
 };
 
-function setConfigDefaults() {
-    "use strict";
-
-    var cfg;
-
-    // Clear out the locally stored options.
-    localStorage.removeItem('flickr:mongodb-server');
-    localStorage.removeItem('flickr:mongodb-db');
-    localStorage.removeItem('flickr:mongodb-coll');
-
-    // Retrieve the new config values, and set them into the fields.
-    cfg = flickr.getMongoDBInfo();
-    d3.select("#mongodb-server").property("value", cfg.server);
-    d3.select("#mongodb-db").property("value", cfg.db);
-    d3.select("#mongodb-coll").property("value", cfg.coll);
-}
-
 function retrieveData() {
     "use strict";
 
@@ -306,8 +288,7 @@ function retrieveData() {
         hashtagText,
         hashtags,
         hashtagquery,
-        query,
-        mongo;
+        query;
 
     // Interrogate the UI elements to build up a query object for the database.
     //
@@ -316,8 +297,8 @@ function retrieveData() {
 
     // Construct a query that selects times between the two ends of the slider.
     timequery = {
-        $and : [{"datetaken" : {$gte : {"$date" : times[0]}}},
-                {"datetaken" : {$lte : {"$date" : times[1]}}}]
+        $and: [{datetaken: {$gte: {$date: times[0]}}},
+               {datetaken: {$lte: {$date: times[1]}}}]
     };
 
     // Get the hashtag text and split it into several tags.
@@ -330,11 +311,11 @@ function retrieveData() {
     // Construct a query to find any entry containing any of these tags.
     hashtagquery = {};
     if (hashtags.length > 0) {
-        hashtagquery = { 'hashtags' : {$in : hashtags}};
+        hashtagquery = {hashtags: {$in: hashtags}};
     }
 
     // Stitch all the queries together into a "superquery".
-    query = {$and : [timequery, hashtagquery]};
+    query = {$and: [timequery, hashtagquery]};
 
     // Enable the abort button and issue the query to the mongo module.
     d3.select("#abort")
@@ -344,21 +325,17 @@ function retrieveData() {
         .html("Abort query <img src=wait.gif>");
 
     flickr.currentAjax = $.ajax({
-        type: 'POST',
-        url: '/plugin/mongo/mongo/' + flickr.config.server + '/' + flickr.config.db + '/' + flickr.config.coll,
+        type: "POST",
+        url: "/plugin/mongo/mongo/" + flickr.config.server + "/" + flickr.config.db + "/" + flickr.config.coll,
         data: {
             query: JSON.stringify(query),
             limit: d3.select("#record-limit").node().value,
             sort: JSON.stringify([["datetaken", 1]])
         },
-        dataType: 'json',
+        dataType: "json",
         success: function (response) {
             var N,
-                data,
-                color,
-                radius,
-                opacity,
-                days;
+                data;
 
             // Remove the stored XHR object.
             flickr.currentAjax = null;
@@ -408,9 +385,7 @@ function getMinMaxDates(zoom) {
     // Get the earliest and latest times in the collection, and set the slider
     // range/handles appropriately.
     flickr.getMongoRange(flickr.config.server, flickr.config.db, flickr.config.coll, "datetaken", function (min, max) {
-        var gmap_cfg,
-            options,
-            div,
+        var div,
             html;
 
         if (min === null || max === null) {
@@ -485,7 +460,7 @@ function getMinMaxDates(zoom) {
 
         flickr.dots = flickr.map.createLayer("feature", {
             renderer: "d3Renderer"
-            //renderer: "vglRenderer"
+            // renderer: "vglRenderer"
         })
             .createFeature("point")
             .data([]);
@@ -500,38 +475,6 @@ function getMinMaxDates(zoom) {
     });
 }
 
-function retrieveDataSynthetic() {
-    "use strict";
-
-    var chicago,
-        paris,
-        slc,
-        albany,
-        dhaka,
-        rio,
-        wellington,
-        locs;
-
-    // Generate a few lat/long values in well-known places.
-    chicago = [42.0, -87.5];
-    paris = [48.9, 2.3];
-    slc = [40.8, -111.9];
-    albany = [42.7, -73.8];
-    dhaka = [23.7, 90.4];
-    rio = [-22.9, -43.2];
-    wellington = [-41.3, 174.8];
-
-    // Take the array of arrays, and map it to an array of google LatLng
-    // objects.
-    locs = [chicago, paris, slc, albany, dhaka, rio, wellington].map(function (d) { return new google.maps.LatLng(d[0], d[1]); });
-
-    // Store the retrieved values.
-    flickr.map.locations(locs);
-
-    // After data is reloaded to the map-overlay object, redraw the map.
-    flickr.refreshMap();
-}
-
 window.onload = function () {
     "use strict";
 
@@ -543,7 +486,7 @@ window.onload = function () {
             i,
             checkbox,
             dayboxes,
-            popover_cfg,
+            popoverCfg,
             zoomfunc,
             redraw;
 
@@ -561,7 +504,7 @@ window.onload = function () {
         // Enable the popover help items.
         //
         // First create a config object with the common options preset.
-        popover_cfg = {
+        popoverCfg = {
             html: true,
             container: "body",
             placement: "top",
@@ -575,16 +518,16 @@ window.onload = function () {
         };
 
         // Time slider help.
-        popover_cfg.title = "Time Filtering";
-        popover_cfg.content = "Display photos taken between two particular dates/times.<br><br>" +
+        popoverCfg.title = "Time Filtering";
+        popoverCfg.content = "Display photos taken between two particular dates/times.<br><br>" +
             "The 'zoom to range' button will make the slider represent the currently selected time slice, " +
             "while the 'unzoom' button undoes one zoom.";
-        $("#time-filter-help").popover(popover_cfg);
+        $("#time-filter-help").popover(popoverCfg);
 
         // Hashtag help.
-        popover_cfg.title = "Hashtag Filtering";
-        popover_cfg.content = "Display photos including the list of hashtags specified.  Be sure to include the initial '#'!";
-        $("#hashtag-filter-help").popover(popover_cfg);
+        popoverCfg.title = "Hashtag Filtering";
+        popoverCfg.content = "Display photos including the list of hashtags specified.  Be sure to include the initial '#'!";
+        $("#hashtag-filter-help").popover(popoverCfg);
 
         // This function is used to display the current state of the time
         // slider.
@@ -643,7 +586,7 @@ window.onload = function () {
         }
         checkbox = document.getElementById("invert");
         checkbox.onclick = function () {
-            flickr.refreshMap()
+            flickr.refreshMap();
         };
 
         // Direct the day filter checkboxes to redraw the map when clicked.
@@ -695,9 +638,7 @@ window.onload = function () {
                         bounds;
 
                     // Return immediately if the handles are already at the bounds.
-                    //value = slider.getValue();
                     value = slider.slider("values");
-                    //bounds = [slider.getMin(), slider.getMax()];
                     bounds = [slider.slider("option", "min"), slider.slider("option", "max")];
                     if (value[0] === bounds[0] && value[1] === bounds[1]) {
                         return;
@@ -707,7 +648,6 @@ window.onload = function () {
                     stack.push(bounds);
 
                     // Set the bounds of the slider to be its current value range.
-                    //slider.setMin(value[0]);
                     slider.slider("option", "min", value[0]);
                     slider.slider("option", "max", value[1]);
 
@@ -731,9 +671,7 @@ window.onload = function () {
                         // Pop a bounds value from the stack, and set it as the bounds
                         // for the slider.
                         bounds = stack.pop();
-                        //slider.setMin(bounds[0]);
                         slider.slider("option", "min", bounds[0]);
-                        //slider.setMax(bounds[1]);
                         slider.slider("option", "max", bounds[1]);
 
                         // If the stack now contains no entries, disable the unzoom
@@ -748,11 +686,11 @@ window.onload = function () {
 
         d3.select("#zoom")
             .data([flickr.timeslider])
-            .on('click', zoomfunc.zoomer);
+            .on("click", zoomfunc.zoomer);
 
         d3.select("#unzoom")
             .data([flickr.timeslider])
-            .on('click', zoomfunc.unzoomer);
+            .on("click", zoomfunc.unzoomer);
 
         // Get the earliest and latest times in the database, to create a suitable
         // range for the time slider.  Pass in the "zoomer" function so the initial
@@ -778,6 +716,5 @@ window.onload = function () {
                 // Disable the button.
                 d3.select("#abort").classed("disabled", true);
             });
-
     });
 };

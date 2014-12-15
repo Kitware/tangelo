@@ -37,10 +37,13 @@
 (function (tangelo) {
     "use strict";
 
-    var dataPlugin = tangelo.getPlugin("data");
+    var dataPlugin,
+        kernels;
+
+    dataPlugin = tangelo.getPlugin("data");
 
     // predefined kernels
-    var kernels = {
+    kernels = {
             // simple moving average
             box: function () {
                 return function boxKernel() {

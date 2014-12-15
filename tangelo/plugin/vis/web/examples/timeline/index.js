@@ -1,4 +1,8 @@
+/*globals $, tangelo */
+
 window.onload = function () {
+    "use strict";
+
     var n = 1000, data = [], i,
         start = new Date(2010, 0, 1),
         end = new Date(2010, 11, 31),
@@ -6,8 +10,8 @@ window.onload = function () {
         spec = {
             data: data,
             sorted: true,
-            x: {'field': 'time'},
-            y: {'field': 'origValue'}
+            x: {field: "time"},
+            y: {field: "origValue"}
         },
         iRadius = 0,
         radii = [ 0.01, 0.05, 0.10, 0.15, 0.20, 0.25 ];
@@ -22,19 +26,23 @@ window.onload = function () {
     }
 
     function smooth(radius) {
-        $('#textBox').text('Smoothing radius: ' + (radius * 100).toFixed() + '%');
+        $("#textBox").text("Smoothing radius: " + (radius * 100).toFixed() + "%");
         tangelo.plugin.data.smooth(
             $.extend({
                 radius: radius,
-                kernel: 'box',
-                set: function (v, d) { d.value1 = v; }
+                kernel: "box",
+                set: function (v, d) {
+                    d.value1 = v;
+                }
             }, spec)
         );
         tangelo.plugin.data.smooth(
             $.extend({
                 radius: radius,
-                kernel: 'gaussian',
-                set: function (v, d) { d.value2 = v; }
+                kernel: "gaussian",
+                set: function (v, d) {
+                    d.value2 = v;
+                }
             }, spec)
         );
     }
@@ -42,12 +50,12 @@ window.onload = function () {
     function draw(transition) {
         $("#content1").timeline({
             data: data,
-            y: {field: 'value1'},
+            y: {field: "value1"},
             transition: transition
         });
         $("#content2").timeline({
             data: data,
-            y: {field: 'value2'},
+            y: {field: "value2"},
             transition: transition
         });
     }
@@ -56,7 +64,7 @@ window.onload = function () {
     smooth(radii[iRadius]);
     draw();
     $(window).resize(draw);
-    $('#next').click(function () {
+    $("#next").click(function () {
         var t = 500;
         iRadius = (iRadius + 1) % radii.length;
         if (iRadius === 0) {
