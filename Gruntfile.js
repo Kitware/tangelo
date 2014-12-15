@@ -13,7 +13,7 @@ module.exports = function (grunt) {
         python = path.resolve(bin + "python"),
         pip = path.resolve(bin + "pip"),
         sphinx = path.resolve(bin + "sphinx-build"),
-        pep8 = path.resolve(bin + "pep8"),
+        flake8 = path.resolve(bin + "flake8"),
         nosetests = path.resolve(bin + "nosetests"),
         coverage = path.resolve(bin + "coverage"),
         tangelo_script = path.resolve(bin + "tangelo"),
@@ -241,7 +241,7 @@ module.exports = function (grunt) {
           },
           main: {}
       },
-      pep8: {
+      flake8: {
           files: {
               src: [
                   "tangelo/**/*.py",
@@ -379,7 +379,7 @@ module.exports = function (grunt) {
 
         packages = [
             "Sphinx==1.2.3",
-            "pep8==1.5.7",
+            "flake8==2.2.2",
             "requests==2.4.3",
             "nose==1.3.4",
             "coverage==3.7.1"
@@ -400,11 +400,11 @@ module.exports = function (grunt) {
         });
     });
 
-    grunt.registerMultiTask("pep8", "Style check Python sources", function () {
+    grunt.registerMultiTask("flake8", "Style check Python sources", function () {
         var done = this.async();
 
         grunt.util.spawn({
-            cmd: pep8,
+            cmd: flake8,
             args: ["--ignore=E501,E265"].concat(this.filesSrc),
             opts: {
                 stdio: "inherit"
@@ -759,7 +759,7 @@ module.exports = function (grunt) {
     grunt.registerTask("default", ["version",
                                    "virtualenv",
                                    "pydeps",
-                                   "pep8",
+                                   "flake8",
                                    "docs",
                                    "jshint",
                                    "jscs",

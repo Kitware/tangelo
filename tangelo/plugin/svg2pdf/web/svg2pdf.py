@@ -1,6 +1,5 @@
 from svglib.svglib import svg2rlg
 from reportlab.graphics import renderPDF
-import StringIO
 import tangelo
 import tempfile
 import random
