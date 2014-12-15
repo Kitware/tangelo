@@ -99,6 +99,7 @@ Information for Developers
     :maxdepth: 2
 
     coding-style-guide
+    releasing-tangelo
     developing-visualizations
 
 Indices and tables

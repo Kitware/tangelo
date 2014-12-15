@@ -173,7 +173,7 @@ def config():
 
 
 def plugin_config():
-    return copy.deepcopy(cherrypy.config["plugin-config"][cherrypy.thread_data.pluginname])
+    return copy.deepcopy(cherrypy.config["plugin-config"][cherrypy.thread_data.pluginpath])
 
 
 def store():
@@ -181,7 +181,7 @@ def store():
 
 
 def plugin_store():
-    return cherrypy.config["plugin-store"][cherrypy.thread_data.pluginname]
+    return cherrypy.config["plugin-store"][cherrypy.thread_data.pluginpath]
 
 
 # A decorator that exposes functions as being part of a service's RESTful API.
