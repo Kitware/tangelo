@@ -1,4 +1,4 @@
-(function (tangelo, $, vg) {
+(function (tangelo, $, _, vg) {
     "use strict";
 
     var parallelcoords = function (option) {
@@ -78,27 +78,27 @@
                 }
             ]
         };
-        
+
         /**
          * generating scales and axes based on field name
         */
-        $.each(option.fields, function (i, v){
+        $.each(option.fields, function (i, v) {
             defSpec.scales.push({
-                "name": v,
-                "range": "height",
-                "zero": false,
-                "nice": true,
-                "domain": {
-                    "data": "table",
-                    "field": "data." + v
+                name: v,
+                range: "height",
+                zero: false,
+                nice: true,
+                domain: {
+                    data: "table",
+                    field: "data." + v
                 }
             });
             defSpec.axes.push({
-                "type": "y",
-                "scale": v,
-                "offset": {
-                    "scale": "ord",
-                    "value": v
+                type: "y",
+                scale: v,
+                offset: {
+                    scale: "ord",
+                    value: v
                 }
             });
         });
@@ -114,8 +114,7 @@
         },
 
         _create: function () {
-            //this.options = $.extend(true, {}, this._defaults, this.options);
-            var // that = this,
+            var
                 vegaspec = parallelcoords(this.options);
             vg.parse.spec(vegaspec, _.bind(function (chart) {
                 this.vis = chart;
@@ -124,7 +123,6 @@
         },
 
         _update: function () {
-            //var that = this;
             var chart;
 
             if (this.options.data && this.options.fields) {
@@ -135,10 +133,10 @@
                     chart = this.vis({
                         el: this.element.get(0),
                         data: {
-                            table: this.options.data,
+                            table: this.options.data
                         }
                     });
-                    
+
                     chart.width(this.options.width)
                         .height(this.options.height)
                         .update();
@@ -147,7 +145,6 @@
         },
 
         _setParentSize: function () {
-            //var that = this;
             this.options.width = this.element.parent().width() - 50;
             this.options.height = this.element.parent().height() - 30;
             if (this.option.width <= 0) {
@@ -164,4 +161,4 @@
             this._update();
         }
     });
-}(window.tangelo, window.jQuery, window.vg));
+}(window.tangelo, window.jQuery, window._, window.vg));

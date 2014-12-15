@@ -1,17 +1,19 @@
+/*globals $, tangelo */
+
 $(function () {
     "use strict";
 
     var data = [
-            {"x": 1,  "y": 28}, {"x": 2,  "y": 55},
-            {"x": 3,  "y": 43}, {"x": 4,  "y": 91},
-            {"x": 5,  "y": 81}, {"x": 6,  "y": 53},
-            {"x": 7,  "y": 19}, {"x": 8,  "y": 87},
-            {"x": 9,  "y": 52}, {"x": 10, "y": 48},
-            {"x": 11, "y": 24}, {"x": 12, "y": 49},
-            {"x": 13, "y": 87}, {"x": 14, "y": 66},
-            {"x": 15, "y": 17}, {"x": 16, "y": 27},
-            {"x": 17, "y": 68}, {"x": 18, "y": 16},
-            {"x": 19, "y": 49}, {"x": 20, "y": 15}
+            {x: 1,  y: 28}, {x: 2,  y: 55},
+            {x: 3,  y: 43}, {x: 4,  y: 91},
+            {x: 5,  y: 81}, {x: 6,  y: 53},
+            {x: 7,  y: 19}, {x: 8,  y: 87},
+            {x: 9,  y: 52}, {x: 10, y: 48},
+            {x: 11, y: 24}, {x: 12, y: 49},
+            {x: 13, y: 87}, {x: 14, y: 66},
+            {x: 15, y: 17}, {x: 16, y: 27},
+            {x: 17, y: 68}, {x: 18, y: 16},
+            {x: 19, y: 49}, {x: 20, y: 15}
         ],
         initSize = {
             width: 350,
@@ -37,8 +39,8 @@ $(function () {
         };
 
     function updateSizeDisplay() {
-        $('#width').val(Math.round(barChartOption.width));
-        $('#height').val(Math.round(barChartOption.height));
+        $("#width").val(Math.round(barChartOption.width));
+        $("#height").val(Math.round(barChartOption.height));
     }
 
     function resizeBarChart(width, height, option) {
@@ -56,19 +58,19 @@ $(function () {
     }
 
     function disableInput() {
-        $('#width').prop("readonly", "readonly");
-        $('#height').prop("readonly", "readonly");
+        $("#width").prop("readonly", "readonly");
+        $("#height").prop("readonly", "readonly");
     }
 
     function enableInput() {
-        $('#width').prop("readonly", "");
-        $('#height').prop("readonly", "");
+        $("#width").prop("readonly", "");
+        $("#height").prop("readonly", "");
     }
 
     function createResizableContainer() {
         $("#bar-chart-panel").remove();
         $("#content").remove();
-        $("#content-wrapper").append('<div id="bar-chart-panel" class="ui-widget-content"><div id="content"></div></div>');
+        $("#content-wrapper").append("<div id=bar-chart-panel class=ui-widget-content><div id=content></div></div>");
         $("#bar-chart-panel").resizable({
             resize: function (eve, ui) {
                 if (eve) {
@@ -113,7 +115,7 @@ $(function () {
             disableInput();
             $("#content").remove();
             $("#bar-chart-panel").remove();
-            $("#content-wrapper").append('<div id="content"></div>');
+            $("#content-wrapper").append("<div id=content></div>");
             barChartOption.width = $(window).width() - margin.windows.width;
             barChartOption.height = $(window).height() - margin.windows.height;
             $("#content").barChart(barChartOption);
@@ -123,7 +125,7 @@ $(function () {
             $(window).off("resize", windowResizer);
             $("#content").remove();
             $("#bar-chart-panel").remove();
-            $("#content-wrapper").append('<div id="content"></div>');
+            $("#content-wrapper").append("<div id=content></div>");
             enableInput();
             $("#content").barChart(barChartOption);
         }
@@ -153,4 +155,3 @@ $(function () {
         resizeBarChart(barChartOption.width, Math.round(value), true);
     });
 });
-

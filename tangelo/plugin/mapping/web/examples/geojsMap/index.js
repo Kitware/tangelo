@@ -1,3 +1,5 @@
+/*globals $, d3, geo */
+
 $(function () {
     "use strict";
 
@@ -36,8 +38,12 @@ $(function () {
             pts.push(pt);
         });
         points
-            .attr("cx", function (d, i) { return pts[i].x; })
-            .attr("cy", function (d, i) { return pts[i].y; });
+            .attr("cx", function (d, i) {
+                return pts[i].x;
+            })
+            .attr("cy", function (d, i) {
+                return pts[i].y;
+            });
     }
     draw();
 });

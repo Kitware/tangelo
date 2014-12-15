@@ -50,7 +50,7 @@
                     if (!that.transform) {
                         return;
                     }
-                    
+
                     ptransform = that.transform(this.getProjection());
 
                     marker = that.layer.selectAll("svg")

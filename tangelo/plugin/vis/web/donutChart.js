@@ -1,4 +1,4 @@
-(function (tangelo, $, vg) {
+(function (tangelo, $, _, vg) {
     "use strict";
 
     var donutchart = function (option) {
@@ -155,7 +155,7 @@
                             table: this.options.data
                         }
                     });
-                    
+
                     chart.width(this.options.width)
                         .height(this.options.height)
                         .update();
@@ -176,4 +176,4 @@
         }
 
     });
-}(window.tangelo, window.jQuery, window.vg));
+}(window.tangelo, window.jQuery, window._, window.vg));

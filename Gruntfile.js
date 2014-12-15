@@ -21,7 +21,8 @@ module.exports = function (grunt) {
         tangelo = windows ? python : tangelo_script,
         tangelo_dir = path.resolve(lib + windows ? "" : "python-2.7/" + "site-packages/tangelo"),
         version = grunt.file.readJSON("package.json").version,
-        tangeloArgs;
+        tangeloArgs,
+        styleCheckFiles;
 
     tangeloArgs = function (hostname, port, root) {
         var args = windows ? [tangelo_script] : [];
@@ -33,6 +34,18 @@ module.exports = function (grunt) {
             "--plugin-config", "venv/share/tangelo/plugin/plugin.conf"
         ]);
     };
+
+    styleCheckFiles = [
+        "js/src/**/*.js",
+        "tangelo/plugin/**/*.js",
+        "!tangelo/plugin/docs/**/*.js",
+        "!tangelo/plugin/**/geo.min.js",
+        "!tangelo/plugin/**/geo.ext.min.js",
+        "!tangelo/plugin/**/vgl.min.js",
+        "!tangelo/plugin/tangelo/web/tangelo.min.js",
+        "!tangelo/plugin/vtkweb/web/lib/autobahn.min.js",
+        "!tangelo/plugin/vtkweb/web/lib/vtkweb-all.min.js"
+    ];
 
     // Project configuration.
     grunt.initConfig({
@@ -68,13 +81,7 @@ module.exports = function (grunt) {
               src: "Gruntfile.js"
           },
           tangelo: {
-              src: ["js/src/**/*.js"]
-          },
-          vtkweb: {
-              src: [
-                  "tangelo/plugin/vtkweb/*.js",
-                  "tangelo/plugin/vtkweb/examples/**/*.js"
-                ]
+              src: styleCheckFiles
           },
           test: {
               src: ["js/tests/*.js"]
@@ -88,13 +95,7 @@ module.exports = function (grunt) {
               src: ["Gruntfile.js"]
           },
           tangelo: {
-              src: ["js/src/**/*.js"]
-          },
-          vtkweb: {
-              src: [
-                  "tangelo/plugin/vtkweb/*.js",
-                  "tangelo/plugin/vtkweb/examples/**/*.js"
-                ]
+              src: styleCheckFiles
           },
           test: {
               src: ["js/tests/*.js"]
@@ -156,7 +157,7 @@ module.exports = function (grunt) {
       flake8: {
           files: {
               src: [
-                  "tangelo/**/*.py",
+                  "tangelo/**/*.py"
               ]
           }
       },
