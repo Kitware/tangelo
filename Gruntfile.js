@@ -245,7 +245,6 @@ module.exports = function (grunt) {
           files: {
               src: [
                   "tangelo/**/*.py",
-                  "tangelo/plugin/vtweb/**/*.py"
               ]
           }
       },
