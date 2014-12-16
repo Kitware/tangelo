@@ -19,7 +19,7 @@ module.exports = function (grunt) {
         coverage = path.resolve(bin + "coverage"),
         tangelo_script = path.resolve(bin + "tangelo"),
         tangelo = windows ? python : tangelo_script,
-        tangelo_dir = path.resolve(lib + windows ? "" : "python-2.7/" + "site-packages/tangelo"),
+        tangelo_dir = path.resolve(lib + (windows ? "" : "python-2.7/" + "site-packages/tangelo")),
         version = grunt.file.readJSON("package.json").version,
         tangeloArgs,
         styleCheckFiles;
@@ -399,7 +399,7 @@ module.exports = function (grunt) {
         } else {
             grunt.util.spawn({
                 cmd: coverage,
-                args: ["run", "-a", "--source", "%s,%s" % (tangelo_dir, "tangelo/plugin"),
+                args: ["run", "-a", "--source", tangelo_dir + ",venv/share/tangelo/plugin",
                        nosetests, "--verbose", "--tests=" + this.filesSrc.join(",")],
                 opts: {
                     stdio: "inherit"
