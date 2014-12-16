@@ -317,7 +317,7 @@ module.exports = function (grunt) {
 
         grunt.util.spawn({
             cmd: flake8,
-            args: ["--ignore=E501"].concat(this.filesSrc),
+            args: this.filesSrc,
             opts: {
                 stdio: "inherit"
             }
