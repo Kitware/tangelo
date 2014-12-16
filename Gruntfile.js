@@ -157,7 +157,8 @@ module.exports = function (grunt) {
       flake8: {
           files: {
               src: [
-                  "tangelo/**/*.py"
+                  "tangelo/**/*.py",
+                  "tests/**/*.py"
               ]
           }
       },

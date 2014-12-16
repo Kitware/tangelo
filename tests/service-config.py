@@ -1,7 +1,5 @@
-import json
 import nose
 import requests
-import string
 
 import fixture
 
@@ -12,11 +10,13 @@ def test_service_config():
 
     assert result == "abracadabra"
 
+
 @nose.with_setup(fixture.start_tangelo, fixture.stop_tangelo)
 def test_config_protected():
     result = requests.get(fixture.url("configured.yaml"))
 
     assert result.status_code == 403
+
 
 @nose.with_setup(fixture.start_tangelo, fixture.stop_tangelo)
 def test_source_protected():

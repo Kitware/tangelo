@@ -12,11 +12,14 @@ process = None
 def windows():
     return platform.platform().split("-")[0] == "Windows"
 
+
 def url(*path, **query):
     return "http://%s:%s/%s?%s" % (host, port, "/".join(path), "&".join(["%s=%s" % (key, value) for key, value in query.iteritems()]))
 
+
 def plugin_url(*path, **query):
     return url(*(["plugin"] + list(path)), **query)
+
 
 def run_tangelo(*args, **kwargs):
     timeout = kwargs.get("timeout", 5)
@@ -35,6 +38,7 @@ def run_tangelo(*args, **kwargs):
         now = datetime.datetime.now()
 
     return (proc.returncode, filter(None, proc.stdout.read().split("\n")), filter(None, proc.stderr.read().split("\n")))
+
 
 def start_tangelo():
     global process
@@ -65,6 +69,7 @@ def start_tangelo():
         elif line.rstrip().endswith("ENGINE Bus EXITED") or process.poll() is not None:
             process = None
             raise RuntimeError("Could not start Tangelo:\n%s" % ("".join(buf)))
+
 
 def stop_tangelo():
     global process
