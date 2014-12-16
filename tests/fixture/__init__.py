@@ -34,7 +34,7 @@ def run_tangelo(*args, **kwargs):
         proc.poll()
         now = datetime.datetime.now()
 
-    return (proc.returncode, filter(None, proc.stdout.read().split("\n")), filter(None, proc.stderr.read().split("\n")))
+    return (proc.returncode, filter(None, proc.stdout.read().splitlines()), filter(None, proc.stderr.read().splitlines()))
 
 def start_tangelo():
     global process
