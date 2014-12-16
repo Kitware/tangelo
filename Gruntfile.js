@@ -44,8 +44,13 @@ module.exports = function (grunt) {
             });
         }
 
-        cmd = cover ? coverage : tangelo_script;
-        args = cover ? ["run", "-a", "--source", [tangelo_dir].concat(sourceDirs).join(","), tangelo_script] : [];
+        if (windows) {
+            cmd = python;
+            args = [tangelo_script];
+        } else {
+            cmd = cover ? coverage : tangelo_script;
+            args = cover ? ["run", "-a", "--source", [tangelo_dir].concat(sourceDirs).join(","), tangelo_script] : [];
+        }
 
         return {
             cmd: cmd,
