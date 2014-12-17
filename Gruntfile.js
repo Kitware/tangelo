@@ -18,21 +18,49 @@ module.exports = function (grunt) {
         nosetests = path.resolve(bin + "nosetests"),
         coverage = path.resolve(bin + "coverage"),
         tangelo_script = path.resolve(bin + "tangelo"),
-        tangelo = windows ? python : tangelo_script,
-        tangelo_dir = path.resolve(lib + windows ? "" : "python-2.7/" + "site-packages/tangelo"),
+        tangelo_dir = path.resolve(lib + (windows ? "" : "python-2.7/" + "site-packages/tangelo")),
         version = grunt.file.readJSON("package.json").version,
-        tangeloArgs,
+        tangeloCmdLine,
         styleCheckFiles;
 
-    tangeloArgs = function (hostname, port, root) {
-        var args = windows ? [tangelo_script] : [];
+    tangeloCmdLine = function (hostname, port, root, cover) {
+        var cmd,
+            args,
+            sourceDirs;
 
-        return args.concat([
-            "--host", hostname,
-            "--port", port,
-            "--root", root,
-            "--plugin-config", "venv/share/tangelo/plugin/plugin.conf"
-        ]);
+        if (cover) {
+            sourceDirs = [
+                "bokeh/python",
+                "config/web",
+                "girder",
+                "impala/web",
+                "mongo/web",
+                "stream/web",
+                "tangelo/web",
+                "vtkweb",
+                "vtkweb/web"
+            ].map(function (p) {
+                return "venv/share/tangelo/plugin/" + p;
+            });
+        }
+
+        if (windows) {
+            cmd = python;
+            args = [tangelo_script];
+        } else {
+            cmd = cover ? coverage : tangelo_script;
+            args = cover ? ["run", "-a", "--source", [tangelo_dir].concat(sourceDirs).join(","), tangelo_script] : [];
+        }
+
+        return {
+            cmd: cmd,
+            args: args.concat([
+                "--host", hostname,
+                "--port", port,
+                "--root", root,
+                "--plugin-config", "venv/share/tangelo/plugin/plugin.conf"
+            ])
+        };
     };
 
     styleCheckFiles = [
@@ -142,7 +170,7 @@ module.exports = function (grunt) {
               }
           }
       },
-      nose_coverage: {
+      server_tests: {
           main: {
               src: ["tests/*.py"]
           }
@@ -370,22 +398,9 @@ module.exports = function (grunt) {
         });
     });
 
-    // Run nose tests.
-    if (windows) {
-        grunt.registerTask("test:server", [
-            "nose_coverage"
-        ]);
-    } else {
-        grunt.registerTask("test:server", [
-            "coverage:erase",
-            "nose_coverage",
-            "coverage:combine",
-            "coverage_report"
-        ]);
-    }
-
-    grunt.registerMultiTask("nose_coverage", "Run server tests with coverage", function () {
-        var done = this.async();
+    grunt.registerMultiTask("server_tests", "Run server tests (with coverage on non-Windows platforms)", function () {
+        var done = this.async(),
+            source_dirs;
 
         if (windows) {
             grunt.util.spawn({
@@ -400,7 +415,7 @@ module.exports = function (grunt) {
         } else {
             grunt.util.spawn({
                 cmd: coverage,
-                args: ["run", "-a", "--source", "%s,%s" % (tangelo_dir, "tangelo/plugin"),
+                args: ["run", "-a", "--source", [tangelo_dir].concat(source_dirs).join(","),
                        nosetests, "--verbose", "--tests=" + this.filesSrc.join(",")],
                 opts: {
                     stdio: "inherit"
@@ -413,6 +428,10 @@ module.exports = function (grunt) {
 
     grunt.registerTask("coverage", "Manipulate coverage results", function (action) {
         var done;
+
+        if (windows) {
+            return;
+        }
 
         switch (action) {
             case "erase":
@@ -513,7 +532,8 @@ module.exports = function (grunt) {
 
     // Serve Tangelo.
     grunt.registerTask("serve", "Serve Tangelo on a given port (8080 by default)", function (host, port) {
-        var done = this.async();
+        var done = this.async(),
+            tangeloCmd;
 
         if (host === undefined && port === undefined) {
             host = "localhost";
@@ -523,9 +543,11 @@ module.exports = function (grunt) {
             host = "localhost";
         }
 
+        tangeloCmd = tangeloCmdLine(host, port, "venv/share/tangelo/web", false);
+
         grunt.util.spawn({
-            cmd: tangelo,
-            args: tangeloArgs(host, port, "venv/share/tangelo/web"),
+            cmd: tangeloCmd.cmd,
+            args: tangeloCmd.args,
             opts: {
                 stdio: "inherit"
             }
@@ -535,11 +557,14 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask("serve:test", "Serve Tangelo in testing mode", function () {
-        var done = this.async();
+        var done = this.async(),
+            tangeloCmd;
+
+        tangeloCmd = tangeloCmdLine("localhost", "50047", "venv/share/tangelo/web", false);
 
         grunt.util.spawn({
-            cmd: tangelo,
-            args: tangeloArgs("localhost", "50047", "js/tests"),
+            cmd: tangeloCmd.cmd,
+            args: tangeloCmd.args,
             opts: {
                 stdio: "inherit"
             }
@@ -571,10 +596,7 @@ module.exports = function (grunt) {
 
                 done = this.async();
 
-                cmdline = {
-                    cmd: tangelo,
-                    args: tangeloArgs("localhost", "50047", "js/tests")
-                };
+                cmdline = tangeloCmdLine("localhost", "50047", "js/tests", !windows);
 
                 console.log("Starting Tangelo server with: " + cmdline.cmd + " " + cmdline.args.join(" "));
                 process = grunt.util.spawn(cmdline, function () {});
@@ -640,6 +662,13 @@ module.exports = function (grunt) {
         });
     }());
 
+    grunt.registerTask("test:server", [
+        "coverage:erase",
+        "server_tests",
+        "coverage:combine",
+        "coverage_report"
+    ]);
+
     grunt.registerTask("test:client", [
         "jade:jstest",
         "copy:jstest",
@@ -650,7 +679,20 @@ module.exports = function (grunt) {
         "tangelo:stop"
     ]);
 
-    grunt.registerTask("test", ["test:server", "test:client"]);
+    grunt.registerTask("test:client:coverage", [
+        "coverage:erase",
+        "test:client",
+        "coverage:combine",
+        "coverage_report"
+    ]);
+
+    grunt.registerTask("test", [
+        "coverage:erase",
+        "server_tests",
+        "test:client",
+        "coverage:combine",
+        "coverage_report"
+    ]);
 
     // Clean task.
     grunt.renameTask("clean", "cleanup");

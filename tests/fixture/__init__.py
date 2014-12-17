@@ -37,7 +37,7 @@ def run_tangelo(*args, **kwargs):
         proc.poll()
         now = datetime.datetime.now()
 
-    return (proc.returncode, filter(None, proc.stdout.read().split("\n")), filter(None, proc.stderr.read().split("\n")))
+    return (proc.returncode, filter(None, proc.stdout.read().splitlines()), filter(None, proc.stderr.read().splitlines()))
 
 
 def start_tangelo():
@@ -50,7 +50,18 @@ def start_tangelo():
         coverage_args = []
         tangelo = ["venv/Scripts/python", "venv/Scripts/tangelo"]
     else:
-        coverage_args = ["venv/bin/coverage", "run", "-p", "--source", "venv/lib/python2.7/site-packages/tangelo,venv/share/tangelo/plugin"]
+        source_dirs = ["bokeh/python",
+                       "config/web",
+                       "girder",
+                       "impala/web",
+                       "mongo/web",
+                       "stream/web",
+                       "tangelo/web",
+                       "vtkweb",
+                       "vtkweb/web"]
+        source_dirs = ",".join(map(lambda p: "venv/share/tangelo/plugin/%s" % (p), source_dirs))
+
+        coverage_args = ["venv/bin/coverage", "run", "-p", "--source", "venv/lib/python2.7/site-packages/tangelo,%s" % (source_dirs)]
         tangelo = ["venv/bin/tangelo"]
 
     process = subprocess.Popen(coverage_args + tangelo + ["--host", host,
