@@ -67,7 +67,7 @@ def tangelo_passwd():
 
     if password != confirm:
         print >>sys.stderr, "Passwords do not match, aborting."
-        sys.exit(1)
+        return 1
 
     # Install the md5 hash in the "password" slot of the updating record.
     userrec[1][2] = md5.md5("%s:%s:%s" % (user, realm, password)).hexdigest()
@@ -88,9 +88,9 @@ def tangelo_passwd():
             f.writelines(map(lambda x: ":".join(x) + "\n", pws))
     except IOError:
         print >>sys.stderr, "error: could not open file '%s' for writing!" % (passwordfile)
-        sys.exit(1)
+        return 1
 
-    sys.exit(0)
+    return 0
 
 
 class Config(object):
