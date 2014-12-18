@@ -9,6 +9,17 @@ versioning](http://semver.org).
 - Improvements to coverage testing
 - Serverside and command line version tests
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+- ``tangelo.plugin_config()`` works
+
+### Security
+
 ## [0.8] - 2014-12-12
 This release breaks backward compatibility with Tangelo 0.7 and previous.
 Future releases will be described in this file as a change log against previous
