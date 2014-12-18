@@ -41,6 +41,11 @@ each file, the expected version string is contained in a variable named
 ``expected``).  This is done by hand to ensure that the version tests are
 deployed correctly for step 6 below.
 
+Finally, edit the file ``CHANGELOG.md`` in the root of the codebase.  Change the
+``[Unreleased] - [unreleased]`` line near the top of the file to something like
+``[1.2.0] - 2014-12-18``.  Look over the specified changes.  Edit these if
+necessary, making sure that the list is up to date.
+
 **4. Build Tangelo.** Issue the following commands to create a fresh build of
 Tangelo from scratch:
 
@@ -128,6 +133,27 @@ branch needs to be changed again, to add a *-dev* suffix.  In our example, the
 version number will now be *1.2.0-dev*.  This entails editing ``package.json``
 once more, as well as ``js/tests/tangelo-version.js``,
 ``tests/tangelo-version.py``, and ``tests/commandline-version.py``.
+
+Also edit ``CHANGELOG.md`` again, reproducing a skeleton of a new changes
+section, copying the following:
+
+.. code-block:: markdown
+
+    ## [Unreleased] - [unreleased]
+    ### Added
+
+    ### Changed
+
+    ### Deprecated
+
+    ### Removed
+
+    ### Fixed
+
+    ### Security
+
+This will allow developers to update the appropriate section easily whenever a
+topic branch is merged to ``develop``.
 
 **12. Test again.**  Run the tests one more time, to verify that the version
 number bump happened correctly, and to catch anything weird that may have
