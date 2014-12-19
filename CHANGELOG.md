@@ -8,6 +8,8 @@ versioning](http://semver.org).
 - Improvements to style testing
 - Improvements to coverage testing
 - Serverside and command line version tests
+- Cross-platform generation of ``tangelo`` and ``tangelo-passwd`` executable
+  files (tested on Linux, Windows, and OS X)
 
 ### Changed
 
