@@ -167,7 +167,7 @@ def main():
     p.add_argument("-p", "--drop-privileges", action="store_const", const=True, default=None, help="enable privilege drop when started as superuser (default)")
     p.add_argument("-np", "--no-drop-privileges", action="store_const", const=True, default=None, help="disable privilege drop when started as superuser")
     p.add_argument("-s", "--sessions", action="store_const", const=True, default=None, help="enable session tracking (default)")
-    p.add_argument("-ns", "--no-sessions", action="store_const", const=True, default=None, help="edisable session tracking")
+    p.add_argument("-ns", "--no-sessions", action="store_const", const=True, default=None, help="disable session tracking")
     p.add_argument("--hostname", type=str, default=None, metavar="HOSTNAME", help="overrides configured hostname on which to run Tangelo")
     p.add_argument("--port", type=int, default=None, metavar="PORT", help="overrides configured port number on which to run Tangelo")
     p.add_argument("-u", "--user", type=str, default=None, metavar="USERNAME", help="specifies the user to run as when root privileges are dropped")
