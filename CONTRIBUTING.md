@@ -13,6 +13,7 @@ via pull request.  Here are some guidelines for contributing:
 2. [Fork](https://github.com/Kitware/tangelo/fork) the Tangelo repository.
 3. Create a topic branch for your changes.
 4. Make commits as needed, and include informative commit messages.  Try to structure your commits logically, so that each one has a clear-cut purpose.
-5. Send us a pull request according to the guidelines [here](https://help.github.com/articles/using-pull-requests).
+5. When your topic is complete, edit the CHANGELOG.md file to describe what changes your topic introduces.
+6. Send us a pull request according to the guidelines [here](https://help.github.com/articles/using-pull-requests).
 
 The Tangelo documentation includes a section on [coding guidelines](http://tangelo.readthedocs.org/en/latest/coding-style-guide.html) to help ease your contributions into the codebase.  Refer to the rest of the [documentation](http://tangelo.readthedocs.org/en/latest/index.html) as needed, and let us know if anything is unclear.  We're looking forward to hearing from you!

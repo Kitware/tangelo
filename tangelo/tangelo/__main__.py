@@ -18,6 +18,81 @@ import tangelo.websocket
 tangelo_version = "0.8.0-dev"
 
 
+def tangelo_passwd():
+    import argparse
+    import getpass
+    import md5
+    import sys
+
+    # Parse arguments.
+    p = argparse.ArgumentParser(description="Edit .htaccess files for Tangelo")
+    p.add_argument("-c", "--create", action="store_true", help="Create new password file")
+    p.add_argument("passwordfile", metavar="passwordfile", type=str, nargs=1, help="Password file")
+    p.add_argument("realm", metavar="realm", type=str, nargs=1, help="Authentication realm")
+    p.add_argument("user", metavar="user", type=str, nargs=1, help="Username")
+
+    args = p.parse_args()
+
+    # Capture argument values.
+    create = args.create
+    passwordfile = args.passwordfile[0]
+    realm = args.realm[0]
+    user = args.user[0]
+
+    # Open the password file and read in the contents.
+    try:
+        with open(passwordfile) as f:
+            pws = map(lambda x: x.strip().split(":"), f.readlines())
+    except IOError:
+        create = True
+        pws = []
+
+    # Find the record matching the user.
+    userrec = filter(lambda x: x[1][0] == user and x[1][1] == realm, enumerate(pws))
+
+    n = len(userrec)
+    if n > 1:
+        print >>sys.stderr, "warning: user '%s' for realm '%s' occurs %d times... using only first occurrence"
+
+    # Get the first element of userrec, if there is one.
+    if userrec == []:
+        # If there was no matching record, make up a dummy one.
+        userrec = [None, [user, realm, None]]
+    else:
+        userrec = list(userrec[0])
+
+    # Get a password and confirmation from the user.
+    password = getpass.getpass("Enter password for %s@%s: " % (user, realm))
+    confirm = getpass.getpass("Re-enter password: ")
+
+    if password != confirm:
+        print >>sys.stderr, "Passwords do not match, aborting."
+        return 1
+
+    # Install the md5 hash in the "password" slot of the updating record.
+    userrec[1][2] = md5.md5("%s:%s:%s" % (user, realm, password)).hexdigest()
+
+    # If requested to "create" a new password file, delete the pws array, and
+    # arrange for the userrec to be appended to the pws array, rather than updating
+    # some indexed entry of it (with the signal index of -1).
+    if create:
+        pws = [userrec[1]]
+    else:
+        if userrec[0] is None:
+            pws.append(userrec[1])
+        else:
+            pws[userrec[0]] = userrec[1]
+
+    try:
+        with open(passwordfile, "w") as f:
+            f.writelines(map(lambda x: ":".join(x) + "\n", pws))
+    except IOError:
+        print >>sys.stderr, "error: could not open file '%s' for writing!" % (passwordfile)
+        return 1
+
+    return 0
+
+
 class Config(object):
     def __init__(self, filename=None):
         self.access_auth = None
