@@ -25,7 +25,6 @@ class Content(object):
     Directory = 2
     File = 3
     Service = 4
-    Restricted = 5
 
     def __init__(self, t, path=None, pargs=None):
         self.type = t
@@ -52,142 +51,186 @@ class UrlAnalysis(object):
         return pprint.pformat(d)
 
 
-def analyze_url(raw_reqpath):
-    webroot = cherrypy.config.get("webroot")
-    plugins = cherrypy.config.get("plugins")
+class UrlAnalyzer(object):
+    instance = None
 
-    reqpath = raw_reqpath
+    def __init__(self):
+        self.listdir = cherrypy.config.get("listdir")
+        self.showpy = cherrypy.config.get("showpy")
 
-    analysis = UrlAnalysis()
+        UrlAnalyzer.instance = self
 
-    # If the request path is blank, redirect to /.
-    if reqpath == "":
-        analysis.directive = Directive(Directive.HTTPRedirect, argument="/")
+        def blocked(self):
+            raise RuntimeError("You are not allowed to instantiate UrlAnalyzer")
+
+        UrlAnalyzer.__init__ = blocked
+
+    @staticmethod
+    def is_python_file(path):
+        pyfile_ext = [".py", ".pyw", ".pyc", ".pyo", ".pyd"]
+        return len(path) > 0 and any(path.endswith(ext) for ext in pyfile_ext)
+
+    @staticmethod
+    def is_service_config_file(path):
+        return path.endswith(".yaml") and os.path.exists(".".join(os.path.join(path.split(".")[:-1])) + ".py")
+
+    def accessible(self, path):
+        if os.path.isdir(path):
+            return self.listdir
+        elif UrlAnalyzer.is_python_file(path):
+            config_file = ".".join(path.split(".")[:-1]) + ".yaml"
+            if os.path.exists(config_file):
+                try:
+                    config = tangelo.util.yaml_safe_load(config_file, dict)
+                except (ValueError, TypeError):
+                    tangelo.log("Config file %s could not be read - locking down associated web service source" % (path))
+                    return False
+
+                showpy = config.get("showpy")
+                if showpy is not None:
+                    if not isinstance(showpy, bool):
+                        tangelo.log("Config file %s has a non-boolean 'showpy' property - locking down associated web service source" % (path))
+                        return False
+
+                    return showpy
+
+            return self.showpy
+        elif UrlAnalyzer.is_service_config_file(path):
+            return False
+        else:
+            return True
+
+    def analyze(self, raw_reqpath):
+        webroot = cherrypy.config.get("webroot")
+        plugins = cherrypy.config.get("plugins")
+
+        reqpath = raw_reqpath
+
+        analysis = UrlAnalysis()
+
+        # If the request path is blank, redirect to /.
+        if reqpath == "":
+            analysis.directive = Directive(Directive.HTTPRedirect, argument="/")
+            return analysis
+
+        if plugins is not None and reqpath[0] == "/" and reqpath.split("/")[1] == "plugin":
+            plugin_comp = reqpath.split("/")
+            if len(plugin_comp) < 3:
+                analysis.directive = Directive(Directive.ListPlugins)
+                return analysis
+
+            plugin = plugin_comp[2]
+            if plugin not in plugins.plugins:
+                analysis.content = Content(Content.NotFound, path=reqpath)
+                return analysis
+
+            analysis.plugin_path = plugins.plugins[plugin].path
+            webroot = plugins.plugins[plugin].path + "/web"
+            reqpath = "/" + "/".join(plugin_comp[3:])
+
+        # Compute "parallel" path component lists based on the web root and the disk
+        # root.
+        if reqpath == "/":
+            reqpathcomp = []
+            pathcomp = [webroot]
+        else:
+            # Split the request path into path components, omitting the leading
+            # slash.
+            reqpathcomp = reqpath[1:].split("/")
+
+            # Compute the disk path the URL corresponds to.
+            #
+            # First check to see whether the path is absolute (i.e. rooted at
+            # webroot) or in a user home directory.
+            if reqpathcomp[0][0] == "~" and len(reqpathcomp[0]) > 1:
+                # Only treat this component as a home directory if there is
+                # actually text following the tilde (rather than making the server
+                # serve files from the home directory of whatever user account it
+                # is using to run).
+                home_dir = os.path.expanduser(reqpathcomp[0])
+                pathcomp = [os.path.join(home_dir, "tangelo_html")] + reqpathcomp[1:]
+            else:
+                pathcomp = [webroot] + reqpathcomp
+
+        # Save the request path and disk path components in the thread storage,
+        # slightly modifying the request path if it refers to an absolute path
+        # (indicated by being one element shorter than the disk path).
+        if len(reqpathcomp) == len(pathcomp) - 1:
+            reqpathcomp_save = [""] + reqpathcomp
+        elif len(reqpathcomp) == len(pathcomp):
+            reqpathcomp_save = ["/" + reqpathcomp[0]] + reqpathcomp[1:]
+        else:
+            raise RuntimeError("reqpathcomp and pathcomp lengths are wonky")
+
+        # If the path represents a directory and has a trailing slash, remove it
+        # (this will make the auth update step easier).
+        if (len(reqpathcomp_save) > 1 and
+                reqpathcomp_save[-1] == "" or
+                pathcomp[-1] == ""):
+            assert reqpathcomp_save[-1] == "" and pathcomp[-1] == ""
+            reqpathcomp_save = reqpathcomp_save[:-1]
+            pathcomp_save = pathcomp[:-1]
+        else:
+            pathcomp_save = pathcomp
+
+        analysis.reqpathcomp = reqpathcomp_save
+        analysis.pathcomp = pathcomp_save
+
+        # If pathcomp has more than one element, fuse the first two together.  This
+        # makes the search for a possible service below much simpler.
+        if len(pathcomp) > 1:
+            pathcomp = [os.path.join(pathcomp[0], pathcomp[1])] + pathcomp[2:]
+
+        # Form an actual path string.
+        path = os.path.join(*pathcomp)
+
+        # If the path is a directory, check for a trailing slash.  If missing,
+        # perform a redirect to the path WITH the trailing slash.  Otherwise,
+        # check for an index.html file in that directory; if found, perform an
+        # internal redirect to that file.  Otherwise, leave the path alone - it
+        # now represents a request for a directory listing.
+        #
+        # If instead the path isn't a directory, check to see if it's a regular
+        # file.  If it is, save the path in thread local storage - this will let
+        # the handler very quickly serve the file.
+        #
+        # If it is not a regular file, then check to see if it is a python service.
+        #
+        # Finally, if it is none of the above, then indicate a 404 error.
+        if os.path.isdir(path):
+            if raw_reqpath[-1] != "/":
+                analysis.directive = Directive(Directive.HTTPRedirect, argument=raw_reqpath + "/")
+                return analysis
+            elif os.path.exists(path + os.path.sep + "index.html"):
+                analysis.directive = Directive(Directive.InternalRedirect, argument=raw_reqpath + "index.html")
+                return analysis
+            else:
+                # Only serve a directory listing if the security policy allows it.
+                analysis.content = Content(Content.Directory, path=path if self.accessible(path) else None)
+        elif os.path.exists(path):
+            # Only serve a file if the security policy allows it.
+            analysis.content = Content(Content.File, path=path if self.accessible(path) else None)
+        else:
+            service_path = None
+            pargs = None
+            for i in range(len(pathcomp)):
+                service_path = os.path.sep.join(pathcomp[:(i + 1)]) + ".py"
+                if os.path.exists(service_path):
+                    pargs = pathcomp[(i + 1):]
+                    break
+
+            if pargs is None:
+                analysis.content = Content(Content.NotFound, path=path)
+            else:
+                analysis.content = Content(Content.Service, path=service_path, pargs=pargs)
+
         return analysis
 
-    if plugins is not None and reqpath[0] == "/" and reqpath.split("/")[1] == "plugin":
-        plugin_comp = reqpath.split("/")
-        if len(plugin_comp) < 3:
-            analysis.directive = Directive(Directive.ListPlugins)
-            return analysis
+UrlAnalyzer()
 
-        plugin = plugin_comp[2]
-        if plugin not in plugins.plugins:
-            analysis.content = Content(Content.NotFound, path=reqpath)
-            return analysis
 
-        analysis.plugin_path = plugins.plugins[plugin].path
-        webroot = plugins.plugins[plugin].path + "/web"
-        reqpath = "/" + "/".join(plugin_comp[3:])
-
-    # Compute "parallel" path component lists based on the web root and the disk
-    # root.
-    if reqpath == "/":
-        reqpathcomp = []
-        pathcomp = [webroot]
-    else:
-        # Split the request path into path components, omitting the leading
-        # slash.
-        reqpathcomp = reqpath[1:].split("/")
-
-        # Compute the disk path the URL corresponds to.
-        #
-        # First check to see whether the path is absolute (i.e. rooted at
-        # webroot) or in a user home directory.
-        if reqpathcomp[0][0] == "~" and len(reqpathcomp[0]) > 1:
-            # Only treat this component as a home directory if there is
-            # actually text following the tilde (rather than making the server
-            # serve files from the home directory of whatever user account it
-            # is using to run).
-            pathcomp = [os.path.expanduser(reqpathcomp[0]) +
-                        os.path.sep +
-                        "tangelo_html"] + reqpathcomp[1:]
-        else:
-            pathcomp = [webroot] + reqpathcomp
-
-    # Save the request path and disk path components in the thread storage,
-    # slightly modifying the request path if it refers to an absolute path
-    # (indicated by being one element shorter than the disk path).
-    if len(reqpathcomp) == len(pathcomp) - 1:
-        reqpathcomp_save = [""] + reqpathcomp
-    elif len(reqpathcomp) == len(pathcomp):
-        reqpathcomp_save = ["/" + reqpathcomp[0]] + reqpathcomp[1:]
-    else:
-        raise RuntimeError("reqpathcomp and pathcomp lengths are wonky")
-
-    # If the path represents a directory and has a trailing slash, remove it
-    # (this will make the auth update step easier).
-    if (len(reqpathcomp_save) > 1 and
-            reqpathcomp_save[-1] == "" or
-            pathcomp[-1] == ""):
-        assert reqpathcomp_save[-1] == "" and pathcomp[-1] == ""
-        reqpathcomp_save = reqpathcomp_save[:-1]
-        pathcomp_save = pathcomp[:-1]
-    else:
-        pathcomp_save = pathcomp
-
-    analysis.reqpathcomp = reqpathcomp_save
-    analysis.pathcomp = pathcomp_save
-
-    # If pathcomp has more than one element, fuse the first two together.  This
-    # makes the search for a possible service below much simpler.
-    if len(pathcomp) > 1:
-        pathcomp = [pathcomp[0] + os.path.sep + pathcomp[1]] + pathcomp[2:]
-
-    # Form an actual path string.
-    path = os.path.sep.join(pathcomp)
-
-    # If the path is a directory, check for a trailing slash.  If missing,
-    # perform a redirect to the path WITH the trailing slash.  Otherwise, check
-    # for an index.html file in that directory; if found, perform an internal
-    # redirect to that file.  Otherwise, leave the path alone - it now
-    # represents a request for a directory listing.
-    #
-    # If instead the path isn't a directory, check to see if it's a regular
-    # file.  If it is, save the path in thread local storage - this will let
-    # the handler very quickly serve the file.
-    #
-    # If it is not a regular file, then check to see if it is a python service.
-    #
-    # Finally, if it is none of the above, then indicate a 404 error.
-    if os.path.isdir(path):
-        if raw_reqpath[-1] != "/":
-            analysis.directive = Directive(Directive.HTTPRedirect, argument=raw_reqpath + "/")
-            return analysis
-        elif os.path.exists(path + os.path.sep + "index.html"):
-            analysis.directive = Directive(Directive.InternalRedirect, argument=raw_reqpath + "index.html")
-            return analysis
-        else:
-            analysis.content = Content(Content.Directory, path=path)
-    elif os.path.exists(path):
-        # Don't serve Python files (if someone really wants to serve the program
-        # text, they can create a symlink with a different file extension and
-        # that will be served just fine).
-        if len(path) > 3 and path[-3:] == ".py":
-            analysis.content = Content(Content.Restricted, path=path)
-        else:
-            # Also do not serve config files that match up to Python files.
-            if (len(path) > 5 and
-                    path[-5:] == ".yaml" and
-                    os.path.exists(path[:-5] + ".py")):
-                analysis.content = Content(Content.Restricted, path=path)
-            else:
-                analysis.content = Content(Content.File, path=path)
-    else:
-        service_path = None
-        pargs = None
-        for i in range(len(pathcomp)):
-            service_path = os.path.sep.join(pathcomp[:(i + 1)]) + ".py"
-            if os.path.exists(service_path):
-                pargs = pathcomp[(i + 1):]
-                break
-
-        if pargs is None:
-            analysis.content = Content(Content.NotFound, path=path)
-        else:
-            analysis.content = Content(Content.Service, path=service_path, pargs=pargs)
-
-    return analysis
+def analyze_url(url):
+    return UrlAnalyzer.instance.analyze(url)
 
 
 class AuthUpdate(object):
@@ -534,14 +577,18 @@ class Tangelo(object):
         # directory listing, executing a service, or barring the client entry.
         if content is not None:
             if content.type in [Content.File, Content.NotFound]:
-                return cherrypy.lib.static.serve_file(content.path)
+                if content.path is not None:
+                    return cherrypy.lib.static.serve_file(content.path)
+                else:
+                    raise cherrypy.HTTPError("403 Forbidden", "The requested path is forbidden")
             elif content.type == Content.Directory:
-                return Tangelo.dirlisting(content.path, cherrypy.request.path_info)
+                if content.path is not None:
+                    return Tangelo.dirlisting(content.path, cherrypy.request.path_info)
+                else:
+                    raise cherrypy.HTTPError("403 Forbidden", "Listing of this directory has been disabled")
             elif content.type == Content.Service:
                 cherrypy.thread_data.pluginpath = analysis.plugin_path
                 return self.invoke_service(content.path, *content.pargs, **query_args)
-            elif content.type == Content.Restricted:
-                raise cherrypy.HTTPError("403 Forbidden", "The path '%s' is forbidden" % (cherrypy.serving.request.path_info))
             else:
                 raise RuntimeError("fatal error: illegal content type code %d" % (content.type))
         else:
@@ -598,7 +645,7 @@ class Plugins(object):
         config = {}
         if os.path.exists(config_file):
             try:
-                config = tangelo.util.load_service_config(config_file)
+                config = tangelo.util.yaml_safe_load(config_file)
             except TypeError as e:
                 tangelo.log_warning("PLUGIN", "\tBad configuration in file %s: %s" % (config_file, e))
                 return
