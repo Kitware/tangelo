@@ -67,7 +67,8 @@ def start_tangelo():
     process = subprocess.Popen(coverage_args + tangelo + ["--host", host,
                                                           "--port", port,
                                                           "--root", "tests/web",
-                                                          "--plugin-config", "venv/share/tangelo/plugin/plugin.conf"],
+                                                          "--plugin-config", "venv/share/tangelo/plugin/plugin.conf",
+                                                          "--list-dir"],
                                stderr=subprocess.PIPE)
 
     buf = []

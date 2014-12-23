@@ -55,9 +55,6 @@ class UrlAnalyzer(object):
     instance = None
 
     def __init__(self):
-        self.listdir = cherrypy.config.get("listdir")
-        self.showpy = cherrypy.config.get("showpy")
-
         UrlAnalyzer.instance = self
 
         def blocked(self):
@@ -75,26 +72,30 @@ class UrlAnalyzer(object):
         return path.endswith(".yaml") and os.path.exists(".".join(os.path.join(path.split(".")[:-1])) + ".py")
 
     def accessible(self, path):
+        listdir = cherrypy.config.get("listdir")
+        showpy = cherrypy.config.get("showpy")
+
         if os.path.isdir(path):
-            return self.listdir
+            return listdir
         elif UrlAnalyzer.is_python_file(path):
             config_file = ".".join(path.split(".")[:-1]) + ".yaml"
             if os.path.exists(config_file):
                 try:
                     config = tangelo.util.yaml_safe_load(config_file, dict)
                 except (ValueError, TypeError):
-                    tangelo.log("Config file %s could not be read - locking down associated web service source" % (path))
+                    tangelo.log_warning("Config file %s could not be read - locking down associated web service source" % (path))
                     return False
+                else:
+                    config_showpy = config.get("showpy")
 
-                showpy = config.get("showpy")
-                if showpy is not None:
-                    if not isinstance(showpy, bool):
-                        tangelo.log("Config file %s has a non-boolean 'showpy' property - locking down associated web service source" % (path))
+                if config_showpy is not None:
+                    if not isinstance(config_showpy, bool):
+                        tangelo.log_warning("Config file %s has a non-boolean 'showpy' property - locking down associated web service source" % (path))
                         return False
 
-                    return showpy
+                    return config_showpy
 
-            return self.showpy
+            return showpy
         elif UrlAnalyzer.is_service_config_file(path):
             return False
         else:
