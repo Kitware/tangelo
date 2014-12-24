@@ -122,7 +122,7 @@ class UrlAnalyzer(object):
 
             plugin = plugin_comp[2]
             if plugin not in plugins.plugins:
-                analysis.content = Content(Content.NotFound, path=reqpath)
+                analysis.content = Content(Content.NotFound, path=raw_reqpath)
                 return analysis
 
             analysis.plugin_path = plugins.plugins[plugin].path
@@ -221,7 +221,7 @@ class UrlAnalyzer(object):
                     break
 
             if pargs is None:
-                analysis.content = Content(Content.NotFound, path=path)
+                analysis.content = Content(Content.NotFound, path=raw_reqpath)
             else:
                 analysis.content = Content(Content.Service, path=service_path, pargs=pargs)
 
@@ -577,7 +577,7 @@ class Tangelo(object):
         # Serve content here, either by serving a static file, generating a
         # directory listing, executing a service, or barring the client entry.
         if content is not None:
-            if content.type in [Content.File, Content.NotFound]:
+            if content.type == Content.File:
                 if content.path is not None:
                     return cherrypy.lib.static.serve_file(content.path)
                 else:
@@ -590,6 +590,8 @@ class Tangelo(object):
             elif content.type == Content.Service:
                 cherrypy.thread_data.pluginpath = analysis.plugin_path
                 return self.invoke_service(content.path, *content.pargs, **query_args)
+            elif content.type == Content.NotFound:
+                raise cherrypy.HTTPError("404 Not Found", "The path '%s' was not found" % (content.path))
             else:
                 raise RuntimeError("fatal error: illegal content type code %d" % (content.type))
         else:

@@ -1,4 +1,5 @@
 import datetime
+import os
 import platform
 import subprocess
 import time
@@ -19,6 +20,10 @@ def url(*path, **query):
 
 def plugin_url(*path, **query):
     return url(*(["plugin"] + list(path)), **query)
+
+
+def relative_path(path):
+    return "%s/%s" % (os.getcwd(), path)
 
 
 def run_tangelo(*args, **kwargs):
