@@ -86,11 +86,11 @@ class UrlAnalyzer(object):
                     tangelo.log_warning("Config file %s could not be read - locking down associated web service source" % (path))
                     return False
                 else:
-                    config_showpy = config.get("showpy")
+                    config_showpy = config.get("show-py")
 
                 if config_showpy is not None:
                     if not isinstance(config_showpy, bool):
-                        tangelo.log_warning("Config file %s has a non-boolean 'showpy' property - locking down associated web service source" % (path))
+                        tangelo.log_warning("Config file %s has a non-boolean 'show-py' property - locking down associated web service source" % (path))
                         return False
 
                     return config_showpy
