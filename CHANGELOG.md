@@ -16,6 +16,7 @@ versioning](http://semver.org).
 ### Deprecated
 
 ### Removed
+- Service of web content from home directories
 
 ### Fixed
 - ``tangelo.plugin_config()`` works
