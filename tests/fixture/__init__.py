@@ -1,4 +1,5 @@
 import datetime
+import os
 import platform
 import subprocess
 import time
@@ -19,6 +20,10 @@ def url(*path, **query):
 
 def plugin_url(*path, **query):
     return url(*(["plugin"] + list(path)), **query)
+
+
+def relative_path(path):
+    return "%s/%s" % (os.getcwd(), path)
 
 
 def run_tangelo(*args, **kwargs):
@@ -67,7 +72,8 @@ def start_tangelo():
     process = subprocess.Popen(coverage_args + tangelo + ["--host", host,
                                                           "--port", port,
                                                           "--root", "tests/web",
-                                                          "--plugin-config", "venv/share/tangelo/plugin/plugin.conf"],
+                                                          "--plugin-config", "venv/share/tangelo/plugin/plugin.conf",
+                                                          "--list-dir"],
                                stderr=subprocess.PIPE)
 
     buf = []
