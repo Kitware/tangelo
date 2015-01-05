@@ -8,7 +8,6 @@ import signal
 import sys
 import tangelo.util
 import ws4py.server
-import yaml
 
 import tangelo
 import tangelo.server
@@ -112,11 +111,7 @@ class Config(object):
             self.load(filename)
 
     def load(self, filename):
-        with open(filename) as f:
-            d = yaml.safe_load(f.read())
-
-        if not isinstance(d, dict):
-            raise TypeError("Config file %s does not contain a top-level associative array")
+        d = tangelo.util.yaml_safe_load(filename, dict)
 
         self.access_auth = d.get("access-auth")
         self.drop_privileges = d.get("drop-privileges")
@@ -250,10 +245,10 @@ def main():
         ok = False
         config = Config(cfg_file)
         ok = True
-    except (IOError, TypeError) as e:
-        tangelo.log_error("TANGELO", "error: %s" % (e))
-    except yaml.YAMLError as e:
-        tangelo.log_error("TANGELO", "error while parsing config file: %s" % (e))
+    except (IOError, ValueError) as e:
+        tangelo.log_error("ERROR", e)
+    except TypeError as e:
+        tangelo.log_error("ERROR", "Config file does not contain associative array at top level")
     finally:
         if not ok:
             return 1
