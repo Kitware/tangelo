@@ -439,8 +439,7 @@ class Tangelo(object):
         except:
             tangelo.http_status(501, "Error Importing Service")
             tangelo.content_type("application/json")
-            result = {"error": "Could not import module %s" % (tangelo.request_path()),
-                      "traceback": traceback.format_exc().split("\n")}
+            result = tangelo.util.traceback_report(error="Could not import module %s" % (tangelo.request_path()))
         else:
             # Try to run the service - either it's in a function called
             # "run()", or else it's in a REST API consisting of at least one of
@@ -468,15 +467,11 @@ class Tangelo(object):
                         tangelo.content_type("application/json")
                         result = {"error": "Method '%s' is not allowed in this service" % (method)}
             except:
-                stacktrace = traceback.format_exc()
-
-                tangelo.log_warning("SERVICE", "Could not execute service %s:\n%s" % (tangelo.request_path(), stacktrace))
-
                 tangelo.http_status(501, "Web Service Error")
                 tangelo.content_type("application/json")
-                result = {"error": "Error executing service",
-                          "module": tangelo.request_path(),
-                          "traceback": stacktrace.split("\n")}
+                result = tangelo.util.traceback_report(error="Error executing service", module=tangelo.request_path())
+
+                tangelo.log_warning("SERVICE", "Could not execute service %s:\n%s" % (tangelo.request_path(), "\n".join(result["traceback"])))
 
         # Restore the path to what it was originally.
         sys.path = origpath
