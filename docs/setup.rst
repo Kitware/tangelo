@@ -15,6 +15,9 @@ The simplest way to launch a Tangelo server is to use this command: ::
 
     tangelo
 
+(This command causes Tangelo to begin serving content out of the current
+directory on the default port, 8080.)
+
 Tangelo's runtime behaviors are specified via configuration file and command
 line options.  Tangelo configuration files are YAML files representing a
 key-value store ("associative array" in YAML jargon) at the top level.  Each
@@ -78,7 +81,7 @@ hostname         The hostname interface on which to listen for connections      
 
 port             The port number on which to listen for connections                  ``8080``
 
-root             The path to the directory to be served by Tangelo as the web root   ``/usr/share/tangelo/www`` [#root]_
+root             The path to the directory to be served by Tangelo as the web root   ``.`` [#root]_
 
 drop-privileges  Whether to drop privileges when started as the superuser            ``True``
 
@@ -97,9 +100,8 @@ cert             The path to the SSL certificate                                
 
 .. rubric:: Footnotes
 
-.. [#root] The first component of this path may vary by platform.  Technically,
-    the path begins with the Python value stored in ``sys.prefix``; in a Unix
-    system, this value is */usr*, yielding the default path shown here.
+.. [#root] This is to say, Tangelo serves from the directory in which it was
+    invoked by default.
 
 .. [#usergroup] Your Unix system may already have a user named "nobody" which
     has the least possible level of permissions.  The theory is that system daemons
@@ -159,8 +161,8 @@ The corresponding configuration file might look like this:
     root: /srv/tangelo
 
 This file should be saved to ``/etc/tangelo.conf``, and then Tangelo can be
-launched with a command like ``tangelo -c /etc/tangelo.conf`` (the ``sudo`` may
-be necessary to allow for port 80 to be bound).
+launched with a command like ``tangelo -c /etc/tangelo.conf`` (running the
+command with ``sudo`` may be necessary to allow for port 80 to be bound).
 
 Running Tangelo as a System Service
 ===================================

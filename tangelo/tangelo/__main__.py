@@ -186,6 +186,7 @@ def main():
     p.add_argument("--key", type=str, default=None, metavar="FILE", help="the path to the SSL key.  You must also specify --cert to serve content over https.")
     p.add_argument("--cert", type=str, default=None, metavar="FILE", help="the path to the SSL certificate.  You must also specify --key to serve content over https.")
     p.add_argument("--plugin-config", type=str, default=None, metavar="PATH", help="path to plugin configuration file")
+    p.add_argument("--examples", action="store_true", default=None, help="Serve the Tangelo example applications")
     args = p.parse_args()
 
     # If version flag is present, print the version number and exit.
@@ -204,7 +205,21 @@ def main():
 
     if args.no_sessions and args.sessions:
         tangelo.log_error("ERROR", "can't specify both --sessions (-s) and --no-sessions (-ns) together")
-        sys.exit(1)
+        return 1
+
+    if args.examples:
+        stop = False
+
+        if args.root:
+            tangelo.log_error("ERROR", "can't specify both --examples and --root (-r) together")
+            stop = True
+
+        if args.plugin_config:
+            tangelo.log_error("ERROR", "can't specify both --examples and --plugin-config")
+            stop = True
+
+        if stop:
+            return 1
 
     if args.no_list_dir and args.list_dir:
         tangelo.log_error("ERROR", "can't specify both --list-dir and --no-list-dir together")
@@ -341,29 +356,28 @@ def main():
     # We need a web root - use the installed example web directory as a
     # fallback.  This might be found in a few different places, so try them one
     # by one until we find one that exists.
-    #
-    # TODO(choudhury): shouldn't we *only* check the invocation_dir option?  We
-    # shouldn't pick up a stray web directory that happens to be found in /usr
-    # if we're invoking tangelo from a totally different location.
     root = args.root or config.root
     if root:
         root = tangelo.util.expandpath(root)
-    else:
+    elif args.examples:
+        # The /usr/local/... path is a workaround for homebrew on OSX, which
+        # places Python is a very strange place that doesn't play well with
+        # standard installations.
         default_paths = map(tangelo.util.expandpath, [sys.prefix + "/share/tangelo/web",
                                                       invocation_dir + "/share/tangelo/web",
                                                       "/usr/local/share/tangelo/web"])
-        tangelo.log_info("TANGELO", "Looking for default web content path")
+        tangelo.log_info("TANGELO", "Looking for examples package")
         for path in default_paths:
             tangelo.log_info("TANGELO", "Trying %s" % (path))
             if os.path.exists(path):
                 root = path
                 break
 
-        # TODO(choudhury): by default, should we simply serve from the current
-        # directory?  This is how SimpleHTTPServer works, for example.
         if not root:
-            tangelo.log_error("TANGELO", "could not find default web root directory")
+            tangelo.log_error("ERROR", "could not find examples package")
             return 1
+    else:
+        root = tangelo.util.expandpath(".")
 
     tangelo.log("TANGELO", "Serving content from %s" % (root))
 

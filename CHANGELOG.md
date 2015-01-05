@@ -12,6 +12,8 @@ versioning](http://semver.org).
   files (tested on Linux, Windows, and OS X)
 - New security features: by default Tangelo no longer serves directory contents,
   Python source code, and web service configuration files
+- ``--examples`` flag causes example applications to be served; default web root
+  is now ``.`` (i.e. directory from which Tangelo was invoked)
 
 ### Changed
 
