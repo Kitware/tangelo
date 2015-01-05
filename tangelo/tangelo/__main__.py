@@ -98,6 +98,8 @@ class Config(object):
         self.access_auth = None
         self.drop_privileges = None
         self.sessions = None
+        self.list_dir = None
+        self.show_py = None
         self.hostname = None
         self.port = None
         self.user = None
@@ -119,6 +121,8 @@ class Config(object):
         self.access_auth = d.get("access-auth")
         self.drop_privileges = d.get("drop-privileges")
         self.sessions = d.get("sessions")
+        self.list_dir = d.get("list-dir")
+        self.show_py = d.get("show-py")
         self.hostname = d.get("hostname")
         self.port = d.get("port")
         self.user = d.get("user")
@@ -168,6 +172,10 @@ def main():
     p.add_argument("-np", "--no-drop-privileges", action="store_const", const=True, default=None, help="disable privilege drop when started as superuser")
     p.add_argument("-s", "--sessions", action="store_const", const=True, default=None, help="enable session tracking (default)")
     p.add_argument("-ns", "--no-sessions", action="store_const", const=True, default=None, help="disable session tracking")
+    p.add_argument("--list-dir", action="store_true", default=None, help="enable directory content serving")
+    p.add_argument("--no-list-dir", action="store_true", default=None, help="disable directory content serving (default)")
+    p.add_argument("--show-py", action="store_true", default=None, help="enable Python service source code serving")
+    p.add_argument("--no-show-py", action="store_true", default=None, help="disable Python service source code serving (default)")
     p.add_argument("--hostname", type=str, default=None, metavar="HOSTNAME", help="overrides configured hostname on which to run Tangelo")
     p.add_argument("--port", type=int, default=None, metavar="PORT", help="overrides configured port number on which to run Tangelo")
     p.add_argument("-u", "--user", type=str, default=None, metavar="USERNAME", help="specifies the user to run as when root privileges are dropped")
@@ -196,6 +204,14 @@ def main():
 
     if args.no_sessions and args.sessions:
         tangelo.log_error("ERROR", "can't specify both --sessions (-s) and --no-sessions (-ns) together")
+        sys.exit(1)
+
+    if args.no_list_dir and args.list_dir:
+        tangelo.log_error("ERROR", "can't specify both --list-dir and --no-list-dir together")
+        sys.exit(1)
+
+    if args.no_show_py and args.show_py:
+        tangelo.log_error("ERROR", "can't specify both --show-py and --no-show-py together")
         sys.exit(1)
 
     # Figure out where this is being called from - that will be useful for a
@@ -254,6 +270,28 @@ def main():
         sessions = (args.sessions is not None) or (not args.no_sessions)
 
     tangelo.log("TANGELO", "Sessions %s" % ("enabled" if sessions else "disabled"))
+
+    # Determine whether to serve directory listings by default.
+    listdir = False
+    if args.list_dir is None and args.no_list_dir is None:
+        if config.list_dir is not None:
+            listdir = config.list_dir
+    else:
+        listdir = (args.list_dir is not None) or (not args.no_list_dir)
+
+    cherrypy.config["listdir"] = listdir
+    tangelo.log("TANGELO", "Directory content serving %s" % ("enabled" if listdir else "disabled"))
+
+    # Determine whether to serve web service Python source code by default.
+    showpy = False
+    if args.show_py is None and args.no_show_py is None:
+        if config.show_py is not None:
+            showpy = config.show_py
+    else:
+        showpy = (args.show_py is not None) or (not args.no_show_py)
+
+    cherrypy.config["showpy"] = showpy
+    tangelo.log("TANGELO", "Web service source code serving %s" % ("enabled" if showpy else "disabled"))
 
     # Extract the rest of the arguments, giving priority first to command line
     # arguments, then to the configuration file (if any), and finally to a

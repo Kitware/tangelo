@@ -17,6 +17,22 @@ def windows():
     return platform.platform().split("-")[0] == "Windows"
 
 
+def yaml_safe_load(filename, type=None):
+    with open(filename) as f:
+        try:
+            data = yaml.safe_load(f.read())
+        except yaml.YAMLError as e:
+            raise ValueError(e)
+
+    if data is None:
+        data = type()
+
+    if type is not None and not isinstance(data, type):
+        raise TypeError
+
+    return data
+
+
 class PluginConfig(object):
     properties = ["name", "enabled", "url", "path"]
 
@@ -94,21 +110,6 @@ class PluginConfig(object):
         del self.plugins[name]
 
         self.plugin_order.remove(name)
-
-
-def load_service_config(path):
-    try:
-        with open(path) as f:
-            config = yaml.safe_load(f.read())
-    except yaml.YAMLError as e:
-        # Convert the error to a built-in exception so the yaml dependency
-        # doesn't leak into other modules.
-        raise ValueError(str(e))
-
-    if type(config) != dict:
-        raise TypeError("Service module configuration file does not contain a key-value store (i.e., a JSON Object)")
-
-    return config
 
 
 def get_free_port():
@@ -236,7 +237,7 @@ class ModuleCache(object):
             # Load any configuration the module might carry with it.
             if config_mtime is not None:
                 try:
-                    config = load_service_config(config_file)
+                    config = yaml_safe_load(config_file, type=dict)
                 except TypeError as e:
                     tangelo.log_warning("TANGELO", "Bad configuration in file %s: %s" % (config_file, e))
                     raise

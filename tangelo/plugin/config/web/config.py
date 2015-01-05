@@ -25,7 +25,7 @@ def run(*path, **query):
             return {"result": {}}
 
     try:
-        config = tangelo.util.load_service_config(content.path)
+        config = tangelo.util.yaml_safe_load(content.path, dict)
     except IOError:
         tangelo.http_status(404)
         return {"error": "could not open file at %s" % (url)}
