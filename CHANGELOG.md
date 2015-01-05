@@ -17,6 +17,8 @@ versioning](http://semver.org).
 
 ### Removed
 - Service of web content from home directories
+- ``tangelo.abspath()`` - web services should instead use
+  ``tangelo.server.analyze_url()`` to learn the disk path for a given web resource
 
 ### Fixed
 - ``tangelo.plugin_config()`` works
