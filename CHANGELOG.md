@@ -10,6 +10,8 @@ versioning](http://semver.org).
 - Serverside and command line version tests
 - Cross-platform generation of ``tangelo`` and ``tangelo-passwd`` executable
   files (tested on Linux, Windows, and OS X)
+- ``--examples`` flag causes example applications to be served; default web root
+  is now ``.`` (i.e. directory from which Tangelo was invoked)
 
 ### Changed
 
