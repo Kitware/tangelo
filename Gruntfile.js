@@ -560,7 +560,7 @@ module.exports = function (grunt) {
         var done = this.async(),
             tangeloCmd;
 
-        tangeloCmd = tangeloCmdLine("localhost", "50047", "venv/share/tangelo/web", false);
+        tangeloCmd = tangeloCmdLine("localhost", "50047", "js/tests", false);
 
         grunt.util.spawn({
             cmd: tangeloCmd.cmd,

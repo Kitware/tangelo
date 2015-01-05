@@ -21,6 +21,7 @@ versioning](http://semver.org).
 
 ### Fixed
 - ``tangelo.plugin_config()`` works
+- Python module path behaves correctly in plugin web directories
 - ``tangelo.server.analyze()`` works better, especially for plugin development
 
 ### Security
