@@ -106,25 +106,6 @@ def session(key, value=None):
     return r
 
 
-def abspath(path):
-    if len(path) >= 2 and path[0] == "/" and path[1] == "~":
-        path = path[1:]
-        comp = path.split(os.path.sep)
-        user = os.path.expanduser(comp[0])
-        homeroot = os.path.sep.join([user, "tangelo_html"]) + os.path.sep
-        path = os.path.abspath(homeroot + os.path.sep.join(comp[1:]))
-        if path.find(homeroot) == 0:
-            return path
-    elif len(path) > 0 and path[0] == "/":
-        webroot = cherrypy.config.get("webroot") + os.path.sep
-        path = os.path.abspath(webroot + path)
-        if path.find(webroot) == 0:
-            log("here")
-            return path
-
-    return None
-
-
 def paths(runtimepaths):
     # If a single string is passed in, wrap it into a singleton list (this is
     # important because a string in Python is technically a list of lists, so

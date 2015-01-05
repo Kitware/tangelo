@@ -29,23 +29,28 @@ quickstart instructions will be sufficient (see :ref:`quickstart`): ::
 This should launch Tangelo on *localhost*, port 8080 (also known as
 http://localhost:8080/).
 
-Next we need a place to put the files for the application.  We will serve the
-application out of your home directory - recall that Tangelo serves user content
-from the ``tangelo_html`` subdirectory: ::
+First we need a place to put the files for the application.  We will serve the
+application out of a specialized directory to contain several Tangelo
+applications. It is a good practice to house each application in its own
+subdirectory - this keeps things organized, and allows for easy development of
+web applications in source control systems such as GitHub: ::
 
     cd ~
-    mkdir tangelo_html
-    cd tangelo_html
-
-It is a good practice to house each application in its own subdirectory - this
-keeps things organized, and allows for easy development of web applications in
-source control systems such as GitHub: ::
-
+    mkdir tangelo_apps
+    cd tangelo_apps
     mkdir reverser
-    cd reverser
 
-Supposing your user name is ``crusher``, visiting
-http://localhost:8080/~crusher/reverser in a web browser should at this point
+Next, we need to serve this directory to the web.  We'd also like to be able to
+see the directory contents and Python source as we edit our application, since
+we're in "developer mode": ::
+
+    tangelo --list-dir --show-py
+
+By default, Tangelo serves files from the current directory.  It would also be
+possible to use the web root option by adding ``--root ~/tangelo_apps`` to make the
+desired root directory explicit.
+
+Visiting http://localhost:8080/reverser in a web browser should at this point
 show you a directory listing of no entries.  Let's fix that by creating some
 content.
 
@@ -118,10 +123,10 @@ Line 3 - the first line of the function executed on button click - causes the
 contents of of the text input field to be read out into the variable ``text``.
 
 Line 4 uses the jQuery convenience function ``$.getJSON()`` to initiate an ajax
-request to the URL http://localhost:8080/~crusher/reverser/myservice, passing in
-the text field contents as a query argument.  When the server has a response
-prepared, the function passed as the second argument to ``$.getJSON()`` will be
-called, with the response as the argument.
+request to the URL http://localhost:8080/reverser/myservice, passing in the text
+field contents as a query argument.  When the server has a response prepared,
+the function passed as the second argument to ``$.getJSON()`` will be called,
+with the response as the argument.
 
 Line 5 makes use of this response data to place some text in the blank div.
 Because ``$.getJSON()`` converts the server response to a JSON object
@@ -155,9 +160,9 @@ Tying it All Together
 ---------------------
 
 The application is now complete.  Once more refresh the page at
-http://localhost:8080/~crusher/reverser/, type in your favorite word, and click
-the "Go" button.  If all goes well, you should see your favorite word, reversed,
-below the text input field!
+http://localhost:8080/reverser/, type in your favorite word, and click the "Go"
+button.  If all goes well, you should see your favorite word, reversed, below
+the text input field!
 
 Discussion
 ----------
