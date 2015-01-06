@@ -432,14 +432,10 @@ def main():
                                                           "tools.staticfile.filename": sys.prefix + "/share/tangelo/tangelo.ico"}})
 
     # Set up the global configuration.
-    try:
-        cherrypy.config.update({"environment": "production",
-                                "log.screen": True,
-                                "server.socket_host": hostname,
-                                "server.socket_port": port})
-    except IOError as e:
-        tangelo.log_error("TANGELO", "problem with config file %s: %s" % (e.filename, e.strerror))
-        return 1
+    cherrypy.config.update({"environment": "production",
+                            "log.screen": True,
+                            "server.socket_host": hostname,
+                            "server.socket_port": port})
 
     # Try to drop privileges if requested, since we've bound to whatever port
     # superuser privileges were needed for already.
