@@ -104,7 +104,7 @@ tangelo-users@public.kitware.com.
 
 If all has gone well, you can now try to run Tangelo, using this command: ::
 
-    ./venv/bin/tangelo
+    ./venv/bin/tangelo --examples
 
 The Tangelo executable comes from installing the built Tangelo Python package
 into the development virtual environment, so the command assumes you are in the
@@ -116,7 +116,7 @@ welcome message along with the Tangelo Sunrise.  If instead you receive an error
 message about port 8080 not being free, you may need to launch Tangelo on a
 different port, using a command similar to the following: ::
 
-    ./venv/bin/tangelo --port 9090
+    ./venv/bin/tangelo --examples --port 9090
 
 Running the Test Suites
 -----------------------

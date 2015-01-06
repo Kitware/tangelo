@@ -98,6 +98,8 @@ class Config(object):
         self.access_auth = None
         self.drop_privileges = None
         self.sessions = None
+        self.list_dir = None
+        self.show_py = None
         self.hostname = None
         self.port = None
         self.user = None
@@ -119,6 +121,8 @@ class Config(object):
         self.access_auth = d.get("access-auth")
         self.drop_privileges = d.get("drop-privileges")
         self.sessions = d.get("sessions")
+        self.list_dir = d.get("list-dir")
+        self.show_py = d.get("show-py")
         self.hostname = d.get("hostname")
         self.port = d.get("port")
         self.user = d.get("user")
@@ -168,6 +172,10 @@ def main():
     p.add_argument("-np", "--no-drop-privileges", action="store_const", const=True, default=None, help="disable privilege drop when started as superuser")
     p.add_argument("-s", "--sessions", action="store_const", const=True, default=None, help="enable session tracking (default)")
     p.add_argument("-ns", "--no-sessions", action="store_const", const=True, default=None, help="disable session tracking")
+    p.add_argument("--list-dir", action="store_true", default=None, help="enable directory content serving")
+    p.add_argument("--no-list-dir", action="store_true", default=None, help="disable directory content serving (default)")
+    p.add_argument("--show-py", action="store_true", default=None, help="enable Python service source code serving")
+    p.add_argument("--no-show-py", action="store_true", default=None, help="disable Python service source code serving (default)")
     p.add_argument("--hostname", type=str, default=None, metavar="HOSTNAME", help="overrides configured hostname on which to run Tangelo")
     p.add_argument("--port", type=int, default=None, metavar="PORT", help="overrides configured port number on which to run Tangelo")
     p.add_argument("-u", "--user", type=str, default=None, metavar="USERNAME", help="specifies the user to run as when root privileges are dropped")
@@ -178,6 +186,7 @@ def main():
     p.add_argument("--key", type=str, default=None, metavar="FILE", help="the path to the SSL key.  You must also specify --cert to serve content over https.")
     p.add_argument("--cert", type=str, default=None, metavar="FILE", help="the path to the SSL certificate.  You must also specify --key to serve content over https.")
     p.add_argument("--plugin-config", type=str, default=None, metavar="PATH", help="path to plugin configuration file")
+    p.add_argument("--examples", action="store_true", default=None, help="Serve the Tangelo example applications")
     args = p.parse_args()
 
     # If version flag is present, print the version number and exit.
@@ -196,6 +205,28 @@ def main():
 
     if args.no_sessions and args.sessions:
         tangelo.log_error("ERROR", "can't specify both --sessions (-s) and --no-sessions (-ns) together")
+        return 1
+
+    if args.examples:
+        stop = False
+
+        if args.root:
+            tangelo.log_error("ERROR", "can't specify both --examples and --root (-r) together")
+            stop = True
+
+        if args.plugin_config:
+            tangelo.log_error("ERROR", "can't specify both --examples and --plugin-config")
+            stop = True
+
+        if stop:
+            return 1
+
+    if args.no_list_dir and args.list_dir:
+        tangelo.log_error("ERROR", "can't specify both --list-dir and --no-list-dir together")
+        sys.exit(1)
+
+    if args.no_show_py and args.show_py:
+        tangelo.log_error("ERROR", "can't specify both --show-py and --no-show-py together")
         sys.exit(1)
 
     # Figure out where this is being called from - that will be useful for a
@@ -255,6 +286,28 @@ def main():
 
     tangelo.log("TANGELO", "Sessions %s" % ("enabled" if sessions else "disabled"))
 
+    # Determine whether to serve directory listings by default.
+    listdir = False
+    if args.list_dir is None and args.no_list_dir is None:
+        if config.list_dir is not None:
+            listdir = config.list_dir
+    else:
+        listdir = (args.list_dir is not None) or (not args.no_list_dir)
+
+    cherrypy.config["listdir"] = listdir
+    tangelo.log("TANGELO", "Directory content serving %s" % ("enabled" if listdir else "disabled"))
+
+    # Determine whether to serve web service Python source code by default.
+    showpy = False
+    if args.show_py is None and args.no_show_py is None:
+        if config.show_py is not None:
+            showpy = config.show_py
+    else:
+        showpy = (args.show_py is not None) or (not args.no_show_py)
+
+    cherrypy.config["showpy"] = showpy
+    tangelo.log("TANGELO", "Web service source code serving %s" % ("enabled" if showpy else "disabled"))
+
     # Extract the rest of the arguments, giving priority first to command line
     # arguments, then to the configuration file (if any), and finally to a
     # hard-coded default value.
@@ -303,29 +356,28 @@ def main():
     # We need a web root - use the installed example web directory as a
     # fallback.  This might be found in a few different places, so try them one
     # by one until we find one that exists.
-    #
-    # TODO(choudhury): shouldn't we *only* check the invocation_dir option?  We
-    # shouldn't pick up a stray web directory that happens to be found in /usr
-    # if we're invoking tangelo from a totally different location.
     root = args.root or config.root
     if root:
         root = tangelo.util.expandpath(root)
-    else:
+    elif args.examples:
+        # The /usr/local/... path is a workaround for homebrew on OSX, which
+        # places Python is a very strange place that doesn't play well with
+        # standard installations.
         default_paths = map(tangelo.util.expandpath, [sys.prefix + "/share/tangelo/web",
                                                       invocation_dir + "/share/tangelo/web",
                                                       "/usr/local/share/tangelo/web"])
-        tangelo.log_info("TANGELO", "Looking for default web content path")
+        tangelo.log_info("TANGELO", "Looking for examples package")
         for path in default_paths:
             tangelo.log_info("TANGELO", "Trying %s" % (path))
             if os.path.exists(path):
                 root = path
                 break
 
-        # TODO(choudhury): by default, should we simply serve from the current
-        # directory?  This is how SimpleHTTPServer works, for example.
         if not root:
-            tangelo.log_error("TANGELO", "could not find default web root directory")
+            tangelo.log_error("ERROR", "could not find examples package")
             return 1
+    else:
+        root = tangelo.util.expandpath(".")
 
     tangelo.log("TANGELO", "Serving content from %s" % (root))
 

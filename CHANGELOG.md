@@ -10,6 +10,10 @@ versioning](http://semver.org).
 - Serverside and command line version tests
 - Cross-platform generation of ``tangelo`` and ``tangelo-passwd`` executable
   files (tested on Linux, Windows, and OS X)
+- New security features: by default Tangelo no longer serves directory contents,
+  Python source code, and web service configuration files
+- ``--examples`` flag causes example applications to be served; default web root
+  is now ``.`` (i.e. directory from which Tangelo was invoked)
 
 ### Changed
 
@@ -23,6 +27,7 @@ versioning](http://semver.org).
 ### Fixed
 - ``tangelo.plugin_config()`` works
 - Python module path behaves correctly in plugin web directories
+- ``tangelo.server.analyze()`` works better, especially for plugin development
 
 ### Security
 

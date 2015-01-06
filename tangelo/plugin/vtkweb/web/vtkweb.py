@@ -123,9 +123,12 @@ def post(*pargs, **query):
     program_url = "/" + "/".join(pargs)
 
     content = analyze_url(program_url).content
-    if content is None or content.type not in (Content.File, Content.Restricted):
+    if content is None or content.type != Content.File:
         tangelo.http_status(404, "Not Found")
         return {"error": "Could not find a script at %s" % (program_url)}
+    elif content.path is None:
+        tangelo.http_status(403, "Restricted")
+        return {"error": "The script at %s is access-restricted"}
 
     program = content.path
 

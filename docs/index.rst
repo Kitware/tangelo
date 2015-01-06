@@ -45,9 +45,9 @@ Quick Start
 
    (On UNIX systems you may need to do this as root, or with ``sudo``.)
 
-3. Issue this command to start up a Tangelo server: ::
+3. Issue this command to start Tangelo, serving the example pack: ::
 
-    tangelo
+    tangelo --examples
 
 4. Visit your Tangelo instance at http://localhost:8080.
 
