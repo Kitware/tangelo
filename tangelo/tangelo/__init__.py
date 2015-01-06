@@ -41,8 +41,8 @@ def log(section, message=None, color=None):
         section = "TANGELO"
 
     if not tangelo.util.windows() and color is not None:
-        section = "%s%s%s" % (color, section, "\033[0m")
-        message = "%s%s%s" % (color, message, "\033[0m")
+        section = "%s%s" % (color, section)
+        message = "%s%s" % (message, "\033[0m")
 
     cherrypy.log(str(message), section)
 
