@@ -13,41 +13,39 @@ Serving Web Content
 ===================
 
 Tangelo's most basic purpose is **to serve web content**.  Once Tangelo is
-running, it will serve content it finds in several places.
+running, it will serve content from two types of locations:
 
-**User home directories.** If you visit a URL whose first path component begins
-with a tilde ("~"), such as http://localhost:8080/~spock, Tangelo will attempt
-to serve content from the ``tangelo_html`` directory of user ``spock``'s home
-directory.  On a Linux system, this might be the directory
-``/home/spock/tangelo_html``.
-
-**Web root directory.** Visiting other URLs (that do not begin with a tilde)
-will cause Tangelo to serve content out of the *web root directory*, which is
-set in the Tangelo configuration file, or by the ``-r`` (or ``--root``) flag
-when Tangelo is launched (see :doc:`setup`).  For example, if the web root
-directory is set to ``/srv/tangelo/root``, visiting http://localhost:8080/ would
-serve content from that directory, and visiting http://localhost:8080/foobar
-would serve content from ``/srv/tangelo/root/foobar``, etc.
+**Web root directory.** Visiting most URLs (whose first path component is not
+``plugin``; see below) will cause Tangelo to serve content out of the *web root
+directory*, which is set in the Tangelo configuration file, or by the ``-r`` (or
+``--root``) flag when Tangelo is launched (see :doc:`setup`).  For example, if
+the web root directory is set to ``/srv/tangelo/root``, visiting
+http://localhost:8080/ would serve content from that directory, and visiting
+http://localhost:8080/foobar would serve content from
+``/srv/tangelo/root/foobar``, etc.
 
 **Plugin content directories.** The URLs rooted at :root:`/plugin` refer to web
-content served by any active Tangelo plugins.  As such, files in ``plugin``
-subdirectory of the web root directory *will not be served by Tangelo*.  For
-information about how Tangelo plugins work, see :ref:`plugins`.
+content served by any active Tangelo plugins.  Each active plugin can have
+static content associated with it, and such content is served from a directory
+particular to each plugin.  For information about how Tangelo plugins work, see
+:ref:`plugins`.  In partciular, this means that if there is a subdirectory of
+the web root directory named ``plugin``, *Tangelo will not be able to serve any
+content from this directory*.
 
 The foregoing examples demonstrate how Tangelo associates URLs to directories
 and files in the filesystem.  URLs referencing particular files will cause
 Tangelo to serve that file immediately.  URLs referencing a directory behave
-according to the following cascade of rules:
+according to the following rules:
 
 #. If the directory contains a file named ``index.html``, that file will be
    served.
 
-#. Otherwise, if the directory contains a file named ``index.htm``, that file
-   will be served.
+#. If Tangelo was launched with the ``--list-dir`` option, Tangelo will generate
+   and serve a directory listing for the directory.  This listing will include
+   hyperlinks to the files contained therein.
 
-#. Otherwise, Tangelo will generate a directory listing for that directory and
-   serve that.  This listing will include hyperlinks to the files contained
-   therein.
+#. Tangelo will serve a ``403 Forbidden`` error indicating that directory
+   listing is disabled.
 
 Furthermore, any URL referring to a Python script, but lacking the final ``.py``,
 names a *web service*; such URLs do not serve static content, but rather run the
@@ -58,10 +56,9 @@ The following table summarizes Tangelo's URL types:
 =================== =========================================== ================================================================================
  URL type                             Example                                     Behavior
 =================== =========================================== ================================================================================
-Home directory      http://localhost:8080/~troi/schedule.html   serve ``/home/troi/tangelo_html/schedule.html``
 Web root            http://localhost:8080/holodeck3/status.html serve ``/srv/tangelo/root/holodeck3/status.html``
 Indexed directory   http://localhost:8080/tenforward            serve ``/srv/tangelo/root/tenforward/index.html``
-Unindexed directory http://localhost:8080/warpdrive             serve directory listing for ``/srv/tangelo/root/warpdrive``
+Unindexed directory http://localhost:8080/warpdrive             serve ``403 Forbidden`` error, or directory listing for ``/srv/tangelo/root/warpdrive``
 Web service         http://localhost:8080/lcars/lookup          serve result of executing ``run()`` function of ``/srv/tangelo/lcars/lookup.py``
 Plugin              http://localhost:8080/plugin/foobar/...     serve content from ``foobar`` plugin
 =================== =========================================== ================================================================================
@@ -75,10 +72,10 @@ The process to protect a directory is as follows:
 
 #. Go to the directory you wish to protect: ::
 
-    cd ~laforge/tangelo_html/DilithiumChamberStats
+    cd /srv/engineering/DilithiumChamberStats
 
    The idea is, this directory (which is accessible on the web as
-   http://localhost:8080/~laforge/DilithiumChamberStats) contains sensitive
+   http://localhost:8080/DilithiumChamberStats) contains sensitive
    information, and should be restricted to just certain people who have a
    password.
 

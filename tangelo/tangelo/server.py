@@ -114,14 +114,20 @@ class UrlAnalyzer(object):
             analysis.directive = Directive(Directive.HTTPRedirect, argument="/")
             return analysis
 
-        if plugins is not None and reqpath[0] == "/" and reqpath.split("/")[1] == "plugin":
+        # If the request path does not begin with a /, then it is invalid.
+        if reqpath[0] != "/":
+            raise ValueError("request path must be absolute, i.e., begin with a slash")
+
+        # If the request path is to a plugin, substitute the correct webroot
+        # path.
+        if reqpath.split("/")[1] == "plugin":
             plugin_comp = reqpath.split("/")
             if len(plugin_comp) < 3:
                 analysis.directive = Directive(Directive.ListPlugins)
                 return analysis
 
             plugin = plugin_comp[2]
-            if plugin not in plugins.plugins:
+            if plugins is None or plugin not in plugins.plugins:
                 analysis.content = Content(Content.NotFound, path=raw_reqpath)
                 return analysis
 
@@ -140,22 +146,11 @@ class UrlAnalyzer(object):
             reqpathcomp = reqpath[1:].split("/")
 
             # Compute the disk path the URL corresponds to.
-            #
-            # First check to see whether the path is absolute (i.e. rooted at
-            # webroot) or in a user home directory.
-            if reqpathcomp[0][0] == "~" and len(reqpathcomp[0]) > 1:
-                # Only treat this component as a home directory if there is
-                # actually text following the tilde (rather than making the server
-                # serve files from the home directory of whatever user account it
-                # is using to run).
-                home_dir = os.path.expanduser(reqpathcomp[0])
-                pathcomp = [os.path.join(home_dir, "tangelo_html")] + reqpathcomp[1:]
-            else:
-                pathcomp = [webroot] + reqpathcomp
+            pathcomp = [webroot] + reqpathcomp
 
-        # Save the request path and disk path components in the thread storage,
-        # slightly modifying the request path if it refers to an absolute path
-        # (indicated by being one element shorter than the disk path).
+        # Save the request path and disk path components, slightly modifying the
+        # request path if it refers to an absolute path (indicated by being one
+        # element shorter than the disk path).
         if len(reqpathcomp) == len(pathcomp) - 1:
             reqpathcomp_save = [""] + reqpathcomp
         elif len(reqpathcomp) == len(pathcomp):
