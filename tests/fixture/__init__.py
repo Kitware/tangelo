@@ -74,11 +74,11 @@ def start_tangelo():
                                                           "--root", "tests/web",
                                                           "--plugin-config", "venv/share/tangelo/plugin/plugin.conf",
                                                           "--list-dir"],
-                               stderr=subprocess.PIPE)
+                               stdout=subprocess.PIPE)
 
     buf = []
     while True:
-        line = process.stderr.readline()
+        line = process.stdout.readline()
         buf.append(line)
 
         if line.rstrip().endswith("ENGINE Bus STARTED"):

@@ -189,6 +189,19 @@ def main():
         print tangelo_version
         return 0
 
+    # Make all logging go to stdout instead of stderr.
+    #
+    # The "cherrypy.error" logger contains two handlers by default - a
+    # NullHandler, and a StreamHandler that writes to stderr.  This piece of
+    # code simply removes the StreamHandler, modifies it to write to stdout, and
+    # then replaces it.
+    import logging
+    logger = logging.getLogger("cherrypy.error")
+    handler = logger.handlers[1]
+    logger.removeHandler(handler)
+    handler.stream = sys.stdout
+    logger.addHandler(handler)
+
     # Make sure user didn't specify conflicting flags.
     if args.access_auth and args.no_access_auth:
         tangelo.log_error("ERROR", "can't specify both --access-auth (-a) and --no-access-auth (-na) together")
