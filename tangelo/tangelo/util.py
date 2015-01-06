@@ -7,6 +7,7 @@ import platform
 import md5
 import socket
 import threading
+import traceback
 import Queue
 import yaml
 
@@ -31,6 +32,11 @@ def yaml_safe_load(filename, type=None):
         raise TypeError
 
     return data
+
+
+def traceback_report(**props):
+    props["traceback"] = traceback.format_exc().split("\n")
+    return props
 
 
 class PluginConfig(object):
