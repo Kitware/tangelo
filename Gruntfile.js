@@ -604,9 +604,9 @@ module.exports = function (grunt) {
                     grunt.fail.fatal("Could not launch Tangelo");
                 }
 
-                process.stdout.setEncoding("utf8");
+                process.stderr.setEncoding("utf8");
 
-                process.stdout.on("data", function (chunk) {
+                process.stderr.on("data", function (chunk) {
                     var complete = chunk.slice(-1) === "\n",
                         lines,
                         i,
@@ -633,7 +633,7 @@ module.exports = function (grunt) {
                     }
                 });
 
-                process.stdout.on("end", function () {
+                process.stderr.on("end", function () {
                     if (stopping) {
                         return;
                     }
@@ -649,7 +649,7 @@ module.exports = function (grunt) {
 
                 process.kill();
 
-                process.stdout.on("end", function () {
+                process.stderr.on("end", function () {
                     done();
                 });
 
