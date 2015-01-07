@@ -29,7 +29,7 @@ def yaml_safe_load(filename, type=None):
         data = type()
 
     if type is not None and not isinstance(data, type):
-        raise TypeError
+        raise TypeError(type.__name__)
 
     return data
 
@@ -50,18 +50,14 @@ class PluginConfig(object):
             self.load(filename)
 
     def load(self, filename):
-        with open(filename) as f:
-            try:
-                plugins = yaml.safe_load(f.read())
-            except yaml.YAMLError as e:
-                raise ValueError(e.message)
+        try:
+            plugins = yaml_safe_load(filename, list)
+        except TypeError:
+            raise TypeError("plugin config file %s does not contain a top-level list" % (filename))
 
         # This enables an empty file to represent an empty list instead.
         if plugins is None:
             plugins = []
-
-        if not isinstance(plugins, list):
-            raise TypeError("plugin config file %s does not contain a top-level list" % (filename))
 
         for i, p in enumerate(plugins):
             if "name" not in p:

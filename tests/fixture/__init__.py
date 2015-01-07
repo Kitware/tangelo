@@ -74,6 +74,7 @@ def start_tangelo():
                                                           "--root", "tests/web",
                                                           "--plugin-config", "venv/share/tangelo/plugin/plugin.conf",
                                                           "--list-dir"],
+                               stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
 
     buf = []

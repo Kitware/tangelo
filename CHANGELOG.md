@@ -28,6 +28,8 @@ versioning](http://semver.org).
 - ``tangelo.plugin_config()`` works
 - Python module path behaves correctly in plugin web directories
 - ``tangelo.server.analyze()`` works better, especially for plugin development
+- Informational log output now goes unilaterally to ``sys.stderr`` while access
+  logs go to ``sys.stdout``
 
 ### Security
 
