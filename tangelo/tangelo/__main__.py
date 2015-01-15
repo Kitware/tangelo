@@ -84,6 +84,14 @@ def shutdown(signum, frame):
     tangelo.log_success("TANGELO", "Be seeing you.")
 
 
+def get_invocation_dir():
+    invocation_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..")
+    if platform.system() == "Windows":
+        return os.path.abspath(invocation_dir)
+    else:
+        return os.path.abspath(os.path.join(invocation_dir, ".."))
+
+
 def main():
     p = argparse.ArgumentParser(description="Start a Tangelo server.")
     p.add_argument("-c", "--config", type=str, default=None, metavar="FILE", help="specifies configuration file to use")
@@ -125,9 +133,7 @@ def main():
 
     # Figure out where this is being called from - that will be useful for a
     # couple of purposes.
-    #
-    # invocation_dir = os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/..")
-    invocation_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", ".."))
+    invocation_dir = get_invocation_dir()
 
     # Before extracting the other arguments, compute a configuration dictionary.
     # If --no-config was specified, this will be the empty dictionary;
