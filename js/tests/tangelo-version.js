@@ -3,7 +3,7 @@ QUnit.module("Tangelo version");
 (function () {
     "use strict";
 
-    var expected = "0.8.0-dev";
+    var expected = "0.8.1-dev";
 
     QUnit.test("Tangelo version is correct", function (assert) {
         var received = tangelo.version();

@@ -14,7 +14,7 @@ import tangelo.server
 import tangelo.util
 import tangelo.websocket
 
-tangelo_version = "0.8.0-dev"
+tangelo_version = "0.8.1-dev"
 
 
 def tangelo_passwd():
@@ -158,6 +158,14 @@ def shutdown(signum, frame):
     tangelo.log_success("TANGELO", "Be seeing you.")
 
 
+def get_invocation_dir():
+    invocation_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..")
+    if platform.system() == "Windows":
+        return os.path.abspath(invocation_dir)
+    else:
+        return os.path.abspath(os.path.join(invocation_dir, ".."))
+
+
 def main():
     p = argparse.ArgumentParser(description="Start a Tangelo server.")
     p.add_argument("-c", "--config", type=str, default=None, metavar="FILE", help="specifies configuration file to use")
@@ -226,7 +234,7 @@ def main():
 
     # Figure out where this is being called from - that will be useful for a
     # couple of purposes.
-    invocation_dir = os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/..")
+    invocation_dir = get_invocation_dir()
 
     # Before extracting the other arguments, compute a configuration dictionary.
     # If --no-config was specified, this will be the empty dictionary;
@@ -355,20 +363,9 @@ def main():
     if root:
         root = tangelo.util.expandpath(root)
     elif args.examples:
-        # The /usr/local/... path is a workaround for homebrew on OSX, which
-        # places Python is a very strange place that doesn't play well with
-        # standard installations.
-        default_paths = map(tangelo.util.expandpath, [sys.prefix + "/share/tangelo/web",
-                                                      invocation_dir + "/share/tangelo/web",
-                                                      "/usr/local/share/tangelo/web"])
-        tangelo.log_info("TANGELO", "Looking for examples package")
-        for path in default_paths:
-            tangelo.log_info("TANGELO", "Trying %s" % (path))
-            if os.path.exists(path):
-                root = path
-                break
-
-        if not root:
+        root = tangelo.util.expandpath(invocation_dir + "/share/tangelo/web")
+        tangelo.log_info("TANGELO", "Looking for default web content path in %s" % (root))
+        if not os.path.exists(root):
             tangelo.log_error("ERROR", "could not find examples package")
             return 1
     else:
@@ -378,16 +375,10 @@ def main():
 
     # Compute a default plugin configuration if it was not supplied.
     if args.plugin_config is None:
-        plugin_cfg_file = None
-        default_paths = map(tangelo.util.expandpath, [sys.prefix + "/share/tangelo/plugin/plugin.conf",
-                                                      invocation_dir + "/share/tangelo/plugin/plugin.conf",
-                                                      "/usr/local/share/tangelo/plugin/plugin.conf"])
-        tangelo.log_info("TANGELO", "Looking for default plugin configuration file")
-        for path in default_paths:
-            tangelo.log_info("TANGELO", "Trying %s" % (path))
-            if os.path.exists(path):
-                plugin_cfg_file = path
-                break
+        plugin_cfg_file = tangelo.util.expandpath(invocation_dir + "/share/tangelo/plugin/plugin.conf")
+        tangelo.log_info("TANGELO", "Looking for default plugin configuration file in %s" % (plugin_cfg_file))
+        if not os.path.exists(plugin_cfg_file):
+            plugin_cfg_file = None
     else:
         plugin_cfg_file = tangelo.util.expandpath(args.plugin_config)
 
