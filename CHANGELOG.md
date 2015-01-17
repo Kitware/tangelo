@@ -23,6 +23,8 @@ versioning](http://semver.org).
 - Service of web content from home directories
 - ``tangelo.abspath()`` - web services should instead use
   ``tangelo.server.analyze_url()`` to learn the disk path for a given web resource
+- ``systemd`` support materials, as well as plans to provide other system
+  service helpers
 
 ### Fixed
 - ``tangelo.plugin_config()`` works
