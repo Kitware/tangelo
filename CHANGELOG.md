@@ -33,6 +33,10 @@ versioning](http://semver.org).
 
 ### Security
 
+## [0.8.1] - 2015-01-16
+### Fixed
+- Search logic for default examples no longer fails on certain systems
+
 ## [0.8] - 2014-12-12
 This release breaks backward compatibility with Tangelo 0.7 and previous.
 Future releases will be described in this file as a change log against previous
