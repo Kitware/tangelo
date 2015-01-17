@@ -33,7 +33,7 @@ data_files_list += copy_with_dir(rcollect("plugin"), "share/tangelo")
 
 # Create the package.
 distutils.core.setup(name="tangelo",
-                     version="0.8.0-dev",
+                     version="0.8.1-dev",
                      author="Kitware, Inc.",
                      author_email="tangelo-users@public.kitware.com",
                      url="http://kitware.github.io/tangelo",
