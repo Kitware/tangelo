@@ -20,8 +20,6 @@ def copy_with_dir(files, base):
 # Include the example configuration files.
 data_files_list = [("share/tangelo/conf", ["assets/conf/tangelo.global.conf",
                                            "assets/conf/tangelo.local.conf"]),
-                   ("share/tangelo/daemon/systemd/system", ["assets/daemon/systemd/system/tangelo@.service"]),
-                   ("share/tangelo/daemon/systemd/scripts", ["assets/daemon/systemd/scripts/launch-tangelo.sh"]),
                    ("share/tangelo/data", ["assets/data/get-flickr-data.py"]),
                    ("share/tangelo", ["assets/images/tangelo.ico"])]
 
