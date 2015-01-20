@@ -90,7 +90,8 @@ Tutorials
 .. toctree::
     :maxdepth: 2
 
-    building-an-app
+    tutorials/building-an-app
+    tutorials/db-vis
 
 Information for Developers
 ==========================
