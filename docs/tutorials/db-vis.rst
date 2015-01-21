@@ -203,6 +203,77 @@ relationships established in the raw data files.
 Writing Data Services
 =====================
 
+Now we have a database and some ORM classes to query it.  The next step is to
+write a web service that can pull out some data that we need.  We are going to
+use `Vega <http://trifacta.github.io/vega>`_ to create some basic charts of the
+episode data, and Vega visualizations rely on data presented as a list of JSON
+objects, one per data point.  As a starting point for a visualization project on
+Star Trek episode data, let's tally up the number of episodes written or
+developed by each person in the *people* table, and use Vega to render a bar
+chart.  To do so, we need to query the database and count how many episodes each
+person is associated to.  We can use the ORM classes to accomplish this.  Let's
+analyze the file `writers.py <../_static/writers.py>`_ to see how.  First,
+module imports:
+
+.. literalinclude:: ../static/writers.py
+    :lines: 1-4
+    :linenos:
+
+Now, the meat of the service, the ``run()`` function:
+
+.. literalinclude:: ../static/writers.py
+    :lines: 8-9
+    :lineno-start: 8
+    :linenos:
+
+The function signature says that the sort parameter, if present, should be a
+query argument in JSON-form, defaulting to ``False``.  We will use this
+parameter to sort the list of episode writers by the number of episodes worked
+on (since this may be an interesting thing to look into).  Next we need a
+connection to the database:
+
+.. literalinclude:: ../static/writers.py
+    :lines: 10
+    :lineno-start: 10
+    :linenos:
+
+and some logic to aggregate writers' episode counts ():
+
+.. literalinclude:: ../static/writers.py
+    :lines: 12-22
+    :lineno-start: 12
+    :linenos:
+
+This retrieves a list of ``Episode`` objects from the database (line 13), then
+loops through them, incrementing a count of writers in a dictionary (being
+careful not to double count writers listed under both *teleplay* and *story* for
+a given episode).
+
+Now we convert the dictionary of collected counts into a list of objects
+suitable for a Vega visualization:
+
+.. literalinclude:: ../static/writers.py
+    :lines: 24-
+    :lineno-start: 24
+    :linenos:
+
+This line converts each ``Person`` object into a Python dictionary after sorting
+by the numeric ID (which, because of how the data was collected, roughly
+corresponds to the order of first involvement in writing for *Star Trek: The
+Next Generation*).  If the ``sort`` parameter was ``True``, then the results
+will be sorted by descending episode count (so that the most frequent writers
+will appear first, etc.).  And finally, of course, the function returns this
+list of results.
+
+With this file written we have the start of a web application.  To see how
+things stand, you can launch Tangelo to serve this directory to the web,
+
+.. code-block:: shell
+    tangelo --root .
+
+and then visit http://localhost:8080/writers to see the list of JSON objects
+that results.
+
 The Web Application
 ===================
 
