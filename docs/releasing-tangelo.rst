@@ -135,9 +135,7 @@ once more, as well as ``js/tests/tangelo-version.js``,
 ``tests/tangelo-version.py``, and ``tests/commandline-version.py``.
 
 Also edit ``CHANGELOG.md`` again, reproducing a skeleton of a new changes
-section, copying the following:
-
-.. code-block:: markdown
+section, copying the following::
 
     ## [Unreleased] - [unreleased]
     ### Added

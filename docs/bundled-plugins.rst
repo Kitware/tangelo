@@ -1116,7 +1116,7 @@ following JQuery widget, found in ``/plugin/bokeh/bokeh.js``, can help:
 
     When invoked on a DOM element, the URL is retrieved; the expected data
     should be in the format described by
-    :py:decorator:`tangelo.plugin.bokeh.bokeh` above.  The DOM element then
+    :py:func:`tangelo.plugin.bokeh.bokeh` above.  The DOM element then
     receives both the div and script content returned by the service, causing
     the interactive Bokeh plot to begin running in the target DOM element.
 

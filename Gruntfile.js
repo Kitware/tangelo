@@ -319,7 +319,7 @@ module.exports = function (grunt) {
         done = this.async();
 
         packages = [
-            "Sphinx==1.2.3",
+            "Sphinx==1.3b2",
             "flake8==2.2.2",
             "requests==2.4.3",
             "nose==1.3.4",
