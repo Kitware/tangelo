@@ -31,8 +31,8 @@ Getting the Data
 The episode data, gleaned from `Memory Alpha <http://memory-alpha.org>`_ by
 hand, is in these two CSV files:
 
-- `episodes.csv <../_static/episodes.csv>`_
-- `people.csv <../_static/people.csv>`_
+- `episodes.csv <../_static/tng/episodes.csv>`_
+- `people.csv <../_static/tng/people.csv>`_
 
 If you take a look in these files, you'll see some basic data about episodes of
 *Star Trek: The Next Generation*.  *episodes.csv* contains one row per episode,
@@ -56,12 +56,12 @@ Establishing ORM Classes
 The first step in this visualization project is to establish our data model by
 writing some ORM classes, then using those classes to read in the CSV files from
 above and flow them into an SQLite database.  The file `startrek.py
-<../_static/startrek.py>`_ has what we need.  Let's analyze it, section by
+<../_static/tng/startrek.py>`_ has what we need.  Let's analyze it, section by
 section.
 
 First, we need some support from ``SQLAlchemy``:
 
-.. literalinclude:: ../static/startrek.py
+.. literalinclude:: ../static/tng/startrek.py
     :lines: 1-8
     :linenos:
 
@@ -77,7 +77,7 @@ function that can be used to establish a connection to the database.
 
 Next we need to import some types for the columns appearing in our data:
 
-.. literalinclude:: ../static/startrek.py
+.. literalinclude:: ../static/tng/startrek.py
     :lines: 11-14
     :lineno-start: 11
     :linenos:
@@ -88,7 +88,7 @@ ID field for the various objects we will be storing.
 
 Now, we finally get to the data modeling:
 
-.. literalinclude:: ../static/startrek.py
+.. literalinclude:: ../static/tng/startrek.py
     :lines: 17-59
     :lineno-start: 17
     :linenos:
@@ -121,24 +121,24 @@ Creating the Database
 
 Now it just remains to use the ORM infrastructure to drive the parsing of the
 raw data and creation of the actual database.  The file `build-db.py
-<../_static/build-db.py>`_ contains a Python script to do just this.  Let's
+<../_static/tng/build-db.py>`_ contains a Python script to do just this.  Let's
 examine this script, section by section.  First, as always, we need to import
 some standard modules:
 
-.. literalinclude:: ../static/build-db.py
+.. literalinclude:: ../static/tng/build-db.py
     :lines: 1-3
     :linenos:
 
 Next, we need some stuff from *startrek.py*:
 
-.. literalinclude:: ../static/build-db.py
+.. literalinclude:: ../static/tng/build-db.py
     :lines: 5-9
     :linenos:
     :lineno-start: 5
 
 Now, let's go ahead and slurp in the raw data from the CSV files:
 
-.. literalinclude:: ../static/build-db.py
+.. literalinclude:: ../static/tng/build-db.py
     :lines: 12-19
     :linenos:
     :lineno-start: 12
@@ -147,14 +147,14 @@ We now have two lists, ``episodes`` and ``people``, containing the row data.
 Before we continue, we need to "activate" the ORM classes, and connect to the
 database:
 
-.. literalinclude:: ../static/build-db.py
+.. literalinclude:: ../static/tng/build-db.py
     :lines: 22-23
     :linenos:
     :lineno-start: 22
 
 Now let's add the rows from *people.csv* to the database:
 
-.. literalinclude:: ../static/build-db.py
+.. literalinclude:: ../static/tng/build-db.py
     :lines: 26-33
     :linenos:
     :lineno-start: 26
@@ -168,7 +168,7 @@ saved table so we can reference ``Person`` objects later.
 Now that we have all the people loaded up, we can put the episode data itself
 into the database:
 
-.. literalinclude:: ../static/build-db.py
+.. literalinclude:: ../static/tng/build-db.py
     :lines: 37-58
     :linenos:
     :lineno-start: 37
@@ -184,7 +184,7 @@ present in each ``Episode`` object's fields.
 
 Finally, we must commit the accumulated database operations:
 
-.. literalinclude:: ../static/build-db.py
+.. literalinclude:: ../static/tng/build-db.py
     :lines: 61-
     :linenos:
     :lineno-start: 61
@@ -212,16 +212,16 @@ Star Trek episode data, let's tally up the number of episodes written or
 developed by each person in the *people* table, and use Vega to render a bar
 chart.  To do so, we need to query the database and count how many episodes each
 person is associated to.  We can use the ORM classes to accomplish this.  Let's
-analyze the file `writers.py <../_static/writers.py>`_ to see how.  First,
+analyze the file `writers.py <../_static/tng/writers.py>`_ to see how.  First,
 module imports:
 
-.. literalinclude:: ../static/writers.py
+.. literalinclude:: ../static/tng/writers.py
     :lines: 1-4
     :linenos:
 
 Now, the meat of the service, the ``run()`` function:
 
-.. literalinclude:: ../static/writers.py
+.. literalinclude:: ../static/tng/writers.py
     :lines: 8-9
     :lineno-start: 8
     :linenos:
@@ -232,14 +232,14 @@ parameter to sort the list of episode writers by the number of episodes worked
 on (since this may be an interesting thing to look into).  Next we need a
 connection to the database:
 
-.. literalinclude:: ../static/writers.py
+.. literalinclude:: ../static/tng/writers.py
     :lines: 10
     :lineno-start: 10
     :linenos:
 
 and some logic to aggregate writers' episode counts ():
 
-.. literalinclude:: ../static/writers.py
+.. literalinclude:: ../static/tng/writers.py
     :lines: 12-22
     :lineno-start: 12
     :linenos:
@@ -252,7 +252,7 @@ a given episode).
 Now we convert the dictionary of collected counts into a list of objects
 suitable for a Vega visualization:
 
-.. literalinclude:: ../static/writers.py
+.. literalinclude:: ../static/tng/writers.py
     :lines: 24-
     :lineno-start: 24
     :linenos:
@@ -279,9 +279,9 @@ Designing a Web Frontend
 ========================
 
 The final piece of the application is a web frontend.  Ours will be relatively
-simple.  Here is the webpage itself, in `index.html <../_static/index.html>`_:
+simple.  Here is the webpage itself, in `index.html <../_static/tng/index.html>`_:
 
-.. literalinclude:: ../static/index.html
+.. literalinclude:: ../static/tng/index.html
     :language: html
     :linenos:
 
@@ -290,7 +290,7 @@ will place a Vega visualization.
 
 Next, we have some simple JavaScript to go along with this HTML file:
 
-.. literalinclude:: ../static/index.js
+.. literalinclude:: ../static/tng/index.js
     :language: javascript
     :linenos:
 
@@ -299,9 +299,9 @@ which it then passes to ``vg.parse.spec()``, which in turn renders it into the
 ``#chart`` element of the web page [#f2]_.
 
 The final piece of the puzzle is the Vega specification itself, in
-`barchart.json <../_static/barchart.json>`_.:
+`barchart.json <../_static/tng/barchart.json>`_.:
 
-.. literalinclude:: ../static/barchart.json
+.. literalinclude:: ../static/tng/barchart.json
     :linenos:
 
 This specification describes a data-driven bar chart.  You may wish to
