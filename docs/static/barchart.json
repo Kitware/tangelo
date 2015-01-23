@@ -1,11 +1,11 @@
 {
     "name": "barchart",
-    "width": null,
-    "height": null,
+    "width": 4000,
+    "height": 500,
     "data": [
         {
             "name": "table",
-            "url": null
+            "url": "writers?sort=true"
         }
     ],
     "scales": [
@@ -15,7 +15,7 @@
             "range": "height",
             "domain": {
                 "data": "table",
-                "field": null
+                "field": "data.count"
             }
         },
         {
@@ -24,7 +24,7 @@
             "range": "width",
             "domain": {
                 "data": "table",
-                "field": null
+                "field": "data.name"
             }
         }
     ],
@@ -50,7 +50,7 @@
                 "enter": {
                     "x": {
                         "scale": "x",
-                        "field": null,
+                        "field": "data.name",
                         "offset": -1
                     },
                     "width": {
@@ -60,7 +60,7 @@
                     },
                     "y": {
                         "scale": "y",
-                        "field": null
+                        "field": "data.count"
                     },
                     "y2": {
                         "scale": "y", 
@@ -90,13 +90,13 @@
                 "enter": {
                     "x": {
                         "scale": "x",
-                        "field": null
+                        "field": "data.name"
                     },
                     "dx": {
                         "value": 5
                     },
                     "y": {
-                        "value": null
+                        "value": 505
                     },
                     "angle": {
                         "value": 45
@@ -105,7 +105,7 @@
                         "value": "black"
                     },
                     "text": {
-                        "field": null
+                        "field": "data.name"
                     },
                     "font": {
                         "value": "Helvetica Neue"

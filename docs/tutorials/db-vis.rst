@@ -269,15 +269,87 @@ With this file written we have the start of a web application.  To see how
 things stand, you can launch Tangelo to serve this directory to the web,
 
 .. code-block:: shell
+
     tangelo --root .
 
 and then visit http://localhost:8080/writers to see the list of JSON objects
 that results.
 
-The Web Application
-===================
+Designing a Web Frontend
+========================
+
+The final piece of the application is a web frontend.  Ours will be relatively
+simple.  Here is the webpage itself, in `index.html <../_static/index.html>`_:
+
+.. literalinclude:: ../static/index.html
+    :language: html
+    :linenos:
+
+This is a very simple HTML file with a ``div`` element (line 9), in which we
+will place a Vega visualization.
+
+Next, we have some simple JavaScript to go along with this HTML file:
+
+.. literalinclude:: ../static/index.js
+    :language: javascript
+    :linenos:
+
+This simply parses a Vega visualization specification into a JavaScript object,
+which it then passes to ``vg.parse.spec()``, which in turn renders it into the
+``#chart`` element of the web page [#f2]_.
+
+The final piece of the puzzle is the Vega specification itself, in
+`barchart.json <../_static/barchart.json>`_.:
+
+.. literalinclude:: ../static/barchart.json
+    :linenos:
+
+This specification describes a data-driven bar chart.  You may wish to
+experiment with this file (for example, changing the colors used, or the width
+and height of the visualization, or by setting the ``sort`` parameter in the
+``url`` property to ``false``), but as-is, the specification will deliver a bar
+chart of *Star Trek: The Next Generation* writers, ordered by most episodes
+worked on.
+
+Putting It All Together
+=======================
+
+Your web application is complete!  If Tangelo is not running, start it with
+
+.. code-block:: shell
+
+    tangelo --root .
+
+and then visit http://localhost:8080.  You should see a bar chart appear, in
+which the trekkies out there will surely recognize some of the names.
+
+In summary, we performed the following actions to write a Tangelo application
+driven by a database:
+
+1. Got some data we wanted to visualize.
+
+2. Developed some ORM infrastructure to model the data, using SQLAlchemy.
+
+3. Imported the data into a new database, using the data and the ORM models.
+
+4. Developed a web service using SQLAlchemy to retrieve some of the data and
+   then shape it into a form we needed for Vega.
+
+5. Developed a Vega specification that can take the web service results and
+   render it as a bar chart.
+
+6. Developed a simple web application to give Vega a place to work and display
+   its results.
+
+Of course, this is just a simple example of what you can do.  With Python's
+power, flexibility, and interfaces to many kinds of databases and visualization
+systems, you can develop a Tangelo application that is suited to whatever
+problem you happen to be working on.
 
 .. rubric:: Footnotes
 
 .. [#f1] And even directors, though this only happened in one episode when the
     original director was fired and a replacement brought on.
+
+.. [#f2] For more information on how Vega works, and what you can do with it,
+    see the Vega website at http://trifacta.github.io/vega.
