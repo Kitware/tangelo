@@ -17,13 +17,18 @@ In this tutorial we will
 To begin this tutorial, create a fresh directory somewhere where we can build
 a new project: ::
 
-    mkdir tng-episodes
-    cd tng-episodes
+    mkdir tng
+    cd tng
 
 Here, we will create a database, along with appropriate ORM infrastructure;
 write some web services to be used as runtime data sources to pull requested
 data from the database; and a simple web frontend made from HTML and JavaScript,
 using the Vega visualization library.
+
+For convenience, you can download and unpack a ZIP archive of the entire web
+application as well: `tng.zip <../_static/tng.zip>`_.  However, downloading and
+inspecting the files as we go, or writing them by hand from the listings below,
+may encourage a deeper understanding of what's going on.
 
 Getting the Data
 ================
