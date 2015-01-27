@@ -50,10 +50,18 @@ Creating the Database
 =====================
 
 SQLAlchemy is a Python library that provides a programmatic API for creating,
-updating, and accessing SQLite databases.  It includes an *object-relational
+updating, and accessing SQL databases.  It includes an *object-relational
 mapping (ORM)* component, meaning it provides facilities for writing Python
 classes that transparently maintain a connection to the database, changing it as
 the object is updated, etc.
+
+To install SQLAlchemy, you can use the Python package manager ``pip`` as
+follows::
+
+    pip install sqlalchemy==0.9.8
+
+(The version specifier may not be necessary, but this tutorial was designed
+using SQLAlchemy 0.9.8.)
 
 Establishing ORM Classes
 ------------------------
@@ -221,7 +229,7 @@ analyze the file `writers.py <../_static/tng/writers.py>`_ to see how.  First,
 module imports:
 
 .. literalinclude:: ../static/tng/writers.py
-    :lines: 1-4
+    :lines: 1-5
     :linenos:
 
 Now, the meat of the service, the ``run()`` function:
@@ -277,8 +285,8 @@ things stand, you can launch Tangelo to serve this directory to the web,
 
     tangelo --root .
 
-and then visit http://localhost:8080/writers to see the list of JSON objects
-that results.
+and then visit http://localhost:8080/writers?sort=false to see the list of JSON
+objects that results.
 
 Designing a Web Frontend
 ========================
@@ -293,7 +301,8 @@ simple.  Here is the webpage itself, in `index.html <../_static/tng/index.html>`
 This is a very simple HTML file with a ``div`` element (line 9), in which we
 will place a Vega visualization.
 
-Next, we have some simple JavaScript to go along with this HTML file:
+Next, we have some simple JavaScript to go along with this HTML file, in
+`index.js <../_static/tng/index.js>`_:
 
 .. literalinclude:: ../static/tng/index.js
     :language: javascript
