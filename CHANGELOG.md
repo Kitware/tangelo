@@ -14,6 +14,7 @@ versioning](http://semver.org).
   Python source code, and web service configuration files
 - ``--examples`` flag causes example applications to be served; default web root
   is now ``.`` (i.e. directory from which Tangelo was invoked)
+- SQLAlchemy-based visualization tutorial
 
 ### Changed
 
