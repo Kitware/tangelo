@@ -8,8 +8,6 @@ versioning](http://semver.org).
 - Improvements to style testing
 - Improvements to coverage testing
 - Serverside and command line version tests
-- Cross-platform generation of ``tangelo`` and ``tangelo-passwd`` executable
-  files (tested on Linux, Windows, and OS X)
 - New security features: by default Tangelo no longer serves directory contents,
   Python source code, and web service configuration files
 - ``--examples`` flag causes example applications to be served; default web root
@@ -17,6 +15,8 @@ versioning](http://semver.org).
 - SQLAlchemy-based visualization tutorial
 
 ### Changed
+- Cross-platform generation of ``tangelo`` and ``tangelo-passwd`` executable
+  files (tested on Linux, Windows, and OS X)
 
 ### Deprecated
 
