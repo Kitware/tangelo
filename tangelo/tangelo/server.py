@@ -612,11 +612,12 @@ class Plugins(object):
             self.module = None
             self.apps = []
 
-    def __init__(self, base_package, config_file):
+    def __init__(self, base_package, config_file, tangelo_dir):
         self.base_package = base_package
         self.config_file = config_file
 
         self.config_dir = os.path.dirname(self.config_file)
+        self.tangelo_dir = tangelo_dir
         self.mtime = 0
         self.plugins = {}
         self.missing_msg = "Plugin config file %s seems to have disappeared" % (self.config_file)
@@ -631,6 +632,10 @@ class Plugins(object):
     def load(self, plugin_name, path):
         tangelo.log("PLUGIN", "Loading plugin %s (from %s)" % (plugin_name, path))
 
+        if not os.path.exists(path):
+            tangelo.log_warning("PLUGIN", "\tNo such path %s" % (path))
+            return False
+
         plugin = Plugins.Plugin(path)
 
         # Check for a configuration file.
@@ -641,13 +646,13 @@ class Plugins(object):
                 config = tangelo.util.yaml_safe_load(config_file)
             except TypeError as e:
                 tangelo.log_warning("PLUGIN", "\tBad configuration in file %s: %s" % (config_file, e))
-                return
+                return False
             except IOError:
                 tangelo.log_warning("PLUGIN", "\tCould not open config file %s" % (config_file))
-                return
+                return False
             except ValueError as e:
                 tangelo.log_warning("PLUGIN", "\tError reading config file %s: %s" % (config_file, e))
-                return
+                return False
 
         # Install the config and an empty dict as the plugin-level
         # config and store.
@@ -778,12 +783,13 @@ class Plugins(object):
                 continue
 
             if enabled and plugin not in self.plugins:
-                # Extract the plugin path.
-                try:
+                if "path" in conf:
+                    # Extract the plugin path.
                     path = os.path.join(self.config_dir, conf["path"])
-                except KeyError:
-                    tangelo.log_warning("PLUGIN", "error: configuration for plugin '%s' missing required setting 'path'" % (plugin))
-                    continue
+                else:
+                    # Construct the plugin path, given the name of the plugin,
+                    # and the base path of Tangelo.
+                    path = os.path.join(self.tangelo_dir, "share/tangelo/plugin", plugin)
 
                 if not self.load(plugin, path):
                     tangelo.log_warning("PLUGIN", "Plugin %s failed to load" % (plugin))

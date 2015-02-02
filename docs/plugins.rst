@@ -166,6 +166,9 @@ plugin under consideration.  The objects themselves are relatively simple:
       enabled: false
       path: path/to/quux
 
+    - name: docs
+      enabled: true
+
 Each contains a required ``name`` property, an optional ``enabled`` boolean flag
 (which, if omitted, defaults to ``true``), and a string ``path`` property
 describing where to find the plugin materials (i.e., the example directory shown
@@ -178,6 +181,12 @@ first load the *quux* plugin, then return a list of running plugins, which will
 now include *quux*.  Conversely, if you also changed *foobar*'s ``enabled`` flag
 to ``false`` (or comment out, or delete *foobar*'s entire section), *foobar*
 will additionally be unloaded.
+
+Note that you can enable a bundled plugin (see :ref:`bundled`) by omitting the
+``path`` property.  In this case, Tangelo searches for a plugin by the given
+name in the plugins that come bundled with Tangelo.  In the example above, the
+*docs* plugin will be enabled.  This is useful for enabling a "standard" plugin
+without having to know where Tangelo keeps it.
 
 Plugin Setup
 ------------

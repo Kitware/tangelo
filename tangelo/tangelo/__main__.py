@@ -405,7 +405,7 @@ def main():
 
     # Create a plugin manager.  It is marked global so that the plugins can be
     # unloaded when Tangelo exits.
-    plugins = tangelo.server.Plugins("tangelo.plugin", plugin_cfg_file)
+    plugins = tangelo.server.Plugins("tangelo.plugin", config_file=plugin_cfg_file, tangelo_dir=invocation_dir)
     cherrypy.config.update({"plugins": plugins})
 
     # Create an instance of the main handler object.

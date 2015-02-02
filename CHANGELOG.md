@@ -13,10 +13,13 @@ versioning](http://semver.org).
 - ``--examples`` flag causes example applications to be served; default web root
   is now ``.`` (i.e. directory from which Tangelo was invoked)
 - SQLAlchemy-based visualization tutorial
+- Plugins can now be specified without a path, causing Tangelo to look for a
+  bundled plugin of that name
 
 ### Changed
 - Cross-platform generation of ``tangelo`` and ``tangelo-passwd`` executable
   files (tested on Linux, Windows, and OS X)
+- Loosened dependency requirement on CherryPy
 
 ### Deprecated
 
