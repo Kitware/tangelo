@@ -6,7 +6,7 @@ import cherrypy
 import platform
 import signal
 import sys
-import tangelo.util
+import types
 import ws4py.server
 
 import tangelo
@@ -93,7 +93,21 @@ def tangelo_passwd():
 
 
 class Config(object):
-    def __init__(self, filename=None):
+    options = {"access_auth": [bool],
+               "drop_privileges": [bool],
+               "sessions": [bool],
+               "list_dir": [bool],
+               "show_py": [bool],
+               "hostname": types.StringTypes,
+               "port": [int],
+               "user": types.StringTypes,
+               "group": types.StringTypes,
+               "key": types.StringTypes,
+               "cert": types.StringTypes,
+               "root": types.StringTypes,
+               "plugins": [list]}
+
+    def __init__(self, filename):
         self.access_auth = None
         self.drop_privileges = None
         self.sessions = None
@@ -107,24 +121,35 @@ class Config(object):
         self.cert = None
         self.root = None
 
+        self.errors = []
+
         if filename is not None:
             self.load(filename)
 
     def load(self, filename):
-        d = tangelo.util.yaml_safe_load(filename, dict)
+        try:
+            d = tangelo.util.yaml_safe_load(filename, dict)
+        except TypeError:
+            self.errors.append("config file does not contain associative array at top level")
+            return
 
-        self.access_auth = d.get("access-auth")
-        self.drop_privileges = d.get("drop-privileges")
-        self.sessions = d.get("sessions")
-        self.list_dir = d.get("list-dir")
-        self.show_py = d.get("show-py")
-        self.hostname = d.get("hostname")
-        self.port = d.get("port")
-        self.user = d.get("user")
-        self.group = d.get("group")
-        self.key = d.get("key")
-        self.cert = d.get("cert")
-        self.root = d.get("root")
+        for option, setting in d.iteritems():
+            uscore = option.replace("-", "_")
+            if uscore not in Config.options:
+                self.errors.append("unknown option %s" % (option))
+            else:
+                self.__dict__[uscore] = setting
+
+    def type_check_value(self, option, valid_types):
+        value = self.__dict__.get(option)
+        if value is not None and not any(isinstance(value, t) for t in valid_types):
+            self.errors.append("option %s must be of type %s" % (option, " or ".join([t.__name__ for t in valid_types])))
+
+    def type_check(self):
+        for option, valid_types in Config.options.iteritems():
+            self.type_check_value(option, valid_types)
+
+        return len(self.errors) == 0
 
 
 def polite(signum, frame):
@@ -236,11 +261,7 @@ def main():
     # couple of purposes.
     invocation_dir = get_invocation_dir()
 
-    # Before extracting the other arguments, compute a configuration dictionary.
-    # If --no-config was specified, this will be the empty dictionary;
-    # otherwise, check the command line arguments for a config file first, then
-    # look for one in a sequence of other places.
-    config = {}
+    # Decide if we have a configuration file or not.
     cfg_file = args.config
     if cfg_file is None:
         tangelo.log("TANGELO", "No configuration file specified - using command line args and defaults")
@@ -248,18 +269,18 @@ def main():
         cfg_file = tangelo.util.expandpath(cfg_file)
         tangelo.log("TANGELO", "Using configuration file %s" % (cfg_file))
 
-    # Get a dict representing the contents of the config file.
+    # Parse the config file; report errors if any.
     try:
-        ok = False
         config = Config(cfg_file)
-        ok = True
     except (IOError, ValueError) as e:
         tangelo.log_error("ERROR", e)
-    except TypeError as e:
-        tangelo.log_error("ERROR", "Config file does not contain associative array at top level")
-    finally:
-        if not ok:
-            return 1
+        return 1
+
+    # Type check the config entries.
+    if not config.type_check():
+        for message in config.errors:
+            tangelo.log_error("TANGELO", message)
+        return 1
 
     # Determine whether to use access auth.
     access_auth = True
