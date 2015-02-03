@@ -20,6 +20,8 @@ versioning](http://semver.org).
 - Cross-platform generation of ``tangelo`` and ``tangelo-passwd`` executable
   files (tested on Linux, Windows, and OS X)
 - Loosened dependency requirement on CherryPy
+- System path is no longer modified to make service module available to import
+  system; instead, the current working directory is changed to that of the service file
 
 ### Deprecated
 
