@@ -22,6 +22,8 @@ versioning](http://semver.org).
 - Loosened dependency requirement on CherryPy
 - System path is no longer modified to make service module available to import
   system; instead, the current working directory is changed to that of the service file
+- Configuration file is now typechecked at load time, including reporting of
+  unexpected options, with errors resulting in fail-fast
 
 ### Deprecated
 
