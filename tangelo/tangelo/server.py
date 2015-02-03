@@ -401,17 +401,11 @@ class Tangelo(object):
             self.plugins.refresh()
 
     def invoke_service(self, module, *pargs, **kwargs):
-        # TODO(choudhury): This method should attempt to load the named module,
-        # then invoke it with the given arguments.  However, if the named
-        # module is "config" or something similar, the method should instead
-        # launch a special "config" app, which lists the available app modules,
-        # along with docstrings or similar.  It should also allow the user to
-        # add/delete search paths for other modules.
         tangelo.content_type("text/plain")
 
         # Save the system path (be sure to *make a copy* using the list()
-        # function) - it will be modified before invoking the service, and must
-        # be restored afterwards.
+        # function).  This will be restored to undo any modification of the path
+        # done by the service.
         origpath = list(sys.path)
 
         # By default, the result should be an object with error message in if
@@ -426,8 +420,12 @@ class Tangelo(object):
         cherrypy.thread_data.modulepath = modpath
         cherrypy.thread_data.modulename = module
 
-        # Extend the system path with the module's home path.
-        sys.path.insert(0, modpath)
+        # Change the current working directory to that of the service module,
+        # saving the old one.  This is so that the service function executes as
+        # though it were a Python program invoked normally, and Tangelo can
+        # continue running later in whatever its original CWD was.
+        save_cwd = os.getcwd()
+        os.chdir(modpath)
 
         try:
             service = self.modules.get(module)
@@ -445,7 +443,7 @@ class Tangelo(object):
             # also raise a cherrypy exception, log itself in a streaming table,
             # etc.).
             try:
-                if 'run' in dir(service):
+                if "run" in dir(service):
                     # Call the module's run() method, passing it the positional
                     # and keyword args that came into this method.
                     result = service.run(*pargs, **kwargs)
@@ -470,6 +468,9 @@ class Tangelo(object):
 
         # Restore the path to what it was originally.
         sys.path = origpath
+
+        # Restore the CWD to what it was before the service invocation.
+        os.chdir(save_cwd)
 
         # If the result is not a string, attempt to convert it to one via JSON
         # serialization.  This allows services to return a Python object if they
