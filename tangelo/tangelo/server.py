@@ -401,12 +401,6 @@ class Tangelo(object):
             self.plugins.refresh()
 
     def invoke_service(self, module, *pargs, **kwargs):
-        # TODO(choudhury): This method should attempt to load the named module,
-        # then invoke it with the given arguments.  However, if the named
-        # module is "config" or something similar, the method should instead
-        # launch a special "config" app, which lists the available app modules,
-        # along with docstrings or similar.  It should also allow the user to
-        # add/delete search paths for other modules.
         tangelo.content_type("text/plain")
 
         # Save the system path (be sure to *make a copy* using the list()
@@ -449,7 +443,7 @@ class Tangelo(object):
             # also raise a cherrypy exception, log itself in a streaming table,
             # etc.).
             try:
-                if 'run' in dir(service):
+                if "run" in dir(service):
                     # Call the module's run() method, passing it the positional
                     # and keyword args that came into this method.
                     result = service.run(*pargs, **kwargs)
