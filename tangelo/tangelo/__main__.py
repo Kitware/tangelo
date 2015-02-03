@@ -104,22 +104,11 @@ class Config(object):
                "group": types.StringTypes,
                "key": types.StringTypes,
                "cert": types.StringTypes,
-               "root": types.StringTypes,
-               "plugins": [list]}
+               "root": types.StringTypes}
 
     def __init__(self, filename):
-        self.access_auth = None
-        self.drop_privileges = None
-        self.sessions = None
-        self.list_dir = None
-        self.show_py = None
-        self.hostname = None
-        self.port = None
-        self.user = None
-        self.group = None
-        self.key = None
-        self.cert = None
-        self.root = None
+        for option in Config.options:
+            self.__dict__[option] = None
 
         self.errors = []
 
