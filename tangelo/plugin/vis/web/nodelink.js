@@ -15,8 +15,8 @@
             linkOpacity:    tangelo.accessor({value: 0.2}),
             nodeX:          tangelo.accessor(),
             nodeY:          tangelo.accessor(),
-            width:          1000,
-            height:         1000,
+            width:          null,
+            height:         null,
             dynamicLabels:  false,
             data:           null
         },
@@ -39,23 +39,35 @@
 
         _update: function () {
             var that = this,
-                nodeIdMap = {};
+                nodeIdMap = {},
+                width,
+                height;
+
+            // Fall back on the container's dimensions if not supplied to the
+            // plugin.
+            width = this.options.width || this.element.width();
+            height = this.options.height || this.element.height();
+
+            // Set the dimensions of the SVG element (otherwise the contents may
+            // lie outside the dimensions and thus be hidden).
+            this.svg.attr("width", width)
+                .attr("height", height);
 
             if (this.options.nodeX && !this.options.nodeX.undefined) {
                 this.xScale = d3.scale.linear()
                     .domain(d3.extent(this.options.data.nodes, this.options.nodeX))
-                    .range([50, this.options.width - 100]);
+                    .range([50, width - 100]);
             }
 
             if (this.options.nodeY && !this.options.nodeY.undefined) {
                 this.yScale = d3.scale.linear()
                     .domain(d3.extent(this.options.data.nodes, this.options.nodeY))
-                    .range([this.options.height - 100, 50]);
+                    .range([height - 100, 50]);
             }
 
             this.force.linkDistance(this.options.linkDistance)
                 .charge(this.options.nodeCharge)
-                .size([this.options.width, this.options.height]);
+                .size([width, height]);
 
             this.options.data.nodes.forEach(function (d, i) {
                 nodeIdMap[that.options.nodeId(d, i)] = d;
@@ -81,7 +93,7 @@
                 .domain(d3.extent(this.options.data.nodes, that.options.nodeSize))
                 .range([5, 15]);
 
-            this.force.size([this.options.width, this.options.height])
+            this.force.size([width, height])
                 .nodes(this.options.data.nodes)
                 .links(this.options.data.links)
                 .start();
