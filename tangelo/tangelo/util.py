@@ -39,61 +39,6 @@ def traceback_report(**props):
     return props
 
 
-class PluginConfig(object):
-    properties = ["name", "enabled", "url", "path"]
-
-    def __init__(self, plugins):
-        self.plugin_order = []
-        self.plugins = {}
-
-        self.load(plugins)
-
-    def load(self, plugins):
-        # This enables a missing plugin configuration to represent an empty list
-        # instead.
-        if plugins is None:
-            plugins = []
-
-        for i, p in enumerate(plugins):
-            if not isinstance(p, dict):
-                raise ValueError("plugin configuration must be a list of associative arrays")
-
-            if "name" not in p:
-                raise ValueError("plugin configuration entry %d is missing required 'name' property" % (i + 1))
-
-            name = p["name"]
-            if name in self.plugins:
-                raise ValueError("plugin configuration entry %d contains duplicate name %s" % (i + 1, name))
-
-            del p["name"]
-
-            self.plugin_order.append(name)
-            self.plugins[name] = p
-
-    def dump(self, filename):
-        def stringify(name, rec):
-            lines = ["- name: %s" % (name)]
-
-            if "enabled" in rec:
-                lines.append("  enabled: %s" % ("true" if rec["enabled"] else "false"))
-
-            if "url" in rec:
-                lines.append("  url: %s" % (rec["url"]))
-
-            lines.append("  path: %s" % (rec["path"]))
-
-            for prop in rec:
-                if prop not in PluginConfig.properties:
-                    lines.append("  %s: %s" % (prop, rec[prop]))
-
-            return "\n".join(lines)
-
-        text = "\n\n".join(map(lambda name: stringify(name, self.plugins[name]), self.plugin_order)) + "\n"
-
-        with open(filename, "w") as f:
-            f.write(text)
-
-
 def get_free_port():
     # Bind a socket to port 0 (which directs the OS to find an unused port).
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
