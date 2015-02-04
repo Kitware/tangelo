@@ -613,7 +613,28 @@ class Plugins(object):
 
         exec("%s = sys.modules[self.base_package] = types.ModuleType(self.base_package)" % (self.base_package))
 
-        self.refresh()
+        try:
+            config = tangelo.util.PluginConfig(self.config)
+        except ValueError as e:
+            tangelo.log_warning("PLUGIN", e)
+            return
+
+        seen = set()
+        for plugin, conf in config.plugins.iteritems():
+            if "path" in conf:
+                # Extract the plugin path.
+                path = os.path.join(self.config_dir, conf["path"])
+            else:
+                # Construct the plugin path, given the name of the plugin,
+                # and the base path of Tangelo.
+                path = os.path.join(self.tangelo_dir, "share/tangelo/plugin", plugin)
+
+            if not self.load(plugin, path):
+                tangelo.log_warning("PLUGIN", "Plugin %s failed to load" % (plugin))
+
+            # Record the fact that this plugin was referenced in the plugin
+            # config file.
+            seen.add(plugin)
 
     def plugin_list(self):
         return self.plugins.keys()
@@ -736,37 +757,6 @@ class Plugins(object):
                 tangelo.log_warning("PLUGIN", "Could not run teardown:\n%s", (traceback.format_exc()))
 
         del self.plugins[plugin_name]
-
-    def refresh(self):
-        try:
-            config = tangelo.util.PluginConfig(self.config)
-        except ValueError as e:
-            tangelo.log_warning("PLUGIN", e)
-            return
-
-        seen = set()
-        for plugin, conf in config.plugins.iteritems():
-            # See whether the plugin is enabled (yes by default).
-            enabled = conf.get("enabled", True)
-            if not isinstance(enabled, bool):
-                tangelo.log_warning("PLUGIN", "setting 'enabled' in configuration for plugin '%s' must be a bool" % (plugin))
-                continue
-
-            if enabled:
-                if "path" in conf:
-                    # Extract the plugin path.
-                    path = os.path.join(self.config_dir, conf["path"])
-                else:
-                    # Construct the plugin path, given the name of the plugin,
-                    # and the base path of Tangelo.
-                    path = os.path.join(self.tangelo_dir, "share/tangelo/plugin", plugin)
-
-                if not self.load(plugin, path):
-                    tangelo.log_warning("PLUGIN", "Plugin %s failed to load" % (plugin))
-
-            # Record the fact that this plugin was referenced in the plugin
-            # config file.
-            seen.add(plugin)
 
     def unload_all(self):
         for plugin_name in self.plugins.keys():
