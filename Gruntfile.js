@@ -58,7 +58,7 @@ module.exports = function (grunt) {
                 "--host", hostname,
                 "--port", port,
                 "--root", root,
-                "--plugin-config", "venv/share/tangelo/plugin/plugin.conf"
+                "--config", "tests/bundled-plugins.yaml"
             ])
         };
     };
