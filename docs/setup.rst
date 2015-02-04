@@ -70,9 +70,8 @@ file for multiple Tangelo instances, but varying the port number.
 Configuration Options
 ---------------------
 
-The following tables, organized by section title, show what fields can be
-included in the configuration file, what they mean, and their default values if
-left unspecified.
+The following table shows what fields can be included in the configuration file,
+what they mean, and their default values if left unspecified.
 
 ================ =================================================================   =================================
 Option           Meaning                                                             Default value
@@ -96,6 +95,8 @@ access-auth      Whether to protect directories containing a ``.htaccess`` file 
 key              The path to the SSL key                                             ``None`` [#https]_ [#unset]_
 
 cert             The path to the SSL certificate                                     ``None`` [#https]_ [#unset]_
+
+plugins          A list of plugins to load (see :ref:`plugin-config`)                ``None`` [#plugins]_ [#unset]_
 ================ =================================================================   =================================
 
 .. rubric:: Footnotes
@@ -116,6 +117,9 @@ cert             The path to the SSL certificate                                
 
 .. [#unset] That is to say, the option is simply unset by default, the
     equivalent of not mentioning the option at all in a configuration file.
+
+.. [#plugins] This option can *only* appear in the configuration file; there is
+    no command line equivalent.
 
 Administering a Tangelo Installation
 ====================================
@@ -197,7 +201,3 @@ current version number with "dev" in the Git repository, resulting in version
 numbers like "1.1dev" for the Tangelo package that is built from source.  The
 release protocol deletes this tag from the version number before uploading a
 package to the Python Package Index.
-
-The :js:func:`tangelo.requireCompatibleVersion` function returns a boolean
-expressing whether the version number passed to it is compatible with Tangelo's
-current version.
