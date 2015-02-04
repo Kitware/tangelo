@@ -637,7 +637,7 @@ class Plugins(object):
         for plugin, conf in self.plugins.iteritems():
             if "path" in conf:
                 # Extract the plugin path.
-                path = os.path.join(self.config_dir, conf["path"])
+                path = os.path.abspath(conf["path"])
             else:
                 # Construct the plugin path, given the name of the plugin,
                 # and the base path of Tangelo.
