@@ -24,6 +24,10 @@ versioning](http://semver.org).
   system; instead, the current working directory is changed to that of the service file
 - Configuration file is now typechecked at load time, including reporting of
   unexpected options, with errors resulting in fail-fast
+- Plugins are now specified in the ``plugins`` entry of the main configuration
+  file
+- Plugins no longer require an ``enabled`` property; all plugins listed in the
+  configuration file will be loaded
 
 ### Deprecated
 
