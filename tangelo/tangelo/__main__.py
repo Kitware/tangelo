@@ -228,6 +228,10 @@ def main():
         tangelo.log_error("ERROR", "can't specify both --examples and --root (-r) together")
         return 1
 
+    if args.examples and args.config:
+        tangelo.log_error("ERROR", "can't specify both --examples and --config (-c) together")
+        return 1
+
     if args.no_list_dir and args.list_dir:
         tangelo.log_error("ERROR", "can't specify both --list-dir and --no-list-dir together")
         sys.exit(1)
@@ -363,11 +367,23 @@ def main():
     if root:
         root = tangelo.util.expandpath(root)
     elif args.examples:
+        # Set the examples web root.
         root = tangelo.util.expandpath(invocation_dir + "/share/tangelo/web")
         tangelo.log_info("TANGELO", "Looking for default web content path in %s" % (root))
         if not os.path.exists(root):
             tangelo.log_error("ERROR", "could not find examples package")
             return 1
+
+        # Set the examples plugins.
+        config.plugins = [{"name": "config"},
+                          {"name": "data"},
+                          {"name": "docs"},
+                          {"name": "mapping"},
+                          {"name": "mongo"},
+                          {"name": "stream"},
+                          {"name": "tangelo"},
+                          {"name": "ui"},
+                          {"name": "vis"}]
     else:
         root = tangelo.util.expandpath(".")
 

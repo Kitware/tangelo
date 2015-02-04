@@ -611,8 +611,11 @@ class Plugins(object):
 
         self.modules = tangelo.util.ModuleCache(config=False)
 
+        # Create a virtual module to hold all plugin python modules.
         exec("%s = sys.modules[self.base_package] = types.ModuleType(self.base_package)" % (self.base_package))
 
+        # Read through the list of plugin configs, extracting the info and
+        # validating as we go.
         for i, entry in enumerate(config):
             if not isinstance(entry, dict):
                 self.errors.append("Configuration for plugin %d is not an associative array" % (i + 1))
@@ -630,6 +633,7 @@ class Plugins(object):
             self.plugins[name] = entry
             del self.plugins[name]["name"]
 
+        # Load all the plugins one by one, bailing out if there are any errors.
         for plugin, conf in self.plugins.iteritems():
             if "path" in conf:
                 # Extract the plugin path.
