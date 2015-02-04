@@ -397,9 +397,6 @@ class Tangelo(object):
         self.auth_update = None
         self.plugins = plugins
 
-        if self.plugins:
-            self.plugins.refresh()
-
     def invoke_service(self, module, *pargs, **kwargs):
         tangelo.content_type("text/plain")
 
@@ -590,14 +587,6 @@ class Tangelo(object):
 
     @cherrypy.expose
     def plugin(self, *path, **args):
-        # Refresh the plugin registry.
-        if self.plugins:
-            error = self.plugins.refresh()
-            if error is not None:
-                tangelo.content_type("text/plain")
-                tangelo.http_status(400, "Bad Plugin Configuration")
-                return error
-
         return self.execute_analysis(args)
 
     @cherrypy.expose
@@ -613,19 +602,18 @@ class Plugins(object):
             self.module = None
             self.apps = []
 
-    def __init__(self, base_package, config_file, tangelo_dir):
+    def __init__(self, base_package, config, tangelo_dir):
         self.base_package = base_package
-        self.config_file = config_file
-
-        self.config_dir = os.path.dirname(self.config_file)
+        self.config = config
         self.tangelo_dir = tangelo_dir
-        self.mtime = 0
+
         self.plugins = {}
-        self.missing_msg = "Plugin config file %s seems to have disappeared" % (self.config_file)
 
         self.modules = tangelo.util.ModuleCache(config=False)
 
         exec("%s = sys.modules[self.base_package] = types.ModuleType(self.base_package)" % (self.base_package))
+
+        self.refresh()
 
     def plugin_list(self):
         return self.plugins.keys()
@@ -750,29 +738,10 @@ class Plugins(object):
         del self.plugins[plugin_name]
 
     def refresh(self):
-        if not os.path.exists(self.config_file):
-            if self.mtime > 0:
-                tangelo.log_warning("PLUGIN", self.missing_msg)
-                self.mtime = 0
-            self.plugins = {}
-            return
-
-        mtime = os.path.getmtime(self.config_file)
-        if mtime <= self.mtime:
-            return
-
-        self.mtime = mtime
-
         try:
-            config = tangelo.util.PluginConfig(self.config_file)
-        except IOError:
-            tangelo.log_warning("PLUGIN", self.missing_msg)
-            return
-        except TypeError:
-            tangelo.log_warning("PLUGIN", "plugin config file does not contain a top-level associative array")
-            return
+            config = tangelo.util.PluginConfig(self.config)
         except ValueError as e:
-            tangelo.log_warning("PLUGIN", "error reading plugin config file: %s" % (e))
+            tangelo.log_warning("PLUGIN", e)
             return
 
         seen = set()
@@ -780,10 +749,10 @@ class Plugins(object):
             # See whether the plugin is enabled (yes by default).
             enabled = conf.get("enabled", True)
             if not isinstance(enabled, bool):
-                tangelo.log_warning("PLUGIN", "error:  setting 'enabled' in configuration for plugin '%s' must be a boolean value!" % (plugin))
+                tangelo.log_warning("PLUGIN", "setting 'enabled' in configuration for plugin '%s' must be a bool" % (plugin))
                 continue
 
-            if enabled and plugin not in self.plugins:
+            if enabled:
                 if "path" in conf:
                     # Extract the plugin path.
                     path = os.path.join(self.config_dir, conf["path"])
@@ -794,19 +763,10 @@ class Plugins(object):
 
                 if not self.load(plugin, path):
                     tangelo.log_warning("PLUGIN", "Plugin %s failed to load" % (plugin))
-            elif not enabled and plugin in self.plugins:
-                self.unload(plugin)
 
             # Record the fact that this plugin was referenced in the plugin
             # config file.
             seen.add(plugin)
-
-        # All plugins that are still loaded, and yet weren't mentioned in the
-        # config file, should be unloaded (i.e., deleting a section from the
-        # plugin config file is the same as leaving it there but setting
-        # "enabled" to False).
-        for plugin in filter(lambda x: x not in seen, self.plugins):
-            self.unload(plugin)
 
     def unload_all(self):
         for plugin_name in self.plugins.keys():

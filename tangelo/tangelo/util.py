@@ -42,30 +42,28 @@ def traceback_report(**props):
 class PluginConfig(object):
     properties = ["name", "enabled", "url", "path"]
 
-    def __init__(self, filename=None):
+    def __init__(self, plugins):
         self.plugin_order = []
         self.plugins = {}
 
-        if filename is not None:
-            self.load(filename)
+        self.load(plugins)
 
-    def load(self, filename):
-        try:
-            plugins = yaml_safe_load(filename, list)
-        except TypeError:
-            raise TypeError("plugin config file %s does not contain a top-level list" % (filename))
-
-        # This enables an empty file to represent an empty list instead.
+    def load(self, plugins):
+        # This enables a missing plugin configuration to represent an empty list
+        # instead.
         if plugins is None:
             plugins = []
 
         for i, p in enumerate(plugins):
+            if not isinstance(p, dict):
+                raise ValueError("plugin configuration must be a list of associative arrays")
+
             if "name" not in p:
-                raise ValueError("plugin config file %s, entry %d, is missing required 'name' property" % (filename, i + 1))
+                raise ValueError("plugin configuration entry %d is missing required 'name' property" % (i + 1))
 
             name = p["name"]
             if name in self.plugins:
-                raise ValueError("plugin config file %s, entry %d, contains duplicate name %s" % (filename, i + 1, name))
+                raise ValueError("plugin configuration entry %d contains duplicate name %s" % (i + 1, name))
 
             del p["name"]
 
@@ -94,24 +92,6 @@ class PluginConfig(object):
 
         with open(filename, "w") as f:
             f.write(text)
-
-    def add(self, name, path, **other):
-        if name in self.plugins:
-            raise ValueError("name '%s' already present in config" % (name))
-
-        self.plugins[name] = {"name": name,
-                              "path": path}
-        self.plugins[name].update(**other)
-
-        self.plugin_order.append(name)
-
-    def remove(self, name):
-        if name not in self.plugins:
-            raise ValueError("name '%s' not present in config" % (name))
-
-        del self.plugins[name]
-
-        self.plugin_order.remove(name)
 
 
 def get_free_port():

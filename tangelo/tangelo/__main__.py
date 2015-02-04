@@ -104,7 +104,8 @@ class Config(object):
                "group": types.StringTypes,
                "key": types.StringTypes,
                "cert": types.StringTypes,
-               "root": types.StringTypes}
+               "root": types.StringTypes,
+               "plugins": [list]}
 
     def __init__(self, filename):
         for option in Config.options:
@@ -202,7 +203,6 @@ def main():
     p.add_argument("--version", action="store_true", help="display Tangelo version number")
     p.add_argument("--key", type=str, default=None, metavar="FILE", help="the path to the SSL key.  You must also specify --cert to serve content over https.")
     p.add_argument("--cert", type=str, default=None, metavar="FILE", help="the path to the SSL certificate.  You must also specify --key to serve content over https.")
-    p.add_argument("--plugin-config", type=str, default=None, metavar="PATH", help="path to plugin configuration file")
     p.add_argument("--examples", action="store_true", default=None, help="Serve the Tangelo example applications")
     args = p.parse_args()
 
@@ -224,19 +224,9 @@ def main():
         tangelo.log_error("ERROR", "can't specify both --sessions (-s) and --no-sessions (-ns) together")
         return 1
 
-    if args.examples:
-        stop = False
-
-        if args.root:
-            tangelo.log_error("ERROR", "can't specify both --examples and --root (-r) together")
-            stop = True
-
-        if args.plugin_config:
-            tangelo.log_error("ERROR", "can't specify both --examples and --plugin-config")
-            stop = True
-
-        if stop:
-            return 1
+    if args.examples and args.root:
+        tangelo.log_error("ERROR", "can't specify both --examples and --root (-r) together")
+        return 1
 
     if args.no_list_dir and args.list_dir:
         tangelo.log_error("ERROR", "can't specify both --list-dir and --no-list-dir together")
@@ -383,23 +373,6 @@ def main():
 
     tangelo.log("TANGELO", "Serving content from %s" % (root))
 
-    # Compute a default plugin configuration if it was not supplied.
-    if args.plugin_config is None:
-        plugin_cfg_file = tangelo.util.expandpath(invocation_dir + "/share/tangelo/plugin/plugin.conf")
-        tangelo.log_info("TANGELO", "Looking for default plugin configuration file in %s" % (plugin_cfg_file))
-        if not os.path.exists(plugin_cfg_file):
-            plugin_cfg_file = None
-    else:
-        plugin_cfg_file = tangelo.util.expandpath(args.plugin_config)
-
-    # Warn if plugin file doesn't exist.
-    if plugin_cfg_file is None:
-        tangelo.log_warning("TANGELO", "Could not find a default plugin configuration file")
-    elif not os.path.exists(plugin_cfg_file):
-        tangelo.log_warning("TANGELO", "Plugin configuration file %s does not exist - create it to load plugins at runtime" % (plugin_cfg_file))
-    else:
-        tangelo.log("TANGELO", "Using plugin configuration file '%s'" % (plugin_cfg_file))
-
     # Set the web root directory.
     cherrypy.config.update({"webroot": root})
 
@@ -415,7 +388,7 @@ def main():
 
     # Create a plugin manager.  It is marked global so that the plugins can be
     # unloaded when Tangelo exits.
-    plugins = tangelo.server.Plugins("tangelo.plugin", config_file=plugin_cfg_file, tangelo_dir=invocation_dir)
+    plugins = tangelo.server.Plugins("tangelo.plugin", config=config.plugins, tangelo_dir=invocation_dir)
     cherrypy.config.update({"plugins": plugins})
 
     # Create an instance of the main handler object.
