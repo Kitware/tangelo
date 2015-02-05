@@ -379,13 +379,16 @@ module.exports = function (grunt) {
 
     // Install the Python package to the virtual environment.
     grunt.registerTask("install", "Install Tangelo to the virtual environment", function () {
-        var done;
+        var done,
+            pyversion;
 
         done = this.async();
 
+        pyversion = version.replace("-dev", ".dev0");
+
         grunt.util.spawn({
             cmd: pip,
-            args: ["install", "--upgrade", "sdist/tangelo-" + version + zipExt],
+            args: ["install", "--upgrade", "sdist/tangelo-" + pyversion + zipExt],
             opts: {
                 stdio: "inherit"
             }
