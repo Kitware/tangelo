@@ -1,51 +1,34 @@
-import distutils.core
+from setuptools import setup
 import os
 import os.path
 
 
 # Recursively collect all files in a given directory.
 def rcollect(path):
-    if not os.path.exists(path):
-        raise IOError("%s does not exist" % (path))
-    return sum(map(lambda x: map(lambda y: x[0] + "/" + y, x[2]),
-                   os.walk(path)),
-               [])
-
-
-def copy_with_dir(files, base):
-    return [(os.path.join(base, os.path.dirname(f)), [f]) for f in files]
-
-# Build up a list of extra files to install.
-#
-# Include the example configuration files.
-data_files_list = [("share/tangelo/conf", ["assets/conf/tangelo.global.conf",
-                                           "assets/conf/tangelo.local.conf"]),
-                   ("share/tangelo/data", ["assets/data/get-flickr-data.py"]),
-                   ("share/tangelo", ["assets/images/tangelo.ico"])]
-
-# Include the website base files.
-data_files_list += copy_with_dir(rcollect("web"), "share/tangelo")
-
-# Include the bundled plugins.
-data_files_list += copy_with_dir(rcollect("plugin"), "share/tangelo")
+    return sum(map(lambda x: map(lambda y: x[0] + "/" + y, x[2]), os.walk(path)), [])
 
 # Create the package.
-distutils.core.setup(name="tangelo",
-                     version="0.8.1-dev",
-                     author="Kitware, Inc.",
-                     author_email="tangelo-users@public.kitware.com",
-                     url="http://kitware.github.io/tangelo",
-                     packages=["tangelo"],
-                     entry_points={"console_scripts": ["tangelo = tangelo.__main__:main",
-                                                       "tangelo-passwd = tangelo.__main__:tangelo_passwd"]},
-                     data_files=data_files_list,
-                     description="Tangelo Web Framework",
-                     long_description="Tangelo is a Python-based web " +
-                     "server framework bundled with clientside tools " +
-                     "to help you supercharge your web applications " +
-                     "with the power of Python",
-                     license="Apache License, Version 2.0",
-                     platforms=["Linux", "OS X", "Windows"],
-                     install_requires=["cherrypy>=3.2, <4.0",
-                                       "PyYAML==3.11",
-                                       "ws4py==0.3.2"])
+setup(name="tangelo",
+      version="0.8.1-dev",
+      author="Kitware, Inc.",
+      author_email="tangelo-users@public.kitware.com",
+      url="http://kitware.github.io/tangelo",
+      packages=["tangelo"],
+      entry_points={"console_scripts": ["tangelo = tangelo.__main__:main",
+                                        "tangelo-passwd = tangelo.__main__:tangelo_passwd"]},
+      data_files=[("share/tangelo/conf", ["assets/conf/tangelo.global.conf",
+                                          "assets/conf/tangelo.local.conf"]),
+                  ("share/tangelo/data", ["assets/data/get-flickr-data.py"]),
+                  ("share/tangelo", ["assets/images/tangelo.ico"])],
+      include_package_data=True,
+      package_data={"tangelo": rcollect("tangelo/web") + rcollect("tangelo/plugin")},
+      description="Tangelo Web Framework",
+      long_description="Tangelo is a Python-based web " +
+      "server framework bundled with clientside tools " +
+      "to help you supercharge your web applications " +
+      "with the power of Python",
+      license="Apache License, Version 2.0",
+      platforms=["Linux", "OS X", "Windows"],
+      install_requires=["cherrypy>=3.2, <4.0",
+                        "PyYAML==3.11",
+                        "ws4py==0.3.2"])

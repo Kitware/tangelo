@@ -65,14 +65,14 @@ module.exports = function (grunt) {
 
     styleCheckFiles = [
         "js/src/**/*.js",
-        "tangelo/plugin/**/*.js",
-        "!tangelo/plugin/docs/**/*.js",
-        "!tangelo/plugin/**/geo.min.js",
-        "!tangelo/plugin/**/geo.ext.min.js",
-        "!tangelo/plugin/**/vgl.min.js",
-        "!tangelo/plugin/tangelo/web/tangelo.min.js",
-        "!tangelo/plugin/vtkweb/web/lib/autobahn.min.js",
-        "!tangelo/plugin/vtkweb/web/lib/vtkweb-all.min.js"
+        "tangelo/tangelo/plugin/**/*.js",
+        "!tangelo/tangelo/plugin/docs/**/*.js",
+        "!tangelo/tangelo/plugin/**/geo.min.js",
+        "!tangelo/tangelo/plugin/**/geo.ext.min.js",
+        "!tangelo/tangelo/plugin/**/vgl.min.js",
+        "!tangelo/tangelo/plugin/tangelo/web/tangelo.min.js",
+        "!tangelo/tangelo/plugin/vtkweb/web/lib/autobahn.min.js",
+        "!tangelo/tangelo/plugin/vtkweb/web/lib/vtkweb-all.min.js"
     ];
 
     // Project configuration.
@@ -80,7 +80,7 @@ module.exports = function (grunt) {
       version: {
           src: [
               "tangelo/tangelo/__main__.py",
-              "tangelo/plugin/tangelo/web/version.py",
+              "tangelo/tangelo/plugin/tangelo/web/version.py",
               "tangelo/setup.py",
               "js/src/core.js"
           ]
@@ -92,7 +92,7 @@ module.exports = function (grunt) {
           },
           dist: {
               src: ["js/src/**/*.js"],
-              dest: "tangelo/plugin/tangelo/web/tangelo.js"
+              dest: "tangelo/tangelo/plugin/tangelo/web/tangelo.js"
           }
       },
       uglify: {
@@ -101,7 +101,7 @@ module.exports = function (grunt) {
           },
           dist: {
               src: "<%= concat.dist.dest %>",
-              dest: "tangelo/plugin/tangelo/web/tangelo.min.js"
+              dest: "tangelo/tangelo/plugin/tangelo/web/tangelo.min.js"
           }
       },
       jshint: {
@@ -199,8 +199,8 @@ module.exports = function (grunt) {
           package: [
               "tangelo/MANIFEST",
               "tangelo/README",
-              "tangelo/plugin/docs",
-              "tangelo/web/js"
+              "tangelo/tangelo/plugin/docs",
+              "tangelo/tangelo/web/js"
           ]
       }
     });
@@ -517,7 +517,7 @@ module.exports = function (grunt) {
                    "-D", "version=" + version,
                    "-D", "release=" + version,
                    "docs",
-                   "tangelo/plugin/docs/web"],
+                   "tangelo/tangelo/plugin/docs/web"],
             opts: {
                 stdio: "inherit"
             }
