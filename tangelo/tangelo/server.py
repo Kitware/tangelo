@@ -602,9 +602,9 @@ class Plugins(object):
             self.module = None
             self.apps = []
 
-    def __init__(self, base_package, config, tangelo_dir):
+    def __init__(self, base_package, config, plugin_dir):
         self.base_package = base_package
-        self.tangelo_dir = tangelo_dir
+        self.plugin_dir = plugin_dir
 
         self.errors = []
         self.plugins = {}
@@ -645,7 +645,7 @@ class Plugins(object):
             else:
                 # Construct the plugin path, given the name of the plugin,
                 # and the base path of Tangelo.
-                path = os.path.join(self.tangelo_dir, "share/tangelo/plugin", plugin)
+                path = os.path.join(self.plugin_dir, plugin)
 
             if not self.load(plugin, path):
                 self.errors.append("Plugin %s failed to load" % (plugin))

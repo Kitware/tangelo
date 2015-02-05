@@ -173,12 +173,12 @@ def shutdown(signum, frame):
     tangelo.log_success("TANGELO", "Be seeing you.")
 
 
-def get_invocation_dir():
-    invocation_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..")
-    if platform.system() == "Windows":
-        return os.path.abspath(invocation_dir)
-    else:
-        return os.path.abspath(os.path.join(invocation_dir, ".."))
+def get_web_directory():
+    return os.path.join(os.path.dirname(__file__), "web")
+
+
+def get_bundled_plugin_directory():
+    return os.path.join(os.path.dirname(__file__), "plugin")
 
 
 def main():
@@ -239,10 +239,6 @@ def main():
     if args.no_show_py and args.show_py:
         tangelo.log_error("ERROR", "can't specify both --show-py and --no-show-py together")
         sys.exit(1)
-
-    # Figure out where this is being called from - that will be useful for a
-    # couple of purposes.
-    invocation_dir = get_invocation_dir()
 
     # Decide if we have a configuration file or not.
     cfg_file = args.config
@@ -368,8 +364,8 @@ def main():
         root = tangelo.util.expandpath(root)
     elif args.examples:
         # Set the examples web root.
-        root = tangelo.util.expandpath(invocation_dir + "/share/tangelo/web")
-        tangelo.log_info("TANGELO", "Looking for default web content path in %s" % (root))
+        root = get_web_directory()
+        tangelo.log_info("TANGELO", "Looking for example web content path in %s" % (root))
         if not os.path.exists(root):
             tangelo.log_error("ERROR", "could not find examples package")
             return 1
@@ -403,7 +399,7 @@ def main():
     cherrypy.config.update({"plugin-store": {}})
 
     # Create a plugin manager.
-    plugins = tangelo.server.Plugins("tangelo.plugin", config=config.plugins, tangelo_dir=invocation_dir)
+    plugins = tangelo.server.Plugins("tangelo.plugin", config=config.plugins, plugin_dir=get_bundled_plugin_directory())
 
     # Check for any errors - if there are, report them and exit.
     if not plugins.good():
