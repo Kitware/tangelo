@@ -614,6 +614,10 @@ class Plugins(object):
         # Create a virtual module to hold all plugin python modules.
         exec("%s = sys.modules[self.base_package] = types.ModuleType(self.base_package)" % (self.base_package))
 
+        # A null config should be treated as an empty list.
+        if config is None:
+            config = []
+
         # Read through the list of plugin configs, extracting the info and
         # validating as we go.
         for i, entry in enumerate(config):
