@@ -28,6 +28,9 @@ versioning](http://semver.org).
   file
 - Plugins no longer require an ``enabled`` property; all plugins listed in the
   configuration file will be loaded
+- Build process uses ``setuptools`` instead of ``distutils``
+- Example webpage and bundled plugins are now treated as "package data"
+  (i.e., stored directly in ``site-packages``, etc.)
 
 ### Deprecated
 
