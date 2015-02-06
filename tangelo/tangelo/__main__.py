@@ -181,6 +181,10 @@ def get_bundled_plugin_directory():
     return os.path.join(os.path.dirname(__file__), "plugin")
 
 
+def get_tangelo_ico():
+    return os.path.join(os.path.dirname(__file__), "tangelo.ico")
+
+
 def main():
     p = argparse.ArgumentParser(description="Start a Tangelo server.")
     p.add_argument("-c", "--config", type=str, default=None, metavar="FILE", help="specifies configuration file to use")
@@ -423,7 +427,7 @@ def main():
     # Mount the root application object.
     cherrypy.tree.mount(rootapp, config={"/": {"tools.sessions.on": sessions},
                                          "/favicon.ico": {"tools.staticfile.on": True,
-                                                          "tools.staticfile.filename": sys.prefix + "/share/tangelo/tangelo.ico"}})
+                                                          "tools.staticfile.filename": get_tangelo_ico()}})
 
     # Set up the global configuration.
     cherrypy.config.update({"environment": "production",

@@ -18,10 +18,9 @@ setup(name="tangelo",
                                         "tangelo-passwd = tangelo.__main__:tangelo_passwd"]},
       data_files=[("share/tangelo/conf", ["assets/conf/tangelo.global.conf",
                                           "assets/conf/tangelo.local.conf"]),
-                  ("share/tangelo/data", ["assets/data/get-flickr-data.py"]),
-                  ("share/tangelo", ["assets/images/tangelo.ico"])],
+                  ("share/tangelo/data", ["assets/data/get-flickr-data.py"])],
       include_package_data=True,
-      package_data={"tangelo": rcollect("tangelo/web") + rcollect("tangelo/plugin")},
+      package_data={"tangelo": rcollect("tangelo/web") + rcollect("tangelo/plugin") + ["tangelo/tangelo.ico"]},
       description="Tangelo Web Framework",
       long_description="Tangelo is a Python-based web " +
       "server framework bundled with clientside tools " +
