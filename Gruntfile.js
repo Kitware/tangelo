@@ -384,6 +384,11 @@ module.exports = function (grunt) {
 
         done = this.async();
 
+        // This is necessary to reconcile Python setuptools's notion of version
+        // numbers with npm's.  Both accept "foobar-0.8.1-dev" as a valid
+        // version number, but setuptools will "normalize" it to
+        // "foobar-0.8.1.dev0", so we need to do the same in order to install
+        // the package created by the grunt package task.
         pyversion = version.replace("-dev", ".dev0");
 
         grunt.util.spawn({
