@@ -1,4 +1,3 @@
 include README setup.py
 recursive-include assets *
-recursive-include tangelo/web *
-recursive-include tangelo/plugin *
+recursive-include tangelo/pkgdata *

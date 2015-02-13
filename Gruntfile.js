@@ -21,6 +21,9 @@ module.exports = function (grunt) {
         tangelo_dir = path.resolve(lib + (windows ? "" : "python-2.7/" + "site-packages/tangelo")),
         version = grunt.file.readJSON("package.json").version,
         tangeloCmdLine,
+        pkgDataDir = "tangelo/tangelo/pkgdata/",
+        pluginDir = pkgDataDir + "plugin/",
+        webDir = pkgDataDir + "web/",
         styleCheckFiles;
 
     tangeloCmdLine = function (hostname, port, root, cover) {
@@ -40,7 +43,7 @@ module.exports = function (grunt) {
                 "vtkweb",
                 "vtkweb/web"
             ].map(function (p) {
-                return "venv/share/tangelo/plugin/" + p;
+                return "venv/lib/python2.7/site-packages/tangelo/pkgdata/plugin/" + p;
             });
         }
 
@@ -65,14 +68,14 @@ module.exports = function (grunt) {
 
     styleCheckFiles = [
         "js/src/**/*.js",
-        "tangelo/tangelo/plugin/**/*.js",
-        "!tangelo/tangelo/plugin/docs/**/*.js",
-        "!tangelo/tangelo/plugin/**/geo.min.js",
-        "!tangelo/tangelo/plugin/**/geo.ext.min.js",
-        "!tangelo/tangelo/plugin/**/vgl.min.js",
-        "!tangelo/tangelo/plugin/tangelo/web/tangelo.min.js",
-        "!tangelo/tangelo/plugin/vtkweb/web/lib/autobahn.min.js",
-        "!tangelo/tangelo/plugin/vtkweb/web/lib/vtkweb-all.min.js"
+        pluginDir + "**/*.js",
+        "!" + pluginDir + "docs/**/*.js",
+        "!" + pluginDir + "**/geo.min.js",
+        "!" + pluginDir + "**/geo.ext.min.js",
+        "!" + pluginDir + "**/vgl.min.js",
+        "!" + pluginDir + "tangelo/web/tangelo.min.js",
+        "!" + pluginDir + "vtkweb/web/lib/autobahn.min.js",
+        "!" + pluginDir + "vtkweb/web/lib/vtkweb-all.min.js"
     ];
 
     // Project configuration.
@@ -80,7 +83,7 @@ module.exports = function (grunt) {
       version: {
           src: [
               "tangelo/tangelo/__main__.py",
-              "tangelo/tangelo/plugin/tangelo/web/version.py",
+              pluginDir + "tangelo/web/version.py",
               "tangelo/setup.py",
               "js/src/core.js"
           ]
@@ -92,7 +95,7 @@ module.exports = function (grunt) {
           },
           dist: {
               src: ["js/src/**/*.js"],
-              dest: "tangelo/tangelo/plugin/tangelo/web/tangelo.js"
+              dest: pluginDir + "tangelo/web/tangelo.js"
           }
       },
       uglify: {
@@ -101,7 +104,7 @@ module.exports = function (grunt) {
           },
           dist: {
               src: "<%= concat.dist.dest %>",
-              dest: "tangelo/tangelo/plugin/tangelo/web/tangelo.min.js"
+              dest: pluginDir + "tangelo/web/tangelo.min.js"
           }
       },
       jshint: {
@@ -199,8 +202,8 @@ module.exports = function (grunt) {
           package: [
               "tangelo/MANIFEST",
               "tangelo/README",
-              "tangelo/tangelo/plugin/docs",
-              "tangelo/tangelo/web/js"
+              pluginDir + "docs",
+              webDir + "js"
           ]
       }
     });
@@ -525,7 +528,7 @@ module.exports = function (grunt) {
                    "-D", "version=" + version,
                    "-D", "release=" + version,
                    "docs",
-                   "tangelo/tangelo/plugin/docs/web"],
+                   pluginDir + "docs/web"],
             opts: {
                 stdio: "inherit"
             }
@@ -551,7 +554,7 @@ module.exports = function (grunt) {
             host = "localhost";
         }
 
-        tangeloCmd = tangeloCmdLine(host, port, "venv/share/tangelo/web", false);
+        tangeloCmd = tangeloCmdLine(host, port, "venv/lib/python2.7/site-packages/tangelo/pkgdata/web", false);
 
         grunt.util.spawn({
             cmd: tangeloCmd.cmd,

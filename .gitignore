@@ -8,8 +8,8 @@ configuration.json
 tangelo/MANIFEST
 tangelo/README
 tangelo/tangelo.egg-info
-tangelo/tangelo/plugin/tangelo/web/tangelo.js
-tangelo/tangelo/plugin/tangelo/web/tangelo.min.js
-tangelo/tangelo/plugin/docs
+tangelo/tangelo/pkgdata/plugin/tangelo/web/tangelo.js
+tangelo/tangelo/pkgdata/plugin/tangelo/web/tangelo.min.js
+tangelo/tangelo/pkgdata/plugin/docs
 js/tests/results
 .coverage

@@ -174,15 +174,15 @@ def shutdown(signum, frame):
 
 
 def get_web_directory():
-    return os.path.join(os.path.dirname(__file__), "web")
+    return os.path.join(os.path.dirname(__file__), "pkgdata/web")
 
 
 def get_bundled_plugin_directory():
-    return os.path.join(os.path.dirname(__file__), "plugin")
+    return os.path.join(os.path.dirname(__file__), "pkgdata/plugin")
 
 
 def get_tangelo_ico():
-    return os.path.join(os.path.dirname(__file__), "tangelo.ico")
+    return os.path.join(os.path.dirname(__file__), "pkgdata/tangelo.ico")
 
 
 def main():

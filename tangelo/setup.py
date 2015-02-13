@@ -20,7 +20,7 @@ setup(name="tangelo",
                                           "assets/conf/tangelo.local.conf"]),
                   ("share/tangelo/data", ["assets/data/get-flickr-data.py"])],
       include_package_data=True,
-      package_data={"tangelo": rcollect("tangelo/web") + rcollect("tangelo/plugin") + ["tangelo/tangelo.ico"]},
+      package_data={"tangelo": rcollect("tangelo/pkgdata")},
       description="Tangelo Web Framework",
       long_description="Tangelo is a Python-based web " +
       "server framework bundled with clientside tools " +
