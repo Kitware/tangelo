@@ -49,6 +49,7 @@ versioning](http://semver.org).
 - ``tangelo.server.analyze()`` works better, especially for plugin development
 - Informational log output now goes unilaterally to ``sys.stderr`` while access
   logs go to ``sys.stdout``
+- Nodelink example fixed so that contents are visible
 
 ### Security
 
