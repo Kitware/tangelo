@@ -92,6 +92,7 @@ Tutorials
 
     tutorials/building-an-app
     tutorials/db-vis
+    tutorials/fiddling
 
 Information for Developers
 ==========================

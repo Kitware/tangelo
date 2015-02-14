@@ -397,9 +397,6 @@ class Tangelo(object):
         self.auth_update = None
         self.plugins = plugins
 
-        if self.plugins:
-            self.plugins.refresh()
-
     def invoke_service(self, module, *pargs, **kwargs):
         tangelo.content_type("text/plain")
 
@@ -590,14 +587,6 @@ class Tangelo(object):
 
     @cherrypy.expose
     def plugin(self, *path, **args):
-        # Refresh the plugin registry.
-        if self.plugins:
-            error = self.plugins.refresh()
-            if error is not None:
-                tangelo.content_type("text/plain")
-                tangelo.http_status(400, "Bad Plugin Configuration")
-                return error
-
         return self.execute_analysis(args)
 
     @cherrypy.expose
@@ -613,28 +602,68 @@ class Plugins(object):
             self.module = None
             self.apps = []
 
-    def __init__(self, base_package, config_file, tangelo_dir):
+    def __init__(self, base_package, config, plugin_dir):
         self.base_package = base_package
-        self.config_file = config_file
+        self.plugin_dir = plugin_dir
 
-        self.config_dir = os.path.dirname(self.config_file)
-        self.tangelo_dir = tangelo_dir
-        self.mtime = 0
+        self.errors = []
         self.plugins = {}
-        self.missing_msg = "Plugin config file %s seems to have disappeared" % (self.config_file)
 
         self.modules = tangelo.util.ModuleCache(config=False)
 
+        # Create a virtual module to hold all plugin python modules.
         exec("%s = sys.modules[self.base_package] = types.ModuleType(self.base_package)" % (self.base_package))
+
+        # A null config should be treated as an empty list.
+        if config is None:
+            config = []
+
+        # Read through the list of plugin configs, extracting the info and
+        # validating as we go.
+        for i, entry in enumerate(config):
+            if not isinstance(entry, dict):
+                self.errors.append("Configuration for plugin %d is not an associative array" % (i + 1))
+                return
+
+            name = entry.get("name")
+            if name is None:
+                self.errors.append("Configuration for plugin %d is missing required 'name' property" % (i + 1))
+                return
+
+            if name in self.plugins:
+                self.errors.append("Configuration for plugin %d uses duplicate plugin name '%s'" % (i + 1, name))
+                return
+
+            self.plugins[name] = entry
+            del self.plugins[name]["name"]
+
+        # Load all the plugins one by one, bailing out if there are any errors.
+        for plugin, conf in self.plugins.iteritems():
+            if "path" in conf:
+                # Extract the plugin path.
+                path = os.path.abspath(conf["path"])
+            else:
+                # Construct the plugin path, given the name of the plugin,
+                # and the base path of Tangelo.
+                path = os.path.join(self.plugin_dir, plugin)
+
+            if not self.load(plugin, path):
+                self.errors.append("Plugin %s failed to load" % (plugin))
+                return
+
+            tangelo.log_success("Plugin %s loaded" % (plugin))
+
+    def good(self):
+        return len(self.errors) == 0
 
     def plugin_list(self):
         return self.plugins.keys()
 
     def load(self, plugin_name, path):
-        tangelo.log("PLUGIN", "Loading plugin %s (from %s)" % (plugin_name, path))
+        tangelo.log_info("PLUGIN", "Loading plugin %s (from %s)" % (plugin_name, path))
 
         if not os.path.exists(path):
-            tangelo.log_warning("PLUGIN", "\tNo such path %s" % (path))
+            self.errors.append("Plugin path %s does not exist" % (path))
             return False
 
         plugin = Plugins.Plugin(path)
@@ -646,13 +675,13 @@ class Plugins(object):
             try:
                 config = tangelo.util.yaml_safe_load(config_file)
             except TypeError as e:
-                tangelo.log_warning("PLUGIN", "\tBad configuration in file %s: %s" % (config_file, e))
+                self.errors.append("Bad configuration for plugin %s (%s): %s" % (plugin_name, config_file, e))
                 return False
             except IOError:
-                tangelo.log_warning("PLUGIN", "\tCould not open config file %s" % (config_file))
+                self.errors.append("Could not open configuration for plugin %s (%s)" % (plugin_name, config_file))
                 return False
             except ValueError as e:
-                tangelo.log_warning("PLUGIN", "\tError reading config file %s: %s" % (config_file, e))
+                self.errors.append("Error reading configuration for plugin %s (%s): %s" % (plugin_name, config_file, e))
                 return False
 
         # Install the config and an empty dict as the plugin-level
@@ -664,11 +693,11 @@ class Plugins(object):
         # there in a virtual submodule of tangelo.plugin.
         python = os.path.join(path, "python")
         if os.path.exists(python):
-            tangelo.log("PLUGIN", "\t...loading python module content")
+            tangelo.log_info("PLUGIN", "\t...loading python module content")
 
             init = os.path.join(python, "__init__.py")
             if not os.path.exists(init):
-                tangelo.log_warning("PLUGIN", "\terror:  plugin '%s' includes a 'python' directory but is missing __init.py__" % (plugin))
+                self.errors.append("'python' directory of plugin %s is missing __init.py__" % (plugin_name))
                 return False
             else:
                 module_name = "%s.%s" % (self.base_package, plugin_name)
@@ -678,7 +707,7 @@ class Plugins(object):
                 try:
                     exec('%s = sys.modules[module_name] = self.modules.get(init)' % (module_name))
                 except:
-                    tangelo.log_warning("PLUGIN", "Could not import python module content:\n%s" % (traceback.format_exc()))
+                    self.errors.append("Could not import python module content for plugin %s:\n%s" % (plugin_name, traceback.format_exc()))
                     sys.path = old_path
                     return False
                 finally:
@@ -688,20 +717,20 @@ class Plugins(object):
         # that need to be mounted.
         control_file = os.path.join(path, "control.py")
         if os.path.exists(control_file):
-            tangelo.log("PLUGIN", "\t...loading plugin control module")
+            tangelo.log_info("PLUGIN", "\t...loading plugin control module")
             try:
                 control = self.modules.get(control_file)
                 plugin.control = control
             except:
-                tangelo.log_warning("PLUGIN", "Could not import control module:\n%s" % (traceback.format_exc()))
+                self.errors.append("Could not import control module for plugin %s:\n%s" % (plugin_name, traceback.format_exc()))
                 return False
             else:
                 if "setup" in dir(control):
-                    tangelo.log("PLUGIN", "\t...running plugin setup")
+                    tangelo.log_info("PLUGIN", "\t...running plugin setup")
                     try:
                         setup = control.setup(config, cherrypy.config["plugin-store"][path])
                     except:
-                        tangelo.log_warning("PLUGIN", "Could not set up plugin:\n%s" % (traceback.format_exc()))
+                        self.errors.append("Could not set up plugin %s:\n%s" % (plugin_name, traceback.format_exc()))
                         return False
                     else:
                         for app in setup.get("apps", []):
@@ -711,15 +740,15 @@ class Plugins(object):
                             elif len(app) == 3:
                                 (app_obj, app_config, mountpoint) = app
                             else:
-                                tangelo.log_warning("PLUGIN", "\tapp mount spec has %d item%s (should be either 2 or 3)" % (len(app), "" if len(app) == 1 else "s"))
+                                self.errors.append("App mount spec for plugin %s has %d item%s (should be either 2 or 3)" % (plugin_name, len(app), "" if len(app) == 1 else "s"))
                                 return False
 
                             app_path = os.path.join("/plugin", plugin_name, mountpoint)
                             if app_path in cherrypy.tree.apps:
-                                tangelo.log_warning("PLUGIN", "\tFailed to mount application at %s (app already mounted there)" % (app_path))
+                                self.errors.append("Failed to mount application for plugin %s at %s (app already mounted there)" % (plugin_name, app_path))
                                 return False
                             else:
-                                tangelo.log("PLUGIN", "\t...mounting application at %s" % (app_path))
+                                tangelo.log_info("PLUGIN", "\t...mounting application at %s" % (app_path))
                                 cherrypy.tree.mount(app_obj, app_path, app_config)
                                 plugin.apps.append(app_path)
 
@@ -727,86 +756,28 @@ class Plugins(object):
         return True
 
     def unload(self, plugin_name):
-        tangelo.log("PLUGIN", "Unloading plugin '%s'" % (plugin_name))
+        tangelo.log_info("PLUGIN", "Unloading plugin '%s'" % (plugin_name))
 
         plugin = self.plugins[plugin_name]
 
         if plugin.module is not None:
-            tangelo.log("PLUGIN", "\t...removing module %s" % (plugin.module))
+            tangelo.log_info("PLUGIN", "\t...removing module %s" % (plugin.module))
             del sys.modules[plugin.module]
             exec("del %s" % (plugin.module))
 
         for app_path in plugin.apps:
-            tangelo.log("PLUGIN", "\t...unmounting app at %s" % (app_path))
+            tangelo.log_info("PLUGIN", "\t...unmounting app at %s" % (app_path))
             del cherrypy.tree.apps[app_path]
 
         if "teardown" in dir(plugin.control):
-            tangelo.log("PLUGIN", "\t...running teardown")
+            tangelo.log_info("PLUGIN", "\t...running teardown")
             try:
                 plugin.control.teardown(cherrypy.config["plugin-config"][plugin.path], cherrypy.config["plugin-store"][plugin.path])
             except:
                 tangelo.log_warning("PLUGIN", "Could not run teardown:\n%s", (traceback.format_exc()))
 
         del self.plugins[plugin_name]
-
-    def refresh(self):
-        if not os.path.exists(self.config_file):
-            if self.mtime > 0:
-                tangelo.log_warning("PLUGIN", self.missing_msg)
-                self.mtime = 0
-            self.plugins = {}
-            return
-
-        mtime = os.path.getmtime(self.config_file)
-        if mtime <= self.mtime:
-            return
-
-        self.mtime = mtime
-
-        try:
-            config = tangelo.util.PluginConfig(self.config_file)
-        except IOError:
-            tangelo.log_warning("PLUGIN", self.missing_msg)
-            return
-        except TypeError:
-            tangelo.log_warning("PLUGIN", "plugin config file does not contain a top-level associative array")
-            return
-        except ValueError as e:
-            tangelo.log_warning("PLUGIN", "error reading plugin config file: %s" % (e))
-            return
-
-        seen = set()
-        for plugin, conf in config.plugins.iteritems():
-            # See whether the plugin is enabled (yes by default).
-            enabled = conf.get("enabled", True)
-            if not isinstance(enabled, bool):
-                tangelo.log_warning("PLUGIN", "error:  setting 'enabled' in configuration for plugin '%s' must be a boolean value!" % (plugin))
-                continue
-
-            if enabled and plugin not in self.plugins:
-                if "path" in conf:
-                    # Extract the plugin path.
-                    path = os.path.join(self.config_dir, conf["path"])
-                else:
-                    # Construct the plugin path, given the name of the plugin,
-                    # and the base path of Tangelo.
-                    path = os.path.join(self.tangelo_dir, "share/tangelo/plugin", plugin)
-
-                if not self.load(plugin, path):
-                    tangelo.log_warning("PLUGIN", "Plugin %s failed to load" % (plugin))
-            elif not enabled and plugin in self.plugins:
-                self.unload(plugin)
-
-            # Record the fact that this plugin was referenced in the plugin
-            # config file.
-            seen.add(plugin)
-
-        # All plugins that are still loaded, and yet weren't mentioned in the
-        # config file, should be unloaded (i.e., deleting a section from the
-        # plugin config file is the same as leaving it there but setting
-        # "enabled" to False).
-        for plugin in filter(lambda x: x not in seen, self.plugins):
-            self.unload(plugin)
+        tangelo.log_success("plugin %s unloaded" % (plugin_name))
 
     def unload_all(self):
         for plugin_name in self.plugins.keys():

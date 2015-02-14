@@ -1,0 +1,10 @@
+plugins:
+    - name: config
+    - name: data
+    - name: docs
+    - name: mapping
+    - name: mongo
+    - name: stream
+    - name: tangelo
+    - name: ui
+    - name: vis

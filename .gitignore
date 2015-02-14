@@ -7,8 +7,9 @@ sdist
 configuration.json
 tangelo/MANIFEST
 tangelo/README
-tangelo/plugin/tangelo/web/tangelo.js
-tangelo/plugin/tangelo/web/tangelo.min.js
-tangelo/plugin/docs
+tangelo/tangelo.egg-info
+tangelo/tangelo/pkgdata/plugin/tangelo/web/tangelo.js
+tangelo/tangelo/pkgdata/plugin/tangelo/web/tangelo.min.js
+tangelo/tangelo/pkgdata/plugin/docs
 js/tests/results
 .coverage

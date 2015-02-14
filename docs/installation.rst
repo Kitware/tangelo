@@ -47,7 +47,7 @@ To build Tangelo from source, you will need to install the following software:
 
 * Git
 * Python 2.7
-* Virtualenv
+* Virtualenv 12.0
 * Node.js
 * Grunt
 

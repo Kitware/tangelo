@@ -15,6 +15,8 @@ versioning](http://semver.org).
 - SQLAlchemy-based visualization tutorial
 - Plugins can now be specified without a path, causing Tangelo to look for a
   bundled plugin of that name
+- New ``tangelo-pkgdata`` executable reports filesystem path to Tangelo package
+  data
 
 ### Changed
 - Cross-platform generation of ``tangelo`` and ``tangelo-passwd`` executable
@@ -24,6 +26,13 @@ versioning](http://semver.org).
   system; instead, the current working directory is changed to that of the service file
 - Configuration file is now typechecked at load time, including reporting of
   unexpected options, with errors resulting in fail-fast
+- Plugins are now specified in the ``plugins`` entry of the main configuration
+  file
+- Plugins no longer require an ``enabled`` property; all plugins listed in the
+  configuration file will be loaded
+- Build process uses ``setuptools`` instead of ``distutils``
+- Example webpage and bundled plugins are now treated as package data (i.e.,
+  stored directly in ``site-packages``, etc.)
 
 ### Deprecated
 
