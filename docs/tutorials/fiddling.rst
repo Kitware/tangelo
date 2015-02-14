@@ -73,14 +73,22 @@ The examples are bundled as *package data* with the Tangelo Python package,
 meaning they will be found within the ``tangelo/pkgdata`` subdirectory of the
 ``site-packages`` directory of the Python installation that contains Tangelo.
 On a typical Linux Python installation, this directory might be
-``/usr/lib/python2.7/site-packages/tangelo/pkgdata``.  On such a system, the
-following sequence of shell commands will create an area where we can safely
-modify and otherwise experiment with the examples::
+``/usr/lib/python2.7/site-packages/tangelo/pkgdata``.  Because different Python
+setups may behave differently with respect to where such files are kept, Tangelo
+includes a program ``tangelo-pkgdata`` that simply reports the full path to the
+``pkgdata`` directory.  Using this program, the following sequence of shell
+commands will create an area where we can safely modify and otherwise experiment
+with the examples::
 
     $ cd ~
     $ mkdir tangelo-examples
     $ cd tangelo-examples
-    $ cp -r /usr/lib/python2.7/site-packages/tangelo/pkgdata .
+    $ cp -r `tangelo-pkgdata` .
+
+(Enclosing a command in backticks causes the shell to run the enclosed program
+and substitute its output in the original command.  You can also run
+``tangelo-pkgdata`` manually, inspect the output, and copy it into your own
+manual shell command as well.)
 
 Step 2:  Configure the Plugins
 ------------------------------
