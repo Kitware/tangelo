@@ -17,6 +17,11 @@ import tangelo.websocket
 tangelo_version = "0.8.1-dev"
 
 
+def tangelo_pkgdata():
+    print get_pkgdata_dir()
+    return 0
+
+
 def tangelo_passwd():
     import argparse
     import getpass
@@ -173,16 +178,20 @@ def shutdown(signum, frame):
     tangelo.log_success("TANGELO", "Be seeing you.")
 
 
+def get_pkgdata_dir():
+    return os.path.dirname(__file__)
+
+
 def get_web_directory():
-    return os.path.join(os.path.dirname(__file__), "pkgdata/web")
+    return os.path.join(get_pkgdata_dir(), "pkgdata/web")
 
 
 def get_bundled_plugin_directory():
-    return os.path.join(os.path.dirname(__file__), "pkgdata/plugin")
+    return os.path.join(get_pkgdata_dir(), "pkgdata/plugin")
 
 
 def get_tangelo_ico():
-    return os.path.join(os.path.dirname(__file__), "pkgdata/tangelo.ico")
+    return os.path.join(get_pkgdata_dir(), "pkgdata/tangelo.ico")
 
 
 def main():
