@@ -84,7 +84,7 @@ root             The path to the directory to be served by Tangelo as the web ro
 
 drop-privileges  Whether to drop privileges when started as the superuser            ``True``
 
-sessions         Wehther to enable server-side session tracking                      ``True``
+sessions         Whether to enable server-side session tracking                      ``True``
 
 user             The user account to drop privileges to                              ``nobody`` [#usergroup]_
 
