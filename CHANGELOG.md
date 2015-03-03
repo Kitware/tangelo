@@ -2,7 +2,7 @@
 A list of per-release changes in the Tangelo codebase.  Tangelo uses [semantic
 versioning](http://semver.org).
 
-## [Unreleased] - [unreleased]
+## [0.9] - 2015-03-03
 ### Added
 - This change log file
 - Improvements to style testing
@@ -34,8 +34,6 @@ versioning](http://semver.org).
 - Example webpage and bundled plugins are now treated as package data (i.e.,
   stored directly in ``site-packages``, etc.)
 
-### Deprecated
-
 ### Removed
 - Service of web content from home directories
 - ``tangelo.abspath()`` - web services should instead use
@@ -50,8 +48,6 @@ versioning](http://semver.org).
 - Informational log output now goes unilaterally to ``sys.stderr`` while access
   logs go to ``sys.stdout``
 - Nodelink example fixed so that contents are visible
-
-### Security
 
 ## [0.8.1] - 2015-01-16
 ### Fixed
