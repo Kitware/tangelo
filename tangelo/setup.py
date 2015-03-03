@@ -9,7 +9,7 @@ def rcollect(path):
 
 # Create the package.
 setup(name="tangelo",
-      version="0.9.0",
+      version="0.9.0-dev",
       author="Kitware, Inc.",
       author_email="tangelo-users@public.kitware.com",
       url="http://kitware.github.io/tangelo",
