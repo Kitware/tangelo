@@ -51,31 +51,6 @@ Core Services
     not needed because the absence of errors and warnings can generally be
     regarded as a success condition.
 
-.. py:function:: tangelo.abspath(webpath)
-
-    Takes a "web path" and computes a disk path to the referenced file, *if* it
-    references a location within Tangelo's legal web space.
-
-    The path, passed into argument `webpath`, must be an absolute web path;
-    i.e., it must begin with a slash.  If the second character of the path is a
-    tilde, it will be converted to a user home directory path, while non-tilde
-    paths will resolve to a location within Tangelo's web root directory.
-
-    Path components such as ``.`` and ``..`` are resolved to yield a possible
-    absolute disk path; if this path lies outside of the legal web space, then
-    the function returns ``None``; otherwise, it returns this path.
-
-    This function is useful for preventing errant paths from allowing a Tangelo
-    service to manipulate files that it shouldn't, while yielding access to
-    files that are allowed.
-
-    For example, `/~troi/libs` would yield something like
-    `/home/troi/tangelo_html/lib`, and `/section31/common/` would yield
-    something like `/srv/tangelo/section31/common` because both paths refer to
-    subdirectories of an allowed directory - one in a user's home directory, and
-    the other under the web root.  However, `/~picard/../../libs` would yield
-    ``None``, since it does not refer to any file accessible via Tangelo.
-
 HTTP Interaction
 ================
 

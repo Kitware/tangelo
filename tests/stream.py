@@ -11,6 +11,7 @@ def test_prime_service():
 
     assert primes == [2, 3, 5, 7, 11]
 
+
 @nose.with_setup(fixture.start_tangelo, fixture.stop_tangelo)
 def test_prime_stream():
     stream_key = requests.post(fixture.plugin_url("stream", "stream", "start", "primes")).json()
@@ -27,6 +28,7 @@ def test_prime_stream():
         primes.append(response.json())
 
     assert primes == [2, 3, 5, 7, 11]
+
 
 @nose.with_setup(fixture.start_tangelo, fixture.stop_tangelo)
 def test_finite_stream():
@@ -55,6 +57,7 @@ def test_finite_stream():
     # 404.
     assert not_found.status_code == 404
 
+
 @nose.with_setup(fixture.start_tangelo, fixture.stop_tangelo)
 def test_multiple_streams():
     key1 = requests.post(fixture.plugin_url("stream", "stream", "start", "finite")).json()["key"]
@@ -71,6 +74,7 @@ def test_multiple_streams():
     print my_keys
 
     assert server_keys == my_keys
+
 
 @nose.with_setup(fixture.start_tangelo, fixture.stop_tangelo)
 def test_delete_stream():

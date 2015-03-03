@@ -1,0 +1,274 @@
+<!doctype html>
+<meta charset=utf-8>
+
+<script src=geo.ext.min.js></script>
+<script src=http://code.jquery.com/ui/1.9.1/jquery-ui.min.js></script>
+<script src=//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js></script>
+<script src=/plugin/tangelo/tangelo.js></script>
+<script src=/plugin/config/config.js></script>
+<script src=/plugin/ui/controlPanel.js></script>
+<script src=/plugin/ui/svgColorLegend.js></script>
+<script src=geo.min.js></script>
+<script src=index.js></script>
+
+<link href=http://bootswatch.com/cosmo/bootstrap.min.css rel=stylesheet type=text/css>
+<link href=http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css rel=stylesheet>
+<link href=//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css rel=stylesheet>
+<script src=http://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js></script>
+
+<style>
+    html, body {
+        height: 100%;
+    }
+
+    body {
+        padding-top: 50px;
+    }
+
+    #control-panel {
+        background-color: lightgray;
+    }
+
+    #map img {
+        max-width: none;
+    }
+
+    .popover {
+        max-width: 1000px;
+        width: auto;
+    }
+</style>
+
+<title>Flickr Metadata Maps</title>
+
+<div id=info-panel class="modal fade">
+    <div class=modal-dialog>
+        <div class=modal-content>
+            <div class=modal-header>
+                <h3>Information</h3>
+            </div>
+
+            <div class=modal-body>
+                <p>Explore the locations where millions of Flickr photos were taken.</p>
+
+                <p>This application retrieves Flickr metadata stored in a database and
+                displays the locations on a GeoJS map.  Use the controls to trigger a
+                new lookup, or change the visualization properties.</p>
+
+                <p>Hover over a location to see more information from that photo's
+                metadata.</p>
+            </div>
+
+            <div class=modal-footer>
+                <a class="btn btn-default" data-dismiss=modal>OK</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class=navbar-header>
+        <a class=navbar-brand href=/>Tangelo</a>
+    </div>
+
+    <ul class="nav navbar-nav">
+        <li class=active> <a>Flickr Maps</a>
+        <li><a style=cursor:pointer data-toggle=modal data-target=#info-panel><span class="glyphicon glyphicon-info-sign"></span> Info</a>
+    </ul>
+</div>
+
+<!-- Create a fullscreen GeoJS map -->
+<div id=map style="width:100%; height:100%">
+    <div style="display:none; padding-top:10%; padding-left:20%; padding-right:20%">
+        <p>
+            There doesn't seem to be a Mongo instance at <em>%server%</em>, with
+            database <em>%db%</em> and collection <em>%coll%</em>, or there is
+            no data there, or PyMongo is not installed.  Try these steps to get
+            things working:
+        </p>
+
+        <ol>
+            <li>
+                <p>
+                    <strong>Set up MongoDB.</strong> To set up a Mongo server
+                    you can consult the
+                    <a href=http://www.mongodb.org>MongoDB documentation</a>.
+                    It is generally as straightforward as installing it via a
+                    package manager, then launching the ``mongod`` program, or
+                    starting it via your local service manager.
+                </p>
+            </li>
+
+            <li>
+                <p>
+                    <strong>Install PyMongo.</strong> This application uses the
+                    PyMongo Python package to interact with the Mongo server.
+                    You can install it like this:
+                </p>
+
+                <p>&nbsp;&nbsp;&nbsp;&nbsp;<code>pip install pymongo</code></p>
+
+                <p>
+                    (Be sure to use the same <code>pip</code> that you used to
+                    install Tangelo.  For example, if you built Tangelo from
+                    source, then you should use
+                    <code>&lt;tangelo-source-dir&gt;/venv/bin/pip</code>.)
+                </p>
+            </li>
+
+            <li>
+                <p>
+                    <strong>Get Flickr photo data.</strong> Download the hosted
+                    <a href=http://midas3.kitwarein.com/midas/download/item/315558/flickr_paris.json>Flickr data file</a>.
+                </p>
+
+                <p>
+                    You can also download data from Flickr yourself.  To do this
+                    you will need a
+                    <a href=http://www.flickr.com/services/api/misc.api_keys.html>Flickr API key</a>.
+                    Armed with a key, you can run the
+                    <code>get-flickr-data.py</code> script, which can be found
+                    at <tt>/usr/share/tangelo/data/get-flickr-data.py</tt>.  You
+                    can run it like this:
+                </p>
+
+                <p>&nbsp;&nbsp;&nbsp;&nbsp;<code>get-flickr-data.py &lt;API key&gt; &lt;max photos to retrieve&gt; flickr_paris.json</code></p>
+
+                <p>
+                    The hosted version mentioned above was generated with this
+                    script, with a max count argument of 1000.
+                </p>
+            </li>
+
+            <li>
+                <p>
+                    <strong>Upload the data to Mongo.</strong> You can use this
+                    command to place the photo data into your MongoDB instance:
+                </p>
+
+                <p>&nbsp;&nbsp;&nbsp;&nbsp;<code>mongoimport -d tangelo -c flickr_paris --jsonArray --file flickr_paris.json</code></p>
+
+                <p>
+                    This command uses the MongoDB instance running on
+                    <strong>localhost</strong>, and places the photo metadata
+                    into the <strong>tangelo</strong> database, in a collection
+                    called <strong>flickr_paris</strong>.
+                </p>
+            </li>
+        </ol>
+
+        <p>
+            Now the database should be set up to feed photo data to the Flickr
+            app - reload the page and you should be able to explore Paris
+            through photos.  If you are still having trouble, please contact us
+            at <a href=mailto:tangelo-users@public.kitware.com>tangelo-users@public.kitware.com</a>.
+        </p>
+    </div>
+</div>
+
+<div id=control-panel>
+    <div class=container>
+        <div class=row>
+            <div class=col-md-3>
+                <h4>Time filter <span id=time-filter-help class="glyphicon glyphicon-question-sign"></span></h4>
+                <div id=time-slider></div>
+                <code id=low></code>
+                <code id=high></code>
+                <a class="btn btn-default btn-xs" id=zoom>Zoom to range</a>
+                <a class="btn btn-default btn-xs disabled" id=unzoom>Unzoom</a>
+            </div>
+
+            <div class=col-md-3>
+                <h4>Hashtag filter <span id=hashtag-filter-help class="glyphicon glyphicon-question-sign"></span></h4>
+                <input id=hashtags type=text>
+            </div>
+
+            <div class=col-md-3>
+                <h4>Record count limit</h4>
+                <input id=record-limit type=text value=1000>
+            </div>
+
+            <div class=col-md-3>
+                <h4>&nbsp</h4>
+                <a id=abort class="btn btn-large"></a>
+            </div>
+        </div>
+
+        <div class=row>
+            <div class=col-md-3>
+                <h4>Day filter</h4>
+                <label class=checkbox>
+                    <input type=checkbox id=Sun> Sunday
+                </label>
+
+                <label class=checkbox>
+                    <input type=checkbox id=Mon> Monday
+                </label>
+
+                <label class=checkbox>
+                    <input type=checkbox id=Tue> Tuesday
+                </label>
+
+                <label class=checkbox>
+                    <input type=checkbox id=Wed> Wednesday
+                </label>
+
+                <label class=checkbox>
+                    <input type=checkbox id=Thu> Thursday
+                </label>
+
+                <label class=checkbox>
+                    <input type=checkbox id=Fri> Friday
+                </label>
+
+                <label class=checkbox>
+                    <input type=checkbox id=Sat> Saturday
+                </label>
+            </ul>
+        </div>
+
+        <div class=col-md-3>
+            <h4>Colormap</h4>
+
+            <div class=row>
+                <div class=col-md-3>
+                    <label class=radio>
+                        <input name=colormap type=radio id=month> Month
+                    </label>
+
+                    <label class=radio>
+                        <input name=colormap type=radio id=day> Day
+                    </label>
+
+                    <label class=radio>
+                        <input name=colormap type=radio id=rb> Recency (red-blue)
+                        <label class=checkbox>
+                            <input type=checkbox id=invert>Invert color scale
+                        </label>
+                    </label>
+
+                    <label class=radio>
+                        <input name=colormap type=radio id=none checked> None
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class=col-md-3>
+            <h4>Glyph size</h4>
+            <label class=radio>
+                <input name=size type=radio id=recency> Recency (earlier is larger)
+            </label>
+
+            <label class=radio>
+                <input name=size type=radio id=constant checked> Constant
+            </label>
+            <input type=text id=size class=span1 value=5>
+        </div>
+
+        <div class=col-md-3>
+            <h4>Opacity</h4>
+            <div id=opacity class=span2></div>
+        </div>
+    </div>
+</div>

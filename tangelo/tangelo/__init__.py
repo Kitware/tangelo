@@ -41,8 +41,8 @@ def log(section, message=None, color=None):
         section = "TANGELO"
 
     if not tangelo.util.windows() and color is not None:
-        section = "%s%s%s" % (color, section, "\033[0m")
-        message = "%s%s%s" % (color, message, "\033[0m")
+        section = "%s%s" % (color, section)
+        message = "%s%s" % (message, "\033[0m")
 
     cherrypy.log(str(message), section)
 
@@ -106,25 +106,6 @@ def session(key, value=None):
     return r
 
 
-def abspath(path):
-    if len(path) >= 2 and path[0] == "/" and path[1] == "~":
-        path = path[1:]
-        comp = path.split(os.path.sep)
-        user = os.path.expanduser(comp[0])
-        homeroot = os.path.sep.join([user, "tangelo_html"]) + os.path.sep
-        path = os.path.abspath(homeroot + os.path.sep.join(comp[1:]))
-        if path.find(homeroot) == 0:
-            return path
-    elif len(path) > 0 and path[0] == "/":
-        webroot = cherrypy.config.get("webroot") + os.path.sep
-        path = os.path.abspath(webroot + path)
-        if path.find(webroot) == 0:
-            log("here")
-            return path
-
-    return None
-
-
 def paths(runtimepaths):
     # If a single string is passed in, wrap it into a singleton list (this is
     # important because a string in Python is technically a list of lists, so
@@ -173,7 +154,7 @@ def config():
 
 
 def plugin_config():
-    return copy.deepcopy(cherrypy.config["plugin-config"][cherrypy.thread_data.pluginname])
+    return copy.deepcopy(cherrypy.config["plugin-config"][cherrypy.thread_data.pluginpath])
 
 
 def store():
@@ -181,7 +162,7 @@ def store():
 
 
 def plugin_store():
-    return cherrypy.config["plugin-store"][cherrypy.thread_data.pluginname]
+    return cherrypy.config["plugin-store"][cherrypy.thread_data.pluginpath]
 
 
 # A decorator that exposes functions as being part of a service's RESTful API.

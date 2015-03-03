@@ -1,0 +1,27 @@
+plugins:
+    - name: config
+      path: plugins/config
+
+    - name: data
+      path: plugins/data
+
+    - name: docs
+      path: plugins/docs
+
+    - name: mapping
+      path: plugins/mapping
+
+    - name: mongo
+      path: plugins/mongo
+
+    - name: stream
+      path: plugins/stream
+
+    - name: tangelo
+      path: plugins/tangelo
+
+    - name: ui
+      path: plugins/ui
+
+    - name: vis
+      path: plugins/vis

@@ -15,6 +15,9 @@ The simplest way to launch a Tangelo server is to use this command: ::
 
     tangelo
 
+(This command causes Tangelo to begin serving content out of the current
+directory on the default port, 8080.)
+
 Tangelo's runtime behaviors are specified via configuration file and command
 line options.  Tangelo configuration files are YAML files representing a
 key-value store ("associative array" in YAML jargon) at the top level.  Each
@@ -67,9 +70,8 @@ file for multiple Tangelo instances, but varying the port number.
 Configuration Options
 ---------------------
 
-The following tables, organized by section title, show what fields can be
-included in the configuration file, what they mean, and their default values if
-left unspecified.
+The following table shows what fields can be included in the configuration file,
+what they mean, and their default values if left unspecified.
 
 ================ =================================================================   =================================
 Option           Meaning                                                             Default value
@@ -78,11 +80,11 @@ hostname         The hostname interface on which to listen for connections      
 
 port             The port number on which to listen for connections                  ``8080``
 
-root             The path to the directory to be served by Tangelo as the web root   ``/usr/share/tangelo/www`` [#root]_
+root             The path to the directory to be served by Tangelo as the web root   ``.`` [#root]_
 
 drop-privileges  Whether to drop privileges when started as the superuser            ``True``
 
-sessions         Wehther to enable server-side session tracking                      ``True``
+sessions         Whether to enable server-side session tracking                      ``True``
 
 user             The user account to drop privileges to                              ``nobody`` [#usergroup]_
 
@@ -93,13 +95,14 @@ access-auth      Whether to protect directories containing a ``.htaccess`` file 
 key              The path to the SSL key                                             ``None`` [#https]_ [#unset]_
 
 cert             The path to the SSL certificate                                     ``None`` [#https]_ [#unset]_
+
+plugins          A list of plugins to load (see :ref:`plugin-config`)                ``None`` [#plugins]_ [#unset]_
 ================ =================================================================   =================================
 
 .. rubric:: Footnotes
 
-.. [#root] The first component of this path may vary by platform.  Technically,
-    the path begins with the Python value stored in ``sys.prefix``; in a Unix
-    system, this value is */usr*, yielding the default path shown here.
+.. [#root] This is to say, Tangelo serves from the directory in which it was
+    invoked by default.
 
 .. [#usergroup] Your Unix system may already have a user named "nobody" which
     has the least possible level of permissions.  The theory is that system daemons
@@ -114,6 +117,9 @@ cert             The path to the SSL certificate                                
 
 .. [#unset] That is to say, the option is simply unset by default, the
     equivalent of not mentioning the option at all in a configuration file.
+
+.. [#plugins] This option can *only* appear in the configuration file; there is
+    no command line equivalent.
 
 Administering a Tangelo Installation
 ====================================
@@ -159,64 +165,8 @@ The corresponding configuration file might look like this:
     root: /srv/tangelo
 
 This file should be saved to ``/etc/tangelo.conf``, and then Tangelo can be
-launched with a command like ``tangelo -c /etc/tangelo.conf`` (the ``sudo`` may
-be necessary to allow for port 80 to be bound).
-
-Running Tangelo as a System Service
-===================================
-
-Tangelo does not include any mechanisms to self-daemonize, instead running in,
-e.g., a terminal, putting all logging output on ``stdout``, and offering no
-facilities to track multiple instances by PID, etc.  However, the Tangelo
-package includes some scripts and configurations for various system service
-managers.  This section contains some instructions on working with the supported
-managers.  If you would like a different system supported, send a message to
-`tangelo-users@public.kitware.com` or fork the `GitHub repository
-<https://github.com/Kitware/tangelo>`_ and send a pull request.
-
-systemd
--------
-
-`systemd` is a Linux service manager daemon for which a `unit file` corresponds
-to each service.  Tangelo supplies such a unit file, along with supporting
-scripts, at ``/usr/share/tangelo/daemon/systemd``.  To install Tangelo as a
-service, the files in this directory need to be copied or symlinked to a location
-from which `systemd` can access them.  An example follows, though your particular
-system may require some changes from what is shown here; see the `systemd
-documentation <http://www.freedesktop.org/wiki/Software/systemd/>`_ for more
-information.
-
-Go to the place where systemd unit files are installed: ::
-
-    cd /usr/lib/systemd/system
-
-Place an appropriate symlink there: ::
-
-    sudo ln -s /usr/share/tangelo/daemon/systemd/system/tangelo@.service
-
-Go to the systemd auxiliary scripts directory: ::
-
-    cd ../scripts
-
-Install a symlink to the launcher script: ::
-
-    sudo ln -s /usr/share/tangelo/daemon/systemd/scripts/launch-tangelo.sh
-
-Now you will be able to control Tangelo via the ``systemctl`` command.
-Note that the unit file defines Tangelo as an `instantiated service`, meaning
-that multiple Tangelo instances can be launched independently by specifying an
-instantiation name.  For example: ::
-
-    sudo systemctl start tangelo@localhost:8080
-
-will launch Tangelo to run on the `localhost` interface, on port 8080.  The way
-this works is that ``systemctl`` takes the instantiation name (i.e., all the
-text after the ``@`` symbol - *localhost:8080*) and passes it to
-``launch-tangelo.sh``.  It in turn parses the hostname (*localhost*) and port
-number (*8080*) from the name, then launches Tangelo using whatever
-configuration file is found at ``/etc/tangelo.conf``, but overriding the
-hostname and port with those parsed from the name.  This allows for a unique
-name for each Tangelo instance that corresponds to its unique web interface.
+launched with a command like ``tangelo -c /etc/tangelo.conf`` (running the
+command with ``sudo`` may be necessary to allow for port 80 to be bound).
 
 .. _versioning:
 
@@ -251,7 +201,3 @@ current version number with "dev" in the Git repository, resulting in version
 numbers like "1.1dev" for the Tangelo package that is built from source.  The
 release protocol deletes this tag from the version number before uploading a
 package to the Python Package Index.
-
-The :js:func:`tangelo.requireCompatibleVersion` function returns a boolean
-expressing whether the version number passed to it is compatible with Tangelo's
-current version.

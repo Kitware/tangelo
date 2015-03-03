@@ -1,0 +1,123 @@
+<!doctype html>
+<title>Tangelo</title>
+<link href=http://bootswatch.com/2/cosmo/bootstrap.min.css rel=stylesheet type=text/css>
+<script src=http://d3js.org/d3.v3.min.js></script>
+
+<style>
+    p {
+        font-size: 14pt;
+    }
+
+    a {
+        color: #0088cc;
+    }
+
+    a.big {
+        font-size: 24pt;
+    }
+
+    th.big {
+        font-size: 18pt;
+    }
+
+    .centered {
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+    }
+</style>
+
+<div class=centered style="margin-top: 0.5in">
+    <svg style="width:960px; height:500px">
+        <rect id=sky width=960 height=500 style="fill:navy" />
+        <g id=stars></g>
+        <image id=sun xlink:href="/img/Tangelo_Mark_256.png" x=100 y=350 height=200 width=200 />
+        <rect id=field y=350 width=960 height=150 style="fill:darkgreen" />
+        <text x=400 y=310 style="font-family:Lora; font-size:125px; fill:navy">Tangelo</text>
+    </svg>
+</div>
+
+<div class=container>
+    <div class=row style="width:60%; margin-left:auto; margin-right:auto">
+
+        <p>Welcome to
+        <a class=big href=http://www.tangelohub.org/tangelo>Tangelo</a>,
+        your gateway to easy, rich web applications!  Check out the examples
+        below to get started, or read the
+        <a class=big href=/plugin/docs>documentation</a>
+        to learn how to harness the power of the Tangelo!
+    </div>
+
+    <hr>
+
+    <table style="width:100%;">
+        <tr>
+            <th class=big>Maps</th>
+            <th class=big>Visualization</th>
+            <th class=big>Streaming</th>
+        </tr>
+        <tr>
+            <td style="text-align:center; vertical-align:top;">
+                <ul style="list-style-type:none; padding:0; margin:0;">
+                    <li><a href=/plugin/mapping/examples/mapdots>GoogleMap dots</a>
+                    <li><a href=/plugin/mapping/examples/geojsdots>GeoJS dots</a>
+                    <li><a href=/plugin/mapping/examples/geodots>GeoJSON dots</a>
+                    <li><a href=/plugin/mapping/examples/geonodelink>GeoJSON nodelink</a>
+                    <li><a href=/plugin/mapping/examples/flickr>Flickr metadata</a>
+                </ul>
+            </td>
+            <td style="text-align:center; vertical-align:top;">
+                <ul style="list-style-type:none; padding:0; margin:0;">
+                    <li><a href=/plugin/vis/examples/barchart>Bar Chart</a>
+                    <li><a href=/plugin/vis/examples/correlation>Correlation Plot</a>
+                    <li><a href=/plugin/vis/examples/dendrogram>Dendrogram</a>
+                    <li><a href=/plugin/vis/examples/timeline>Timeline</a>
+                    <li><a href=/plugin/vis/examples/parallelcoords>Parallel Coordinates</a>
+                    <li><a href=/plugin/vis/examples/donutchart>Donut Chart</a>
+                    <li><a href=/plugin/vis/examples/nodelink>Node-Link Diagram</a>
+                </ul>
+            </td>
+            <td style="text-align:center; vertical-align:top;">
+                <ul style="list-style-type:none; padding:0; margin:0;">
+                    <li><a href=/plugin/stream/examples>Prime Numbers</a>
+                </ul>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<script>
+var duration = 12000;
+
+var stars = [];
+stars.length = 30;
+
+d3.select("#stars")
+    .selectAll("circle")
+    .data(stars)
+    .enter()
+    .append("circle")
+    .attr("cx", function () {
+        return 960*Math.random();
+    })
+    .attr("cy", function () {
+        return 350*Math.random();
+    })
+    .attr("r", 2)
+    .style("fill", "lightcyan");
+
+d3.select("#sun")
+    .transition()
+    .duration(duration)
+    .attr("y", 0);
+
+d3.select("#field")
+    .transition()
+    .duration(duration)
+    .style("fill", "green");
+
+d3.select("#sky")
+    .transition()
+    .duration(duration)
+    .style("fill", "lightcyan");
+</script>

@@ -1,0 +1,120 @@
+{
+    "name": "barchart",
+    "width": 4000,
+    "height": 500,
+    "data": [
+        {
+            "name": "table",
+            "url": "writers?sort=true"
+        }
+    ],
+    "scales": [
+        {
+            "name": "y",
+            "type": "linear",
+            "range": "height",
+            "domain": {
+                "data": "table",
+                "field": "data.count"
+            }
+        },
+        {
+            "name": "x",
+            "type": "ordinal",
+            "range": "width",
+            "domain": {
+                "data": "table",
+                "field": "data.name"
+            }
+        }
+    ],
+    "axes": [
+        {
+            "type": "x",
+            "scale": "x",
+            "values": []
+        },
+        {
+            "type": "y",
+            "scale": "y",
+            "grid": false
+        }
+    ],
+    "marks": [
+        {
+            "type": "rect",
+            "from": {
+                "data": "table"
+            },
+            "properties": {
+                "enter": {
+                    "x": {
+                        "scale": "x",
+                        "field": "data.name",
+                        "offset": -1
+                    },
+                    "width": {
+                        "scale": "x",
+                        "band": true,
+                        "offset": -1
+                    },
+                    "y": {
+                        "scale": "y",
+                        "field": "data.count"
+                    },
+                    "y2": {
+                        "scale": "y", 
+                        "value": 0},
+                    "fill": {
+                        "value": "steelblue"
+                    }
+                },
+                "update": {
+                    "fill": {
+                        "value": "steelblue"
+                    }
+                },
+                "hover": {
+                    "fill": {
+                        "value": "firebrick"
+                    }
+                }
+            }
+        },
+        {
+            "type": "text",
+            "from": {
+                "data": "table"
+            },
+            "properties": {
+                "enter": {
+                    "x": {
+                        "scale": "x",
+                        "field": "data.name"
+                    },
+                    "dx": {
+                        "value": 5
+                    },
+                    "y": {
+                        "value": 505
+                    },
+                    "angle": {
+                        "value": 45
+                    },
+                    "fill": {
+                        "value": "black"
+                    },
+                    "text": {
+                        "field": "data.name"
+                    },
+                    "font": {
+                        "value": "Helvetica Neue"
+                    },
+                    "fontSize": {
+                        "value": 15
+                    }
+                }
+            }
+        }
+    ]
+}

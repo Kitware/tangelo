@@ -45,9 +45,9 @@ Quick Start
 
    (On UNIX systems you may need to do this as root, or with ``sudo``.)
 
-3. Issue this command to start up a Tangelo server: ::
+3. Issue this command to start Tangelo, serving the example pack: ::
 
-    tangelo
+    tangelo --examples
 
 4. Visit your Tangelo instance at http://localhost:8080.
 
@@ -90,7 +90,9 @@ Tutorials
 .. toctree::
     :maxdepth: 2
 
-    building-an-app
+    tutorials/building-an-app
+    tutorials/db-vis
+    tutorials/fiddling
 
 Information for Developers
 ==========================
@@ -99,6 +101,7 @@ Information for Developers
     :maxdepth: 2
 
     coding-style-guide
+    releasing-tangelo
     developing-visualizations
 
 Indices and tables

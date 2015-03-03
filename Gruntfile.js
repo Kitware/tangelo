@@ -1,5 +1,6 @@
-/*global module:false*/
-/*jshint node:true*/
+/*global module:false */
+/*jshint node:true */
+/*jshint camelcase:false */
 module.exports = function (grunt) {
     "use strict";
 
@@ -13,32 +14,76 @@ module.exports = function (grunt) {
         python = path.resolve(bin + "python"),
         pip = path.resolve(bin + "pip"),
         sphinx = path.resolve(bin + "sphinx-build"),
-        pep8 = path.resolve(bin + "pep8"),
+        flake8 = path.resolve(bin + "flake8"),
         nosetests = path.resolve(bin + "nosetests"),
         coverage = path.resolve(bin + "coverage"),
         tangelo_script = path.resolve(bin + "tangelo"),
-        tangelo = windows ? python : tangelo_script,
-        tangelo_dir = path.resolve(lib + windows ? "" : "python-2.7/" + "site-packages/tangelo"),
+        tangelo_dir = path.resolve(lib + (windows ? "" : "python-2.7/" + "site-packages/tangelo")),
         version = grunt.file.readJSON("package.json").version,
-        tangeloArgs;
+        tangeloCmdLine,
+        pkgDataDir = "tangelo/tangelo/pkgdata/",
+        pluginDir = pkgDataDir + "plugin/",
+        webDir = pkgDataDir + "web/",
+        styleCheckFiles;
 
-    tangeloArgs = function (hostname, port, root) {
-        var args = windows ? [tangelo_script] : [];
+    tangeloCmdLine = function (hostname, port, root, cover) {
+        var cmd,
+            args,
+            sourceDirs;
 
-        return args.concat([
-            "--host", hostname,
-            "--port", port,
-            "--root", root,
-            "--plugin-config", "venv/share/tangelo/plugin/plugin.conf"
-        ]);
+        if (cover) {
+            sourceDirs = [
+                "bokeh/python",
+                "config/web",
+                "girder",
+                "impala/web",
+                "mongo/web",
+                "stream/web",
+                "tangelo/web",
+                "vtkweb",
+                "vtkweb/web"
+            ].map(function (p) {
+                return "venv/lib/python2.7/site-packages/tangelo/pkgdata/plugin/" + p;
+            });
+        }
+
+        if (windows) {
+            cmd = python;
+            args = [tangelo_script];
+        } else {
+            cmd = cover ? coverage : tangelo_script;
+            args = cover ? ["run", "-a", "--source", [tangelo_dir].concat(sourceDirs).join(","), tangelo_script] : [];
+        }
+
+        return {
+            cmd: cmd,
+            args: args.concat([
+                "--host", hostname,
+                "--port", port,
+                "--root", root,
+                "--config", "tests/bundled-plugins.yaml"
+            ])
+        };
     };
+
+    styleCheckFiles = [
+        "js/src/**/*.js",
+        pluginDir + "**/*.js",
+        "!" + pluginDir + "docs/**/*.js",
+        "!" + pluginDir + "**/geo.min.js",
+        "!" + pluginDir + "**/geo.ext.min.js",
+        "!" + pluginDir + "**/vgl.min.js",
+        "!" + pluginDir + "tangelo/web/tangelo.min.js",
+        "!" + pluginDir + "vtkweb/web/lib/autobahn.min.js",
+        "!" + pluginDir + "vtkweb/web/lib/vtkweb-all.min.js"
+    ];
 
     // Project configuration.
     grunt.initConfig({
       version: {
           src: [
               "tangelo/tangelo/__main__.py",
-              "tangelo/plugin/tangelo/web/version.py",
+              pluginDir + "tangelo/web/version.py",
               "tangelo/setup.py",
               "js/src/core.js"
           ]
@@ -50,7 +95,7 @@ module.exports = function (grunt) {
           },
           dist: {
               src: ["js/src/**/*.js"],
-              dest: "tangelo/plugin/tangelo/web/tangelo.js"
+              dest: pluginDir + "tangelo/web/tangelo.js"
           }
       },
       uglify: {
@@ -59,116 +104,29 @@ module.exports = function (grunt) {
           },
           dist: {
               src: "<%= concat.dist.dest %>",
-              dest: "tangelo/plugin/tangelo/web/tangelo.min.js"
+              dest: pluginDir + "tangelo/web/tangelo.min.js"
           }
       },
       jshint: {
-          options: {
-              // Enforcing options (for strict checking, should be true by
-              // default; set to false indicates departure from this policy).
-              bitwise: true,
-              camelcase: true,
-              curly: true,
-              eqeqeq: true,
-              forin: true,
-              immed: true,
-              latedef: true,
-              newcap: true,
-              noempty: false,
-              nonbsp: true,
-              nonew: true,
-              plusplus: false,
-              quotmark: "double",
-              undef: true,
-              unused: true,
-              strict: true,
-              maxparams: false,
-              maxdepth: false,
-              maxstatements: false,
-              maxcomplexity: false,
-              maxlen: false,
-
-              // Relaxing options (for strict checking, should be false by
-              // default; set to true indicates departure from this policy).
-              eqnull: true,
-
-              // Environment options.
-              browser: true,
-
-              // Globals.
-              globals: {
-                  console: false
-              }
-          },
           gruntfile: {
-              options: {
-                  // Disable camelcase enforcement.
-                  "-W106": true
-              },
               src: "Gruntfile.js"
           },
           tangelo: {
-              src: ["js/src/**/*.js"]
+              src: styleCheckFiles
           },
           test: {
-              options: {
-                  globals: {
-                      QUnit: false,
-                      tangelo: false
-                  }
-              },
               src: ["js/tests/*.js"]
           }
       },
       jscs: {
           options: {
-              requireCurlyBraces: true,
-              requireSpaceAfterKeywords: true,
-              requireSpaceBeforeBlockStatements: true,
-              requireParenthesesAroundIIFE: true,
-              requireSpacesInConditionalExpression: true,
-              requireSpacesInAnonymousFunctionExpression: {
-                  beforeOpeningRoundBrace: true,
-                  beforeOpeningCurlyBrace: true
-              },
-              requireSpacesInNamedFunctionExpression: {
-                  beforeOpeningCurlyBrace: true
-              },
-              requireSpacesInFunctionDeclaration: {
-                  beforeOpeningCurlyBrace: true
-              },
-              requireMultipleVarDecl: true,
-              requireBlocksOnNewline: true,
-              disallowPaddingNewlinesInBlocks: true,
-              disallowEmptyBlocks: true,
-              disallowQuotedKeysInObjects: true,
-              disallowSpaceAfterObjectKeys: true,
-              requireSpaceBeforeObjectValues: true,
-              requireCommaBeforeLineBreak: true,
-              requireOperatorBeforeLineBreak: true,
-              disallowSpaceAfterPrefixUnaryOperators: true,
-              disallowSpaceBeforePostfixUnaryOperators: true,
-              disallowImplicitTypeConversion: ["numeric", "boolean", "binary", "string"],
-              disallowMultipleLineStrings: true,
-              disallowMultipleLineBreaks: true,
-              disallowMixedSpacesAndTabs: true,
-              disallowTrailingWhitespace: true,
-              disallowTrailingComma: true,
-              disallowKeywordsOnNewLine: ["else if", "else"],
-              requireLineFeedAtFileEnd: true,
-              requireCapitalizedConstructors: true,
-              requireDotNotation: true,
-              requireSpaceAfterLineComment: true,
-              disallowNewlineBeforeBlockStatements: true,
-              validateIndentation: 4,
-              validateParameterSeparator: ", ",
-              safeContextKeyword: ["that"]
+              config: ".jscsrc"
           },
           gruntfile: {
               src: ["Gruntfile.js"]
           },
           tangelo: {
-              src: ["js/src/**/*.js"]
+              src: styleCheckFiles
           },
           test: {
               src: ["js/tests/*.js"]
@@ -206,9 +164,7 @@ module.exports = function (grunt) {
               }
           }
       },
-      /*jshint camelcase: false */
       blanket_qunit: {
-      /*jshint camelcase: true */
           all: {
               options: {
                   urls: ["http://localhost:50047/results/js/index.html?coverage=true&lights=4"],
@@ -217,7 +173,7 @@ module.exports = function (grunt) {
               }
           }
       },
-      nose_coverage: {
+      server_tests: {
           main: {
               src: ["tests/*.py"]
           }
@@ -229,10 +185,11 @@ module.exports = function (grunt) {
           },
           main: {}
       },
-      pep8: {
+      flake8: {
           files: {
               src: [
-                  "tangelo/**/*.py"
+                  "tangelo/**/*.py",
+                  "tests/**/*.py"
               ]
           }
       },
@@ -245,8 +202,8 @@ module.exports = function (grunt) {
           package: [
               "tangelo/MANIFEST",
               "tangelo/README",
-              "tangelo/plugin/docs",
-              "tangelo/web/js"
+              pluginDir + "docs",
+              webDir + "js"
           ]
       }
     });
@@ -365,8 +322,8 @@ module.exports = function (grunt) {
         done = this.async();
 
         packages = [
-            "Sphinx==1.2.3",
-            "pep8==1.5.7",
+            "Sphinx==1.3b2",
+            "flake8==2.2.2",
             "requests==2.4.3",
             "nose==1.3.4",
             "coverage==3.7.1"
@@ -387,12 +344,12 @@ module.exports = function (grunt) {
         });
     });
 
-    grunt.registerMultiTask("pep8", "Style check Python sources", function () {
+    grunt.registerMultiTask("flake8", "Style check Python sources", function () {
         var done = this.async();
 
         grunt.util.spawn({
-            cmd: pep8,
-            args: ["--ignore=E501,E265"].concat(this.filesSrc),
+            cmd: flake8,
+            args: this.filesSrc,
             opts: {
                 stdio: "inherit"
             }
@@ -425,13 +382,21 @@ module.exports = function (grunt) {
 
     // Install the Python package to the virtual environment.
     grunt.registerTask("install", "Install Tangelo to the virtual environment", function () {
-        var done;
+        var done,
+            pyversion;
 
         done = this.async();
 
+        // This is necessary to reconcile Python setuptools's notion of version
+        // numbers with npm's.  Both accept "foobar-0.8.1-dev" as a valid
+        // version number, but setuptools will "normalize" it to
+        // "foobar-0.8.1.dev0", so we need to do the same in order to install
+        // the package created by the grunt package task.
+        pyversion = version.replace("-dev", ".dev0");
+
         grunt.util.spawn({
             cmd: pip,
-            args: ["install", "--upgrade", "sdist/tangelo-" + version + zipExt],
+            args: ["install", "--upgrade", "sdist/tangelo-" + pyversion + zipExt],
             opts: {
                 stdio: "inherit"
             }
@@ -444,22 +409,9 @@ module.exports = function (grunt) {
         });
     });
 
-    // Run nose tests.
-    if (windows) {
-        grunt.registerTask("test:server", [
-            "nose_coverage"
-        ]);
-    } else {
-        grunt.registerTask("test:server", [
-            "coverage:erase",
-            "nose_coverage",
-            "coverage:combine",
-            "coverage_report"
-        ]);
-    }
-
-    grunt.registerMultiTask("nose_coverage", "Run server tests with coverage", function () {
-        var done = this.async();
+    grunt.registerMultiTask("server_tests", "Run server tests (with coverage on non-Windows platforms)", function () {
+        var done = this.async(),
+            source_dirs;
 
         if (windows) {
             grunt.util.spawn({
@@ -474,7 +426,7 @@ module.exports = function (grunt) {
         } else {
             grunt.util.spawn({
                 cmd: coverage,
-                args: ["run", "-a", "--source", "%s,%s" % (tangelo_dir, "tangelo/plugin"),
+                args: ["run", "-a", "--source", [tangelo_dir].concat(source_dirs).join(","),
                        nosetests, "--verbose", "--tests=" + this.filesSrc.join(",")],
                 opts: {
                     stdio: "inherit"
@@ -487,6 +439,10 @@ module.exports = function (grunt) {
 
     grunt.registerTask("coverage", "Manipulate coverage results", function (action) {
         var done;
+
+        if (windows) {
+            return;
+        }
 
         switch (action) {
             case "erase":
@@ -572,7 +528,7 @@ module.exports = function (grunt) {
                    "-D", "version=" + version,
                    "-D", "release=" + version,
                    "docs",
-                   "tangelo/plugin/docs/web"],
+                   pluginDir + "docs/web"],
             opts: {
                 stdio: "inherit"
             }
@@ -587,7 +543,8 @@ module.exports = function (grunt) {
 
     // Serve Tangelo.
     grunt.registerTask("serve", "Serve Tangelo on a given port (8080 by default)", function (host, port) {
-        var done = this.async();
+        var done = this.async(),
+            tangeloCmd;
 
         if (host === undefined && port === undefined) {
             host = "localhost";
@@ -597,9 +554,11 @@ module.exports = function (grunt) {
             host = "localhost";
         }
 
+        tangeloCmd = tangeloCmdLine(host, port, "venv/lib/python2.7/site-packages/tangelo/pkgdata/web", false);
+
         grunt.util.spawn({
-            cmd: tangelo,
-            args: tangeloArgs(host, port, "venv/share/tangelo/web"),
+            cmd: tangeloCmd.cmd,
+            args: tangeloCmd.args,
             opts: {
                 stdio: "inherit"
             }
@@ -609,11 +568,14 @@ module.exports = function (grunt) {
     });
 
     grunt.registerTask("serve:test", "Serve Tangelo in testing mode", function () {
-        var done = this.async();
+        var done = this.async(),
+            tangeloCmd;
+
+        tangeloCmd = tangeloCmdLine("localhost", "50047", "js/tests", false);
 
         grunt.util.spawn({
-            cmd: tangelo,
-            args: tangeloArgs("localhost", "50047", "js/tests"),
+            cmd: tangeloCmd.cmd,
+            args: tangeloCmd.args,
             opts: {
                 stdio: "inherit"
             }
@@ -645,10 +607,7 @@ module.exports = function (grunt) {
 
                 done = this.async();
 
-                cmdline = {
-                    cmd: tangelo,
-                    args: tangeloArgs("localhost", "50047", "js/tests")
-                };
+                cmdline = tangeloCmdLine("localhost", "50047", "js/tests", !windows);
 
                 console.log("Starting Tangelo server with: " + cmdline.cmd + " " + cmdline.args.join(" "));
                 process = grunt.util.spawn(cmdline, function () {});
@@ -714,6 +673,13 @@ module.exports = function (grunt) {
         });
     }());
 
+    grunt.registerTask("test:server", [
+        "coverage:erase",
+        "server_tests",
+        "coverage:combine",
+        "coverage_report"
+    ]);
+
     grunt.registerTask("test:client", [
         "jade:jstest",
         "copy:jstest",
@@ -724,7 +690,20 @@ module.exports = function (grunt) {
         "tangelo:stop"
     ]);
 
-    grunt.registerTask("test", ["test:server", "test:client"]);
+    grunt.registerTask("test:client:coverage", [
+        "coverage:erase",
+        "test:client",
+        "coverage:combine",
+        "coverage_report"
+    ]);
+
+    grunt.registerTask("test", [
+        "coverage:erase",
+        "server_tests",
+        "test:client",
+        "coverage:combine",
+        "coverage_report"
+    ]);
 
     // Clean task.
     grunt.renameTask("clean", "cleanup");
@@ -746,7 +725,7 @@ module.exports = function (grunt) {
     grunt.registerTask("default", ["version",
                                    "virtualenv",
                                    "pydeps",
-                                   "pep8",
+                                   "flake8",
                                    "docs",
                                    "jshint",
                                    "jscs",

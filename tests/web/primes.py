@@ -22,4 +22,4 @@ def stream():
 
 @tangelo.types(n=int)
 def run(n):
-    return list(itertools.islice(stream(), n, n+1))[0]
+    return list(itertools.islice(stream(), n, n + 1))[0]

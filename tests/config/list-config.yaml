@@ -1,0 +1,8 @@
+- This
+- is a valid
+- YAML file,
+- but it is not a
+- valid Tangelo config file
+- because it contains a list at the top level
+- instead of
+- an associative array.

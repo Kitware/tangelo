@@ -25,7 +25,6 @@ class Content(object):
     Directory = 2
     File = 3
     Service = 4
-    Restricted = 5
 
     def __init__(self, t, path=None, pargs=None):
         self.type = t
@@ -39,6 +38,7 @@ class UrlAnalysis(object):
         self.content = None
         self.reqpathcomp = None
         self.pathcomp = None
+        self.plugin_path = None
 
     def __str__(self):
         import pprint
@@ -51,141 +51,182 @@ class UrlAnalysis(object):
         return pprint.pformat(d)
 
 
-def analyze_url(raw_reqpath):
-    webroot = cherrypy.config.get("webroot")
-    plugins = cherrypy.config.get("plugins")
+class UrlAnalyzer(object):
+    instance = None
 
-    reqpath = raw_reqpath
+    def __init__(self):
+        UrlAnalyzer.instance = self
 
-    analysis = UrlAnalysis()
+        def blocked(self):
+            raise RuntimeError("You are not allowed to instantiate UrlAnalyzer")
 
-    # If the request path is blank, redirect to /.
-    if reqpath == "":
-        analysis.directive = Directive(Directive.HTTPRedirect, argument="/")
-        return analysis
+        UrlAnalyzer.__init__ = blocked
 
-    if plugins is not None and reqpath[0] == "/" and reqpath.split("/")[1] == "plugin":
-        plugin_comp = reqpath.split("/")
-        if len(plugin_comp) < 3:
-            analysis.directive = Directive(Directive.ListPlugins)
-            return analysis
+    @staticmethod
+    def is_python_file(path):
+        pyfile_ext = [".py", ".pyw", ".pyc", ".pyo", ".pyd"]
+        return len(path) > 0 and any(path.endswith(ext) for ext in pyfile_ext)
 
-        plugin = plugin_comp[2]
-        if plugin not in plugins.plugins:
-            analysis.content = Content(Content.NotFound, path=reqpath)
-            return analysis
+    @staticmethod
+    def is_service_config_file(path):
+        return path.endswith(".yaml") and os.path.exists(".".join(os.path.join(path.split(".")[:-1])) + ".py")
 
-        webroot = plugins.plugins[plugin].path + "/web"
-        reqpath = "/" + "/".join(plugin_comp[3:])
+    def accessible(self, path):
+        listdir = cherrypy.config.get("listdir")
+        showpy = cherrypy.config.get("showpy")
 
-    # Compute "parallel" path component lists based on the web root and the disk
-    # root.
-    if reqpath == "/":
-        reqpathcomp = []
-        pathcomp = [webroot]
-    else:
-        # Split the request path into path components, omitting the leading
-        # slash.
-        reqpathcomp = reqpath[1:].split("/")
+        if os.path.isdir(path):
+            return listdir
+        elif UrlAnalyzer.is_python_file(path):
+            config_file = ".".join(path.split(".")[:-1]) + ".yaml"
+            if os.path.exists(config_file):
+                try:
+                    config = tangelo.util.yaml_safe_load(config_file, dict)
+                except (ValueError, TypeError):
+                    tangelo.log_warning("Config file %s could not be read - locking down associated web service source" % (path))
+                    return False
+                else:
+                    config_showpy = config.get("show-py")
 
-        # Compute the disk path the URL corresponds to.
-        #
-        # First check to see whether the path is absolute (i.e. rooted at
-        # webroot) or in a user home directory.
-        if reqpathcomp[0][0] == "~" and len(reqpathcomp[0]) > 1:
-            # Only treat this component as a home directory if there is
-            # actually text following the tilde (rather than making the server
-            # serve files from the home directory of whatever user account it
-            # is using to run).
-            pathcomp = [os.path.expanduser(reqpathcomp[0]) +
-                        os.path.sep +
-                        "tangelo_html"] + reqpathcomp[1:]
+                if config_showpy is not None:
+                    if not isinstance(config_showpy, bool):
+                        tangelo.log_warning("Config file %s has a non-boolean 'show-py' property - locking down associated web service source" % (path))
+                        return False
+
+                    return config_showpy
+
+            return showpy
+        elif UrlAnalyzer.is_service_config_file(path):
+            return False
         else:
+            return True
+
+    def analyze(self, raw_reqpath):
+        webroot = cherrypy.config.get("webroot")
+        plugins = cherrypy.config.get("plugins")
+
+        reqpath = raw_reqpath
+
+        analysis = UrlAnalysis()
+
+        # If the request path is blank, redirect to /.
+        if reqpath == "":
+            analysis.directive = Directive(Directive.HTTPRedirect, argument="/")
+            return analysis
+
+        # If the request path does not begin with a /, then it is invalid.
+        if reqpath[0] != "/":
+            raise ValueError("request path must be absolute, i.e., begin with a slash")
+
+        # If the request path is to a plugin, substitute the correct webroot
+        # path.
+        if reqpath.split("/")[1] == "plugin":
+            plugin_comp = reqpath.split("/")
+            if len(plugin_comp) < 3:
+                analysis.directive = Directive(Directive.ListPlugins)
+                return analysis
+
+            plugin = plugin_comp[2]
+            if plugins is None or plugin not in plugins.plugins:
+                analysis.content = Content(Content.NotFound, path=raw_reqpath)
+                return analysis
+
+            analysis.plugin_path = plugins.plugins[plugin].path
+            webroot = plugins.plugins[plugin].path + "/web"
+            reqpath = "/" + "/".join(plugin_comp[3:])
+
+        # Compute "parallel" path component lists based on the web root and the disk
+        # root.
+        if reqpath == "/":
+            reqpathcomp = []
+            pathcomp = [webroot]
+        else:
+            # Split the request path into path components, omitting the leading
+            # slash.
+            reqpathcomp = reqpath[1:].split("/")
+
+            # Compute the disk path the URL corresponds to.
             pathcomp = [webroot] + reqpathcomp
 
-    # Save the request path and disk path components in the thread storage,
-    # slightly modifying the request path if it refers to an absolute path
-    # (indicated by being one element shorter than the disk path).
-    if len(reqpathcomp) == len(pathcomp) - 1:
-        reqpathcomp_save = [""] + reqpathcomp
-    elif len(reqpathcomp) == len(pathcomp):
-        reqpathcomp_save = ["/" + reqpathcomp[0]] + reqpathcomp[1:]
-    else:
-        raise RuntimeError("reqpathcomp and pathcomp lengths are wonky")
-
-    # If the path represents a directory and has a trailing slash, remove it
-    # (this will make the auth update step easier).
-    if (len(reqpathcomp_save) > 1 and
-            reqpathcomp_save[-1] == "" or
-            pathcomp[-1] == ""):
-        assert reqpathcomp_save[-1] == "" and pathcomp[-1] == ""
-        reqpathcomp_save = reqpathcomp_save[:-1]
-        pathcomp_save = pathcomp[:-1]
-    else:
-        pathcomp_save = pathcomp
-
-    analysis.reqpathcomp = reqpathcomp_save
-    analysis.pathcomp = pathcomp_save
-
-    # If pathcomp has more than one element, fuse the first two together.  This
-    # makes the search for a possible service below much simpler.
-    if len(pathcomp) > 1:
-        pathcomp = [pathcomp[0] + os.path.sep + pathcomp[1]] + pathcomp[2:]
-
-    # Form an actual path string.
-    path = os.path.sep.join(pathcomp)
-
-    # If the path is a directory, check for a trailing slash.  If missing,
-    # perform a redirect to the path WITH the trailing slash.  Otherwise, check
-    # for an index.html file in that directory; if found, perform an internal
-    # redirect to that file.  Otherwise, leave the path alone - it now
-    # represents a request for a directory listing.
-    #
-    # If instead the path isn't a directory, check to see if it's a regular
-    # file.  If it is, save the path in thread local storage - this will let
-    # the handler very quickly serve the file.
-    #
-    # If it is not a regular file, then check to see if it is a python service.
-    #
-    # Finally, if it is none of the above, then indicate a 404 error.
-    if os.path.isdir(path):
-        if raw_reqpath[-1] != "/":
-            analysis.directive = Directive(Directive.HTTPRedirect, argument=raw_reqpath + "/")
-            return analysis
-        elif os.path.exists(path + os.path.sep + "index.html"):
-            analysis.directive = Directive(Directive.InternalRedirect, argument=raw_reqpath + "index.html")
-            return analysis
+        # Save the request path and disk path components, slightly modifying the
+        # request path if it refers to an absolute path (indicated by being one
+        # element shorter than the disk path).
+        if len(reqpathcomp) == len(pathcomp) - 1:
+            reqpathcomp_save = [""] + reqpathcomp
+        elif len(reqpathcomp) == len(pathcomp):
+            reqpathcomp_save = ["/" + reqpathcomp[0]] + reqpathcomp[1:]
         else:
-            analysis.content = Content(Content.Directory, path=path)
-    elif os.path.exists(path):
-        # Don't serve Python files (if someone really wants to serve the program
-        # text, they can create a symlink with a different file extension and
-        # that will be served just fine).
-        if len(path) > 3 and path[-3:] == ".py":
-            analysis.content = Content(Content.Restricted, path=path)
+            raise RuntimeError("reqpathcomp and pathcomp lengths are wonky")
+
+        # If the path represents a directory and has a trailing slash, remove it
+        # (this will make the auth update step easier).
+        if (len(reqpathcomp_save) > 1 and
+                reqpathcomp_save[-1] == "" or
+                pathcomp[-1] == ""):
+            assert reqpathcomp_save[-1] == "" and pathcomp[-1] == ""
+            reqpathcomp_save = reqpathcomp_save[:-1]
+            pathcomp_save = pathcomp[:-1]
         else:
-            # Also do not serve config files that match up to Python files.
-            if (len(path) > 5 and
-                    path[-5:] == ".yaml" and
-                    os.path.exists(path[:-5] + ".py")):
-                analysis.content = Content(Content.Restricted, path=path)
+            pathcomp_save = pathcomp
+
+        analysis.reqpathcomp = reqpathcomp_save
+        analysis.pathcomp = pathcomp_save
+
+        # If pathcomp has more than one element, fuse the first two together.  This
+        # makes the search for a possible service below much simpler.
+        if len(pathcomp) > 1:
+            pathcomp = [os.path.join(pathcomp[0], pathcomp[1])] + pathcomp[2:]
+
+        # Form an actual path string.
+        path = os.path.join(*pathcomp)
+
+        # If the path is a directory, check for a trailing slash.  If missing,
+        # perform a redirect to the path WITH the trailing slash.  Otherwise,
+        # check for an index.html file in that directory; if found, perform an
+        # internal redirect to that file.  Otherwise, leave the path alone - it
+        # now represents a request for a directory listing.
+        #
+        # If instead the path isn't a directory, check to see if it's a regular
+        # file.  If it is, save the path in thread local storage - this will let
+        # the handler very quickly serve the file.
+        #
+        # If it is not a regular file, then check to see if it is a python service.
+        #
+        # Finally, if it is none of the above, then indicate a 404 error.
+        if os.path.isdir(path):
+            if raw_reqpath[-1] != "/":
+                analysis.directive = Directive(Directive.HTTPRedirect, argument=raw_reqpath + "/")
+                return analysis
+            elif os.path.exists(path + os.path.sep + "index.html"):
+                analysis.directive = Directive(Directive.InternalRedirect, argument=raw_reqpath + "index.html")
+                return analysis
             else:
-                analysis.content = Content(Content.File, path=path)
-    else:
-        service_path = None
-        pargs = None
-        for i in range(len(pathcomp)):
-            service_path = os.path.sep.join(pathcomp[:(i + 1)]) + ".py"
-            if os.path.exists(service_path):
-                pargs = pathcomp[(i + 1):]
-                break
-
-        if pargs is None:
-            analysis.content = Content(Content.NotFound, path=path)
+                # Only serve a directory listing if the security policy allows it.
+                analysis.content = Content(Content.Directory, path=path if self.accessible(path) else None)
+        elif os.path.exists(path):
+            # Only serve a file if the security policy allows it.
+            analysis.content = Content(Content.File, path=path if self.accessible(path) else None)
         else:
-            analysis.content = Content(Content.Service, path=service_path, pargs=pargs)
+            service_path = None
+            pargs = None
+            for i in range(len(pathcomp)):
+                service_path = os.path.sep.join(pathcomp[:(i + 1)]) + ".py"
+                if os.path.exists(service_path):
+                    pargs = pathcomp[(i + 1):]
+                    break
 
-    return analysis
+            if pargs is None:
+                analysis.content = Content(Content.NotFound, path=raw_reqpath)
+            else:
+                analysis.content = Content(Content.Service, path=service_path, pargs=pargs)
+
+        return analysis
+
+UrlAnalyzer()
+
+
+def analyze_url(url):
+    return UrlAnalyzer.instance.analyze(url)
 
 
 class AuthUpdate(object):
@@ -356,21 +397,12 @@ class Tangelo(object):
         self.auth_update = None
         self.plugins = plugins
 
-        if self.plugins:
-            self.plugins.refresh()
-
     def invoke_service(self, module, *pargs, **kwargs):
-        # TODO(choudhury): This method should attempt to load the named module,
-        # then invoke it with the given arguments.  However, if the named
-        # module is "config" or something similar, the method should instead
-        # launch a special "config" app, which lists the available app modules,
-        # along with docstrings or similar.  It should also allow the user to
-        # add/delete search paths for other modules.
         tangelo.content_type("text/plain")
 
         # Save the system path (be sure to *make a copy* using the list()
-        # function) - it will be modified before invoking the service, and must
-        # be restored afterwards.
+        # function).  This will be restored to undo any modification of the path
+        # done by the service.
         origpath = list(sys.path)
 
         # By default, the result should be an object with error message in if
@@ -385,16 +417,19 @@ class Tangelo(object):
         cherrypy.thread_data.modulepath = modpath
         cherrypy.thread_data.modulename = module
 
-        # Extend the system path with the module's home path.
-        sys.path.insert(0, modpath)
+        # Change the current working directory to that of the service module,
+        # saving the old one.  This is so that the service function executes as
+        # though it were a Python program invoked normally, and Tangelo can
+        # continue running later in whatever its original CWD was.
+        save_cwd = os.getcwd()
+        os.chdir(modpath)
 
         try:
             service = self.modules.get(module)
         except:
             tangelo.http_status(501, "Error Importing Service")
             tangelo.content_type("application/json")
-            result = {"error": "Could not import module %s" % (tangelo.request_path()),
-                      "traceback": traceback.format_exc().split("\n")}
+            result = tangelo.util.traceback_report(error="Could not import module %s" % (tangelo.request_path()))
         else:
             # Try to run the service - either it's in a function called
             # "run()", or else it's in a REST API consisting of at least one of
@@ -405,7 +440,7 @@ class Tangelo(object):
             # also raise a cherrypy exception, log itself in a streaming table,
             # etc.).
             try:
-                if 'run' in dir(service):
+                if "run" in dir(service):
                     # Call the module's run() method, passing it the positional
                     # and keyword args that came into this method.
                     result = service.run(*pargs, **kwargs)
@@ -422,18 +457,17 @@ class Tangelo(object):
                         tangelo.content_type("application/json")
                         result = {"error": "Method '%s' is not allowed in this service" % (method)}
             except:
-                stacktrace = traceback.format_exc()
-
-                tangelo.log_warning("SERVICE", "Could not execute service %s:\n%s" % (tangelo.request_path(), stacktrace))
-
                 tangelo.http_status(501, "Web Service Error")
                 tangelo.content_type("application/json")
-                result = {"error": "Error executing service",
-                          "module": tangelo.request_path(),
-                          "traceback": stacktrace.split("\n")}
+                result = tangelo.util.traceback_report(error="Error executing service", module=tangelo.request_path())
+
+                tangelo.log_warning("SERVICE", "Could not execute service %s:\n%s" % (tangelo.request_path(), "\n".join(result["traceback"])))
 
         # Restore the path to what it was originally.
         sys.path = origpath
+
+        # Restore the CWD to what it was before the service invocation.
+        os.chdir(save_cwd)
 
         # If the result is not a string, attempt to convert it to one via JSON
         # serialization.  This allows services to return a Python object if they
@@ -531,14 +565,21 @@ class Tangelo(object):
         # Serve content here, either by serving a static file, generating a
         # directory listing, executing a service, or barring the client entry.
         if content is not None:
-            if content.type in [Content.File, Content.NotFound]:
-                return cherrypy.lib.static.serve_file(content.path)
+            if content.type == Content.File:
+                if content.path is not None:
+                    return cherrypy.lib.static.serve_file(content.path)
+                else:
+                    raise cherrypy.HTTPError("403 Forbidden", "The requested path is forbidden")
             elif content.type == Content.Directory:
-                return Tangelo.dirlisting(content.path, cherrypy.request.path_info)
+                if content.path is not None:
+                    return Tangelo.dirlisting(content.path, cherrypy.request.path_info)
+                else:
+                    raise cherrypy.HTTPError("403 Forbidden", "Listing of this directory has been disabled")
             elif content.type == Content.Service:
+                cherrypy.thread_data.pluginpath = analysis.plugin_path
                 return self.invoke_service(content.path, *content.pargs, **query_args)
-            elif content.type == Content.Restricted:
-                raise cherrypy.HTTPError("403 Forbidden", "The path '%s' is forbidden" % (cherrypy.serving.request.path_info))
+            elif content.type == Content.NotFound:
+                raise cherrypy.HTTPError("404 Not Found", "The path '%s' was not found" % (content.path))
             else:
                 raise RuntimeError("fatal error: illegal content type code %d" % (content.type))
         else:
@@ -546,14 +587,6 @@ class Tangelo(object):
 
     @cherrypy.expose
     def plugin(self, *path, **args):
-        # Refresh the plugin registry.
-        if self.plugins:
-            error = self.plugins.refresh()
-            if error is not None:
-                tangelo.content_type("text/plain")
-                tangelo.http_status(400, "Bad Plugin Configuration")
-                return error
-
         return self.execute_analysis(args)
 
     @cherrypy.expose
@@ -569,24 +602,69 @@ class Plugins(object):
             self.module = None
             self.apps = []
 
-    def __init__(self, base_package, config_file):
+    def __init__(self, base_package, config, plugin_dir):
         self.base_package = base_package
-        self.config_file = config_file
+        self.plugin_dir = plugin_dir
 
-        self.config_dir = os.path.dirname(self.config_file)
-        self.mtime = 0
+        self.errors = []
         self.plugins = {}
-        self.missing_msg = "Plugin config file %s seems to have disappeared" % (self.config_file)
 
         self.modules = tangelo.util.ModuleCache(config=False)
 
+        # Create a virtual module to hold all plugin python modules.
         exec("%s = sys.modules[self.base_package] = types.ModuleType(self.base_package)" % (self.base_package))
+
+        # A null config should be treated as an empty list.
+        if config is None:
+            config = []
+
+        # Read through the list of plugin configs, extracting the info and
+        # validating as we go.
+        for i, entry in enumerate(config):
+            if not isinstance(entry, dict):
+                self.errors.append("Configuration for plugin %d is not an associative array" % (i + 1))
+                return
+
+            name = entry.get("name")
+            if name is None:
+                self.errors.append("Configuration for plugin %d is missing required 'name' property" % (i + 1))
+                return
+
+            if name in self.plugins:
+                self.errors.append("Configuration for plugin %d uses duplicate plugin name '%s'" % (i + 1, name))
+                return
+
+            self.plugins[name] = entry
+            del self.plugins[name]["name"]
+
+        # Load all the plugins one by one, bailing out if there are any errors.
+        for plugin, conf in self.plugins.iteritems():
+            if "path" in conf:
+                # Extract the plugin path.
+                path = os.path.abspath(conf["path"])
+            else:
+                # Construct the plugin path, given the name of the plugin,
+                # and the base path of Tangelo.
+                path = os.path.join(self.plugin_dir, plugin)
+
+            if not self.load(plugin, path):
+                self.errors.append("Plugin %s failed to load" % (plugin))
+                return
+
+            tangelo.log_success("Plugin %s loaded" % (plugin))
+
+    def good(self):
+        return len(self.errors) == 0
 
     def plugin_list(self):
         return self.plugins.keys()
 
     def load(self, plugin_name, path):
-        tangelo.log("PLUGIN", "Loading plugin %s (from %s)" % (plugin_name, path))
+        tangelo.log_info("PLUGIN", "Loading plugin %s (from %s)" % (plugin_name, path))
+
+        if not os.path.exists(path):
+            self.errors.append("Plugin path %s does not exist" % (path))
+            return False
 
         plugin = Plugins.Plugin(path)
 
@@ -595,16 +673,16 @@ class Plugins(object):
         config = {}
         if os.path.exists(config_file):
             try:
-                config = tangelo.util.load_service_config(config_file)
+                config = tangelo.util.yaml_safe_load(config_file)
             except TypeError as e:
-                tangelo.log_warning("PLUGIN", "\tBad configuration in file %s: %s" % (config_file, e))
-                return
+                self.errors.append("Bad configuration for plugin %s (%s): %s" % (plugin_name, config_file, e))
+                return False
             except IOError:
-                tangelo.log_warning("PLUGIN", "\tCould not open config file %s" % (config_file))
-                return
+                self.errors.append("Could not open configuration for plugin %s (%s)" % (plugin_name, config_file))
+                return False
             except ValueError as e:
-                tangelo.log_warning("PLUGIN", "\tError reading config file %s: %s" % (config_file, e))
-                return
+                self.errors.append("Error reading configuration for plugin %s (%s): %s" % (plugin_name, config_file, e))
+                return False
 
         # Install the config and an empty dict as the plugin-level
         # config and store.
@@ -615,11 +693,11 @@ class Plugins(object):
         # there in a virtual submodule of tangelo.plugin.
         python = os.path.join(path, "python")
         if os.path.exists(python):
-            tangelo.log("PLUGIN", "\t...loading python module content")
+            tangelo.log_info("PLUGIN", "\t...loading python module content")
 
             init = os.path.join(python, "__init__.py")
             if not os.path.exists(init):
-                tangelo.log_warning("PLUGIN", "\terror:  plugin '%s' includes a 'python' directory but is missing __init.py__" % (plugin))
+                self.errors.append("'python' directory of plugin %s is missing __init.py__" % (plugin_name))
                 return False
             else:
                 module_name = "%s.%s" % (self.base_package, plugin_name)
@@ -629,7 +707,7 @@ class Plugins(object):
                 try:
                     exec('%s = sys.modules[module_name] = self.modules.get(init)' % (module_name))
                 except:
-                    tangelo.log_warning("PLUGIN", "Could not import python module content:\n%s" % (traceback.format_exc()))
+                    self.errors.append("Could not import python module content for plugin %s:\n%s" % (plugin_name, traceback.format_exc()))
                     sys.path = old_path
                     return False
                 finally:
@@ -639,20 +717,20 @@ class Plugins(object):
         # that need to be mounted.
         control_file = os.path.join(path, "control.py")
         if os.path.exists(control_file):
-            tangelo.log("PLUGIN", "\t...loading plugin control module")
+            tangelo.log_info("PLUGIN", "\t...loading plugin control module")
             try:
                 control = self.modules.get(control_file)
                 plugin.control = control
             except:
-                tangelo.log_warning("PLUGIN", "Could not import control module:\n%s" % (traceback.format_exc()))
+                self.errors.append("Could not import control module for plugin %s:\n%s" % (plugin_name, traceback.format_exc()))
                 return False
             else:
                 if "setup" in dir(control):
-                    tangelo.log("PLUGIN", "\t...running plugin setup")
+                    tangelo.log_info("PLUGIN", "\t...running plugin setup")
                     try:
                         setup = control.setup(config, cherrypy.config["plugin-store"][path])
                     except:
-                        tangelo.log_warning("PLUGIN", "Could not set up plugin:\n%s" % (traceback.format_exc()))
+                        self.errors.append("Could not set up plugin %s:\n%s" % (plugin_name, traceback.format_exc()))
                         return False
                     else:
                         for app in setup.get("apps", []):
@@ -662,15 +740,15 @@ class Plugins(object):
                             elif len(app) == 3:
                                 (app_obj, app_config, mountpoint) = app
                             else:
-                                tangelo.log_warning("PLUGIN", "\tapp mount spec has %d item%s (should be either 2 or 3)" % (len(app), "" if len(app) == 1 else "s"))
+                                self.errors.append("App mount spec for plugin %s has %d item%s (should be either 2 or 3)" % (plugin_name, len(app), "" if len(app) == 1 else "s"))
                                 return False
 
                             app_path = os.path.join("/plugin", plugin_name, mountpoint)
                             if app_path in cherrypy.tree.apps:
-                                tangelo.log_warning("PLUGIN", "\tFailed to mount application at %s (app already mounted there)" % (app_path))
+                                self.errors.append("Failed to mount application for plugin %s at %s (app already mounted there)" % (plugin_name, app_path))
                                 return False
                             else:
-                                tangelo.log("PLUGIN", "\t...mounting application at %s" % (app_path))
+                                tangelo.log_info("PLUGIN", "\t...mounting application at %s" % (app_path))
                                 cherrypy.tree.mount(app_obj, app_path, app_config)
                                 plugin.apps.append(app_path)
 
@@ -678,85 +756,28 @@ class Plugins(object):
         return True
 
     def unload(self, plugin_name):
-        tangelo.log("PLUGIN", "Unloading plugin '%s'" % (plugin_name))
+        tangelo.log_info("PLUGIN", "Unloading plugin '%s'" % (plugin_name))
 
         plugin = self.plugins[plugin_name]
 
         if plugin.module is not None:
-            tangelo.log("PLUGIN", "\t...removing module %s" % (plugin.module))
+            tangelo.log_info("PLUGIN", "\t...removing module %s" % (plugin.module))
             del sys.modules[plugin.module]
             exec("del %s" % (plugin.module))
 
         for app_path in plugin.apps:
-            tangelo.log("PLUGIN", "\t...unmounting app at %s" % (app_path))
+            tangelo.log_info("PLUGIN", "\t...unmounting app at %s" % (app_path))
             del cherrypy.tree.apps[app_path]
 
         if "teardown" in dir(plugin.control):
-            tangelo.log("PLUGIN", "\t...running teardown")
+            tangelo.log_info("PLUGIN", "\t...running teardown")
             try:
                 plugin.control.teardown(cherrypy.config["plugin-config"][plugin.path], cherrypy.config["plugin-store"][plugin.path])
             except:
                 tangelo.log_warning("PLUGIN", "Could not run teardown:\n%s", (traceback.format_exc()))
 
         del self.plugins[plugin_name]
-
-    def refresh(self):
-        if not os.path.exists(self.config_file):
-            if self.mtime > 0:
-                tangelo.log_warning("PLUGIN", self.missing_msg)
-                self.mtime = 0
-            self.plugins = {}
-            return
-
-        mtime = os.path.getmtime(self.config_file)
-        if mtime <= self.mtime:
-            return
-
-        self.mtime = mtime
-
-        try:
-            config = tangelo.util.PluginConfig(self.config_file)
-        except IOError:
-            tangelo.log_warning("PLUGIN", self.missing_msg)
-            return
-        except TypeError:
-            tangelo.log_warning("PLUGIN", "plugin config file does not contain a top-level associative array")
-            return
-        except ValueError as e:
-            tangelo.log_warning("PLUGIN", "error reading plugin config file: %s" % (e))
-            return
-
-        seen = set()
-        for plugin, conf in config.plugins.iteritems():
-            # See whether the plugin is enabled (yes by default).
-            enabled = conf.get("enabled", True)
-            if not isinstance(enabled, bool):
-                tangelo.log_warning("PLUGIN", "error:  setting 'enabled' in configuration for plugin '%s' must be a boolean value!" % (plugin))
-                continue
-
-            if enabled and plugin not in self.plugins:
-                # Extract the plugin path.
-                try:
-                    path = os.path.join(self.config_dir, conf["path"])
-                except KeyError:
-                    tangelo.log_warning("PLUGIN", "error: configuration for plugin '%s' missing required setting 'path'" % (plugin))
-                    continue
-
-                if not self.load(plugin, path):
-                    tangelo.log_warning("PLUGIN", "Plugin %s failed to load" % (plugin))
-            elif not enabled and plugin in self.plugins:
-                self.unload(plugin)
-
-            # Record the fact that this plugin was referenced in the plugin
-            # config file.
-            seen.add(plugin)
-
-        # All plugins that are still loaded, and yet weren't mentioned in the
-        # config file, should be unloaded (i.e., deleting a section from the
-        # plugin config file is the same as leaving it there but setting
-        # "enabled" to False).
-        for plugin in filter(lambda x: x not in seen, self.plugins):
-            self.unload(plugin)
+        tangelo.log_success("plugin %s unloaded" % (plugin_name))
 
     def unload_all(self):
         for plugin_name in self.plugins.keys():

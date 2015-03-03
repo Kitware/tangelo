@@ -1,6 +1,7 @@
+import datetime
+import os
 import platform
 import subprocess
-import sys
 import time
 
 host = "localhost"
@@ -9,11 +10,40 @@ port = "50047"
 process = None
 
 
+def windows():
+    return platform.platform().split("-")[0] == "Windows"
+
+
 def url(*path, **query):
     return "http://%s:%s/%s?%s" % (host, port, "/".join(path), "&".join(["%s=%s" % (key, value) for key, value in query.iteritems()]))
 
+
 def plugin_url(*path, **query):
     return url(*(["plugin"] + list(path)), **query)
+
+
+def relative_path(path):
+    return "%s/%s" % (os.getcwd(), path)
+
+
+def run_tangelo(*args, **kwargs):
+    timeout = kwargs.get("timeout", 5)
+    tangelo = ["venv/Scripts/python", "venv/Scripts/tangelo"] if windows() else ["venv/bin/tangelo"]
+
+    # Start Tangelo with the specified arguments, and immediately poll the
+    # process to bootstrap its returncode state.
+    proc = subprocess.Popen(tangelo + list(args), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc.poll()
+
+    # Run in a loop until the timeout expires or the process ends.
+    now = start = datetime.datetime.now()
+    while (now - start).total_seconds() < timeout and proc.returncode is None:
+        time.sleep(0.5)
+        proc.poll()
+        now = datetime.datetime.now()
+
+    return (proc.returncode, filter(None, proc.stdout.read().splitlines()), filter(None, proc.stderr.read().splitlines()))
+
 
 def start_tangelo():
     global process
@@ -21,32 +51,43 @@ def start_tangelo():
     if process is not None:
         raise RuntimeError("start_tangelo() called twice without a stop_tangelo() in between")
 
-    windows = platform.platform().split("-")[0] == "Windows"
-
-    if windows:
+    if windows():
         coverage_args = []
         tangelo = ["venv/Scripts/python", "venv/Scripts/tangelo"]
     else:
-        coverage_args = ["venv/bin/coverage", "run", "-p", "--source", "venv/lib/python2.7/site-packages/tangelo,venv/share/tangelo/plugin"]
+        source_dirs = ["bokeh/python",
+                       "config/web",
+                       "girder",
+                       "impala/web",
+                       "mongo/web",
+                       "stream/web",
+                       "tangelo/web",
+                       "vtkweb",
+                       "vtkweb/web"]
+        source_dirs = ",".join(map(lambda p: "venv/share/tangelo/plugin/%s" % (p), source_dirs))
+
+        coverage_args = ["venv/bin/coverage", "run", "-p", "--source", "venv/lib/python2.7/site-packages/tangelo,%s" % (source_dirs)]
         tangelo = ["venv/bin/tangelo"]
 
     process = subprocess.Popen(coverage_args + tangelo + ["--host", host,
                                                           "--port", port,
                                                           "--root", "tests/web",
-                                                          "--plugin-config", "venv/share/tangelo/plugin/plugin.conf"],
+                                                          "--config", "tests/bundled-plugins.yaml",
+                                                          "--list-dir"],
+                               stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
 
     buf = []
-    endl = "\r\n" if windows else "\n"
     while True:
         line = process.stderr.readline()
         buf.append(line)
 
-        if line.endswith("ENGINE Bus STARTED" + endl):
+        if line.rstrip().endswith("ENGINE Bus STARTED"):
             return 0
-        elif line.endswith("ENGINE Bus EXITED" + endl) or process.poll() is not None:
+        elif line.rstrip().endswith("ENGINE Bus EXITED") or process.poll() is not None:
             process = None
             raise RuntimeError("Could not start Tangelo:\n%s" % ("".join(buf)))
+
 
 def stop_tangelo():
     global process

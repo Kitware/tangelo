@@ -6,51 +6,145 @@ import cherrypy
 import platform
 import signal
 import sys
-import tangelo.util
+import types
 import ws4py.server
-import yaml
 
 import tangelo
 import tangelo.server
 import tangelo.util
 import tangelo.websocket
 
-tangelo_version = "0.8.1"
+tangelo_version = "0.9.0"
+
+
+def tangelo_pkgdata():
+    print get_pkgdata_dir()
+    return 0
+
+
+def tangelo_passwd():
+    import argparse
+    import getpass
+    import md5
+    import sys
+
+    # Parse arguments.
+    p = argparse.ArgumentParser(description="Edit .htaccess files for Tangelo")
+    p.add_argument("-c", "--create", action="store_true", help="Create new password file")
+    p.add_argument("passwordfile", metavar="passwordfile", type=str, nargs=1, help="Password file")
+    p.add_argument("realm", metavar="realm", type=str, nargs=1, help="Authentication realm")
+    p.add_argument("user", metavar="user", type=str, nargs=1, help="Username")
+
+    args = p.parse_args()
+
+    # Capture argument values.
+    create = args.create
+    passwordfile = args.passwordfile[0]
+    realm = args.realm[0]
+    user = args.user[0]
+
+    # Open the password file and read in the contents.
+    try:
+        with open(passwordfile) as f:
+            pws = map(lambda x: x.strip().split(":"), f.readlines())
+    except IOError:
+        create = True
+        pws = []
+
+    # Find the record matching the user.
+    userrec = filter(lambda x: x[1][0] == user and x[1][1] == realm, enumerate(pws))
+
+    n = len(userrec)
+    if n > 1:
+        print >>sys.stderr, "warning: user '%s' for realm '%s' occurs %d times... using only first occurrence"
+
+    # Get the first element of userrec, if there is one.
+    if userrec == []:
+        # If there was no matching record, make up a dummy one.
+        userrec = [None, [user, realm, None]]
+    else:
+        userrec = list(userrec[0])
+
+    # Get a password and confirmation from the user.
+    password = getpass.getpass("Enter password for %s@%s: " % (user, realm))
+    confirm = getpass.getpass("Re-enter password: ")
+
+    if password != confirm:
+        print >>sys.stderr, "Passwords do not match, aborting."
+        return 1
+
+    # Install the md5 hash in the "password" slot of the updating record.
+    userrec[1][2] = md5.md5("%s:%s:%s" % (user, realm, password)).hexdigest()
+
+    # If requested to "create" a new password file, delete the pws array, and
+    # arrange for the userrec to be appended to the pws array, rather than updating
+    # some indexed entry of it (with the signal index of -1).
+    if create:
+        pws = [userrec[1]]
+    else:
+        if userrec[0] is None:
+            pws.append(userrec[1])
+        else:
+            pws[userrec[0]] = userrec[1]
+
+    try:
+        with open(passwordfile, "w") as f:
+            f.writelines(map(lambda x: ":".join(x) + "\n", pws))
+    except IOError:
+        print >>sys.stderr, "error: could not open file '%s' for writing!" % (passwordfile)
+        return 1
+
+    return 0
 
 
 class Config(object):
-    def __init__(self, filename=None):
-        self.access_auth = None
-        self.drop_privileges = None
-        self.sessions = None
-        self.hostname = None
-        self.port = None
-        self.user = None
-        self.group = None
-        self.key = None
-        self.cert = None
-        self.root = None
+    options = {"access_auth": [bool],
+               "drop_privileges": [bool],
+               "sessions": [bool],
+               "list_dir": [bool],
+               "show_py": [bool],
+               "hostname": types.StringTypes,
+               "port": [int],
+               "user": types.StringTypes,
+               "group": types.StringTypes,
+               "key": types.StringTypes,
+               "cert": types.StringTypes,
+               "root": types.StringTypes,
+               "plugins": [list]}
+
+    def __init__(self, filename):
+        for option in Config.options:
+            self.__dict__[option] = None
+
+        self.errors = []
 
         if filename is not None:
             self.load(filename)
 
     def load(self, filename):
-        with open(filename) as f:
-            d = yaml.safe_load(f.read())
+        try:
+            d = tangelo.util.yaml_safe_load(filename, dict)
+        except TypeError:
+            self.errors.append("config file does not contain associative array at top level")
+            return
 
-        if not isinstance(d, dict):
-            raise TypeError("Config file %s does not contain a top-level associative array")
+        for option, setting in d.iteritems():
+            uscore = option.replace("-", "_")
+            if uscore not in Config.options:
+                self.errors.append("unknown option %s" % (option))
+            else:
+                self.__dict__[uscore] = setting
 
-        self.access_auth = d.get("access-auth")
-        self.drop_privileges = d.get("drop-privileges")
-        self.sessions = d.get("sessions")
-        self.hostname = d.get("hostname")
-        self.port = d.get("port")
-        self.user = d.get("user")
-        self.group = d.get("group")
-        self.key = d.get("key")
-        self.cert = d.get("cert")
-        self.root = d.get("root")
+    def type_check_value(self, option, valid_types):
+        value = self.__dict__.get(option)
+        if value is not None and not any(isinstance(value, t) for t in valid_types):
+            self.errors.append("option %s must be of type %s" % (option, " or ".join([t.__name__ for t in valid_types])))
+
+    def type_check(self):
+        for option, valid_types in Config.options.iteritems():
+            self.type_check_value(option, valid_types)
+
+        return len(self.errors) == 0
 
 
 def polite(signum, frame):
@@ -84,12 +178,20 @@ def shutdown(signum, frame):
     tangelo.log_success("TANGELO", "Be seeing you.")
 
 
-def get_invocation_dir():
-    invocation_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..")
-    if platform.system() == "Windows":
-        return os.path.abspath(invocation_dir)
-    else:
-        return os.path.abspath(os.path.join(invocation_dir, ".."))
+def get_pkgdata_dir():
+    return os.path.dirname(__file__)
+
+
+def get_web_directory():
+    return os.path.join(get_pkgdata_dir(), "pkgdata/web")
+
+
+def get_bundled_plugin_directory():
+    return os.path.join(get_pkgdata_dir(), "pkgdata/plugin")
+
+
+def get_tangelo_ico():
+    return os.path.join(get_pkgdata_dir(), "pkgdata/tangelo.ico")
 
 
 def main():
@@ -100,7 +202,11 @@ def main():
     p.add_argument("-p", "--drop-privileges", action="store_const", const=True, default=None, help="enable privilege drop when started as superuser (default)")
     p.add_argument("-np", "--no-drop-privileges", action="store_const", const=True, default=None, help="disable privilege drop when started as superuser")
     p.add_argument("-s", "--sessions", action="store_const", const=True, default=None, help="enable session tracking (default)")
-    p.add_argument("-ns", "--no-sessions", action="store_const", const=True, default=None, help="edisable session tracking")
+    p.add_argument("-ns", "--no-sessions", action="store_const", const=True, default=None, help="disable session tracking")
+    p.add_argument("--list-dir", action="store_true", default=None, help="enable directory content serving")
+    p.add_argument("--no-list-dir", action="store_true", default=None, help="disable directory content serving (default)")
+    p.add_argument("--show-py", action="store_true", default=None, help="enable Python service source code serving")
+    p.add_argument("--no-show-py", action="store_true", default=None, help="disable Python service source code serving (default)")
     p.add_argument("--hostname", type=str, default=None, metavar="HOSTNAME", help="overrides configured hostname on which to run Tangelo")
     p.add_argument("--port", type=int, default=None, metavar="PORT", help="overrides configured port number on which to run Tangelo")
     p.add_argument("-u", "--user", type=str, default=None, metavar="USERNAME", help="specifies the user to run as when root privileges are dropped")
@@ -110,7 +216,7 @@ def main():
     p.add_argument("--version", action="store_true", help="display Tangelo version number")
     p.add_argument("--key", type=str, default=None, metavar="FILE", help="the path to the SSL key.  You must also specify --cert to serve content over https.")
     p.add_argument("--cert", type=str, default=None, metavar="FILE", help="the path to the SSL certificate.  You must also specify --key to serve content over https.")
-    p.add_argument("--plugin-config", type=str, default=None, metavar="PATH", help="path to plugin configuration file")
+    p.add_argument("--examples", action="store_true", default=None, help="Serve the Tangelo example applications")
     args = p.parse_args()
 
     # If version flag is present, print the version number and exit.
@@ -129,17 +235,25 @@ def main():
 
     if args.no_sessions and args.sessions:
         tangelo.log_error("ERROR", "can't specify both --sessions (-s) and --no-sessions (-ns) together")
+        return 1
+
+    if args.examples and args.root:
+        tangelo.log_error("ERROR", "can't specify both --examples and --root (-r) together")
+        return 1
+
+    if args.examples and args.config:
+        tangelo.log_error("ERROR", "can't specify both --examples and --config (-c) together")
+        return 1
+
+    if args.no_list_dir and args.list_dir:
+        tangelo.log_error("ERROR", "can't specify both --list-dir and --no-list-dir together")
         sys.exit(1)
 
-    # Figure out where this is being called from - that will be useful for a
-    # couple of purposes.
-    invocation_dir = get_invocation_dir()
+    if args.no_show_py and args.show_py:
+        tangelo.log_error("ERROR", "can't specify both --show-py and --no-show-py together")
+        sys.exit(1)
 
-    # Before extracting the other arguments, compute a configuration dictionary.
-    # If --no-config was specified, this will be the empty dictionary;
-    # otherwise, check the command line arguments for a config file first, then
-    # look for one in a sequence of other places.
-    config = {}
+    # Decide if we have a configuration file or not.
     cfg_file = args.config
     if cfg_file is None:
         tangelo.log("TANGELO", "No configuration file specified - using command line args and defaults")
@@ -147,18 +261,18 @@ def main():
         cfg_file = tangelo.util.expandpath(cfg_file)
         tangelo.log("TANGELO", "Using configuration file %s" % (cfg_file))
 
-    # Get a dict representing the contents of the config file.
+    # Parse the config file; report errors if any.
     try:
-        ok = False
         config = Config(cfg_file)
-        ok = True
-    except (IOError, TypeError) as e:
-        tangelo.log_error("TANGELO", "error: %s" % (e))
-    except yaml.YAMLError as e:
-        tangelo.log_error("TANGELO", "error while parsing config file: %s" % (e))
-    finally:
-        if not ok:
-            return 1
+    except (IOError, ValueError) as e:
+        tangelo.log_error("ERROR", e)
+        return 1
+
+    # Type check the config entries.
+    if not config.type_check():
+        for message in config.errors:
+            tangelo.log_error("TANGELO", message)
+        return 1
 
     # Determine whether to use access auth.
     access_auth = True
@@ -187,6 +301,28 @@ def main():
         sessions = (args.sessions is not None) or (not args.no_sessions)
 
     tangelo.log("TANGELO", "Sessions %s" % ("enabled" if sessions else "disabled"))
+
+    # Determine whether to serve directory listings by default.
+    listdir = False
+    if args.list_dir is None and args.no_list_dir is None:
+        if config.list_dir is not None:
+            listdir = config.list_dir
+    else:
+        listdir = (args.list_dir is not None) or (not args.no_list_dir)
+
+    cherrypy.config["listdir"] = listdir
+    tangelo.log("TANGELO", "Directory content serving %s" % ("enabled" if listdir else "disabled"))
+
+    # Determine whether to serve web service Python source code by default.
+    showpy = False
+    if args.show_py is None and args.no_show_py is None:
+        if config.show_py is not None:
+            showpy = config.show_py
+    else:
+        showpy = (args.show_py is not None) or (not args.no_show_py)
+
+    cherrypy.config["showpy"] = showpy
+    tangelo.log("TANGELO", "Web service source code serving %s" % ("enabled" if showpy else "disabled"))
 
     # Extract the rest of the arguments, giving priority first to command line
     # arguments, then to the configuration file (if any), and finally to a
@@ -236,43 +372,31 @@ def main():
     # We need a web root - use the installed example web directory as a
     # fallback.  This might be found in a few different places, so try them one
     # by one until we find one that exists.
-    #
-    # TODO(choudhury): shouldn't we *only* check the invocation_dir option?  We
-    # shouldn't pick up a stray web directory that happens to be found in /usr
-    # if we're invoking tangelo from a totally different location.
     root = args.root or config.root
     if root:
         root = tangelo.util.expandpath(root)
-    else:
-        root = tangelo.util.expandpath(invocation_dir + "/share/tangelo/web")
-        tangelo.log_info("TANGELO", "Looking for default web content path in %s" % (root))
+    elif args.examples:
+        # Set the examples web root.
+        root = get_web_directory()
+        tangelo.log_info("TANGELO", "Looking for example web content path in %s" % (root))
         if not os.path.exists(root):
-            root = None
-
-        # TODO(choudhury): by default, should we simply serve from the current
-        # directory?  This is how SimpleHTTPServer works, for example.
-        if not root:
-            tangelo.log_error("TANGELO", "could not find default web root directory")
+            tangelo.log_error("ERROR", "could not find examples package")
             return 1
 
+        # Set the examples plugins.
+        config.plugins = [{"name": "config"},
+                          {"name": "data"},
+                          {"name": "docs"},
+                          {"name": "mapping"},
+                          {"name": "mongo"},
+                          {"name": "stream"},
+                          {"name": "tangelo"},
+                          {"name": "ui"},
+                          {"name": "vis"}]
+    else:
+        root = tangelo.util.expandpath(".")
+
     tangelo.log("TANGELO", "Serving content from %s" % (root))
-
-    # Compute a default plugin configuration if it was not supplied.
-    if args.plugin_config is None:
-        plugin_cfg_file = tangelo.util.expandpath(invocation_dir + "/share/tangelo/plugin/plugin.conf")
-        tangelo.log_info("TANGELO", "Looking for default plugin configuration file in %s" % (plugin_cfg_file))
-        if not os.path.exists(plugin_cfg_file):
-            plugin_cfg_file = None
-    else:
-        plugin_cfg_file = tangelo.util.expandpath(args.plugin_config)
-
-    # Warn if plugin file doesn't exist.
-    if plugin_cfg_file is None:
-        tangelo.log_warning("TANGELO", "Could not find a default plugin configuration file")
-    elif not os.path.exists(plugin_cfg_file):
-        tangelo.log_warning("TANGELO", "Plugin configuration file %s does not exist - create it to load plugins at runtime" % (plugin_cfg_file))
-    else:
-        tangelo.log("TANGELO", "Using plugin configuration file '%s'" % (plugin_cfg_file))
 
     # Set the web root directory.
     cherrypy.config.update({"webroot": root})
@@ -287,9 +411,17 @@ def main():
     cherrypy.config.update({"plugin-config": {}})
     cherrypy.config.update({"plugin-store": {}})
 
-    # Create a plugin manager.  It is marked global so that the plugins can be
-    # unloaded when Tangelo exits.
-    plugins = tangelo.server.Plugins("tangelo.plugin", plugin_cfg_file)
+    # Create a plugin manager.
+    plugins = tangelo.server.Plugins("tangelo.plugin", config=config.plugins, plugin_dir=get_bundled_plugin_directory())
+
+    # Check for any errors - if there are, report them and exit.
+    if not plugins.good():
+        for message in plugins.errors:
+            tangelo.log_error("PLUGIN", message)
+        return 1
+
+    # Save the plugin manager for use later (when unloading plugins during
+    # shutdown).
     cherrypy.config.update({"plugins": plugins})
 
     # Create an instance of the main handler object.
@@ -304,17 +436,13 @@ def main():
     # Mount the root application object.
     cherrypy.tree.mount(rootapp, config={"/": {"tools.sessions.on": sessions},
                                          "/favicon.ico": {"tools.staticfile.on": True,
-                                                          "tools.staticfile.filename": sys.prefix + "/share/tangelo/tangelo.ico"}})
+                                                          "tools.staticfile.filename": get_tangelo_ico()}})
 
     # Set up the global configuration.
-    try:
-        cherrypy.config.update({"environment": "production",
-                                "log.screen": True,
-                                "server.socket_host": hostname,
-                                "server.socket_port": port})
-    except IOError as e:
-        tangelo.log_error("TANGELO", "problem with config file %s: %s" % (e.filename, e.strerror))
-        return 1
+    cherrypy.config.update({"environment": "production",
+                            "log.screen": True,
+                            "server.socket_host": hostname,
+                            "server.socket_port": port})
 
     # Try to drop privileges if requested, since we've bound to whatever port
     # superuser privileges were needed for already.

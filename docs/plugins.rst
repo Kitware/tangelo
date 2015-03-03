@@ -142,8 +142,8 @@ are also unmounted when the plugin is unloaded.
 
 .. _plugin-config:
 
-Configuration 
-=============
+Plugin Configuration
+====================
 
 Plugin configuration comes in two parts:  specifying which plugins to load, and
 specifying particular behavior for each plugin.
@@ -151,33 +151,45 @@ specifying particular behavior for each plugin.
 Enabling Plugins
 ----------------
 
-The Tangelo executable has an option ``--plugin-config`` that specifies a
-*plugin configuration file*.  This defaults to ``/etc/tangelo/plugin.conf``.
-The file is a YAML configuration file consisting of a list of objects, one for each
-plugin under consideration.  The objects themselves are relatively simple:
+The Tangelo configuration file supports an option ``plugin`` that specifies a
+plugin configuration.  The option's value should be a YAML expression consisting
+of a list of objects, one for each plugin under consideration.  The objects
+themselves are relatively simple:
 
 .. code-block:: yaml
 
     - name: foobar
-      enabled: true
       path: /path/to/foobar/plugin
 
     - name: quux
-      enabled: false
       path: path/to/quux
 
-Each contains a required ``name`` property, an optional ``enabled`` boolean flag
-(which, if omitted, defaults to ``true``), and a string ``path`` property
+    - name: docs
+
+Each contains a required ``name`` property and an optional ``path`` property
 describing where to find the plugin materials (i.e., the example directory shown
-above).  Whenever this file changes and a client visits any plugin URL, Tangelo
-will compare the set of plugins enabled by the configuration file to the set of
-plugins currently enabled, and will load and unload plugins to bring the running
-plugins up to date.  For example, if you edit the example file above to change
-*quux*'s ``enabled`` flag to ``true``, then visit ``/plugin``, Tangelo will
-first load the *quux* plugin, then return a list of running plugins, which will
-now include *quux*.  Conversely, if you also changed *foobar*'s ``enabled`` flag
-to ``false`` (or comment out, or delete *foobar*'s entire section), *foobar*
-will additionally be unloaded.
+above).
+
+Note that you can enable a bundled plugin (see :ref:`bundled`) by omitting the
+``path`` property.  In this case, Tangelo searches for a plugin by the given
+name in the plugins that come bundled with Tangelo.  In the example above, the
+*docs* plugin will be enabled.  This is useful for enabling a "standard" plugin
+without having to know where Tangelo keeps it.
+
+The ``plugins`` option can simply be omitted when you do not wish to load any
+plugins.
+
+When Tangelo is started with a ``plugins`` option in its configuration file,
+each plugin listed will be loaded before Tangelo begins serving content to the
+web.  Because it is assumed that any plugins specified are necessary for the
+Tangelo application being launched, any error in loading any of the plugins will
+result in aborting the startup process (logging errors as they occur).
+
+Inversely, when Tangelo is shut down, each plugin will be unloaded in turn
+(enabling, e.g., cleanup actions such as flushing buffers to disk, committing
+pending database transactions, closing connections, etc.).  In this case, if a
+plugin cannot be unloaded for any reason, Tangelo's shutdown will continue, and
+you should clean up after the faulty plugin manually.
 
 Plugin Setup
 ------------
@@ -208,8 +220,8 @@ install the required dependencies, then take any action specified by
 file.  When Tangelo is started (or when the plugin registry is refreshed), the
 new plugin will be running.
 
-Configuring Plugins
--------------------
+Configuring Plugin Behavior
+---------------------------
 
 The file ``foobar/config.yaml`` describes a YAML associative array representing
 the plugin's configuration data.  This is the same format as web service
@@ -247,11 +259,9 @@ Loading a plugin consists of the following actions:
 5. If ``setup()`` returns a result, the list of CherryPy apps expressed in the
    ``"apps"`` property of it are mounted.
 
-6. The plugin name is added to the list of active plugins.
-
 Steps 3, 4, and 5 are not taken if the corresponding content is not present.  If
-any of those steps raises an exception, the exception is logged to disk and step
-6 will not be taken (i.e., the plugin will not be loaded).
+any of those steps raises an exception, the error will be logged and the Tangelo
+startup process will abort.
 
 Unloading a Plugin
 ------------------
@@ -267,7 +277,6 @@ corresponding setup actions):
 3. If the control module contains a ``teardown()`` function, it is invoked,
    passing the configuration and persistent store to it.
 
-4. The plugin name is removed from the list of active plugins.
-
 If an exception occurs during step 3, the ``teardown()`` function will not
-finish executing, but step 4 will still be taken.
+finish executing, but Tangelo shutdown will continue with the unloading of
+the rest of the plugins and eventual exiting of the Tangelo process.

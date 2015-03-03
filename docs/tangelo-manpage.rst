@@ -26,7 +26,7 @@ Optional argument                  Effect
 -u USERNAME, --user USERNAME       specifies the user to run as when root privileges are dropped
 -g GROUPNAME, --group GROUPNAME    specifies the group to run as when root privileges are dropped
 -r DIR, --root DIR                 the directory from which Tangelo will serve content
---vtkpython FILE                   the vtkpython executable, for use with the vtkweb service (default: "vtkpython")
+--examples                         serve the Tangelo example applications
 --verbose, -v                      display extra information as Tangelo starts up
 --version                          display Tangelo version number
 --key FILE                         the path to the SSL key. You must also specify --cert to serve content over https.
@@ -36,13 +36,18 @@ Optional argument                  Effect
 Example Usage
 =============
 
-To start a Tangelo server with the default configuration: ::
+To start a Tangelo server with the default configuration, serving from the
+current directory: ::
 
     tangelo
 
 This starts Tangelo on port 8080.
 
+To serve the example applications that come bundled with Tangelo: ::
+
+    tangelo --examples
+
 To control particular options, such as the port number (overriding the value
 specified in the config) file: ::
 
-    tangelo start --port 9090
+    tangelo --port 9090
