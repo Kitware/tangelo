@@ -430,6 +430,8 @@ class Tangelo(object):
             tangelo.http_status(501, "Error Importing Service")
             tangelo.content_type("application/json")
             result = tangelo.util.traceback_report(error="Could not import module %s" % (tangelo.request_path()))
+
+            tangelo.log_warning("SERVICE", "Could not import service module %s:\n%s" % (tangelo.request_path(), "\n".join(result["traceback"])))
         else:
             # Try to run the service - either it's in a function called
             # "run()", or else it's in a REST API consisting of at least one of
