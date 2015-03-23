@@ -12,51 +12,68 @@
     :target: https://travis-ci.org/Kitware/tangelo
 
 ============================================================
- Tangelo: A simple, quick, powerful web framework
+ Tangelo: A Web Application Platform for Python Programmers
 ============================================================
 
-http://tangelo.kitware.com
----------------------------
+Tangelo reimagines the "web application" by bringing Python into the fold:  in
+addition to serving standard components such as HTML, CSS, and JavaScript files
+in the usual way, Tangelo also manufactures serverside web services from Python
+files in your application.  These services might provide custom adapters to
+databases, launch complex jobs on a cluster to retrieve the results later,
+perform image analysis, or really anything that can be done in a Python script.
+The Python standard library is extensive, and the galaxy of third-party
+libraries even more so.  Now all the power of these libraries and modules is
+available for use in your web application as well.
 
-**Tangelo** is a web framework built on top of
-`CherryPy <http://www.cherrypy.org/>`_ for producing rich web applications
-that pair your data with cutting-edge visual interfaces.
+Tangelo runs these expanded web applications with a special purpose webserver,
+built on top of `CherryPy <http://www.cherrypy.org/>`_, which runs the Python
+scripts on demand, allowing your HTML and JavaScript to retrieve content from
+the scripts.  The result is a rich web application that pairs your data with
+cutting-edge visual interfaces.
 
-In a nutshell, Tangelo is a flexible HTML5 web server architecture that cleanly separates
-your web *applications* (pure Javascript, HTML, and CSS) and web *services*
-(pure Python), bundled with some great tools to get you started. Mix and match
+Tangelo comes bundled with some great examples to get you started. Mix and match
 from the following to create your own breed:
 
-* `Bootstrap <http://twitter.github.io/bootstrap/>`_ to put your app's style on a solid
-  footing.
-* `D3 <http://d3js.org>`_ for constructing all manner of dynamic and animated charts.
-* *Vega*, a brand new declarative language for defining visual interfaces.
-* `MongoDB <http://www.mongodb.org>`_ for a flexible, speedy NoSQL backend to feed
-  data to your apps.
-* *tangelo.js*, a set of tools and interface elements that make it easy to create
-  apps that put your data front and center.
+* `Bootstrap <http://twitter.github.io/bootstrap/>`_ to put your app's style on
+  a solid footing.
 
-Documentation
-=============
+* `D3 <http://d3js.org>`_ for constructing all manner of dynamic and animated
+  charts.
 
-See our `documentation <http://tangelo.readthedocs.org/>`_ for a getting started guide
-and API descriptions.
+* `Vega <http://trifacta.github.io/vega/>`_, a brand new declarative language
+  for defining visual interfaces.
 
-System Architecture
-===================
+* `MongoDB <http://www.mongodb.org>`_ for a flexible, speedy NoSQL backend to
+  feed data to your apps.
 
-Tangelo applications are divided into two functional layers: the *frontend*
-and *backend*, with `Ajax <http://en.wikipedia.org/wiki/Ajax_(programming)>`_
-bridging the gap between them.
+* `Bundled Tangelo plugins
+  <http://tangelo.readthedocs.org/en/latest/bundled-plugins.html>`_, providing
+  utilities such as streaming of big data, basic visualization elements such as
+  interactive charts, and user interface elements.
 
-The *frontend* is a standard website -- HTML for content and formatting, with
-CSS for styling and JavaScript for dynamic behavior.  The JavaScript code can
-also make Ajax calls to the Python *backend* modules to request various
-services, such as database access, server side processing, or anything else that
-you can imagine.
+Get Started
+===========
 
-See the `Tangelo documentation <https://tangelo.readthedocs.org>`_ for more
-information.
+To get started with Tangelo's example application pack, run the following: ::
+
+    $ pip install tangelo
+    $ tangelo --examples
+
+and then visit http://localhost:8080 in your favorite web browser.
+
+Learn More
+==========
+
+See Tangelo's `documentation <http://tangelo.readthedocs.org/>`_ for a getting
+started guide, advanced usage manual, and API descriptions.
+
+Read our ongoing `blog series <http://www.kitware.com/blog/home/post/805>`_ for
+some in-depth discussion of Tangelo and its uses.
+
+Visit the `website <http://www.tangelohub.org/tangelo/>`_ to learn about
+Tangelo and its sibling software projects in the TangeloHub platform, and about
+how Kitware can help you make the most of your data, computational resources,
+and web applications.
 
 Get Involved
 ============
