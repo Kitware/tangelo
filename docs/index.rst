@@ -3,32 +3,35 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-=============================================
-    Welcome to the Tangelo Web Framework!
-=============================================
+==============================================================================
+ Welcome to the Tangelo, the Web Application Platform for Python Programmers!
+==============================================================================
 
-Tangelo is a general-purpose web server framework, built on top of CherryPy_.
-Once it's set up, it stays out of your way, clearing the path for you to use
-HTML5, CSS, JavaScript, and other web technologies such as jQuery, D3,
-Bootstrap, WebGL, Canvas, and Vega_ to create rich web applications - from traditional,
-static pages, to cutting-edge, visual, dynamic displays.  **Tangelo also lets
-you include Python scripts as part of your application, alongside your HTML and
-JavaScript files**, running them on your behalf to do anything from retrieving a
-few database results for display, to engaging with powerful computational
-engines such as Hadoop to compute complex results.
+Tangelo is a web application driver, implemented as a special-purpose webserver
+built on top of `CherryPy <http://www.cherrypy.org>`_.  Tangelo paves the way
+for you to use HTML5, CSS, JavaScript, and other web technologies such as
+jQuery, D3, Bootstrap, WebGL, Canvas, and `Vega
+<http://trifacta.github.io/vega/>`_ to create rich web applications - from
+traditional, static pages, to cutting-edge, visual, dynamic displays.
 
-To help in creating these applications, Tangelo exports the Tangelo API, which
-exists as a collection of Python functions, JavaScript functions, and a set of
-rules for creating flexible and powerful web services.  This document describes
-all the pieces that fit together to make Tangelo work.
+But **Tangelo also considers Python scripts to be part of your application,
+alongside your HTML and JavaScript files**, running them on your behalf to do
+anything from retrieving a few database results for display, to engaging with
+powerful computational engines such as Hadoop to compute complex results.  In
+other words, **Tangelo reimagines the web application by bringing Python into
+the fold**, bringing the richness of the Python standard library, and the galaxy
+of third-party Python libraries into the world of web programming.
 
-Please visit the `Tangelo homepage`_ or the `GitHub repository`_ for more
-information.
+To help in creating these newly enriched web applications, Tangelo exports the
+Tangelo API, a collection of Python and JavaScript functions, standard plugins,
+and the means to create custom plugins of your own, to create your own Tangelo
+applications.
 
-.. _CherryPy: http://www.cherrypy.org
-.. _Tangelo homepage: http://tangelo.kitware.com
-.. _GitHub repository: https://github.com/Kitware/tangelo
-.. _Vega: http://trifacta.github.io/vega/
+This document describes all the pieces that fit together to make Tangelo work.
+
+Please visit the `Tangelo homepage <http://tangelo.kitware.com>`_ and `GitHub
+repository <https://github.com/Kitware/tangelo>`_, and read our `ongoing blog
+series <http://www.kitware.com/blog/posts/view/805>`_ for more information.
 
 .. _quickstart:
 
