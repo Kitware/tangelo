@@ -35,8 +35,11 @@ series <http://www.kitware.com/blog/posts/view/805>`_ for more information.
 
 .. _quickstart:
 
+Getting Started
+===============
+
 Quick Start
-===========
+-----------
 
 1. Make sure you have Python 2.7 and Pip installed (on Linux and OS X systems,
    your local package manager should do the trick; for Windows, see here_).
@@ -55,6 +58,29 @@ Quick Start
 4. Visit your Tangelo instance at http://localhost:8080.
 
 .. _here: http://docs.python-guide.org/en/latest/starting/install/win/
+
+Hello World
+-----------
+
+Follow these steps to create an extremely simple Tangelo application: ::
+
+    $ mkdir hello
+    $ cd hello
+    $ vim helloworld.py
+
+.. code-block:: python
+
+    import datetime
+
+    def run():
+        return "hello, world - the current time and date is: %s\n" % (datetime.datetime.now())
+
+.. code-block:: none
+
+    $ tangelo --port 8080
+    $ curl http://localhost:8080/helloworld
+
+    hello, world - the current time and date is: 2015-03-31 14:29:44.29411
 
 Using Tangelo
 =============
