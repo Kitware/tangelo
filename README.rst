@@ -11,6 +11,9 @@
 .. image:: https://travis-ci.org/Kitware/tangelo.svg?branch=master
     :target: https://travis-ci.org/Kitware/tangelo
 
+.. image:: https://readthedocs.org/projects/pip/badge/
+    :target: http://tangelo.readthedocs.org/en/latest/
+
 ============================================================
  Tangelo: A Web Application Platform for Python Programmers
 ============================================================
