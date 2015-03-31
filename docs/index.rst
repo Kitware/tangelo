@@ -68,6 +68,16 @@ Using Tangelo
     python-services
     plugins
 
+Tutorials
+=========
+
+.. toctree::
+    :maxdepth: 2
+
+    tutorials/building-an-app
+    tutorials/db-vis
+    tutorials/fiddling
+
 Command Line Utilities
 ======================
 
@@ -86,16 +96,6 @@ The Tangelo API
     tangelo-py
     tangelo-js
     bundled-plugins
-
-Tutorials
-=========
-
-.. toctree::
-    :maxdepth: 2
-
-    tutorials/building-an-app
-    tutorials/db-vis
-    tutorials/fiddling
 
 Information for Developers
 ==========================
