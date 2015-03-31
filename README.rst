@@ -57,12 +57,38 @@ from the following to create your own breed:
 Get Started
 ===========
 
+Quick Start
+-----------
+
 To get started with Tangelo's example application pack, run the following: ::
 
     $ pip install tangelo
     $ tangelo --examples
 
 and then visit http://localhost:8080 in your favorite web browser.
+
+Hello World
+-----------
+
+Follow these steps to create an extremely simple Tangelo application: ::
+
+    $ mkdir hello
+    $ cd hello
+    $ vim helloworld.py
+
+.. code-block:: python
+
+    import datetime
+
+    def run():
+        return "hello, world - the current time and date is: %s\n" % (datetime.datetime.now())
+
+.. code-block:: none
+
+    $ tangelo --port 8080
+    $ curl http://localhost:8080/helloworld
+
+    hello, world - the current time and date is: 2015-03-31 14:29:44.29411
 
 Learn More
 ==========
