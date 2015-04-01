@@ -94,7 +94,7 @@ Learn More
 ==========
 
 See Tangelo's `documentation <http://tangelo.readthedocs.org/>`_ for a getting
-started guide, advanced usage manual, and API descriptions.
+started guide, advanced usage manual, step-by-step tutorials, and API descriptions.
 
 Read our ongoing `blog series <http://www.kitware.com/blog/home/post/805>`_ for
 some in-depth discussion of Tangelo and its uses.
