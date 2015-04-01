@@ -25,8 +25,10 @@ files in your application.  These services might provide custom adapters to
 databases, launch complex jobs on a cluster to retrieve the results later,
 perform image analysis, or really anything that can be done in a Python script.
 The Python standard library is extensive, and the galaxy of third-party
-libraries even more so.  Now all the power of these libraries and modules is
-available for use in your web application as well.
+libraries even more so.  Instead of demanding that you adapt your code to a
+complex web framework, worrying about routing and scaffolding along the way,
+Tangelo adapts to you, effortlessly integrating your Python code right into
+your web application.
 
 Tangelo runs these expanded web applications with a special purpose webserver,
 built on top of `CherryPy <http://www.cherrypy.org/>`_, which runs the Python

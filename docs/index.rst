@@ -18,9 +18,10 @@ But **Tangelo also considers Python scripts to be part of your application,
 alongside your HTML and JavaScript files**, running them on your behalf to do
 anything from retrieving a few database results for display, to engaging with
 powerful computational engines such as Hadoop to compute complex results.  In
-other words, **Tangelo reimagines the web application by bringing Python into
-the fold**, bringing the richness of the Python standard library, and the galaxy
-of third-party Python libraries into the world of web programming.
+other words, **Tangelo reimagines the web application by making Python a
+first-class citizen**, effortlessly integrating your Python code into your web
+applications without your having to adapt to complex web frameworks, worry about
+routing, or engage in the busy work of putting up application scaffolding.
 
 To help in creating these newly enriched web applications, Tangelo exports the
 Tangelo API, a collection of Python and JavaScript functions, standard plugins,
