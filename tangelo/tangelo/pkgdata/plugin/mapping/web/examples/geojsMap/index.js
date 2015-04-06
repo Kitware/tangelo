@@ -40,7 +40,7 @@ $(function () {
                         y: d[2]
                     };
                 },
-                radius: 5,
+                radius: 10,
                 fillColor: function (d) {
                     return d[1];
                 },
