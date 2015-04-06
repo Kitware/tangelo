@@ -23,6 +23,7 @@ $(function () {
         ];
 
     $("#content").geojsMap({
+        tileUrl: "http://otile1.mqcdn.com/tiles/1.0.0/map/<zoom>/<x>/<y>.png",
         center: {
             x: -(98 + 35/60),
             y: 39 + 50/60
