@@ -466,7 +466,8 @@ function getMinMaxDates(zoom) {
 
         flickr.legend = flickr.map.createLayer("feature", {
             renderer: "d3",
-            sticky: false
+            sticky: false,
+            active: false
         })
             .canvas()
             .append("g")
