@@ -287,7 +287,8 @@ def import_local(module, path='.'):
                    (module).py must exist in the relative path.
     :param path: the relative path to the directory of the script with the
                  calling function.  An absolute path can also be specified,
-                 but it isn't recommended.
+                 but it isn't recommended, because absolute paths will not be
+                 portable.
     :returns: the loaded module.
     """
     global localModuleCache

@@ -142,18 +142,24 @@ class ModuleCache(object):
         self.config = config
         self.modules = {}
 
-    def getMTimeWithChildren(self, module):
+    def getMTimeWithChildren(self, module, ancestors=None):
         """
         Get the latest mtime of this module or any of its children.
 
         :param module: the path of the module.
+        :param ancestors: a list of paths that were checked so that we can't
+                          infinitely recurse.
         :returns: the latest mtime of the module and its children.
         """
         mtime = os.path.getmtime(module)
         if module in self.modules:
+            if ancestors is None:
+                ancestors = []
+            ancestors.append(module)
             for child in self.modules[module].get("children", {}):
-                if os.path.exists(child):
-                    mtime = max(mtime, self.getMTimeWithChildren(child))
+                if os.path.exists(child) and child not in ancestors:
+                    mtime = max(mtime, self.getMTimeWithChildren(
+                        child, ancestors))
         return mtime
 
     def get(self, module, parent=None):
