@@ -427,6 +427,7 @@ def main():
     # Create an instance of the main handler object.
     module_cache = tangelo.util.ModuleCache()
     tangelo_server = tangelo.server.Tangelo(module_cache=module_cache, plugins=plugins)
+    tangelo.localModuleCache = module_cache
     rootapp = cherrypy.Application(tangelo_server, "/")
 
     # Place an AuthUpdate handler in the Tangelo object if access authorization
