@@ -300,6 +300,9 @@ def import_local(module, path='.'):
     modpath = os.path.join(path, module + '.py')
     if not os.path.exists(modpath):
         raise 'Error: can\'t locate python file at %s' % (modpath)
-    imported = localModuleCache.get(modpath)
+    # We want to refer to the original python module of a parent for purposes
+    # of tracking changed modules.
+    parent = caller.__file__.rsplit('.', 1)[0] + '.py'
+    imported = localModuleCache.get(modpath, parent)
     frame.f_globals[module] = imported
     return imported
