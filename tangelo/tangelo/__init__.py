@@ -267,3 +267,43 @@ def return_type(rettype):
 
         return converter
     return wrap
+
+
+localModuleCache = None
+
+
+def import_local(module, path='.'):
+    """
+    Import a module from a path relative to the module that called this
+    function.  If this module has changed since the last load, reimport it.
+    This will use the ModuleCase instance stored in localModuleCache.  If this
+    has not been set, a new module cache will be created.  The loaded module
+    is added to the caller's global namespace (just like import would do).
+    This functionally acts like 'import (module)' except that it will reload it
+    if the module's python file has changed.
+
+    :param module: the name of the module to import.  This needs to be a simple
+                   module name without any periods in it, and the file
+                   (module).py must exist in the relative path.
+    :param path: the relative path to the directory of the script with the
+                 calling function.  An absolute path can also be specified,
+                 but it isn't recommended, because absolute paths will not be
+                 portable.
+    :returns: the loaded module.
+    """
+    global localModuleCache
+    if localModuleCache is None:
+        localModuleCache = tangelo.utils.ModuleCache()
+    frame = inspect.stack()[1][0]
+    caller = inspect.getmodule(frame)
+    path = os.path.normpath(os.path.join(os.path.dirname(os.path.realpath(
+        caller.__file__)), path))
+    modpath = os.path.join(path, module + '.py')
+    if not os.path.exists(modpath):
+        raise 'Error: can\'t locate python file at %s' % (modpath)
+    # We want to refer to the original python module of a parent for purposes
+    # of tracking changed modules.
+    parent = caller.__file__.rsplit('.', 1)[0] + '.py'
+    imported = localModuleCache.get(modpath, parent)
+    frame.f_globals[module] = imported
+    return imported

@@ -142,12 +142,32 @@ class ModuleCache(object):
         self.config = config
         self.modules = {}
 
-    def get(self, module):
+    def getMTimeWithChildren(self, module, ancestors=None):
+        """
+        Get the latest mtime of this module or any of its children.
+
+        :param module: the path of the module.
+        :param ancestors: a list of paths that were checked so that we can't
+                          infinitely recurse.
+        :returns: the latest mtime of the module and its children.
+        """
+        mtime = os.path.getmtime(module)
+        if module in self.modules:
+            if ancestors is None:
+                ancestors = []
+            ancestors.append(module)
+            for child in self.modules[module].get("children", {}):
+                if os.path.exists(child) and child not in ancestors:
+                    mtime = max(mtime, self.getMTimeWithChildren(
+                        child, ancestors))
+        return mtime
+
+    def get(self, module, parent=None):
         # Import the module if not already imported previously (or if the module
         # to import, or its configuration file, has been updated since the last
         # import).
         stamp = self.modules.get(module)
-        mtime = os.path.getmtime(module)
+        mtime = self.getMTimeWithChildren(module)
 
         config_file = module[:-2] + "yaml"
         config_mtime = None
@@ -157,6 +177,7 @@ class ModuleCache(object):
                 config_mtime = os.path.getmtime(config_file)
 
         if (stamp is None or
+                "mtime" not in stamp or
                 mtime > stamp["mtime"] or
                 (config_mtime is not None and
                  config_mtime > stamp["mtime"])):
@@ -186,8 +207,16 @@ class ModuleCache(object):
 
             # Load the module.
             service = imp.load_source(name, module)
-            self.modules[module] = {"module": service,
-                                    "mtime": max(mtime, config_mtime)}
+            if module not in self.modules:
+                self.modules[module] = {}
+            self.modules[module]["module"] = service
+            self.modules[module]["mtime"] = max(mtime, config_mtime)
+            if parent:
+                if parent not in self.modules:
+                    self.modules[parent] = {"children": {}}
+                if "children" not in self.modules[parent]:
+                    self.modules[parent]["children"] = {}
+                self.modules[parent]["children"][module] = True
         else:
             service = stamp["module"]
 
