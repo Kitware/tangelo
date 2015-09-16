@@ -349,7 +349,7 @@ module.exports = function (grunt) {
 
         grunt.util.spawn({
             cmd: flake8,
-            args: this.filesSrc,
+            args: ["--config=setup.cfg"].concat(this.filesSrc),
             opts: {
                 stdio: "inherit"
             }
@@ -392,7 +392,7 @@ module.exports = function (grunt) {
         // version number, but setuptools will "normalize" it to
         // "foobar-0.8.1.dev0", so we need to do the same in order to install
         // the package created by the grunt package task.
-        pyversion = version.replace("-dev", ".dev0");
+        pyversion = version;
 
         grunt.util.spawn({
             cmd: pip,
