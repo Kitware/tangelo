@@ -1,9 +1,12 @@
 language: python
 
+sudo: false
+
 python:
     - 2.7
 
 script:
+    - pip install --upgrade pip
     - npm install -g grunt-cli
     - npm install
     - grunt
