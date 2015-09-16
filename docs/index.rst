@@ -82,6 +82,16 @@ Follow these steps to create an extremely simple Tangelo application: ::
 
     hello, world - the current time and date is: 2015-03-31 14:29:44.29411
 
+Diving Deeper
+-------------
+
+* To tinker with the Tangelo examples directly, see :ref:`fiddling`.
+
+* To learn how to create your own Tangelo application from scratch, see
+  :ref:`build-app` and the other :ref:`tutorials <tutorials>`.
+
+.. _here: http://docs.python-guide.org/en/latest/starting/install/win/
+
 Using Tangelo
 =============
 
@@ -93,6 +103,8 @@ Using Tangelo
     basic-usage
     python-services
     plugins
+
+.. _tutorials:
 
 Tutorials
 =========
