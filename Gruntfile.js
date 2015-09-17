@@ -24,7 +24,8 @@ module.exports = function (grunt) {
         pkgDataDir = "tangelo/tangelo/pkgdata/",
         pluginDir = pkgDataDir + "plugin/",
         webDir = pkgDataDir + "web/",
-        styleCheckFiles;
+        styleCheckFiles,
+        testingPort = "30047";
 
     tangeloCmdLine = function (hostname, port, root, cover) {
         var cmd,
@@ -167,7 +168,7 @@ module.exports = function (grunt) {
       blanket_qunit: {
           all: {
               options: {
-                  urls: ["http://127.0.0.1:30047/results/js/index.html?coverage=true&lights=4"],
+                  urls: ["http://127.0.0.1:" + testingPort + "/results/js/index.html?coverage=true&lights=4"],
                   threshold: 20,
                   verbose: true
               }
@@ -574,7 +575,7 @@ module.exports = function (grunt) {
         var done = this.async(),
             tangeloCmd;
 
-        tangeloCmd = tangeloCmdLine("127.0.0.1", "30047", "js/tests", false);
+        tangeloCmd = tangeloCmdLine("127.0.0.1", testingPort, "js/tests", false);
 
         grunt.util.spawn({
             cmd: tangeloCmd.cmd,
@@ -610,7 +611,7 @@ module.exports = function (grunt) {
 
                 done = this.async();
 
-                cmdline = tangeloCmdLine("127.0.0.1", "30047", "js/tests", !windows);
+                cmdline = tangeloCmdLine("127.0.0.1", testingPort, "js/tests", !windows);
 
                 console.log("Starting Tangelo server with: " + cmdline.cmd + " " + cmdline.args.join(" "));
                 process = grunt.util.spawn(cmdline, function () {});
