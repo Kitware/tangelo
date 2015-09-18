@@ -1,11 +1,13 @@
 (function (tangelo, $, d3, _) {
     "use strict";
 
-    function drawerToggle(divsel, buttonsel) {
+    function drawerToggle(divsel, buttonsel, height) {
         var div,
             button,
             state,
             iconheight;
+
+        height = height || null;
 
         // Use the selectors to grab the DOM elements.
         div = d3.select(divsel);
@@ -51,9 +53,11 @@
                 // effect here.
                 div.transition()
                     .duration(500)
-                    .style("height", getFullHeight())
+                    .style("height", height || getFullHeight())
                     .each("end", function () {
-                        div.style("height", null);
+                        if (!height) {
+                            div.style("height", null);
+                        }
                     });
 
                 button.classed("glyphicon-chevron-down", true)
@@ -66,11 +70,13 @@
         };
     }
 
-    $.fn.controlPanel = function () {
+    $.fn.controlPanel = function (cfg) {
         var toggle,
             s,
             id,
             tag;
+
+        cfg = cfg || {};
 
         // Make a d3 selection out of the target element.
         s = d3.select(this[0]);
@@ -95,6 +101,9 @@
         s.style("position", "fixed")
             .style("bottom", "0px")
             .style("width", "100%")
+            .style("height", function () {
+                return cfg.height || "auto";
+            })
             .insert("div", ":first-child")
             .attr("id", "tangelo-drawer-handle-" + tag)
             .style("text-align", "center")
@@ -112,7 +121,7 @@
             .classed("glyphicon", true)
             .classed("glyphicon-chevron-down", true);
 
-        toggle = drawerToggle("#" + id, "#tangelo-drawer-icon-" + tag);
+        toggle = drawerToggle("#" + id, "#tangelo-drawer-icon-" + tag, cfg.height || null);
         d3.select("#tangelo-drawer-handle-" + tag)
             .on("click", toggle);
     };
