@@ -1,4 +1,4 @@
-# This service imports a non-local script and rusn that
+# This service imports a non-local script and runs that
 import tangelo
 
 tangelo.paths('..')

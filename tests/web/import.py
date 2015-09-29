@@ -1,4 +1,4 @@
-# This service imports a local script and rusn that
+# This service imports a local script and runs that
 import echo
 
 
