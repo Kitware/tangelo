@@ -296,6 +296,8 @@ def tangelo_import(*args, **kwargs):
     try:
         return builtin_import(*args, **kwargs)
     except ImportError:
+        if not hasattr(cherrypy.thread_data, "modulepath"):
+            raise
         path = os.path.abspath(cherrypy.thread_data.modulepath)
         root = os.path.abspath(cherrypy.config.get("webroot"))
         result = None
