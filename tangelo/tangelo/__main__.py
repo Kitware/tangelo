@@ -217,6 +217,7 @@ def main():
     p.add_argument("--key", type=str, default=None, metavar="FILE", help="the path to the SSL key.  You must also specify --cert to serve content over https.")
     p.add_argument("--cert", type=str, default=None, metavar="FILE", help="the path to the SSL certificate.  You must also specify --key to serve content over https.")
     p.add_argument("--examples", action="store_true", default=None, help="Serve the Tangelo example applications")
+    p.add_argument("--watch", action="store_true", default=None, help="Add the watch plugin (reload python files if they change).")
     args = p.parse_args()
 
     # If version flag is present, print the version number and exit.
@@ -398,6 +399,14 @@ def main():
                           {"name": "vis"}]
     else:
         root = tangelo.util.expandpath(".")
+    # All that the core does when --watch is includes is to make sure it is in
+    # the list of plugins.  If it isn't present, it gets added to the beginning
+    # of the list so that other plugins will be monitored.
+    if args.watch:
+        if config.plugins is None:
+            config.plugins = []
+        if "watch" not in [plugin.get("name") for plugin in config.plugins]:
+            config.plugins.insert(0, {"name": "watch"})
 
     tangelo.log("TANGELO", "Serving content from %s" % (root))
 

@@ -143,58 +143,58 @@ class NonBlockingReader(threading.Thread):
             self.pushline(line)
 
 
+def module_cache_get(cache, module):
+    """
+    Import a module with an optional yaml config file, but only if we haven't
+    imported it already.
+
+    :param cache: object which holds information on which modules and config
+                  files have been loaded and whether config files should be
+                  loaded.
+    :param module: the path of the module to load.
+    :returns: the loaded module.
+    """
+    if getattr(cache, 'config', False):
+        config_file = module[:-2] + "yaml"
+        if config_file not in cache.config_files and os.path.exists(config_file):
+            try:
+                config = yaml_safe_load(config_file, type=dict)
+            except TypeError as e:
+                tangelo.log_warning("TANGELO", "Bad configuration in file %s: %s" % (config_file, e))
+                raise
+            except IOError:
+                tangelo.log_warning("TANGELO", "Could not open config file %s" % (config_file))
+                raise
+            except ValueError as e:
+                tangelo.log_warning("TANGELO", "Error reading config file %s: %s" % (config_file, e))
+                raise
+            cache.config_files[config_file] = True
+        else:
+            config = {}
+        cherrypy.config["module-config"][module] = config
+        cherrypy.config["module-store"].setdefault(module, {})
+    # If two threads are importing the same module nearly concurrently, we
+    # could load it twice unless we use the import lock.
+    imp.acquire_lock()
+    try:
+        if module not in cache.modules:
+            name = module[:-3]
+
+            # load the module.
+            service = imp.load_source(name, module)
+            cache.modules[module] = service
+        else:
+            service = cache.modules[module]
+    finally:
+        imp.release_lock()
+    return service
+
+
 class ModuleCache(object):
     def __init__(self, config=True):
         self.config = config
         self.modules = {}
+        self.config_files = {}
 
     def get(self, module):
-        # Import the module if not already imported previously (or if the module
-        # to import, or its configuration file, has been updated since the last
-        # import).
-        stamp = self.modules.get(module)
-        mtime = os.path.getmtime(module)
-
-        config_file = module[:-2] + "yaml"
-        config_mtime = None
-
-        if self.config:
-            if os.path.exists(config_file):
-                config_mtime = os.path.getmtime(config_file)
-
-        if (stamp is None or
-                mtime > stamp["mtime"] or
-                (config_mtime is not None and
-                 config_mtime > stamp["mtime"])):
-
-            # Load any configuration the module might carry with it.
-            if config_mtime is not None:
-                try:
-                    config = yaml_safe_load(config_file, type=dict)
-                except TypeError as e:
-                    tangelo.log_warning("TANGELO", "Bad configuration in file %s: %s" % (config_file, e))
-                    raise
-                except IOError:
-                    tangelo.log_warning("TANGELO", "Could not open config file %s" % (config_file))
-                    raise
-                except ValueError as e:
-                    tangelo.log_warning("TANGELO", "Error reading config file %s: %s" % (config_file, e))
-                    raise
-            else:
-                config = {}
-
-            if self.config:
-                cherrypy.config["module-config"][module] = config
-                cherrypy.config["module-store"].setdefault(module, {})
-
-            # Remove .py to get the module name
-            name = module[:-3]
-
-            # Load the module.
-            service = imp.load_source(name, module)
-            self.modules[module] = {"module": service,
-                                    "mtime": max(mtime, config_mtime)}
-        else:
-            service = stamp["module"]
-
-        return service
+        return module_cache_get(self, module)

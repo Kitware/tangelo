@@ -513,6 +513,12 @@ as part of a web application.
     `cfg.legend`, mapping colors from the elements of `cfg.categories` through
     the function `cfg.cmap_func`.
 
+Watch
+-----
+
+The watch plugin monitors python files and will reload those files when they or
+any of their imported modules change based on file timestamps.
+
 Data Management and Processing
 ==============================
 
