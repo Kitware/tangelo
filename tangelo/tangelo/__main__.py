@@ -3,6 +3,7 @@
 import argparse
 import os
 import cherrypy
+import logging
 import platform
 import signal
 import sys
@@ -212,7 +213,8 @@ def main():
     p.add_argument("-u", "--user", type=str, default=None, metavar="USERNAME", help="specifies the user to run as when root privileges are dropped")
     p.add_argument("-g", "--group", type=str, default=None, metavar="GROUPNAME", help="specifies the group to run as when root privileges are dropped")
     p.add_argument("-r", "--root", type=str, default=None, metavar="DIR", help="the directory from which Tangelo will serve content")
-    p.add_argument("--verbose", "-v", action="store_true", help="display extra information as Tangelo starts up")
+    p.add_argument("--verbose", "-v", action="append_const", help="display extra information as Tangelo runs", default=[logging.INFO], const=logging.DEBUG - logging.INFO)
+    p.add_argument("--quiet", "-q", action="append_const", help="reduce the amount of information displayed", dest="verbose", const=logging.INFO - logging.DEBUG)
     p.add_argument("--version", action="store_true", help="display Tangelo version number")
     p.add_argument("--key", type=str, default=None, metavar="FILE", help="the path to the SSL key.  You must also specify --cert to serve content over https.")
     p.add_argument("--cert", type=str, default=None, metavar="FILE", help="the path to the SSL certificate.  You must also specify --key to serve content over https.")
@@ -223,6 +225,9 @@ def main():
     if args.version:
         print tangelo_version
         return 0
+
+    # Set the verbosity
+    cherrypy.log.error_log.setLevel(sum(args.verbose))
 
     # Make sure user didn't specify conflicting flags.
     if args.access_auth and args.no_access_auth:

@@ -4,8 +4,8 @@ import platform
 import subprocess
 import time
 
-host = "localhost"
-port = "50047"
+host = "127.0.0.1"
+port = "30047"
 
 process = None
 
@@ -45,7 +45,7 @@ def run_tangelo(*args, **kwargs):
     return (proc.returncode, filter(None, proc.stdout.read().splitlines()), filter(None, proc.stderr.read().splitlines()))
 
 
-def start_tangelo():
+def start_tangelo(*args, **kwargs):
     global process
 
     if process is not None:
@@ -69,20 +69,23 @@ def start_tangelo():
         coverage_args = ["venv/bin/coverage", "run", "-p", "--source", "venv/lib/python2.7/site-packages/tangelo,%s" % (source_dirs)]
         tangelo = ["venv/bin/tangelo"]
 
-    process = subprocess.Popen(coverage_args + tangelo + ["--host", host,
-                                                          "--port", port,
-                                                          "--root", "tests/web",
-                                                          "--config", "tests/bundled-plugins.yaml",
-                                                          "--list-dir"],
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+    process = subprocess.Popen(
+        coverage_args + tangelo + ["--host", host,
+                                   "--port", port,
+                                   "--root", "tests/web",
+                                   "--config", "tests/bundled-plugins.yaml",
+                                   "--list-dir"] + list(args),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE)
 
     buf = []
     while True:
         line = process.stderr.readline()
         buf.append(line)
 
-        if line.rstrip().endswith("ENGINE Bus STARTED"):
+        if line.rstrip().endswith("TANGELO Server is running\x1b[0m"):
+            if kwargs.get('stderr', False):
+                return buf
             return 0
         elif line.rstrip().endswith("ENGINE Bus EXITED") or process.poll() is not None:
             process = None

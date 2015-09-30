@@ -5,6 +5,7 @@ import functools
 import imp
 import inspect
 import os.path
+import logging
 import sys
 from types import StringTypes
 
@@ -39,7 +40,7 @@ def http_status(code, message=None):
     cherrypy.response.status = "%s%s" % (code, " %s" % (message) if message is not None else "")
 
 
-def log(section, message=None, color=None):
+def log(section, message=None, color=None, lvl=logging.INFO):
     if message is None:
         message = section
         section = "TANGELO"
@@ -48,23 +49,27 @@ def log(section, message=None, color=None):
         section = "%s%s" % (color, section)
         message = "%s%s" % (message, "\033[0m")
 
-    cherrypy.log(str(message), section)
+    cherrypy.log(str(message), section, lvl)
 
 
 def log_error(section, message=None):
-    log(section, message, color="\033[1;91m")
+    log(section, message, color="\033[1;91m", lvl=logging.ERROR)
 
 
 def log_success(section, message=None):
-    log(section, message, color="\033[32m")
+    log(section, message, color="\033[32m", lvl=logging.WARNING)
 
 
 def log_warning(section, message=None):
-    log(section, message, color="\033[1;33m")
+    log(section, message, color="\033[1;33m", lvl=logging.WARNING)
 
 
 def log_info(section, message=None):
-    log(section, message, color="\033[35m")
+    log(section, message, color="\033[35m", lvl=logging.INFO)
+
+
+def log_debug(section, message=None):
+    log(section, message, lvl=logging.DEBUG)
 
 
 def request_path():
