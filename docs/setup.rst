@@ -57,6 +57,12 @@ with the ``-c`` or ``--config`` option: ::
 
     tangelo -c ~/myconfig.yaml
 
+Alternately, instead of using a yaml file, the configuration can be specified as a JSON string ::
+
+    tangelo -c '{"plugins":[{"name":"ui"}]}'
+
+Strictly, if the value passed to the config option is *not* the name of an existing file *and* starts with a ``{``, then it is expected to be a valid YAML or JSON string.
+
 When the flag is omitted, Tangelo will use default values for all
 configuration options (see :ref:`config-options` below).
 

@@ -1,4 +1,5 @@
 import fixture
+import json
 
 
 def test_bad_config():
@@ -23,3 +24,12 @@ def test_non_dict_config():
 
     assert len(stderr) > 1
     assert signal in stderr[1]
+
+
+def test_inline_config():
+    config = {"plugins": [{"name": "ui"}]}
+    stderr = fixture.start_tangelo('-c', json.dumps(config), stderr=True)
+    stderr = '\n'.join(stderr)
+    fixture.stop_tangelo()
+    assert 'TANGELO Server is running' in stderr
+    assert 'TANGELO Plugin ui loaded' in stderr

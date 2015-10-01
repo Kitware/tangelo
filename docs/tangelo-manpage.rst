@@ -13,7 +13,7 @@ Start a Tangelo server.
 Optional argument                  Effect
 =================================  ============================================================================================================================
 -h, --help                         show this help message and exit
--c FILE, --config FILE             specifies configuration file to use
+-c FILE, --config FILE             specifies configuration file or json string to use
 -nc, --no-config                   skips looking for and using a configuration file
 -a, --access-auth                  enable HTTP authentication (i.e. processing of .htaccess files) (default)
 -na, --no-access-auth              disable HTTP authentication (i.e. processing of .htaccess files)
