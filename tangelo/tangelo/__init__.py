@@ -49,11 +49,11 @@ def log(section, message=None, color=None, lvl=logging.INFO):
         section = "%s%s" % (color, section)
         message = "%s%s" % (message, "\033[0m")
 
-    # There is a suble difference between cherrypy.log and cherrypy.log.error,
-    # even though one just calls the other via a __call__ method.  For reasons
-    # I don't understand, the cherrypy.log message seems to have an extra
-    # limit to log levels of logging.INFO, whereas cherrypy.log.error honors
-    # the log level that can be set.
+    # There is a subtle difference between cherrypy.log and cherrypy.log.error,
+    # even though one just calls the other via a __call__ method.  For reasons I
+    # don't understand, the cherrypy.log message seems to have an extra limit to
+    # log levels of logging.INFO, whereas cherrypy.log.error honors the log
+    # level that can be set.
     cherrypy.log.error(str(message), section, lvl)
 
 
