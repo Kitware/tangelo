@@ -62,11 +62,11 @@ def log_critical(section, message=None):
 
 
 def log_error(section, message=None):
-    log(section, message, color="\033[1;91m", lvl=logging.ERROR)
+    log(section, message, color="\033[31m", lvl=logging.ERROR)
 
 
 def log_warning(section, message=None):
-    log(section, message, color="\033[1;33m", lvl=logging.WARNING)
+    log(section, message, color="\033[33m", lvl=logging.WARNING)
 
 
 def log_info(section, message=None):
@@ -74,7 +74,7 @@ def log_info(section, message=None):
 
 
 def log_debug(section, message=None):
-    log(section, message, lvl=logging.DEBUG)
+    log(section, message, color="\033[1;34m", lvl=logging.DEBUG)
 
 
 def request_path():
