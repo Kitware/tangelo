@@ -57,6 +57,10 @@ def log(section, message=None, color=None, lvl=logging.INFO):
     cherrypy.log.error(str(message), section, lvl)
 
 
+def log_critical(section, message=None):
+    log(section, message, color="\033[1;91m", lvl=logging.CRITICAL)
+
+
 def log_error(section, message=None):
     log(section, message, color="\033[1;91m", lvl=logging.ERROR)
 
