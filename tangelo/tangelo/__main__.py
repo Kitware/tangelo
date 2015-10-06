@@ -153,7 +153,7 @@ def polite(signum, frame):
 
 
 def die(signum, frame):
-    tangelo.log_error("TANGELO", "Received quit signal.  Exiting immediately.")
+    tangelo.log_critical("TANGELO", "Received quit signal.  Exiting immediately.")
     os.kill(os.getpid(), signal.SIGKILL)
 
 
@@ -231,31 +231,31 @@ def main():
 
     # Make sure user didn't specify conflicting flags.
     if args.access_auth and args.no_access_auth:
-        tangelo.log_error("ERROR", "can't specify both --access-auth (-a) and --no-access-auth (-na) together")
+        tangelo.log_critical("ERROR", "can't specify both --access-auth (-a) and --no-access-auth (-na) together")
         return 1
 
     if args.drop_privileges and args.no_drop_privileges:
-        tangelo.log_error("ERROR", "can't specify both --drop-privileges (-p) and --no-drop-privileges (-np) together")
+        tangelo.log_critical("ERROR", "can't specify both --drop-privileges (-p) and --no-drop-privileges (-np) together")
         return 1
 
     if args.no_sessions and args.sessions:
-        tangelo.log_error("ERROR", "can't specify both --sessions (-s) and --no-sessions (-ns) together")
+        tangelo.log_critical("ERROR", "can't specify both --sessions (-s) and --no-sessions (-ns) together")
         return 1
 
     if args.examples and args.root:
-        tangelo.log_error("ERROR", "can't specify both --examples and --root (-r) together")
+        tangelo.log_critical("ERROR", "can't specify both --examples and --root (-r) together")
         return 1
 
     if args.examples and args.config:
-        tangelo.log_error("ERROR", "can't specify both --examples and --config (-c) together")
+        tangelo.log_critical("ERROR", "can't specify both --examples and --config (-c) together")
         return 1
 
     if args.no_list_dir and args.list_dir:
-        tangelo.log_error("ERROR", "can't specify both --list-dir and --no-list-dir together")
-        sys.exit(1)
+        tangelo.log_critical("ERROR", "can't specify both --list-dir and --no-list-dir together")
+        return 1
 
     if args.no_show_py and args.show_py:
-        tangelo.log_error("ERROR", "can't specify both --show-py and --no-show-py together")
+        tangelo.log_critical("ERROR", "can't specify both --show-py and --no-show-py together")
         sys.exit(1)
 
     # Decide if we have a configuration file or not.
@@ -270,13 +270,13 @@ def main():
     try:
         config = Config(cfg_file)
     except (IOError, ValueError) as e:
-        tangelo.log_error("ERROR", e)
+        tangelo.log_critical("ERROR", e)
         return 1
 
     # Type check the config entries.
     if not config.type_check():
         for message in config.errors:
-            tangelo.log_error("TANGELO", message)
+            tangelo.log_critical("TANGELO", message)
         return 1
 
     # Determine whether to use access auth.
@@ -369,7 +369,7 @@ def main():
         tangelo.log("TANGELO", "\tSSL Cert file: %s" % (ssl_cert))
         tangelo.log("TANGELO", "\tSSL Key file: %s" % (ssl_key))
     elif not (ssl_key is None and ssl_cert is None):
-        tangelo.log_error("TANGELO", "error: SSL key or SSL cert missing")
+        tangelo.log_critical("TANGELO", "error: SSL key or SSL cert missing")
         return 1
     else:
         tangelo.log("TANGELO", "HTTPS disabled")
@@ -385,7 +385,7 @@ def main():
         root = get_web_directory()
         tangelo.log_info("TANGELO", "Looking for example web content path in %s" % (root))
         if not os.path.exists(root):
-            tangelo.log_error("ERROR", "could not find examples package")
+            tangelo.log_critical("ERROR", "could not find examples package")
             return 1
 
         # Set the examples plugins.
@@ -422,7 +422,7 @@ def main():
     # Check for any errors - if there are, report them and exit.
     if not plugins.good():
         for message in plugins.errors:
-            tangelo.log_error("PLUGIN", message)
+            tangelo.log_critical("PLUGIN", message)
         return 1
 
     # Save the plugin manager for use later (when unloading plugins during
@@ -492,7 +492,7 @@ def main():
                 value = group
                 gid = to_signed(grp.getgrnam(group).gr_gid)
             except KeyError:
-                tangelo.log_error("TANGELO", "no such %s '%s' to drop privileges to" % (mode, value))
+                tangelo.log_critical("TANGELO", "no such %s '%s' to drop privileges to" % (mode, value))
                 return 1
 
             # Set the process home directory to be the dropped-down user's.
