@@ -653,7 +653,7 @@ class Plugins(object):
                 self.errors.append("Plugin %s failed to load" % (plugin))
                 return
 
-            tangelo.log_success("Plugin %s loaded" % (plugin))
+            tangelo.log_info("Plugin %s loaded" % (plugin))
 
     def good(self):
         return len(self.errors) == 0
@@ -779,7 +779,7 @@ class Plugins(object):
                 tangelo.log_warning("PLUGIN", "Could not run teardown:\n%s", (traceback.format_exc()))
 
         del self.plugins[plugin_name]
-        tangelo.log_success("plugin %s unloaded" % (plugin_name))
+        tangelo.log_info("plugin %s unloaded" % (plugin_name))
 
     def unload_all(self):
         for plugin_name in self.plugins.keys():

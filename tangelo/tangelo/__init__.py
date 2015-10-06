@@ -61,10 +61,6 @@ def log_error(section, message=None):
     log(section, message, color="\033[1;91m", lvl=logging.ERROR)
 
 
-def log_success(section, message=None):
-    log(section, message, color="\033[32m", lvl=logging.WARNING)
-
-
 def log_warning(section, message=None):
     log(section, message, color="\033[1;33m", lvl=logging.WARNING)
 

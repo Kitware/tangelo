@@ -46,14 +46,6 @@ Core Services
     functioning of the system.  Generally, you will not need to call this
     function.
 
-.. py:function:: tangelo.log_success([context, ]msg)
-
-    Variant of :py:func:`tangelo.log` that writes out messages in green.  This
-    is meant to declare that some operation went as expected, and is written at
-    level ``logging.WARNING`` as it is considered more important than general
-    information.  It is generally not needed because the absence of errors and
-    warnings can generally be regarded as a success condition.
-
 .. py:function:: tangelo.log_debug([context, ]msg)
 
     Variant of :py:func:`tangelo.log` that writes out messages at level

@@ -176,7 +176,7 @@ def shutdown(signum, frame):
     cherrypy.engine.stop()
     cherrypy.engine.exit()
 
-    tangelo.log_success("TANGELO", "Be seeing you.")
+    tangelo.log_info("\033[32mTANGELO", "\033[32mBe seeing you.")
 
 
 def get_pkgdata_dir():
@@ -524,7 +524,7 @@ def main():
 
     # Start the CherryPy engine.
     cherrypy.engine.start()
-    tangelo.log_success("TANGELO", "Server is running")
+    tangelo.log_info("\033[32mTANGELO", "\033[32mServer is running")
     cherrypy.engine.block()
 
 if __name__ == "__main__":
