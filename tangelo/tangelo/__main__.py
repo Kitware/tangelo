@@ -256,7 +256,7 @@ def main():
 
     if args.no_show_py and args.show_py:
         tangelo.log_critical("ERROR", "can't specify both --show-py and --no-show-py together")
-        sys.exit(1)
+        return 1
 
     # Decide if we have a configuration file or not.
     cfg_file = args.config
