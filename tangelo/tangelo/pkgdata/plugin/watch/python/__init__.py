@@ -171,7 +171,7 @@ def watch_import(name, globals=None, *args, **kwargs):
         raise
     if getattr(module, '__file__', None):
         if key not in WatchList:
-            tangelo.log_debug('WATCH', 'Monitoring import %s from %s' % (name, parent))
+            tangelo.log_info('WATCH', 'Monitoring import %s from %s' % (name, parent))
         imp.acquire_lock()
         try:
             if key not in WatchList:
@@ -222,7 +222,7 @@ def watch_module_cache_get(cache, module):
             del cache.modules[module]
             tangelo.log('WATCH', 'Asking to reload module %s' % module)
         if module not in cache.timestamps:
-            tangelo.log_debug('WATCH', 'Monitoring module %s' % module)
+            tangelo.log_info('WATCH', 'Monitoring module %s' % module)
         reload_recent_submodules(module, mtime)
         cache.timestamps[module] = mtime
         service = tangelo_module_cache_get(cache, module)
