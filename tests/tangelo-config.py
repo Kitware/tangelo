@@ -28,8 +28,8 @@ def test_non_dict_config():
 
 def test_inline_config():
     config = {"plugins": [{"name": "ui"}]}
-    stderr = fixture.start_tangelo('-c', json.dumps(config), stderr=True)
+    (_, _, stderr) = fixture.run_tangelo('-c', json.dumps(config), terminate=True)
     stderr = '\n'.join(stderr)
-    fixture.stop_tangelo()
+
     assert 'TANGELO Server is running' in stderr
     assert 'TANGELO Plugin ui loaded' in stderr

@@ -28,6 +28,7 @@ def relative_path(path):
 
 def run_tangelo(*args, **kwargs):
     timeout = kwargs.get("timeout", 5)
+    terminate = kwargs.get("terminate", False)
     tangelo = ["venv/Scripts/python", "venv/Scripts/tangelo"] if windows() else ["venv/bin/tangelo"]
 
     # Start Tangelo with the specified arguments, and immediately poll the
@@ -41,6 +42,9 @@ def run_tangelo(*args, **kwargs):
         time.sleep(0.5)
         proc.poll()
         now = datetime.datetime.now()
+
+    if terminate:
+        proc.terminate()
 
     return (proc.returncode, filter(None, proc.stdout.read().splitlines()), filter(None, proc.stderr.read().splitlines()))
 
