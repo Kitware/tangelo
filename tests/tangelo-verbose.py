@@ -2,10 +2,9 @@ import fixture
 
 
 def test_standard_verbosity():
-    stderr = fixture.start_tangelo(stderr=True)
+    (_, _, stderr) = fixture.run_tangelo("--port", "30047", timeout=3, terminate=True)
     stderr = '\n'.join(stderr)
 
-    fixture.stop_tangelo()
     assert 'TANGELO Server is running' in stderr
     assert 'TANGELO Hostname' in stderr
 
