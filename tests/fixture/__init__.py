@@ -79,14 +79,13 @@ def start_tangelo(*args, **kwargs):
         stderr=subprocess.PIPE)
 
     buf = []
+    return_stderr = kwargs.get("stderr", False)
     while True:
         line = process.stderr.readline()
         buf.append(line)
 
         if line.rstrip().endswith("Server is running\x1b[0m"):
-            if kwargs.get('stderr', False):
-                return buf
-            return 0
+            return buf if return_stderr else 0
         elif line.rstrip().endswith("ENGINE Bus EXITED") or process.poll() is not None:
             process = None
             raise RuntimeError("Could not start Tangelo:\n%s" % ("".join(buf)))
