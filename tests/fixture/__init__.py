@@ -83,8 +83,10 @@ def start_tangelo(*args, **kwargs):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
 
+    start = time.time()
     buf = []
     return_stderr = kwargs.get("stderr", False)
+    timeout = kwargs.get("timeout", 5)
     while True:
         line = process.stderr.readline()
         buf.append(line)
@@ -94,6 +96,11 @@ def start_tangelo(*args, **kwargs):
         elif line.rstrip().endswith("ENGINE Bus EXITED") or process.poll() is not None:
             process = None
             raise RuntimeError("Could not start Tangelo:\n%s" % ("".join(buf)))
+        elif time.time() - start > timeout:
+            if process.poll() is None:
+                return buf if return_stderr else 0
+            else:
+                raise RuntimeError("Could not start Tangelo:\n%s" % ("".join(buf)))
 
 
 def stop_tangelo():
