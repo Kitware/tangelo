@@ -259,6 +259,22 @@ def main():
         tangelo.log_critical("ERROR", "can't specify both --show-py and --no-show-py together")
         return 1
 
+    # Report the logging level.
+    if log_level > logging.CRITICAL:
+        log_level_tag = "NONE"
+    elif log_level > logging.ERROR:
+        log_level_tag = "CRITICAL"
+    elif log_level > logging.WARNING:
+        log_level_tag = "ERROR"
+    elif log_level > logging.INFO:
+        log_level_tag = "WARNING"
+    elif log_level > logging.DEBUG:
+        log_level_tag = "INFO"
+    else:
+        log_level_tag = "DEBUG"
+
+    tangelo.log_info("TANGELO", "Logging level: %s (%d)" % (log_level_tag, log_level))
+
     # Decide if we have a configuration file or not.
     cfg_file = args.config
     if cfg_file is None:
