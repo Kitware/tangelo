@@ -49,7 +49,7 @@ def run_tangelo(*args, **kwargs):
     return (proc.returncode, filter(None, proc.stdout.read().splitlines()), filter(None, proc.stderr.read().splitlines()))
 
 
-def start_tangelo():
+def start_tangelo(*args):
     global process
 
     if process is not None:
@@ -78,7 +78,7 @@ def start_tangelo():
                                                           "--port", port,
                                                           "--root", "tests/web",
                                                           "--config", "tests/bundled-plugins.yaml",
-                                                          "--list-dir"],
+                                                          "--list-dir"] + list(args),
                                stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE)
 
@@ -91,8 +91,6 @@ def start_tangelo():
             return 0
         elif line.rstrip().endswith("ENGINE Bus EXITED") or process.poll() is not None:
             process = None
-            if kwargs.get('stderr', False):
-                return None, buf
             raise RuntimeError("Could not start Tangelo:\n%s" % ("".join(buf)))
 
 
