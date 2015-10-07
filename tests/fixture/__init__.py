@@ -43,7 +43,7 @@ def run_tangelo(*args, **kwargs):
         proc.poll()
         now = datetime.datetime.now()
 
-    if terminate:
+    if proc.poll() is None and terminate:
         proc.terminate()
 
     return (proc.returncode, filter(None, proc.stdout.read().splitlines()), filter(None, proc.stderr.read().splitlines()))
