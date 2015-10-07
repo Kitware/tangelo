@@ -7,9 +7,8 @@ def test_plugin_module():
         'name': 'moduletest',
         'path': 'tests/plugins/moduletest'
     }]}
-    stderr = fixture.start_tangelo('--config', json.dumps(config), stderr=True)
+    (_, _, stderr) = fixture.run_tangelo('--config', json.dumps(config), timeout=3, terminate=True)
     stderr = '\n'.join(stderr)
-    fixture.stop_tangelo()
 
     assert 'Plugin has value server.TestConstant True' in stderr
 
@@ -19,9 +18,8 @@ def test_plugin_single_file():
         'name': 'pythonfile',
         'path': 'tests/plugins/pythonfile'
     }]}
-    stderr = fixture.start_tangelo('--config', json.dumps(config), stderr=True)
+    (_, _, stderr) = fixture.run_tangelo('--config', json.dumps(config), timeout=3, terminate=True)
     stderr = '\n'.join(stderr)
-    fixture.stop_tangelo()
 
     assert 'Python file plugin' in stderr
 
@@ -34,9 +32,8 @@ def test_plugin_order_good():
         'name': 'pluginorder',
         'path': 'tests/plugins/pluginorder'
     }]}
-    stderr = fixture.start_tangelo('--config', json.dumps(config), stderr=True)
+    (_, _, stderr) = fixture.run_tangelo('--config', json.dumps(config), timeout=3, terminate=True)
     stderr = '\n'.join(stderr)
-    fixture.stop_tangelo()
 
     assert 'Plugin can reference tangelo.plugin.moduletest True' in stderr
 
