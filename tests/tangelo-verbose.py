@@ -10,9 +10,6 @@ def test_standard_verbosity():
 
 
 def test_lower_verbosity():
-    stderr = fixture.start_tangelo("-q", stderr=True)
-    stderr = '\n'.join(stderr)
+    (_, _, stderr) = fixture.run_tangelo("-q", "--port", "30047", timeout=3, terminate=True)
 
-    fixture.stop_tangelo()
-    assert 'TANGELO Server is running' in stderr
-    assert 'TANGELO Hostname' not in stderr
+    assert len(stderr) == 0
