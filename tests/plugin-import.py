@@ -46,11 +46,7 @@ def test_plugin_order_bad():
         'name': 'moduletest',
         'path': 'tests/plugins/moduletest'
     }]}
-    res = fixture.start_tangelo('--config', json.dumps(config), stderr=True)
+    (_, _, stderr) = fixture.run_tangelo('--config', json.dumps(config), timeout=3, terminate=True)
+    stderr = "\n".join(stderr)
 
-    if not isinstance(res, tuple):
-        fixture.stop_tangelo()
-        assert 'Tangelo started when we expected it to fail' is False
-    stderr = '\n'.join(res[1])
-
-    assert 'Plugin can reference tangelo.plugin.moduletest True' not in stderr
+    assert "Plugin pluginorder failed to load" in stderr
