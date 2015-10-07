@@ -238,4 +238,3 @@ def watch_module_cache_get(cache, module):
 
 __builtin__.__import__ = watch_import
 tangelo.util.module_cache_get = watch_module_cache_get
-tangelo.log_info('WATCH', 'Starting plugin watch')
