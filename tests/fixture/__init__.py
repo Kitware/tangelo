@@ -83,7 +83,7 @@ def start_tangelo(*args, **kwargs):
         line = process.stderr.readline()
         buf.append(line)
 
-        if line.rstrip().endswith("TANGELO Server is running\x1b[0m"):
+        if line.rstrip().endswith("Server is running\x1b[0m"):
             if kwargs.get('stderr', False):
                 return buf
             return 0
