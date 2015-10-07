@@ -1,4 +1,3 @@
-import datetime
 import os
 import platform
 import subprocess
@@ -38,11 +37,10 @@ def run_tangelo(*args, **kwargs):
     proc.poll()
 
     # Run in a loop until the timeout expires or the process ends.
-    now = start = datetime.datetime.now()
-    while (now - start).total_seconds() < timeout and proc.returncode is None:
+    start = time.time()
+    while time.time() - start < timeout and proc.returncode is None:
         time.sleep(0.5)
         proc.poll()
-        now = datetime.datetime.now()
 
     if terminate:
         proc.terminate()
