@@ -227,7 +227,8 @@ def main():
         return 0
 
     # Set the verbosity
-    cherrypy.log.error_log.setLevel(sum(args.verbose))
+    log_level = max(sum(args.verbose), 1)
+    cherrypy.log.error_log.setLevel(log_level)
 
     # Make sure user didn't specify conflicting flags.
     if args.access_auth and args.no_access_auth:
