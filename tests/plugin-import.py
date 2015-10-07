@@ -2,6 +2,12 @@ import fixture
 import json
 
 
+moduletest = {"name": "moduletest",
+              "path": "tests/plugins/moduletest"}
+pluginorder = {"name": "pluginorder",
+               "path": "tests/plugins/pluginorder"}
+
+
 def test_plugin_module():
     config = {"plugins": [{
         "name": "moduletest",
@@ -25,13 +31,9 @@ def test_plugin_single_file():
 
 
 def test_plugin_order_good():
-    config = {"plugins": [{
-        "name": "moduletest",
-        "path": "tests/plugins/moduletest"
-    }, {
-        "name": "pluginorder",
-        "path": "tests/plugins/pluginorder"
-    }]}
+    config = {"plugins": [moduletest,
+                          pluginorder]}
+
     (_, _, stderr) = fixture.run_tangelo("--config", json.dumps(config), timeout=3, terminate=True)
     stderr = "\n".join(stderr)
 
@@ -39,13 +41,9 @@ def test_plugin_order_good():
 
 
 def test_plugin_order_bad():
-    config = {"plugins": [{
-        "name": "pluginorder",
-        "path": "tests/plugins/pluginorder"
-    }, {
-        "name": "moduletest",
-        "path": "tests/plugins/moduletest"
-    }]}
+    config = {"plugins": [pluginorder,
+                          moduletest]}
+
     (_, _, stderr) = fixture.run_tangelo("--config", json.dumps(config), timeout=3, terminate=True)
     stderr = "\n".join(stderr)
 
