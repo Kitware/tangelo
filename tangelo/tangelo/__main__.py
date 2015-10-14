@@ -3,6 +3,7 @@
 import argparse
 import os
 import cherrypy
+import logging
 import platform
 import signal
 import sys
@@ -152,7 +153,7 @@ def polite(signum, frame):
 
 
 def die(signum, frame):
-    tangelo.log_error("TANGELO", "Received quit signal.  Exiting immediately.")
+    tangelo.log_critical("TANGELO", "Received quit signal.  Exiting immediately.")
     os.kill(os.getpid(), signal.SIGKILL)
 
 
@@ -175,7 +176,7 @@ def shutdown(signum, frame):
     cherrypy.engine.stop()
     cherrypy.engine.exit()
 
-    tangelo.log_success("TANGELO", "Be seeing you.")
+    tangelo.log_info("\033[32mTANGELO", "\033[32mBe seeing you.")
 
 
 def get_pkgdata_dir():
@@ -212,7 +213,8 @@ def main():
     p.add_argument("-u", "--user", type=str, default=None, metavar="USERNAME", help="specifies the user to run as when root privileges are dropped")
     p.add_argument("-g", "--group", type=str, default=None, metavar="GROUPNAME", help="specifies the group to run as when root privileges are dropped")
     p.add_argument("-r", "--root", type=str, default=None, metavar="DIR", help="the directory from which Tangelo will serve content")
-    p.add_argument("--verbose", "-v", action="store_true", help="display extra information as Tangelo starts up")
+    p.add_argument("--verbose", "-v", action="append_const", help="display extra information as Tangelo runs", default=[logging.INFO], const=logging.DEBUG - logging.INFO)
+    p.add_argument("--quiet", "-q", action="append_const", help="reduce the amount of information displayed", dest="verbose", const=logging.INFO - logging.DEBUG)
     p.add_argument("--version", action="store_true", help="display Tangelo version number")
     p.add_argument("--key", type=str, default=None, metavar="FILE", help="the path to the SSL key.  You must also specify --cert to serve content over https.")
     p.add_argument("--cert", type=str, default=None, metavar="FILE", help="the path to the SSL certificate.  You must also specify --key to serve content over https.")
@@ -224,54 +226,74 @@ def main():
         print tangelo_version
         return 0
 
+    # Set the verbosity
+    log_level = max(sum(args.verbose), 1)
+    cherrypy.log.error_log.setLevel(log_level)
+
     # Make sure user didn't specify conflicting flags.
     if args.access_auth and args.no_access_auth:
-        tangelo.log_error("ERROR", "can't specify both --access-auth (-a) and --no-access-auth (-na) together")
+        tangelo.log_critical("ERROR", "can't specify both --access-auth (-a) and --no-access-auth (-na) together")
         return 1
 
     if args.drop_privileges and args.no_drop_privileges:
-        tangelo.log_error("ERROR", "can't specify both --drop-privileges (-p) and --no-drop-privileges (-np) together")
+        tangelo.log_critical("ERROR", "can't specify both --drop-privileges (-p) and --no-drop-privileges (-np) together")
         return 1
 
     if args.no_sessions and args.sessions:
-        tangelo.log_error("ERROR", "can't specify both --sessions (-s) and --no-sessions (-ns) together")
+        tangelo.log_critical("ERROR", "can't specify both --sessions (-s) and --no-sessions (-ns) together")
         return 1
 
     if args.examples and args.root:
-        tangelo.log_error("ERROR", "can't specify both --examples and --root (-r) together")
+        tangelo.log_critical("ERROR", "can't specify both --examples and --root (-r) together")
         return 1
 
     if args.examples and args.config:
-        tangelo.log_error("ERROR", "can't specify both --examples and --config (-c) together")
+        tangelo.log_critical("ERROR", "can't specify both --examples and --config (-c) together")
         return 1
 
     if args.no_list_dir and args.list_dir:
-        tangelo.log_error("ERROR", "can't specify both --list-dir and --no-list-dir together")
-        sys.exit(1)
+        tangelo.log_critical("ERROR", "can't specify both --list-dir and --no-list-dir together")
+        return 1
 
     if args.no_show_py and args.show_py:
-        tangelo.log_error("ERROR", "can't specify both --show-py and --no-show-py together")
-        sys.exit(1)
+        tangelo.log_critical("ERROR", "can't specify both --show-py and --no-show-py together")
+        return 1
+
+    # Report the logging level.
+    if log_level > logging.CRITICAL:
+        log_level_tag = "NONE"
+    elif log_level > logging.ERROR:
+        log_level_tag = "CRITICAL"
+    elif log_level > logging.WARNING:
+        log_level_tag = "ERROR"
+    elif log_level > logging.INFO:
+        log_level_tag = "WARNING"
+    elif log_level > logging.DEBUG:
+        log_level_tag = "INFO"
+    else:
+        log_level_tag = "DEBUG"
+
+    tangelo.log_info("TANGELO", "Logging level: %s (%d)" % (log_level_tag, log_level))
 
     # Decide if we have a configuration file or not.
     cfg_file = args.config
     if cfg_file is None:
-        tangelo.log("TANGELO", "No configuration file specified - using command line args and defaults")
+        tangelo.log_info("TANGELO", "No configuration file specified - using command line args and defaults")
     else:
         cfg_file = tangelo.util.expandpath(cfg_file)
-        tangelo.log("TANGELO", "Using configuration file %s" % (cfg_file))
+        tangelo.log_info("TANGELO", "Using configuration file %s" % (cfg_file))
 
     # Parse the config file; report errors if any.
     try:
         config = Config(cfg_file)
     except (IOError, ValueError) as e:
-        tangelo.log_error("ERROR", e)
+        tangelo.log_critical("ERROR", e)
         return 1
 
     # Type check the config entries.
     if not config.type_check():
         for message in config.errors:
-            tangelo.log_error("TANGELO", message)
+            tangelo.log_critical("TANGELO", message)
         return 1
 
     # Determine whether to use access auth.
@@ -282,7 +304,7 @@ def main():
     else:
         access_auth = (args.access_auth is not None) or (not args.no_access_auth)
 
-    tangelo.log("TANGELO", "Access authentication %s" % ("enabled" if access_auth else "disabled"))
+    tangelo.log_info("TANGELO", "Access authentication %s" % ("enabled" if access_auth else "disabled"))
 
     # Determine whether to perform privilege drop.
     drop_privileges = True
@@ -300,7 +322,7 @@ def main():
     else:
         sessions = (args.sessions is not None) or (not args.no_sessions)
 
-    tangelo.log("TANGELO", "Sessions %s" % ("enabled" if sessions else "disabled"))
+    tangelo.log_info("TANGELO", "Sessions %s" % ("enabled" if sessions else "disabled"))
 
     # Determine whether to serve directory listings by default.
     listdir = False
@@ -311,7 +333,7 @@ def main():
         listdir = (args.list_dir is not None) or (not args.no_list_dir)
 
     cherrypy.config["listdir"] = listdir
-    tangelo.log("TANGELO", "Directory content serving %s" % ("enabled" if listdir else "disabled"))
+    tangelo.log_info("TANGELO", "Directory content serving %s" % ("enabled" if listdir else "disabled"))
 
     # Determine whether to serve web service Python source code by default.
     showpy = False
@@ -322,7 +344,7 @@ def main():
         showpy = (args.show_py is not None) or (not args.no_show_py)
 
     cherrypy.config["showpy"] = showpy
-    tangelo.log("TANGELO", "Web service source code serving %s" % ("enabled" if showpy else "disabled"))
+    tangelo.log_info("TANGELO", "Web service source code serving %s" % ("enabled" if showpy else "disabled"))
 
     # Extract the rest of the arguments, giving priority first to command line
     # arguments, then to the configuration file (if any), and finally to a
@@ -332,13 +354,13 @@ def main():
     user = args.user or config.user or "nobody"
     group = args.group or config.group or "nobody"
 
-    tangelo.log("TANGELO", "Hostname: %s" % (hostname))
-    tangelo.log("TANGELO", "Port: %d" % (port))
+    tangelo.log_info("TANGELO", "Hostname: %s" % (hostname))
+    tangelo.log_info("TANGELO", "Port: %d" % (port))
 
-    tangelo.log("TANGELO", "Privilege drop %s" % ("enabled (if necessary)" if drop_privileges else "disabled"))
+    tangelo.log_info("TANGELO", "Privilege drop %s" % ("enabled (if necessary)" if drop_privileges else "disabled"))
     if drop_privileges:
-        tangelo.log("TANGELO", "\tUser: %s" % (user))
-        tangelo.log("TANGELO", "\tGroup: %s" % (group))
+        tangelo.log_info("TANGELO", "\tUser: %s" % (user))
+        tangelo.log_info("TANGELO", "\tGroup: %s" % (group))
 
     # HTTPS support
     #
@@ -360,14 +382,14 @@ def main():
         cherrypy.config.update({"server.ssl_module": "pyopenssl",
                                 "server.ssl_certificate": ssl_cert,
                                 "server.ssl_private_key": ssl_key})
-        tangelo.log("TANGELO", "HTTPS enabled")
-        tangelo.log("TANGELO", "\tSSL Cert file: %s" % (ssl_cert))
-        tangelo.log("TANGELO", "\tSSL Key file: %s" % (ssl_key))
+        tangelo.log_info("TANGELO", "HTTPS enabled")
+        tangelo.log_info("TANGELO", "\tSSL Cert file: %s" % (ssl_cert))
+        tangelo.log_info("TANGELO", "\tSSL Key file: %s" % (ssl_key))
     elif not (ssl_key is None and ssl_cert is None):
-        tangelo.log_error("TANGELO", "error: SSL key or SSL cert missing")
+        tangelo.log_critical("TANGELO", "error: SSL key or SSL cert missing")
         return 1
     else:
-        tangelo.log("TANGELO", "HTTPS disabled")
+        tangelo.log_info("TANGELO", "HTTPS disabled")
 
     # We need a web root - use the installed example web directory as a
     # fallback.  This might be found in a few different places, so try them one
@@ -380,7 +402,7 @@ def main():
         root = get_web_directory()
         tangelo.log_info("TANGELO", "Looking for example web content path in %s" % (root))
         if not os.path.exists(root):
-            tangelo.log_error("ERROR", "could not find examples package")
+            tangelo.log_critical("ERROR", "could not find examples package")
             return 1
 
         # Set the examples plugins.
@@ -396,7 +418,7 @@ def main():
     else:
         root = tangelo.util.expandpath(".")
 
-    tangelo.log("TANGELO", "Serving content from %s" % (root))
+    tangelo.log_info("TANGELO", "Serving content from %s" % (root))
 
     # Set the web root directory.
     cherrypy.config.update({"webroot": root})
@@ -417,7 +439,7 @@ def main():
     # Check for any errors - if there are, report them and exit.
     if not plugins.good():
         for message in plugins.errors:
-            tangelo.log_error("PLUGIN", message)
+            tangelo.log_critical("PLUGIN", message)
         return 1
 
     # Save the plugin manager for use later (when unloading plugins during
@@ -450,10 +472,10 @@ def main():
         # If we're on windows, don't supply any username/groupname, and just
         # assume we should drop priveleges.
         if platform.system() == "Windows":
-            tangelo.log("TANGELO", "Performing privilege drop")
+            tangelo.log_info("TANGELO", "Performing privilege drop")
             cherrypy.process.plugins.DropPrivileges(cherrypy.engine).subscribe()
         elif os.getuid() == 0:
-            tangelo.log("TANGELO", "Performing privilege drop")
+            tangelo.log_info("TANGELO", "Performing privilege drop")
 
             # Reaching here means we're on unix, and we are the root user, so go
             # ahead and drop privileges to the requested user/group.
@@ -487,7 +509,7 @@ def main():
                 value = group
                 gid = to_signed(grp.getgrnam(group).gr_gid)
             except KeyError:
-                tangelo.log_error("TANGELO", "no such %s '%s' to drop privileges to" % (mode, value))
+                tangelo.log_critical("TANGELO", "no such %s '%s' to drop privileges to" % (mode, value))
                 return 1
 
             # Set the process home directory to be the dropped-down user's.
@@ -496,7 +518,7 @@ def main():
             # Perform the actual UID/GID change.
             cherrypy.process.plugins.DropPrivileges(cherrypy.engine, uid=uid, gid=gid).subscribe()
         else:
-            tangelo.log("TANGELO", "Not performing privilege drop (because not running as superuser)")
+            tangelo.log_info("TANGELO", "Not performing privilege drop (because not running as superuser)")
 
     # Set up websocket handling.  Use the pass-through subclassed version of the
     # plugin so we can set a priority on it that doesn't conflict with privilege
@@ -519,7 +541,7 @@ def main():
 
     # Start the CherryPy engine.
     cherrypy.engine.start()
-    tangelo.log_success("TANGELO", "Server is running")
+    tangelo.log_info("\033[32mTANGELO", "\033[32mServer is running")
     cherrypy.engine.block()
 
 if __name__ == "__main__":
