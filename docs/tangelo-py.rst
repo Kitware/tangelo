@@ -11,45 +11,60 @@ formatting errors; and web service utilities to supercharge Python services.
 Core Services
 =============
 
-.. py:function:: tangelo.log([context, ]msg)
+.. py:function:: tangelo.log([context, ]msg[, lvl=loglevel])
 
-    Writes a message ``msg`` to the log file.  The optional ``context`` is a
+    Writes a message `msg` to the log file.  The optional `context` is a
     descriptive tag that will be prepended to the message within the log file
     (defaulting to "TANGELO" if omitted).  Common context tags used internally
     in Tangelo include "TANGELO" (to describe startup/shutdown activities), and
     "ENGINE" (which describes actions being taken by CherryPy).  This function
     may be useful for debugging or otherwise tracking a service's activities as
-    it runs.
+    it runs.  The optional logging level ``lvl`` is one of the python logging
+    constants.  By default, ``logging.INFO`` is used.
+
+    Generally you should use one of the variants of this function listed below,
+    but if you want to write a logging message in the terminal's default color,
+    you can use this function, specifying the log level you need.
+
+.. py:function:: tangelo.log_debug([context, ]msg)
+
+    Variant of :py:func:`tangelo.log` that writes out messages in blue, at level
+    ``logging.DEBUG``.  These messages can be used to diagnose, e.g., plugins or
+    services in development.  By default, these messages are hidden - you can
+    increase the verbosity to see them.
 
 .. py:function:: tangelo.log_info([context, ]msg)
 
-    Variant of :py:func:`tangelo.log` that writes out messages in purple.
-    Informational messages are those that simply declare a helpful description
-    of what the system is doing at the moment.  For example, when a plugin is
-    about to perform initialization, a call like ``tangelo.log_info("FOOBAR",
-    "About to initialize...")`` may be appropriate.
+    Variant of :py:func:`tangelo.log` that writes out messages in purple at
+    level ``logging.INFO``.  Informational messages describe what the system is
+    doing at the moment.  For example, when a plugin is about to perform
+    initialization, a call like ``tangelo.log_info("FOOBAR", "About to
+    initialize...")`` may be appropriate.
 
 .. py:function:: tangelo.log_warning([context, ]msg)
 
-    Variant of :py:func:`tangelo.log` that writes out messages in yellow.
-    Warnings are messages indicating that something did not work out as
-    expected, but not so bad as to compromise the continued running of the
-    system.  For example, if Tangelo is unable to load a plugin for any reason,
-    Tangelo itself is able to continue running - this constitutes a warning
-    about the failed plugin loading.
+    Variant of :py:func:`tangelo.log` that writes out messages in yellow at
+    level ``logging.WARNING``.  Warnings are messages indicating that something
+    did not work out as expected, but the requested action will still be
+    accomplished (perhaps differently than was expected by the user).  For
+    example, if a plugin needs to fall back on a default method for doing
+    something because the requested method was not available, this might be
+    reported by a warning message.
 
 .. py:function:: tangelo.log_error([context, ]msg)
 
-    Variant of :py:func:`tangelo.log` that writes out messages in red.  Errors
-    describe conditions that prevent the further functioning of the system.
-    Generally, you will not need to call this function.
+    Variant of :py:func:`tangelo.log` that writes out messages in red at level
+    ``logging.ERROR``.  Errors describe instances when Tangelo or a plugin fails
+    to perform a requested task, without compromising Tangelo's ability to
+    continue running.  For example, if a plugin requires a file that is missing,
+    it might report an error condition using this function.
 
-.. py:function:: tangelo.log_success([context, ]msg)
+.. py:function:: tangelo.log_critical([context, ]msg)
 
-    Variant of :py:func:`tangelo.log` that writes out messages in green.  This
-    is meant to declare that some operation went as expected.  It is generally
-    not needed because the absence of errors and warnings can generally be
-    regarded as a success condition.
+    Variant of :py:func:`tangelo.log` that writes out messages in bright, bold
+    red at level ``logging.CRITICAL``.  Critical errors describe conditions that
+    immediately prevent the further functioning of the system, generally leading
+    to Tangelo halting.  Generally, you will not need to call this function.
 
 HTTP Interaction
 ================

@@ -1,11 +1,10 @@
-import datetime
 import os
 import platform
 import subprocess
 import time
 
-host = "localhost"
-port = "50047"
+host = "127.0.0.1"
+port = "30047"
 
 process = None
 
@@ -29,19 +28,22 @@ def relative_path(path):
 def run_tangelo(*args, **kwargs):
     timeout = kwargs.get("timeout", 5)
     terminate = kwargs.get("terminate", False)
+
     tangelo = ["venv/Scripts/python", "venv/Scripts/tangelo"] if windows() else ["venv/bin/tangelo"]
 
     # Start Tangelo with the specified arguments, and immediately poll the
     # process to bootstrap its returncode state.
-    proc = subprocess.Popen(tangelo + list(args), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(tangelo + [
+        "--host", host,
+        "--port", port,
+    ] + list(args), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     proc.poll()
 
     # Run in a loop until the timeout expires or the process ends.
-    now = start = datetime.datetime.now()
-    while (now - start).total_seconds() < timeout and proc.returncode is None:
+    start = time.time()
+    while time.time() - start < timeout and proc.returncode is None:
         time.sleep(0.5)
         proc.poll()
-        now = datetime.datetime.now()
 
     if proc.poll() is None and terminate:
         proc.terminate()
@@ -49,7 +51,7 @@ def run_tangelo(*args, **kwargs):
     return (proc.returncode, filter(None, proc.stdout.read().splitlines()), filter(None, proc.stderr.read().splitlines()))
 
 
-def start_tangelo(*args):
+def start_tangelo(*args, **kwargs):
     global process
 
     if process is not None:
@@ -74,24 +76,33 @@ def start_tangelo(*args):
         coverage_args = ["venv/bin/coverage", "run", "-p", "--source", "venv/lib/python2.7/site-packages/tangelo,%s" % (source_dirs)]
         tangelo = ["venv/bin/tangelo"]
 
-    process = subprocess.Popen(coverage_args + tangelo + ["--host", host,
-                                                          "--port", port,
-                                                          "--root", "tests/web",
-                                                          "--config", "tests/bundled-plugins.yaml",
-                                                          "--list-dir"] + list(args),
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
+    process = subprocess.Popen(
+        coverage_args + tangelo + ["--host", host,
+                                   "--port", port,
+                                   "--root", "tests/web",
+                                   "--config", "tests/bundled-plugins.yaml",
+                                   "--list-dir"] + list(args),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE)
 
+    start = time.time()
     buf = []
+    return_stderr = kwargs.get("stderr", False)
+    timeout = kwargs.get("timeout", 5)
     while True:
         line = process.stderr.readline()
         buf.append(line)
 
-        if line.rstrip().endswith("ENGINE Bus STARTED"):
-            return 0
+        if line.rstrip().endswith("Server is running\x1b[0m"):
+            return buf if return_stderr else 0
         elif line.rstrip().endswith("ENGINE Bus EXITED") or process.poll() is not None:
             process = None
             raise RuntimeError("Could not start Tangelo:\n%s" % ("".join(buf)))
+        elif time.time() - start > timeout:
+            if process.poll() is None:
+                return buf if return_stderr else 0
+            else:
+                raise RuntimeError("Could not start Tangelo:\n%s" % ("".join(buf)))
 
 
 def stop_tangelo():
