@@ -15,10 +15,10 @@ builtin_import = __builtin__.__import__
 
 
 def content_type(t=None):
-    r = cherrypy.response.headers['Content-type']
+    r = cherrypy.response.headers["Content-type"]
 
     if t is not None:
-        cherrypy.response.headers['Content-type'] = t
+        cherrypy.response.headers["Content-type"] = t
 
     return r
 

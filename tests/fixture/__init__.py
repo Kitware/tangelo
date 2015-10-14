@@ -69,7 +69,8 @@ def start_tangelo(*args, **kwargs):
                        "stream/web",
                        "tangelo/web",
                        "vtkweb",
-                       "vtkweb/web"]
+                       "vtkweb/web",
+                       "watch"]
         source_dirs = ",".join(map(lambda p: "venv/share/tangelo/plugin/%s" % (p), source_dirs))
 
         coverage_args = ["venv/bin/coverage", "run", "-p", "--source", "venv/lib/python2.7/site-packages/tangelo,%s" % (source_dirs)]

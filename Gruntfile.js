@@ -42,7 +42,8 @@ module.exports = function (grunt) {
                 "stream/web",
                 "tangelo/web",
                 "vtkweb",
-                "vtkweb/web"
+                "vtkweb/web",
+                "watch"
             ].map(function (p) {
                 return "venv/lib/python2.7/site-packages/tangelo/pkgdata/plugin/" + p;
             });

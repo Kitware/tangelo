@@ -309,12 +309,15 @@ is stored in `autodestruct.yaml` a YAML file containing an associative array
 
 The two files must have the same base name (`autodestruct` in this case) and be
 in the same location. Any time the module for a service is loaded, the
-configuration file will be parsed and loaded as well.  Changing either file will
-cause the module to be reloaded the next time it is invoked.  The
-``tangelo.config()`` function returns a copy of the configuration dictionary, to
-prevent an errant service from updating the configuration in a persistent way.
-For this reason, it is advisable to only call this function once, capturing the
-result in a variable, and retrieving values from it as needed.
+configuration file will be parsed and loaded as well.  The ``tangelo.config()``
+function returns a copy of the configuration dictionary, to prevent an errant
+service from updating the configuration in a persistent way.  For this reason,
+it is advisable to only call this function once, capturing the result in a
+variable, and retrieving values from it as needed.
+
+If the `watch` plugin is enabled (easily done by specifying ``--watch`` when
+running Tangelo), changing either file will cause the module to be reloaded the
+next time it is invoked.  
 
 Persistent Storage for Web Services
 ===================================

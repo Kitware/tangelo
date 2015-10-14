@@ -615,15 +615,15 @@ class Plugins(object):
         self.modules = tangelo.util.ModuleCache(config=False)
 
         # Create a virtual module to hold all plugin python modules.
-        package_parts = self.base_package.split('.')
+        package_parts = self.base_package.split(".")
         for pkg_step in range(len(package_parts)):
-            package = '.'.join(package_parts[:pkg_step + 1])
+            package = ".".join(package_parts[:pkg_step + 1])
             if package not in sys.modules:
                 sys.modules[package] = imp.new_module(package)
                 if not pkg_step:
                     globals()[package] = sys.modules[package]
                 else:
-                    package_root = '.'.join(package_parts[:pkg_step])
+                    package_root = ".".join(package_parts[:pkg_step])
                     setattr(sys.modules[package_root], package_parts[pkg_step], sys.modules[package])
 
         # A null config should be treated as an empty list.
@@ -708,11 +708,11 @@ class Plugins(object):
         # Check for a "python" directory, and place all modules found
         # there in a virtual submodule of tangelo.plugin.
         python = os.path.join(path, "python")
-        if os.path.exists(python) or os.path.exists(python + '.py'):
+        if os.path.exists(python) or os.path.exists(python + ".py"):
             tangelo.log_info("PLUGIN", "\t...loading python module content")
 
             try:
-                find_mod_results = imp.find_module('python', [path])
+                find_mod_results = imp.find_module("python", [path])
             except ImportError:
                 self.errors.append("'python' directory of plugin %s is missing __init.py__" % (plugin_name))
                 return False
