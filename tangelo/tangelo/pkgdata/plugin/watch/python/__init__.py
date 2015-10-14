@@ -1,4 +1,5 @@
 import __builtin__
+import cherrypy
 import imp
 import os
 import sys
@@ -11,7 +12,7 @@ tangelo_module_cache_get = tangelo.util.module_cache_get
 WatchList = {}
 
 
-def latest_submodule_time(module, mtime=0, processed=[]):
+def latest_submodule_time(module, mtime=0, processed=None):
     """
     Determine the latest time stamp of all submodules of a module.  This should
     be called from a thread that has acquired the import lock to be thread
@@ -24,17 +25,30 @@ def latest_submodule_time(module, mtime=0, processed=[]):
                       recursion).
     :returns: the latest module mtime.
     """
+    if processed is None:
+        processed = []
     if module.endswith('.py'):
         module = module[:-3]
     if module in processed:
         return mtime
-    processed.append(mtime)
+    processed.append(module)
     for key in WatchList:
         if WatchList[key]['parent'] == module:
             filemtime = module_getmtime(WatchList[key]['file'])
             if filemtime:
                 mtime = max(mtime, filemtime)
             mtime = latest_submodule_time(key, mtime, processed)
+    if '.' in module:
+        module = module.rsplit('.', 1)[-1]
+        if module in processed:
+            return mtime
+        processed.append(module)
+        for key in WatchList:
+            if WatchList[key]['parent'] == module:
+                filemtime = module_getmtime(WatchList[key]['file'])
+                if filemtime:
+                    mtime = max(mtime, filemtime)
+                mtime = latest_submodule_time(key, mtime, processed)
     return mtime
 
 
@@ -56,8 +70,8 @@ def module_getmtime(filename):
 def module_reload_changed(key):
     """
     Reload a module if it has changed since we last imported it.  This is
-    necssary if module a import script b, script b is changed, and the module
-    c asks to import script b.
+    necessary if module a imports script b, script b is changed, and then
+    module c asks to import script b.
 
     :param key: our key used in the WatchList.
     :returns: True if reloaded.
@@ -78,9 +92,10 @@ def module_reload_changed(key):
         if not found:
             return
         filemtime = module_getmtime(WatchList[found]['file'])
+        filemtime = latest_submodule_time(found, filemtime)
         if filemtime > WatchList[found]['time']:
             tangelo.log('Reloaded %s' % found)
-            reload(sys.modules[foundmodkey])
+            reload_including_local(sys.modules[foundmodkey])
             for second in WatchList:
                 if WatchList[second]['file'] == WatchList[found]['file']:
                     WatchList[second]['time'] = filemtime
@@ -103,6 +118,34 @@ def module_sys_modules_key(key):
         if modkey in sys.modules:
             return modkey
     return None
+
+
+def reload_including_local(module):
+    """
+    Reload a module.  If it isn't found, try to include the local service
+    directory.  This must be called from a thread that has acquired the import
+    lock.
+
+    :param module: the module to reload.
+    """
+    try:
+        reload(module)
+    except ImportError:
+        # This can happen if the module was loaded in the immediate script
+        # directory.  Add the service path and try again.
+        if not hasattr(cherrypy.thread_data, "modulepath"):
+            raise
+        path = os.path.abspath(cherrypy.thread_data.modulepath)
+        root = os.path.abspath(cherrypy.config.get("webroot"))
+        if path not in sys.path and (path == root or path.startswith(root + os.path.sep)):
+            oldpath = sys.path
+            try:
+                sys.path = [path] + sys.path
+                reload(module)
+            finally:
+                sys.path = oldpath
+        else:
+            raise
 
 
 def reload_recent_submodules(module, mtime=0, processed=[]):
@@ -136,7 +179,7 @@ def reload_recent_submodules(module, mtime=0, processed=[]):
                 modkey = module_sys_modules_key(key)
                 if modkey:
                     try:
-                        reload(sys.modules[modkey])
+                        reload_including_local(sys.modules[modkey])
                         tangelo.log('Reloaded %s' % modkey)
                     except ImportError:
                         del sys.modules[modkey]

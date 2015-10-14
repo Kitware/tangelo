@@ -1,12 +1,15 @@
-import os
+import time
 
 import watch_b
 
 
-# This service reports its name and file mtime, plus whatever some sub service
+ImportTime = time.time()
+
+
+# This service reports its name and import time, plus whatever some sub service
 # uses
 def run(*args, **kwargs):
-    response = 'Watch A [%s]' % str(os.path.getmtime(__file__))
+    response = 'Watch A [%s]' % str(ImportTime)
     result = watch_b.run(*args, **kwargs)
     if isinstance(result, basestring):
         response += '\n' + result

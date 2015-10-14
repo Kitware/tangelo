@@ -2,6 +2,7 @@ import fixture
 import nose
 import requests
 import os
+import pprint
 import time
 
 
@@ -17,7 +18,6 @@ def get_times(response):
         name = part.split(' [')[0]
         timestamp = part.split(' [')[1].split(']')[0]
         times[name] = timestamp
-    import pprint
     pprint.pprint(times)
     return times
 
@@ -45,32 +45,48 @@ def test_watch_plugin():
     response = requests.get(fixture.url("watch_a"))
     assert "Watch A" in response.content
     first_times = get_times(response)
-    response = requests.get(fixture.url("watch_e"))
 
-    # Touch script A and check that we now get a new time
+    # Touch script A and check that we now get a new time for A, but not for
+    # the sub scripts.
     touch_file('tests/web/watch_a.py')
     response = requests.get(fixture.url("watch_a"))
     second_times = get_times(response)
     assert first_times['A'] != second_times['A']
+    assert first_times['B'] == second_times['B']
+    assert first_times['C'] == second_times['C']
+    assert first_times['D'] == second_times['D']
 
     # Touch script B and check that script A updates with that, too.
     touch_file('tests/web/watch_b.py')
     response = requests.get(fixture.url("watch_a"))
     third_times = get_times(response)
-    assert first_times['B'] != third_times['B']
+    assert second_times['A'] != third_times['A']
+    assert second_times['B'] != third_times['B']
+    assert second_times['C'] == third_times['C']
+    assert second_times['D'] == third_times['D']
 
     # And again with script D which is several layers in
     touch_file('tests/web/watch_d.py')
     response = requests.get(fixture.url("watch_a"))
     fourth_times = get_times(response)
+    assert first_times['A'] != fourth_times['A']
+    assert first_times['B'] != fourth_times['B']
+    assert first_times['C'] != fourth_times['C']
     assert first_times['D'] != fourth_times['D']
 
-    # Touching script D again and then loading E should show a new C time
-    touch_file('tests/web/watch_d.py')
-    # Note, if we touched script C here, we wouldn't see it change in E's
-    # response.  If we work-around that peculiarity, add a test for it.
+    # Touching script C and then loading E should show a new C time
+    touch_file('tests/web/watch_c.py')
     response = requests.get(fixture.url("watch_e"))
     fifth_times = get_times(response)
-    assert first_times['D'] != fifth_times['D']
+    assert fourth_times['C'] != fifth_times['C']
+    assert fourth_times['D'] == fifth_times['D']
+
+    # Touch script B.  Calling E should not show any difference in times.
+    touch_file('tests/web/watch_b.py')
+    response = requests.get(fixture.url("watch_e"))
+    sixth_times = get_times(response)
+    assert fifth_times['C'] == sixth_times['C']
+    assert fifth_times['D'] == sixth_times['D']
+    assert fifth_times['E'] == sixth_times['E']
 
     # All done
