@@ -4,8 +4,8 @@ import platform
 import subprocess
 import time
 
-host = "localhost"
-port = "50047"
+host = "127.0.0.1"
+port = "30047"
 
 process = None
 
@@ -33,7 +33,10 @@ def run_tangelo(*args, **kwargs):
 
     # Start Tangelo with the specified arguments, and immediately poll the
     # process to bootstrap its returncode state.
-    proc = subprocess.Popen(tangelo + list(args), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(tangelo + [
+        '--host', host,
+        '--port', port,
+    ] + list(args), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     proc.poll()
 
     # Run in a loop until the timeout expires or the process ends.
@@ -90,8 +93,6 @@ def start_tangelo():
             return 0
         elif line.rstrip().endswith("ENGINE Bus EXITED") or process.poll() is not None:
             process = None
-            if kwargs.get('stderr', False):
-                return None, buf
             raise RuntimeError("Could not start Tangelo:\n%s" % ("".join(buf)))
 
 
