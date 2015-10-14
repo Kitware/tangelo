@@ -45,9 +45,6 @@ def run_tangelo(*args, **kwargs):
         time.sleep(0.5)
         proc.poll()
 
-    if terminate:
-        proc.terminate()
-
     if proc.poll() is None and terminate:
         proc.terminate()
 

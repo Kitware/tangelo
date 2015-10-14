@@ -1,4 +1,5 @@
 import datetime
+import imp
 import sys
 import os
 import cherrypy
@@ -614,12 +615,22 @@ class Plugins(object):
         self.modules = tangelo.util.ModuleCache(config=False)
 
         # Create a virtual module to hold all plugin python modules.
-        exec("%s = sys.modules[self.base_package] = types.ModuleType(self.base_package)" % (self.base_package))
+        package_parts = self.base_package.split('.')
+        for pkg_step in range(len(package_parts)):
+            package = '.'.join(package_parts[:pkg_step + 1])
+            if package not in sys.modules:
+                sys.modules[package] = imp.new_module(package)
+                if not pkg_step:
+                    globals()[package] = sys.modules[package]
+                else:
+                    package_root = '.'.join(package_parts[:pkg_step])
+                    setattr(sys.modules[package_root], package_parts[pkg_step], sys.modules[package])
 
         # A null config should be treated as an empty list.
         if config is None:
             config = []
 
+        startlist = []
         # Read through the list of plugin configs, extracting the info and
         # validating as we go.
         for i, entry in enumerate(config):
@@ -636,11 +647,14 @@ class Plugins(object):
                 self.errors.append("Configuration for plugin %d uses duplicate plugin name '%s'" % (i + 1, name))
                 return
 
-            self.plugins[name] = entry
+            # Copy the entry so we don't alter the config object
+            self.plugins[name] = entry.copy()
             del self.plugins[name]["name"]
+            startlist.append(name)
 
         # Load all the plugins one by one, bailing out if there are any errors.
-        for plugin, conf in self.plugins.iteritems():
+        for plugin in startlist:
+            conf = self.plugins[plugin]
             if "path" in conf:
                 # Extract the plugin path.
                 path = os.path.abspath(conf["path"])
@@ -694,26 +708,25 @@ class Plugins(object):
         # Check for a "python" directory, and place all modules found
         # there in a virtual submodule of tangelo.plugin.
         python = os.path.join(path, "python")
-        if os.path.exists(python):
+        if os.path.exists(python) or os.path.exists(python + '.py'):
             tangelo.log_info("PLUGIN", "\t...loading python module content")
 
-            init = os.path.join(python, "__init__.py")
-            if not os.path.exists(init):
+            try:
+                find_mod_results = imp.find_module('python', [path])
+            except ImportError:
                 self.errors.append("'python' directory of plugin %s is missing __init.py__" % (plugin_name))
                 return False
-            else:
-                module_name = "%s.%s" % (self.base_package, plugin_name)
-                plugin.module = module_name
-                old_path = sys.path
-                sys.path.append(python)
-                try:
-                    exec('%s = sys.modules[module_name] = self.modules.get(init)' % (module_name))
-                except:
-                    self.errors.append("Could not import python module content for plugin %s:\n%s" % (plugin_name, traceback.format_exc()))
-                    sys.path = old_path
-                    return False
-                finally:
-                    sys.path = old_path
+            module_name = "%s.%s" % (self.base_package, plugin_name)
+            plugin.module = module_name
+            try:
+                new_module = imp.load_module(module_name, *list(find_mod_results))
+            except Exception:
+                self.errors.append("Could not import python module content for plugin %s:\n%s" % (plugin_name, traceback.format_exc()))
+                return False
+            finally:
+                if find_mod_results[0]:
+                    find_mod_results[0].close()
+            setattr(sys.modules[self.base_package], plugin_name, new_module)
 
         # Check for any setup that needs to be done, including any apps
         # that need to be mounted.
@@ -765,7 +778,6 @@ class Plugins(object):
         if plugin.module is not None:
             tangelo.log_info("PLUGIN", "\t...removing module %s" % (plugin.module))
             del sys.modules[plugin.module]
-            exec("del %s" % (plugin.module))
 
         for app_path in plugin.apps:
             tangelo.log_info("PLUGIN", "\t...unmounting app at %s" % (app_path))
