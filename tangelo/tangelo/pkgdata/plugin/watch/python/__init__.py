@@ -170,6 +170,7 @@ def reload_recent_submodules(module, mtime=0, processed=[]):
         if WatchList[key]["parent"] == module:
             reloaded = reload_recent_submodules(key, mtime, processed)
             filemtime = module_getmtime(WatchList[key]["file"])
+            filemtime = latest_submodule_time(key, filemtime)
             any_reloaded = any_reloaded or reloaded
             if reloaded or filemtime > WatchList[key]["time"]:
                 WatchList[key]["time"] = filemtime
@@ -218,8 +219,10 @@ def watch_import(name, globals=None, *args, **kwargs):
         imp.acquire_lock()
         try:
             if key not in WatchList:
+                filemtime = module_getmtime(module.__file__) or 0
+                filemtime = latest_submodule_time(key, filemtime)
                 WatchList[key] = {
-                    "time": module_getmtime(module.__file__) or 0
+                    "time": filemtime
                 }
             WatchList[key].update({
                 "parent": parent,
