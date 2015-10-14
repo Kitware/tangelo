@@ -4,7 +4,7 @@
 
 | tangelo [-h] [-c FILE] [-nc] [-a] [-na] [-p] [-np]
 |         [--hostname HOSTNAME] [--port PORT] [-u USERNAME]
-|         [-g GROUPNAME] [-r DIR] [--vtkpython FILE] [--verbose]
+|         [-g GROUPNAME] [-r DIR] [--vtkpython FILE] [--verbose] [--quiet]
 |         [--version] [--key FILE] [--cert FILE]
 
 Start a Tangelo server.
@@ -27,7 +27,8 @@ Optional argument                  Effect
 -g GROUPNAME, --group GROUPNAME    specifies the group to run as when root privileges are dropped
 -r DIR, --root DIR                 the directory from which Tangelo will serve content
 --examples                         serve the Tangelo example applications
---verbose, -v                      display extra information as Tangelo starts up
+--verbose, -v                      display extra information as Tangelo runs
+--quiet, -q                        reduce the amount of information displayed
 --version                          display Tangelo version number
 --key FILE                         the path to the SSL key. You must also specify --cert to serve content over https.
 --cert FILE                        the path to the SSL certificate. You must also specify --key to serve content over https.

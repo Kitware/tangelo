@@ -5,6 +5,7 @@ import functools
 import imp
 import inspect
 import os.path
+import logging
 import sys
 from types import StringTypes
 
@@ -39,7 +40,7 @@ def http_status(code, message=None):
     cherrypy.response.status = "%s%s" % (code, " %s" % (message) if message is not None else "")
 
 
-def log(section, message=None, color=None):
+def log(section, message=None, color=None, lvl=logging.INFO):
     if message is None:
         message = section
         section = "TANGELO"
@@ -48,23 +49,32 @@ def log(section, message=None, color=None):
         section = "%s%s" % (color, section)
         message = "%s%s" % (message, "\033[0m")
 
-    cherrypy.log(str(message), section)
+    # There is a subtle difference between cherrypy.log and cherrypy.log.error,
+    # even though one just calls the other via a __call__ method.  For reasons I
+    # don't understand, the cherrypy.log message seems to have an extra limit to
+    # log levels of logging.INFO, whereas cherrypy.log.error honors the log
+    # level that can be set.
+    cherrypy.log.error(str(message), section, lvl)
+
+
+def log_critical(section, message=None):
+    log(section, message, color="\033[1;91m", lvl=logging.CRITICAL)
 
 
 def log_error(section, message=None):
-    log(section, message, color="\033[1;91m")
-
-
-def log_success(section, message=None):
-    log(section, message, color="\033[32m")
+    log(section, message, color="\033[31m", lvl=logging.ERROR)
 
 
 def log_warning(section, message=None):
-    log(section, message, color="\033[1;33m")
+    log(section, message, color="\033[33m", lvl=logging.WARNING)
 
 
 def log_info(section, message=None):
-    log(section, message, color="\033[35m")
+    log(section, message, color="\033[35m", lvl=logging.INFO)
+
+
+def log_debug(section, message=None):
+    log(section, message, color="\033[1;34m", lvl=logging.DEBUG)
 
 
 def request_path():
@@ -291,6 +301,8 @@ def tangelo_import(*args, **kwargs):
     try:
         return builtin_import(*args, **kwargs)
     except ImportError:
+        if not hasattr(cherrypy.thread_data, "modulepath"):
+            raise
         path = os.path.abspath(cherrypy.thread_data.modulepath)
         root = os.path.abspath(cherrypy.config.get("webroot"))
         result = None
