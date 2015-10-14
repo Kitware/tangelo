@@ -19,9 +19,15 @@ def windows():
 
 
 def yaml_safe_load(filename, type=None):
-    with open(filename) as f:
+    if os.path.exists(filename) or not filename.startswith('{'):
+        with open(filename) as f:
+            try:
+                data = yaml.safe_load(f.read())
+            except yaml.YAMLError as e:
+                raise ValueError(e)
+    else:
         try:
-            data = yaml.safe_load(f.read())
+            data = yaml.safe_load(filename)
         except yaml.YAMLError as e:
             raise ValueError(e)
 

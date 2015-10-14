@@ -197,7 +197,7 @@ def get_tangelo_ico():
 
 def main():
     p = argparse.ArgumentParser(description="Start a Tangelo server.")
-    p.add_argument("-c", "--config", type=str, default=None, metavar="FILE", help="specifies configuration file to use")
+    p.add_argument("-c", "--config", type=str, default=None, metavar="FILE", help="specifies configuration file or json string to use")
     p.add_argument("-a", "--access-auth", action="store_const", const=True, default=None, help="enable HTTP authentication (i.e. processing of .htaccess files) (default)")
     p.add_argument("-na", "--no-access-auth", action="store_const", const=True, default=None, help="disable HTTP authentication (i.e. processing of .htaccess files)")
     p.add_argument("-p", "--drop-privileges", action="store_const", const=True, default=None, help="enable privilege drop when started as superuser (default)")
@@ -280,8 +280,11 @@ def main():
     if cfg_file is None:
         tangelo.log_info("TANGELO", "No configuration file specified - using command line args and defaults")
     else:
-        cfg_file = tangelo.util.expandpath(cfg_file)
-        tangelo.log_info("TANGELO", "Using configuration file %s" % (cfg_file))
+        if os.path.exists(tangelo.util.expandpath(cfg_file)) or not cfg_file.startswith('{'):
+            cfg_file = tangelo.util.expandpath(cfg_file)
+            tangelo.log("TANGELO", "Using configuration file %s" % (cfg_file))
+        else:
+            tangelo.log("TANGELO", "Using configuration string")
 
     # Parse the config file; report errors if any.
     try:

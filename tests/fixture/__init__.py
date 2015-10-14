@@ -33,7 +33,10 @@ def run_tangelo(*args, **kwargs):
 
     # Start Tangelo with the specified arguments, and immediately poll the
     # process to bootstrap its returncode state.
-    proc = subprocess.Popen(tangelo + list(args), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(tangelo + [
+        "--host", host,
+        "--port", port,
+    ] + list(args), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     proc.poll()
 
     # Run in a loop until the timeout expires or the process ends.
@@ -43,6 +46,9 @@ def run_tangelo(*args, **kwargs):
         proc.poll()
 
     if terminate:
+        proc.terminate()
+
+    if proc.poll() is None and terminate:
         proc.terminate()
 
     return (proc.returncode, filter(None, proc.stdout.read().splitlines()), filter(None, proc.stderr.read().splitlines()))
