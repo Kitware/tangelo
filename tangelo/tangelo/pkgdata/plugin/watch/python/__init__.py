@@ -27,25 +27,25 @@ def latest_submodule_time(module, mtime=0, processed=None):
     """
     if processed is None:
         processed = []
-    if module.endswith('.py'):
+    if module.endswith(".py"):
         module = module[:-3]
     if module in processed:
         return mtime
     processed.append(module)
     for key in WatchList:
-        if WatchList[key]['parent'] == module:
-            filemtime = module_getmtime(WatchList[key]['file'])
+        if WatchList[key]["parent"] == module:
+            filemtime = module_getmtime(WatchList[key]["file"])
             if filemtime:
                 mtime = max(mtime, filemtime)
             mtime = latest_submodule_time(key, mtime, processed)
-    if '.' in module:
-        module = module.rsplit('.', 1)[-1]
+    if "." in module:
+        module = module.rsplit(".", 1)[-1]
         if module in processed:
             return mtime
         processed.append(module)
         for key in WatchList:
-            if WatchList[key]['parent'] == module:
-                filemtime = module_getmtime(WatchList[key]['file'])
+            if WatchList[key]["parent"] == module:
+                filemtime = module_getmtime(WatchList[key]["file"])
                 if filemtime:
                     mtime = max(mtime, filemtime)
                 mtime = latest_submodule_time(key, mtime, processed)
@@ -58,9 +58,9 @@ def module_getmtime(filename):
     a corresponding .py file exists, the time of the .py file is returned.
 
     :param filename: filename of the module.
-    :returns: mtime or None if the file doesn't exist.
+    :returns: mtime or None if the file doesn"t exist.
     """
-    if os.path.splitext(filename)[1].lower() in ('.pyc', '.pyo') and os.path.exists(filename[:-1]):
+    if os.path.splitext(filename)[1].lower() in (".pyc", ".pyo") and os.path.exists(filename[:-1]):
         return os.path.getmtime(filename[:-1])
     if os.path.exists(filename):
         return os.path.getmtime(filename)
@@ -91,14 +91,14 @@ def module_reload_changed(key):
                     break
         if not found:
             return
-        filemtime = module_getmtime(WatchList[found]['file'])
+        filemtime = module_getmtime(WatchList[found]["file"])
         filemtime = latest_submodule_time(found, filemtime)
-        if filemtime > WatchList[found]['time']:
-            tangelo.log('Reloaded %s' % found)
+        if filemtime > WatchList[found]["time"]:
+            tangelo.log("Reloaded %s" % found)
             reload_including_local(sys.modules[foundmodkey])
             for second in WatchList:
-                if WatchList[second]['file'] == WatchList[found]['file']:
-                    WatchList[second]['time'] = filemtime
+                if WatchList[second]["file"] == WatchList[found]["file"]:
+                    WatchList[second]["time"] = filemtime
     finally:
         imp.release_lock()
     return True
@@ -112,9 +112,9 @@ def module_sys_modules_key(key):
     :param key: our key to the module.
     :returns: the key in sys.modules or None.
     """
-    moduleparts = key.split('.')
+    moduleparts = key.split(".")
     for partnum, part in enumerate(moduleparts):
-        modkey = '.'.join(moduleparts[partnum:])
+        modkey = ".".join(moduleparts[partnum:])
         if modkey in sys.modules:
             return modkey
     return None
@@ -122,7 +122,7 @@ def module_sys_modules_key(key):
 
 def reload_including_local(module):
     """
-    Reload a module.  If it isn't found, try to include the local service
+    Reload a module.  If it isn"t found, try to include the local service
     directory.  This must be called from a thread that has acquired the import
     lock.
 
@@ -161,29 +161,29 @@ def reload_recent_submodules(module, mtime=0, processed=[]):
                       recursion).
     :returns: True if any submodule was reloaded.
     """
-    if module.endswith('.py'):
+    if module.endswith(".py"):
         module = module[:-3]
     if module in processed:
         return False
     any_reloaded = False
     for key in WatchList:
-        if WatchList[key]['parent'] == module:
+        if WatchList[key]["parent"] == module:
             reloaded = reload_recent_submodules(key, mtime, processed)
-            filemtime = module_getmtime(WatchList[key]['file'])
+            filemtime = module_getmtime(WatchList[key]["file"])
             any_reloaded = any_reloaded or reloaded
-            if reloaded or filemtime > WatchList[key]['time']:
-                WatchList[key]['time'] = filemtime
+            if reloaded or filemtime > WatchList[key]["time"]:
+                WatchList[key]["time"] = filemtime
                 for second in WatchList:
-                    if second != key and WatchList[second]['file'] == WatchList[key]['file']:
-                        WatchList[second]['time'] = filemtime
+                    if second != key and WatchList[second]["file"] == WatchList[key]["file"]:
+                        WatchList[second]["time"] = filemtime
                 modkey = module_sys_modules_key(key)
                 if modkey:
                     try:
                         reload_including_local(sys.modules[modkey])
-                        tangelo.log('Reloaded %s' % modkey)
+                        tangelo.log("Reloaded %s" % modkey)
                     except ImportError:
                         del sys.modules[modkey]
-                        tangelo.log('Asking %s to reimport' % modkey)
+                        tangelo.log("Asking %s to reimport" % modkey)
                     any_reloaded = True
     return any_reloaded
 
@@ -196,35 +196,35 @@ def watch_import(name, globals=None, *args, **kwargs):
 
     :params: see __builtin__.__import__
     """
-    # Don't monitor builtin modules.  types seem special, so don't monitor it
+    # Don"t monitor builtin modules.  types seem special, so don"t monitor it
     # either.
-    monitor = not imp.is_builtin(name) and name not in ('types', )
-    # Don't monitor modules if we don't know where they came from
-    monitor = monitor and isinstance(globals, dict) and globals.get('__name__')
+    monitor = not imp.is_builtin(name) and name not in ("types", )
+    # Don"t monitor modules if we don"t know where they came from
+    monitor = monitor and isinstance(globals, dict) and globals.get("__name__")
     if not monitor:
         return builtin_import(name, globals, *args, **kwargs)
     # This will be the dotted module name except for service modules where it
     # will be the absolute file path.
-    parent = globals['__name__']
-    key = parent + '.' + name
+    parent = globals["__name__"]
+    key = parent + "." + name
     module_reload_changed(key)
     try:
         module = builtin_import(name, globals, *args, **kwargs)
     except ImportError:
         raise
-    if getattr(module, '__file__', None):
+    if getattr(module, "__file__", None):
         if key not in WatchList:
-            tangelo.log_info('WATCH', 'Monitoring import %s from %s' % (name, parent))
+            tangelo.log_info("WATCH", "Monitoring import %s from %s" % (name, parent))
         imp.acquire_lock()
         try:
             if key not in WatchList:
                 WatchList[key] = {
-                    'time': module_getmtime(module.__file__) or 0
+                    "time": module_getmtime(module.__file__) or 0
                 }
             WatchList[key].update({
-                'parent': parent,
-                'name': name,
-                'file': module.__file__
+                "parent": parent,
+                "name": name,
+                "file": module.__file__
             })
         finally:
             imp.release_lock()
@@ -243,11 +243,11 @@ def watch_module_cache_get(cache, module):
     """
     imp.acquire_lock()
     try:
-        if not hasattr(cache, 'timestamps'):
+        if not hasattr(cache, "timestamps"):
             cache.timestamps = {}
         mtime = os.path.getmtime(module)
         mtime = latest_submodule_time(module, mtime)
-        if getattr(cache, 'config', False):
+        if getattr(cache, "config", False):
             config_file = module[:-2] + "yaml"
             if os.path.exists(config_file):
                 # Our timestamp is the latest time of the config file or the
@@ -258,14 +258,14 @@ def watch_module_cache_get(cache, module):
             # loaded files so that it will get loaded again.
             if config_file in cache.config_files and mtime > cache.timestamps.get(module, 0):
                 del cache.config_files[config_file]
-                tangelo.log('WATCH', 'Asking to reload config file %s' % config_file)
+                tangelo.log("WATCH", "Asking to reload config file %s" % config_file)
         # If the timestamp is more recent than the recorded value, remove the
         # the module from our records so that it will be loaded again.
         if module in cache.modules and mtime > cache.timestamps.get(module, 0):
             del cache.modules[module]
-            tangelo.log('WATCH', 'Asking to reload module %s' % module)
+            tangelo.log("WATCH", "Asking to reload module %s" % module)
         if module not in cache.timestamps:
-            tangelo.log_info('WATCH', 'Monitoring module %s' % module)
+            tangelo.log_info("WATCH", "Monitoring module %s" % module)
         reload_recent_submodules(module, mtime)
         cache.timestamps[module] = mtime
         service = tangelo_module_cache_get(cache, module)

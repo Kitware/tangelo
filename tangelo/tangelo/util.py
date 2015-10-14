@@ -19,7 +19,7 @@ def windows():
 
 
 def yaml_safe_load(filename, type=None):
-    if os.path.exists(filename) or not filename.startswith('{'):
+    if os.path.exists(filename) or not filename.startswith("{"):
         with open(filename) as f:
             try:
                 data = yaml.safe_load(f.read())
@@ -154,7 +154,7 @@ def module_cache_get(cache, module):
     :param module: the path of the module to load.
     :returns: the loaded module.
     """
-    if getattr(cache, 'config', False):
+    if getattr(cache, "config", False):
         config_file = module[:-2] + "yaml"
         if config_file not in cache.config_files and os.path.exists(config_file):
             try:

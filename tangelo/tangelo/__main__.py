@@ -281,7 +281,7 @@ def main():
     if cfg_file is None:
         tangelo.log_info("TANGELO", "No configuration file specified - using command line args and defaults")
     else:
-        if os.path.exists(tangelo.util.expandpath(cfg_file)) or not cfg_file.startswith('{'):
+        if os.path.exists(tangelo.util.expandpath(cfg_file)) or not cfg_file.startswith("{"):
             cfg_file = tangelo.util.expandpath(cfg_file)
             tangelo.log("TANGELO", "Using configuration file %s" % (cfg_file))
         else:
