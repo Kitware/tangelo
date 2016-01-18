@@ -8,12 +8,16 @@ versioning](http://semver.org).
 - Improvements to release cycle documentation
 - Configuration parameter for ``$.controlPanel`` to set height of open panel
   explicitly
+- Documentation has an explicit "hello world" example in the Quick Start section
 
 ### Changed
+- Documentation introduction is more focused; tutorials are more
+  front-and-center
 
 ### Deprecated
 
 ### Removed
+- "System Architecture" section in README
 
 ### Fixed
 
