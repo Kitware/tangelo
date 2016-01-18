@@ -9,12 +9,15 @@ versioning](http://semver.org).
 - Configuration parameter for ``$.controlPanel`` to set height of open panel
   explicitly
 - Documentation has an explicit "hello world" example in the Quick Start section
+- Quiet option reduces verbosity
 
 ### Changed
 - Documentation introduction is more focused; tutorials are more
   front-and-center
 - Updated bundled version of GeoJS
 - Support Travis containers for better automated testing
+- Verbose option can be specified multiple times to increase application
+  verbosity
 
 ### Deprecated
 
@@ -25,6 +28,7 @@ versioning](http://semver.org).
 - ``tangelo.paths(".")`` hack no longer necessary to import modules in same
   directory as service
 - Persistent store no longer cleared when reloading service
+- Verbose option (``-v``) properly increases application verbosity
 
 ### Security
 
