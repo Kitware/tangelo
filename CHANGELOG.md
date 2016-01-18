@@ -14,6 +14,7 @@ versioning](http://semver.org).
 - Documentation introduction is more focused; tutorials are more
   front-and-center
 - Updated bundled version of GeoJS
+- Support Travis containers for better automated testing
 
 ### Deprecated
 
