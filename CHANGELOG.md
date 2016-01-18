@@ -6,6 +6,8 @@ versioning](http://semver.org).
 ### Added
 - Traceback is logged when a service module can't be imported
 - Improvements to release cycle documentation
+- Configuration parameter for ``$.controlPanel`` to set height of open panel
+  explicitly
 
 ### Changed
 
