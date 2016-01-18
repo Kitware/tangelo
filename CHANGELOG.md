@@ -18,6 +18,7 @@ versioning](http://semver.org).
 - Support Travis containers for better automated testing
 - Verbose option can be specified multiple times to increase application
   verbosity
+- ``--config`` option can now accept a raw JSON string in place of a YAML
 
 ### Deprecated
 
