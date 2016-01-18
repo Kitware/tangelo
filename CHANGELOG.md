@@ -10,6 +10,8 @@ versioning](http://semver.org).
   explicitly
 - Documentation has an explicit "hello world" example in the Quick Start section
 - Quiet option reduces verbosity
+- "Watch" plugin controls whether services and dependent modules are
+  automatically reloaded when they change
 
 ### Changed
 - Documentation introduction is more focused; tutorials are more
@@ -19,6 +21,9 @@ versioning](http://semver.org).
 - Verbose option can be specified multiple times to increase application
   verbosity
 - ``--config`` option can now accept a raw JSON string in place of a YAML
+  filename
+- Tangelo no longer automatically reloads changed service modules, unless the
+  ``--watch`` option is specified to load the new watch plugin
 
 ### Deprecated
 
