@@ -24,6 +24,7 @@ versioning](http://semver.org).
 ### Fixed
 - ``tangelo.paths(".")`` hack no longer necessary to import modules in same
   directory as service
+- Persistent store no longer cleared when reloading service
 
 ### Security
 
