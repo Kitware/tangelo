@@ -7,6 +7,7 @@ versioning](http://semver.org).
 - Traceback is logged when a service module can't be imported
 
 ### Changed
+- Bundled Mongo plugin updated to use PyMongo 3.2
 
 ### Deprecated
 
