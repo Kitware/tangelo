@@ -13,6 +13,7 @@ versioning](http://semver.org).
 ### Changed
 - Documentation introduction is more focused; tutorials are more
   front-and-center
+- Updated bundled version of GeoJS
 
 ### Deprecated
 
