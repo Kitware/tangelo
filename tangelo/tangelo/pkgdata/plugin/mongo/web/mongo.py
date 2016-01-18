@@ -53,7 +53,7 @@ def run(server, db, coll, method='find', query=None, limit=1000,
 
     # Create database connection.
     try:
-        c = pymongo.Connection(server)[db][coll]
+        c = pymongo.MongoClient(server)[db][coll]
     except (pymongo.errors.AutoReconnect, pymongo.errors.ConnectionFailure):
         response['error'] = ("Could not connect to " +
                              "MongoDB server '%s'") % (server)
@@ -62,7 +62,7 @@ def run(server, db, coll, method='find', query=None, limit=1000,
     # Perform the requested action.
     if method == 'find':
         # Do a find operation with the passed arguments.
-        it = c.find(spec=query, fields=fields, skip=skip,
+        it = c.find(filter=query, projection=fields, skip=skip,
                     limit=limit, sort=sort)
 
         # Create a list of the results.
