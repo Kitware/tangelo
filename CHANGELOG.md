@@ -5,6 +5,7 @@ versioning](http://semver.org).
 ## [Unreleased] - [unreleased]
 ### Added
 - Traceback is logged when a service module can't be imported
+- Improvements to release cycle documentation
 
 ### Changed
 
