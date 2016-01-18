@@ -20,8 +20,7 @@ versioning](http://semver.org).
 - Support Travis containers for better automated testing
 - Verbose option can be specified multiple times to increase application
   verbosity
-- ``--config`` option can now accept a raw JSON string in place of a YAML
-  filename
+- ``--config`` option can now accept either a YAML filename or a raw JSON string
 - Tangelo no longer automatically reloads changed service modules, unless the
   ``--watch`` option is specified to load the new watch plugin
 
