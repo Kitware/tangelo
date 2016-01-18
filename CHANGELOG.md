@@ -5,15 +5,38 @@ versioning](http://semver.org).
 ## [Unreleased] - [unreleased]
 ### Added
 - Traceback is logged when a service module can't be imported
+- Improvements to release cycle documentation
+- Configuration parameter for ``$.controlPanel`` to set height of open panel
+  explicitly
+- Documentation has an explicit "hello world" example in the Quick Start section
+- Quiet option reduces verbosity
+- "Watch" plugin controls whether services and dependent modules are
+  automatically reloaded when they change
 
 ### Changed
+- Documentation introduction is more focused; tutorials are more
+  front-and-center
+- Updated bundled version of GeoJS
+- Support Travis containers for better automated testing
+- Verbose option can be specified multiple times to increase application
+  verbosity
+- ``--config`` option can now accept either a YAML filename or a raw JSON string
+- Tangelo no longer automatically reloads changed service modules, unless the
+  ``--watch`` option is specified to load the new watch plugin
 - Bundled Mongo plugin updated to use PyMongo 3.2
 
 ### Deprecated
 
 ### Removed
+- "System Architecture" section in README
 
 ### Fixed
+- ``tangelo.paths(".")`` hack no longer necessary to import modules in same
+  directory as service
+- Persistent store no longer cleared when reloading service
+- Verbose option (``-v``) properly increases application verbosity
+- Plugins are now imported using the ``imp`` module, eliminating some spurious
+  error messages
 
 ### Security
 
