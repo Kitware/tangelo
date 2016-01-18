@@ -30,6 +30,8 @@ versioning](http://semver.org).
   directory as service
 - Persistent store no longer cleared when reloading service
 - Verbose option (``-v``) properly increases application verbosity
+- Plugins are now imported using the ``imp`` module, eliminating some spurious
+  error messages
 
 ### Security
 
