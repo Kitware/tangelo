@@ -23,6 +23,7 @@ versioning](http://semver.org).
 - ``--config`` option can now accept either a YAML filename or a raw JSON string
 - Tangelo no longer automatically reloads changed service modules, unless the
   ``--watch`` option is specified to load the new watch plugin
+- Bundled Mongo plugin updated to use PyMongo 3.2
 
 ### Deprecated
 
