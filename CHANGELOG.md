@@ -22,6 +22,8 @@ versioning](http://semver.org).
 - "System Architecture" section in README
 
 ### Fixed
+- ``tangelo.paths(".")`` hack no longer necessary to import modules in same
+  directory as service
 
 ### Security
 
