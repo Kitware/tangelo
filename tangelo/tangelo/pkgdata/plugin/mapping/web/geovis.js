@@ -1,7 +1,8 @@
 (function (tangelo) {
     "use strict";
 
-    var mapping = tangelo.getPlugin("mapping");
+    tangelo.ensurePlugin("mapping");
+    var mapping = tangelo.plugin.mapping;
 
     mapping.geovis = function (worldGeometryFile) {
         var spec = {
