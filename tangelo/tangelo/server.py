@@ -433,7 +433,7 @@ class Tangelo(object):
 
             error_code = tangelo.util.generate_error_code()
 
-            result = {"message": "Error code: %s (give this code to your system administrator for more information)" % (error_code)}
+            result = tangelo.util.error_report(error_code)
             tangelo.log_error("SERVICE", "Error code: %s" % (error_code))
             tangelo.log_error("SERVICE", "Could not import service module %s:\n%s" % (tangelo.request_path(), traceback.format_exc()))
         else:
@@ -468,7 +468,7 @@ class Tangelo(object):
 
                 error_code = tangelo.util.generate_error_code()
 
-                result = {"message": "Error code: %s (give this code to your system administrator for more information)" % (error_code)}
+                result = tangelo.util.error_report(error_code)
                 tangelo.log_error("SERVICE", "Error code: %s" % (error_code))
                 tangelo.log_error("SERVICE", "Could not execute service %s:\n%s" % (tangelo.request_path(), traceback.format_exc()))
 

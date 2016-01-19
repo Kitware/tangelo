@@ -51,6 +51,10 @@ def generate_error_code():
     return "".join(random.sample(string.ascii_uppercase, 6))
 
 
+def error_report(code):
+    return {"message": "Error code: %s (give this code to your system administrator for more information)" % (code)}
+
+
 def get_free_port():
     # Bind a socket to port 0 (which directs the OS to find an unused port).
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
