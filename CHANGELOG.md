@@ -39,6 +39,8 @@ versioning](http://semver.org).
   error messages
 
 ### Security
+- ``Server`` response header now reads "Tangelo" instead of "CherryPy" with a
+  version string
 
 ## [0.9] - 2015-03-03
 ### Added
