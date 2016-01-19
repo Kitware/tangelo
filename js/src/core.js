@@ -13,6 +13,13 @@ window.tangelo = {};
     // A namespace for plugins.
     tangelo.plugin = {};
 
+    // Create a plugin namespace if it does not exist; otherwise, do nothing.
+    tangelo.ensurePlugin = function (plugin) {
+        if (tangelo.plugin[plugin] === undefined) {
+            tangelo.plugin[plugin] = {};
+        }
+    };
+
     // Standard way to access a plugin namespace.
     tangelo.getPlugin = function (plugin) {
         if (tangelo.plugin[plugin] === undefined) {
