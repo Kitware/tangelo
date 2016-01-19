@@ -463,11 +463,14 @@ class Tangelo(object):
                         tangelo.content_type("application/json")
                         result = {"error": "Method '%s' is not allowed in this service" % (method)}
             except:
-                tangelo.http_status(501, "Web Service Error")
+                tangelo.http_status(500, "Service Error")
                 tangelo.content_type("application/json")
-                result = tangelo.util.traceback_report(error="Error executing service", module=tangelo.request_path())
 
-                tangelo.log_warning("SERVICE", "Could not execute service %s:\n%s" % (tangelo.request_path(), "\n".join(result["traceback"])))
+                error_code = tangelo.util.generate_error_code()
+
+                result = {"message": "Error code: %s (give this code to your system administrator for more information)" % (error_code)}
+                tangelo.log_error("SERVICE", "Error code: %s" % (error_code))
+                tangelo.log_error("SERVICE", "Could not execute service %s:\n%s" % (tangelo.request_path(), traceback.format_exc()))
 
         # Restore the path to what it was originally.
         sys.path = origpath
