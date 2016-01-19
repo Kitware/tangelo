@@ -12,6 +12,7 @@ versioning](http://semver.org).
 - Quiet option reduces verbosity
 - "Watch" plugin controls whether services and dependent modules are
   automatically reloaded when they change
+- ``tangelo.ensurePlugin()`` function that avoids JavaScript parsing problems
 
 ### Changed
 - Documentation introduction is more focused; tutorials are more
@@ -26,6 +27,7 @@ versioning](http://semver.org).
 - Bundled Mongo plugin updated to use PyMongo 3.2
 
 ### Deprecated
+- ``tangelo.getPlugin()`` - use ``tangelo.ensurePlugin()`` instead
 
 ### Removed
 - "System Architecture" section in README
