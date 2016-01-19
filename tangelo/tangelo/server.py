@@ -543,7 +543,7 @@ class Tangelo(object):
     def execute_analysis(self, query_args):
         # Hide the identity/version number of the server technology in the
         # response headers.
-        cherrypy.response.headers["Server"] = "Tangelo"
+        cherrypy.response.headers["Server"] = ""
 
         # Analyze the URL.
         analysis = analyze_url(cherrypy.request.path_info)
