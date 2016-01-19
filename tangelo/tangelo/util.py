@@ -5,7 +5,9 @@ import os
 import os.path
 import platform
 import md5
+import random
 import socket
+import string
 import threading
 import traceback
 import Queue
@@ -43,6 +45,10 @@ def yaml_safe_load(filename, type=None):
 def traceback_report(**props):
     props["traceback"] = traceback.format_exc().split("\n")
     return props
+
+
+def generate_error_code():
+    return "".join(random.sample(string.ascii_uppercase, 6))
 
 
 def get_free_port():

@@ -428,11 +428,14 @@ class Tangelo(object):
         try:
             service = self.modules.get(module)
         except:
-            tangelo.http_status(501, "Error Importing Service")
+            tangelo.http_status(500, "Service Error")
             tangelo.content_type("application/json")
-            result = tangelo.util.traceback_report(error="Could not import module %s" % (tangelo.request_path()))
 
-            tangelo.log_warning("SERVICE", "Could not import service module %s:\n%s" % (tangelo.request_path(), "\n".join(result["traceback"])))
+            error_code = tangelo.util.generate_error_code()
+
+            result = {"message": "Error code: %s (give this code to your system administrator for more information)" % (error_code)}
+            tangelo.log_error("SERVICE", "Error code: %s" % (error_code))
+            tangelo.log_error("SERVICE", "Could not import service module %s:\n%s" % (tangelo.request_path(), traceback.format_exc()))
         else:
             # Try to run the service - either it's in a function called
             # "run()", or else it's in a REST API consisting of at least one of
