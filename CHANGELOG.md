@@ -39,6 +39,9 @@ versioning](http://semver.org).
   error messages
 
 ### Security
+- Runtime exceptions no longer send tracebacks to the client; instead, an error
+  report code is sent, which can be matched up to a traceback appearing in the
+  server log
 
 ## [0.9] - 2015-03-03
 ### Added
