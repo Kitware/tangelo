@@ -467,9 +467,8 @@ class Tangelo(object):
 
                 error_code = tangelo.util.generate_error_code()
 
+                tangelo.util.log_traceback("SERVICE", error_code, "Could not execute service %s" % (tangelo.request_path()))
                 result = tangelo.util.error_report(error_code)
-                tangelo.log_error("SERVICE", "Error code: %s" % (error_code))
-                tangelo.log_error("SERVICE", "Could not execute service %s:\n%s" % (tangelo.request_path(), traceback.format_exc()))
 
         # Restore the path to what it was originally.
         sys.path = origpath

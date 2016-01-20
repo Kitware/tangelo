@@ -1,7 +1,6 @@
 import tangelo
 from tangelo.server import Content
 import tangelo.util
-import traceback
 
 # Useful aliases for this service's necessary persistent data.
 store = tangelo.store()
@@ -83,8 +82,7 @@ def stream_start(url, kwargs):
 
             error_code = tangelo.util.generate_error_code()
 
-            tangelo.log_error("STREAM", "Error code: %s" % (error_code))
-            tangelo.log_error("STREAM", "Could not import module %s:\n%s" % (tangelo.request_path(), traceback.format_exc()))
+            tangelo.util.log_traceback("STREAM", error_code, "Could not import module %s" % (tangelo.request_path()))
             return tangelo.util.error_report(error_code)
         else:
             # Check for a "stream" function inside the module.
@@ -101,9 +99,7 @@ def stream_start(url, kwargs):
 
                     error_code = tangelo.util.generate_error_code()
 
-                    tangelo.log_error("STREAM", "Error code: %s" % (error_code))
-                    tangelo.log_error("STREAM", "Could not execute service %s:\n%s" % (tangelo.request_path(), traceback.format_exc()))
-
+                    tangelo.util.log_traceback("STREAM", error_code, "Could not execute service %s" % (tangelo.request_path()))
                     return tangelo.util.error_report(error_code)
                 else:
                     # Generate a key corresponding to this object.
@@ -144,8 +140,5 @@ def stream_next(key):
 
             error_code = tangelo.util.generate_error_code()
 
-            tangelo.log_error("STREAM", "Error code: %s" % (error_code))
-            tangelo.log_error("STREAM", "Offending stream key: %s" % (key))
-            tangelo.log_error("STREAM", "Uncaught exception executing service %s:\n%s" % (tangelo.request_path(), traceback.format_exc()))
-
+            tangelo.util.log_traceback("STREAM", error_code, "Offending stream key: %s" % (key), "Uncaught executing executing service %s" % (tangelo.request_path))
             return tangelo.util.error_report(error_code)
