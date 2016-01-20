@@ -116,6 +116,44 @@ HTTP Interaction
     if there is no such key.  If `value` is given, it will become newly associated
     to `key`.
 
+.. py:function:: tangelo.redirect(path[, status_code])
+
+    Used to signal the browser that a web service wants to perform an HTTP
+    redirect to a different `path`. The optional `status_code` should be a value
+    in the ``3xx`` range indicating the type of redirect desired; it defaults to
+    ``303``.
+
+    In the following example service,
+
+    .. code:: python
+
+        import tangelo
+
+        def run():
+            return tangelo.redirect("other/path/content.html")
+
+    Tangelo will direct the client to the URL shown, resulting in that file
+    being served instead of the service itself.
+
+.. py:function:: tangelo.internal_redirect(path)
+
+    Used to signal the server to serve content from a different path in place of
+    the current service; similar to :py:func:`tangelo.redirect()` but without
+    informing the client of the redirection.
+
+    The example above will look very similar using this function instead:
+
+    .. code:: python
+
+        import tangelo
+
+        def run():
+            return tangelo.internal_redirect("other/path/content.html")
+
+    When this internal redirection occurs, the browser's displayed URL, for
+    example, will not change to reflect the requested path.
+
+
 Web Services Utilities
 ======================
 
