@@ -47,6 +47,16 @@ def traceback_report(**props):
     return props
 
 
+def log_traceback(tag, code, *msgs):
+    if not msgs:
+        raise TypeError("log_traceback() takes at least 3 arguments (2 given)")
+
+    tangelo.log_error(tag, "Error code: %s" % (code))
+    for msg in msgs[:-1]:
+        tangelo.log_error(tag, msg)
+    tangelo.log_error(tag, "%s:\n%s" % (msgs[-1], traceback.format_exc()))
+
+
 def generate_error_code():
     return "".join(random.sample(string.ascii_uppercase, 6))
 
