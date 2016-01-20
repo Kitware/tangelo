@@ -12,6 +12,8 @@ versioning](http://semver.org).
 - Quiet option reduces verbosity
 - "Watch" plugin controls whether services and dependent modules are
   automatically reloaded when they change
+- Service functions ``tangelo.redirect()`` and ``tangelo.internal_redirect()``
+  to allow services to redirect to other resources
 
 ### Changed
 - Documentation introduction is more focused; tutorials are more
