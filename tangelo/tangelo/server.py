@@ -472,10 +472,17 @@ class Tangelo(object):
         # Restore the CWD to what it was before the service invocation.
         os.chdir(save_cwd)
 
-        # If the result is not a string, attempt to convert it to one via JSON
-        # serialization.  This allows services to return a Python object if they
-        # wish, or to perform custom serialization (such as for MongoDB results,
-        # etc.).
+        # If the result is a redirect request, then convert it to the
+        # appropriate CherryPy logic and continue.
+        #
+        # Otherwise, if the result is not a string, attempt to convert it to one
+        # via JSON serialization.  This allows services to return a Python
+        # object if they wish, or to perform custom serialization (such as for
+        # MongoDB results, etc.).
+        if isinstance(result, tangelo._Redirect):
+            raise cherrypy.HTTPRedirect(result.path, result.status)
+        elif isinstance(result, tangelo._InternalRedirect):
+            raise cherrypy.InternalRedirect(result.path)
         if not isinstance(result, types.StringTypes):
             try:
                 result = json.dumps(result)
