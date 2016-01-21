@@ -77,9 +77,13 @@ def stream_start(url, kwargs):
         try:
             service = modules.get(module_path)
         except:
-            tangelo.http_status(501, "Error Importing Streaming Service")
+            tangelo.http_status(500, "Error Importing Streaming Service")
             tangelo.content_type("application/json")
-            return tangelo.util.traceback_report(error="Could not import module %s" % (module_path))
+
+            error_code = tangelo.util.generate_error_code()
+
+            tangelo.util.log_traceback("STREAM", error_code, "Could not import module %s" % (tangelo.request_path()))
+            return tangelo.util.error_report(error_code)
         else:
             # Check for a "stream" function inside the module.
             if "stream" not in dir(service):
@@ -90,14 +94,13 @@ def stream_start(url, kwargs):
                 try:
                     stream = service.stream(*pargs, **kwargs)
                 except Exception:
-                    result = tangelo.util.traceback_report(error="Caught exception during streaming service execution",
-                                                           module=tangelo.request_path())
-
-                    tangelo.log_warning("STREAM", "Could not execute service %s:\n%s" % (tangelo.request_path(), "\n".join(result["traceback"])))
-
                     tangelo.http_status(500, "Streaming Service Raised Exception")
                     tangelo.content_type("application/json")
-                    return result
+
+                    error_code = tangelo.util.generate_error_code()
+
+                    tangelo.util.log_traceback("STREAM", error_code, "Could not execute service %s" % (tangelo.request_path()))
+                    return tangelo.util.error_report(error_code)
                 else:
                     # Generate a key corresponding to this object.
                     key = tangelo.util.generate_key(streams)
@@ -131,6 +134,11 @@ def stream_next(key):
             return "OK"
         except:
             del streams[key]
+
             tangelo.http_status(500, "Streaming Service Exception")
             tangelo.content_type("application/json")
-            return tangelo.util.traceback_report(error="Caught exception while executing stream service", stream=key)
+
+            error_code = tangelo.util.generate_error_code()
+
+            tangelo.util.log_traceback("STREAM", error_code, "Offending stream key: %s" % (key), "Uncaught executing executing service %s" % (tangelo.request_path))
+            return tangelo.util.error_report(error_code)

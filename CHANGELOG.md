@@ -46,6 +46,9 @@ versioning](http://semver.org).
 ### Security
 - ``Server`` response header now reads "Tangelo" instead of "CherryPy" with a
   version string
+- Runtime exceptions no longer send tracebacks to the client; instead, an error
+  report code is sent, which can be matched up to a traceback appearing in the
+  server log
 
 ## [0.9] - 2015-03-03
 ### Added

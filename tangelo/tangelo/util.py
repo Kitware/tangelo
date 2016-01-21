@@ -5,7 +5,9 @@ import os
 import os.path
 import platform
 import md5
+import random
 import socket
+import string
 import threading
 import traceback
 import Queue
@@ -43,6 +45,24 @@ def yaml_safe_load(filename, type=None):
 def traceback_report(**props):
     props["traceback"] = traceback.format_exc().split("\n")
     return props
+
+
+def log_traceback(tag, code, *msgs):
+    if not msgs:
+        raise TypeError("log_traceback() takes at least 3 arguments (2 given)")
+
+    tangelo.log_error(tag, "Error code: %s" % (code))
+    for msg in msgs[:-1]:
+        tangelo.log_error(tag, msg)
+    tangelo.log_error(tag, "%s:\n%s" % (msgs[-1], traceback.format_exc()))
+
+
+def generate_error_code():
+    return "".join(random.sample(string.ascii_uppercase, 6))
+
+
+def error_report(code):
+    return {"message": "Error code: %s (give this code to your system administrator for more information)" % (code)}
 
 
 def get_free_port():
