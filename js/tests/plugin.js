@@ -1,17 +1,15 @@
 QUnit.module("Tangelo plugins");
 
-QUnit.test("tangelo.getPlugin()", function (assert) {
+QUnit.test("tangelo.ensurePlugin()", function (assert) {
     "use strict";
 
-    var plugin,
-        slogan,
-        plugin2;
+    var slogan;
 
-    plugin = tangelo.getPlugin("slugocola");
+    tangelo.ensurePlugin("slugocola");
     assert.deepEqual(tangelo.plugin.slugocola, {}, "A freshly created plugin should be installed to the tangelo plugin namespace and be empty");
 
     slogan = "Drink Slug-o-Cola! The slimiest cola in the galaxy!";
-    plugin.slogan = slogan;
+    tangelo.plugin.slugocola.slogan = slogan;
     assert.strictEqual(tangelo.plugin.slugocola.slogan, slogan, "Using the plugin object shoould affect the actual plugin namespace");
 
     tangelo.plugin.slugocola.add = function (a, b) {
@@ -19,8 +17,9 @@ QUnit.test("tangelo.getPlugin()", function (assert) {
     };
     assert.strictEqual(tangelo.plugin.slugocola.add(3, 4), 7, "Functions installed in the plugin should work as expected");
 
-    plugin2 = tangelo.getPlugin("slugocola");
-    assert.strictEqual(plugin, plugin2, "Using getPlugin() on an existing plugin should return a reference to the plugin");
+    tangelo.ensurePlugin("slugocola");
+    assert.strictEqual(tangelo.plugin.slugocola.slogan, slogan, "tangelo.ensurePlugin() is idempotent - 1");
+    assert.strictEqual(tangelo.plugin.slugocola.add(3, 4), 7, "tangelo.ensurePlugin() is idempotent - 2");
 });
 
 QUnit.test("tangelo.pluginUrl()", function (assert) {

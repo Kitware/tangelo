@@ -3,6 +3,7 @@ import imp
 import sys
 import os
 import cherrypy
+import cherrypy.lib.static
 import json
 import traceback
 import types
@@ -476,11 +477,23 @@ class Tangelo(object):
         # Restore the CWD to what it was before the service invocation.
         os.chdir(save_cwd)
 
-        # If the result is not a string, attempt to convert it to one via JSON
-        # serialization.  This allows services to return a Python object if they
-        # wish, or to perform custom serialization (such as for MongoDB results,
-        # etc.).
-        if not isinstance(result, types.StringTypes):
+        # If the result is a redirect request, then convert it to the
+        # appropriate CherryPy logic and continue.
+        #
+        # Otherwise, if it's a file service request, then serve the file using
+        # CherryPy facilities.
+        #
+        # Finally, if the result is not a string, attempt to convert it to one
+        # via JSON serialization.  This allows services to return a Python
+        # object if they wish, or to perform custom serialization (such as for
+        # MongoDB results, etc.).
+        if isinstance(result, tangelo._Redirect):
+            raise cherrypy.HTTPRedirect(result.path, result.status)
+        elif isinstance(result, tangelo._InternalRedirect):
+            raise cherrypy.InternalRedirect(result.path)
+        elif isinstance(result, tangelo._File):
+            result = cherrypy.lib.static.serve_file(result.path, result.content_type)
+        elif not isinstance(result, types.StringTypes):
             try:
                 result = json.dumps(result)
             except TypeError as e:
@@ -545,6 +558,10 @@ class Tangelo(object):
         return result
 
     def execute_analysis(self, query_args):
+        # Hide the identity/version number of the server technology in the
+        # response headers.
+        cherrypy.response.headers["Server"] = ""
+
         # Analyze the URL.
         analysis = analyze_url(cherrypy.request.path_info)
         directive = analysis.directive

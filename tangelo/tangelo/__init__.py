@@ -40,6 +40,35 @@ def http_status(code, message=None):
     cherrypy.response.status = "%s%s" % (code, " %s" % (message) if message is not None else "")
 
 
+class _Redirect(object):
+    def __init__(self, path, status):
+        self.path = path
+        self.status = status
+
+
+def redirect(path, status=303):
+    return _Redirect(path, status)
+
+
+class _InternalRedirect(object):
+    def __init__(self, path):
+        self.path = path
+
+
+def internal_redirect(path):
+    return _InternalRedirect(path)
+
+
+class _File(object):
+    def __init__(self, path, content_type):
+        self.path = path
+        self.content_type = content_type
+
+
+def file(path, content_type="application/octet-stream"):
+    return _File(os.path.abspath(path), content_type)
+
+
 def log(section, message=None, color=None, lvl=logging.INFO):
     if message is None:
         message = section
