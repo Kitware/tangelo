@@ -15,6 +15,7 @@ versioning](http://semver.org).
 - ``tangelo.ensurePlugin()`` function that avoids JavaScript parsing problems
 - Service functions ``tangelo.redirect()`` and ``tangelo.internal_redirect()``
   to allow services to redirect to other resources
+- Service function ``tangelo.file()`` to serve arbitrary files
 
 ### Changed
 - Documentation introduction is more focused; tutorials are more

@@ -3,6 +3,7 @@ import imp
 import sys
 import os
 import cherrypy
+import cherrypy.lib.static
 import json
 import traceback
 import types
@@ -475,7 +476,10 @@ class Tangelo(object):
         # If the result is a redirect request, then convert it to the
         # appropriate CherryPy logic and continue.
         #
-        # Otherwise, if the result is not a string, attempt to convert it to one
+        # Otherwise, if it's a file service request, then serve the file using
+        # CherryPy facilities.
+        #
+        # Finally, if the result is not a string, attempt to convert it to one
         # via JSON serialization.  This allows services to return a Python
         # object if they wish, or to perform custom serialization (such as for
         # MongoDB results, etc.).
@@ -483,7 +487,9 @@ class Tangelo(object):
             raise cherrypy.HTTPRedirect(result.path, result.status)
         elif isinstance(result, tangelo._InternalRedirect):
             raise cherrypy.InternalRedirect(result.path)
-        if not isinstance(result, types.StringTypes):
+        elif isinstance(result, tangelo._File):
+            result = cherrypy.lib.static.serve_file(result.path, result.content_type)
+        elif not isinstance(result, types.StringTypes):
             try:
                 result = json.dumps(result)
             except TypeError as e:

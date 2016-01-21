@@ -153,6 +153,20 @@ HTTP Interaction
     When this internal redirection occurs, the browser's displayed URL, for
     example, will not change to reflect the requested path.
 
+.. py:function:: tangelo.file(path[, content_type="application/octet-stream"])
+
+    Used to signal the server to serve content from the file at `path` as if it
+    were being served statically. By using appropriate absolute or relative
+    paths, this function can be used to serve content from a Tangelo service
+    that is not otherwise available from Tangelo's web root. It can be used as
+    follows:
+
+    .. code:: python
+
+        import tangelo
+
+        def run():
+            return tangelo.file("/some/crazy/path/to/content.txt", content_type="text/plain")
 
 Web Services Utilities
 ======================
