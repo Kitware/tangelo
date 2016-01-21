@@ -11,3 +11,10 @@ def test_static_file():
     assert r.ok
     assert r.status_code == 200
     assert r.text == "Infinite Diversity in Infinite Combinations\n"
+    assert "text/plain" in r.headers["Content-Type"]
+    r = requests.get(fixture.url(
+        "static_file?mime_type=application/octet-stream"))
+    assert r.ok
+    assert r.status_code == 200
+    assert r.text == "Infinite Diversity in Infinite Combinations\n"
+    assert "application/octet-stream" in r.headers["Content-Type"]

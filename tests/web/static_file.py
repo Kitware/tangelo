@@ -1,5 +1,6 @@
 import tangelo
 
 
-def run():
-    return tangelo.file("../static_file.txt", content_type="text/plain")
+def run(**kwargs):
+    return tangelo.file("../static_file.txt",
+                        content_type=kwargs.get("mime_type", "text/plain"))
