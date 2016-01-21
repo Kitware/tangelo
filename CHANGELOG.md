@@ -16,6 +16,8 @@ versioning](http://semver.org).
 - Service functions ``tangelo.redirect()`` and ``tangelo.internal_redirect()``
   to allow services to redirect to other resources
 - Service function ``tangelo.file()`` to serve arbitrary files
+- Process settings from configuration during startup.  Settings can be used to pass information to the server.
+- Change some settings while running.
 
 ### Changed
 - Documentation introduction is more focused; tutorials are more

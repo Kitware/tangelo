@@ -102,7 +102,9 @@ key              The path to the SSL key                                        
 
 cert             The path to the SSL certificate                                     ``None`` [#https]_ [#unset]_
 
-plugins          A list of plugins to load (see :ref:`plugin-config`)                ``None`` [#plugins]_ [#unset]_
+plugins          A list of plugins to load (see :ref:`plugin-config`)                ``None`` [#plugins_config]_ [#unset]_
+
+settings         A list of settings to apply as Tangelo is starting.                 ``None`` [#settings]_ [#unset]_
 ================ =================================================================   =================================
 
 .. rubric:: Footnotes
@@ -124,8 +126,21 @@ plugins          A list of plugins to load (see :ref:`plugin-config`)           
 .. [#unset] That is to say, the option is simply unset by default, the
     equivalent of not mentioning the option at all in a configuration file.
 
-.. [#plugins] This option can *only* appear in the configuration file; there is
+.. [#plugins_config] This option can *only* appear in the configuration file; there is
     no command line equivalent.
+
+.. [#settings] This option provides a method for changing server related
+    settings.  For instance, using
+
+    .. code-block:: yaml
+
+        settings:
+          -
+            server:
+              server.thread_pool: 1000
+
+    would signal the internal server to adjust the number of simultaneous 
+    requests that can be processed.
 
 Administering a Tangelo Installation
 ====================================

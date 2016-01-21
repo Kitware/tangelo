@@ -113,6 +113,31 @@ def generate_key(taken, randbytes=128):
     return key
 
 
+def set_setting(setting, value=None):
+    """
+    Set a setting to a new value or a dictionary of settings to new values.
+    Some setting names contain a period, in which case the first part of them
+    is used to direct the setting to an appropriate handler.
+
+    :param setting: name of the setting to change, or a dictionary of settings
+                    to change, each with their new value.
+    :param value: the new value for a single setting.  Ignored for a settings
+                  dictionary.
+    """
+    if isinstance(setting, dict):
+        for key in setting:
+            set_setting(key, setting[key])
+        return
+    if '.' in setting:
+        section, key = setting.split('.', 1)
+    else:
+        section, key = None, setting
+    if section == 'server':
+        cherrypy.config.update({key: value})
+    else:
+        tangelo.log_warning("TANGELO", "Setting %s was ignored." % setting)
+
+
 class NonBlockingReader(threading.Thread):
     def __init__(self, stream):
         threading.Thread.__init__(self)
@@ -176,17 +201,23 @@ def module_cache_get(cache, module):
     """
     if getattr(cache, "config", False):
         config_file = module[:-2] + "yaml"
-        if config_file not in cache.config_files and os.path.exists(config_file):
+        if (config_file not in cache.config_files and
+                os.path.exists(config_file)):
             try:
                 config = yaml_safe_load(config_file, type=dict)
             except TypeError as e:
-                tangelo.log_warning("TANGELO", "Bad configuration in file %s: %s" % (config_file, e))
+                tangelo.log_warning(
+                    "TANGELO", "Bad configuration in file %s: %s" % (
+                        config_file, e))
                 raise
             except IOError:
-                tangelo.log_warning("TANGELO", "Could not open config file %s" % (config_file))
+                tangelo.log_warning(
+                    "TANGELO", "Could not open config file %s" % (config_file))
                 raise
             except ValueError as e:
-                tangelo.log_warning("TANGELO", "Error reading config file %s: %s" % (config_file, e))
+                tangelo.log_warning(
+                    "TANGELO", "Error reading config file %s: %s" % (
+                        config_file, e))
                 raise
             cache.config_files[config_file] = True
         else:
