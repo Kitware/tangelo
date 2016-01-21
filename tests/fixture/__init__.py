@@ -45,10 +45,17 @@ def run_tangelo(*args, **kwargs):
         time.sleep(0.5)
         proc.poll()
 
+    do_action = "action" in kwargs
+    if do_action:
+        result = kwargs["action"]()
+
     if proc.poll() is None and terminate:
         proc.terminate()
 
-    return (proc.returncode, filter(None, proc.stdout.read().splitlines()), filter(None, proc.stderr.read().splitlines()))
+    if do_action:
+        return (proc.returncode, filter(None, proc.stdout.read().splitlines()), filter(None, proc.stderr.read().splitlines()), result)
+    else:
+        return (proc.returncode, filter(None, proc.stdout.read().splitlines()), filter(None, proc.stderr.read().splitlines()))
 
 
 def start_tangelo(*args, **kwargs):
