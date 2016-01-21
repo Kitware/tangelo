@@ -12,6 +12,7 @@ versioning](http://semver.org).
 - Quiet option reduces verbosity
 - "Watch" plugin controls whether services and dependent modules are
   automatically reloaded when they change
+- ``tangelo.ensurePlugin()`` function that avoids JavaScript parsing problems
 - Service functions ``tangelo.redirect()`` and ``tangelo.internal_redirect()``
   to allow services to redirect to other resources
 - Service function ``tangelo.file()`` to serve arbitrary files
@@ -29,6 +30,7 @@ versioning](http://semver.org).
 - Bundled Mongo plugin updated to use PyMongo 3.2
 
 ### Deprecated
+- ``tangelo.getPlugin()`` - use ``tangelo.ensurePlugin()`` instead
 
 ### Removed
 - "System Architecture" section in README

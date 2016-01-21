@@ -1,7 +1,8 @@
 (function (tangelo) {
     "use strict";
 
-    var dataPlugin = tangelo.getPlugin("data");
+    tangelo.ensurePlugin("data");
+    var dataPlugin = tangelo.plugin.data;
 
     function makeBins(data, value, minArg, maxArg, nBins) {
         var min = Number.POSITIVE_INFINITY,
