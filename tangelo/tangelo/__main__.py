@@ -111,7 +111,8 @@ class Config(object):
                "key": types.StringTypes,
                "cert": types.StringTypes,
                "root": types.StringTypes,
-               "plugins": [list]}
+               "plugins": [list],
+               "settings": [dict]}
 
     def __init__(self, filename):
         for option in Config.options:
@@ -477,6 +478,14 @@ def main():
                             "log.screen": True,
                             "server.socket_host": hostname,
                             "server.socket_port": port})
+
+    # Dump in any other global configuration present in the configuration.
+    if config.settings:
+        cherrypy.config.update(config.settings)
+
+        tangelo.log_info("TANGELO", "User settings:")
+        for setting in config.settings:
+            tangelo.log_info("TANGELO", "\t%s -> %s" % (setting, cherrypy.config.get(setting)))
 
     # Try to drop privileges if requested, since we've bound to whatever port
     # superuser privileges were needed for already.

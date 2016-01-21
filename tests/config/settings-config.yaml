@@ -1,0 +1,2 @@
+settings:
+    server.threadpool: 1000
