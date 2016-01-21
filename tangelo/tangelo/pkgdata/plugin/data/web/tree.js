@@ -1,7 +1,8 @@
 (function (tangelo) {
     "use strict";
 
-    var dataPlugin = tangelo.getPlugin("data");
+    tangelo.ensurePlugin("data");
+    var dataPlugin = tangelo.plugin.data;
 
     dataPlugin.tree = function (spec) {
         var id = tangelo.accessor(spec.id || {value: ""}),

@@ -40,7 +40,8 @@
     var dataPlugin,
         kernels;
 
-    dataPlugin = tangelo.getPlugin("data");
+    tangelo.ensurePlugin("data");
+    dataPlugin = tangelo.plugin.data;
 
     // predefined kernels
     kernels = {

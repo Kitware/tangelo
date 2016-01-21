@@ -15,7 +15,34 @@ functions, see :ref:`bundled`.
     Returns a string representing Tangelo's current version number.  See
     :ref:`versioning` for more information on Tangelo version numbers.
 
+.. js:function:: tangelo.ensurePlugin(pluginName)
+
+    :param pluginName string: The name of the plugin whose existence to ensure
+
+    Creates a Tangelo plugin namespace for `pluginName`, if it does not yet
+    exist. If it already exists, this function does nothing.
+
+    This is the standard way to ensure that a plugin has been created. For
+    instead, if ``foobar.js`` introduces the *foobar* clientside plugin, it may
+    contain code like this:
+
+    .. code-block:: javascript
+
+        tangelo.ensurePlugin("foobar");
+
+        var plugin = tangelo.plugin.foobar;
+
+        plugin.awesomeFunction = function () { ... };
+        plugin.greatConstant = ...;
+
+    As demonstrated here, once the existence of plugin *foobar* is guaranteed by
+    the call to :js:func:`tangelo.ensurePlugin()`, it can thereafter be
+    referenced by the name ``tangelo.plugin.foobar``.
+
 .. js:function:: tangelo.getPlugin(pluginName)
+
+    .. deprecated:: 0.10
+        See :js:func:`tangelo.ensurePlugin` for the replacement.
 
     :param pluginName string: The name of the plugin to retrieve
 
