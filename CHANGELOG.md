@@ -14,6 +14,7 @@ versioning](http://semver.org).
   automatically reloaded when they change
 - Service functions ``tangelo.redirect()`` and ``tangelo.internal_redirect()``
   to allow services to redirect to other resources
+- Service function ``tangelo.file()`` to serve arbitrary files
 
 ### Changed
 - Documentation introduction is more focused; tutorials are more
