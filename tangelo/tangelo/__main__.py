@@ -111,6 +111,7 @@ class Config(object):
                "key": types.StringTypes,
                "cert": types.StringTypes,
                "root": types.StringTypes,
+               "settings": [list, dict],
                "plugins": [list]}
 
     def __init__(self, filename):
@@ -299,6 +300,25 @@ def main():
         for message in config.errors:
             tangelo.log_critical("TANGELO", message)
         return 1
+
+    # Process config file settings
+    if getattr(config, "settings", None):
+        settings = config.settings
+        if not isinstance(settings, list):
+            settings = [settings]
+        for setting in settings:
+            if not isinstance(setting, dict):
+                tangelo.log_warning("TANGELO", "Can't process setting %s" % (
+                    setting))
+                continue
+            for settingkey in setting:
+                if isinstance(setting[settingkey], dict):
+                    for subsettingkey in setting[settingkey]:
+                        tangelo.util.set_setting(
+                            settingkey + "." + subsettingkey,
+                            setting[settingkey][subsettingkey])
+                else:
+                    tangelo.util.set_setting(settingkey, setting[settingkey])
 
     # Determine whether to use access auth.
     access_auth = True
