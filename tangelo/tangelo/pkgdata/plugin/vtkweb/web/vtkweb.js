@@ -3,7 +3,8 @@
 (function (tangelo, $, vtkWeb) {
     "use strict";
 
-    var plugin = tangelo.getPlugin("vtkweb");
+    tangelo.ensurePlugin("vtkweb");
+    var plugin = tangelo.plugin.vtkweb;
 
     plugin.processes = function (callback) {
         $.ajax({

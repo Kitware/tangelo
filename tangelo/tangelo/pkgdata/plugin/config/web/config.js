@@ -7,7 +7,9 @@
 (function (tangelo, _, $) {
     "use strict";
 
-    tangelo.getPlugin("config").config = function (url, required, callback) {
+    tangelo.ensurePlugin("config");
+
+    tangelo.plugin.config.config = function (url, required, callback) {
         if (url === undefined) {
             throw new Error("'url' parameter is required");
         }
