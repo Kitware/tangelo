@@ -40,7 +40,7 @@ def test_inline_config():
 
 def test_settings_config():
     def read_threadpool():
-        return requests.get(fixture.url("setting/server.threadpool"))
+        return requests.get(fixture.url("setting/server.thread_pool"))
 
     (_, _, stderr, r) = fixture.run_tangelo("-c", "tests/config/settings-config.yaml", "--host", fixture.host,
                                             "--port", fixture.port, "--root", "tests/web",
@@ -49,7 +49,7 @@ def test_settings_config():
     line = filter(lambda x: "->" in x, stderr)
 
     assert len(line) > 0
-    assert "\tserver.threadpool -> 1000" in line[0]
+    assert "\tserver.thread_pool -> 1000" in line[0]
 
     assert r.ok
     assert r.text == "1000"

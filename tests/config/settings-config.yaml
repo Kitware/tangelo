@@ -1,2 +1,2 @@
 server-settings:
-    server.threadpool: 1000
+    server.thread_pool: 1000
