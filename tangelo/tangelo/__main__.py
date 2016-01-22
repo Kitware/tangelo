@@ -481,10 +481,9 @@ def main():
 
     # Dump in any other global configuration present in the configuration.
     if config.server_settings:
-        cherrypy.config.update(config.server_settings)
-
         tangelo.log_info("TANGELO", "User server settings:")
-        for setting in config.server_settings:
+        for setting, value in config.server_settings.iteritems():
+            tangelo.util.set_server_setting(setting, value)
             tangelo.log_info("TANGELO", "\t%s -> %s" % (setting, cherrypy.config.get(setting)))
 
     # Try to drop privileges if requested, since we've bound to whatever port
