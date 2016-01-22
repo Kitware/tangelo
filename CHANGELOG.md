@@ -16,6 +16,10 @@ versioning](http://semver.org).
 - Service functions ``tangelo.redirect()`` and ``tangelo.internal_redirect()``
   to allow services to redirect to other resources
 - Service function ``tangelo.file()`` to serve arbitrary files
+- Configuration file takes CherryPy configuration options to apply at startup in
+  ``server_settings`` property
+- ``tangelo.util.set_server_setting()`` can be used to update CherryPy settings
+  at runtime
 
 ### Changed
 - Documentation introduction is more focused; tutorials are more
