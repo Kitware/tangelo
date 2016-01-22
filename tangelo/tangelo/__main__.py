@@ -112,7 +112,7 @@ class Config(object):
                "cert": types.StringTypes,
                "root": types.StringTypes,
                "plugins": [list],
-               "settings": [dict]}
+               "server_settings": [dict]}
 
     def __init__(self, filename):
         for option in Config.options:
@@ -480,11 +480,11 @@ def main():
                             "server.socket_port": port})
 
     # Dump in any other global configuration present in the configuration.
-    if config.settings:
-        cherrypy.config.update(config.settings)
+    if config.server_settings:
+        cherrypy.config.update(config.server_settings)
 
-        tangelo.log_info("TANGELO", "User settings:")
-        for setting in config.settings:
+        tangelo.log_info("TANGELO", "User server settings:")
+        for setting in config.server_settings:
             tangelo.log_info("TANGELO", "\t%s -> %s" % (setting, cherrypy.config.get(setting)))
 
     # Try to drop privileges if requested, since we've bound to whatever port
