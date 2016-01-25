@@ -17,6 +17,6 @@
     "grunt-version": "^0.3.1"
   },
   "scripts": {
-      "install": "cd node_modules/grunt-blanket-qunit && npm install && cd ../grunt-contrib-qunit && npm install"
+      "install": "cd node_modules/grunt-blanket-qunit && npm install && cd ../grunt-contrib-qunit && npm install || true"
   }
 }
