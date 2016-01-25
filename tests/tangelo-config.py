@@ -8,7 +8,7 @@ def test_bad_config():
     signal = "ERROR while parsing"
 
     print "Expected: '%s' in third line of log" % (signal)
-    print "Received: %s" % (stderr[1] if len(stderr) > 1 else "")
+    print "Received: %s" % (stderr[2] if len(stderr) > 2 else "")
 
     assert len(stderr) > 1
     assert signal in stderr[2]
