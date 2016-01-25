@@ -1,7 +1,9 @@
 import datetime
+import imp
 import sys
 import os
 import cherrypy
+import cherrypy.lib.static
 import json
 import traceback
 import types
@@ -427,9 +429,13 @@ class Tangelo(object):
         try:
             service = self.modules.get(module)
         except:
-            tangelo.http_status(501, "Error Importing Service")
+            tangelo.http_status(500, "Service Error")
             tangelo.content_type("application/json")
-            result = tangelo.util.traceback_report(error="Could not import module %s" % (tangelo.request_path()))
+
+            error_code = tangelo.util.generate_error_code()
+
+            tangelo.util.log_traceback("SERVICE", error_code, "Could not import service module %s" % (tangelo.request_path()))
+            result = tangelo.util.error_report(error_code)
         else:
             # Try to run the service - either it's in a function called
             # "run()", or else it's in a REST API consisting of at least one of
@@ -457,11 +463,13 @@ class Tangelo(object):
                         tangelo.content_type("application/json")
                         result = {"error": "Method '%s' is not allowed in this service" % (method)}
             except:
-                tangelo.http_status(501, "Web Service Error")
+                tangelo.http_status(500, "Service Error")
                 tangelo.content_type("application/json")
-                result = tangelo.util.traceback_report(error="Error executing service", module=tangelo.request_path())
 
-                tangelo.log_warning("SERVICE", "Could not execute service %s:\n%s" % (tangelo.request_path(), "\n".join(result["traceback"])))
+                error_code = tangelo.util.generate_error_code()
+
+                tangelo.util.log_traceback("SERVICE", error_code, "Could not execute service %s" % (tangelo.request_path()))
+                result = tangelo.util.error_report(error_code)
 
         # Restore the path to what it was originally.
         sys.path = origpath
@@ -469,11 +477,23 @@ class Tangelo(object):
         # Restore the CWD to what it was before the service invocation.
         os.chdir(save_cwd)
 
-        # If the result is not a string, attempt to convert it to one via JSON
-        # serialization.  This allows services to return a Python object if they
-        # wish, or to perform custom serialization (such as for MongoDB results,
-        # etc.).
-        if not isinstance(result, types.StringTypes):
+        # If the result is a redirect request, then convert it to the
+        # appropriate CherryPy logic and continue.
+        #
+        # Otherwise, if it's a file service request, then serve the file using
+        # CherryPy facilities.
+        #
+        # Finally, if the result is not a string, attempt to convert it to one
+        # via JSON serialization.  This allows services to return a Python
+        # object if they wish, or to perform custom serialization (such as for
+        # MongoDB results, etc.).
+        if isinstance(result, tangelo._Redirect):
+            raise cherrypy.HTTPRedirect(result.path, result.status)
+        elif isinstance(result, tangelo._InternalRedirect):
+            raise cherrypy.InternalRedirect(result.path)
+        elif isinstance(result, tangelo._File):
+            result = cherrypy.lib.static.serve_file(result.path, result.content_type)
+        elif not isinstance(result, types.StringTypes):
             try:
                 result = json.dumps(result)
             except TypeError as e:
@@ -538,6 +558,10 @@ class Tangelo(object):
         return result
 
     def execute_analysis(self, query_args):
+        # Hide the identity/version number of the server technology in the
+        # response headers.
+        cherrypy.response.headers["Server"] = ""
+
         # Analyze the URL.
         analysis = analyze_url(cherrypy.request.path_info)
         directive = analysis.directive
@@ -612,12 +636,22 @@ class Plugins(object):
         self.modules = tangelo.util.ModuleCache(config=False)
 
         # Create a virtual module to hold all plugin python modules.
-        exec("%s = sys.modules[self.base_package] = types.ModuleType(self.base_package)" % (self.base_package))
+        package_parts = self.base_package.split(".")
+        for pkg_step in range(len(package_parts)):
+            package = ".".join(package_parts[:pkg_step + 1])
+            if package not in sys.modules:
+                sys.modules[package] = imp.new_module(package)
+                if not pkg_step:
+                    globals()[package] = sys.modules[package]
+                else:
+                    package_root = ".".join(package_parts[:pkg_step])
+                    setattr(sys.modules[package_root], package_parts[pkg_step], sys.modules[package])
 
         # A null config should be treated as an empty list.
         if config is None:
             config = []
 
+        startlist = []
         # Read through the list of plugin configs, extracting the info and
         # validating as we go.
         for i, entry in enumerate(config):
@@ -634,11 +668,14 @@ class Plugins(object):
                 self.errors.append("Configuration for plugin %d uses duplicate plugin name '%s'" % (i + 1, name))
                 return
 
-            self.plugins[name] = entry
+            # Copy the entry so we don't alter the config object
+            self.plugins[name] = entry.copy()
             del self.plugins[name]["name"]
+            startlist.append(name)
 
         # Load all the plugins one by one, bailing out if there are any errors.
-        for plugin, conf in self.plugins.iteritems():
+        for plugin in startlist:
+            conf = self.plugins[plugin]
             if "path" in conf:
                 # Extract the plugin path.
                 path = os.path.abspath(conf["path"])
@@ -651,7 +688,7 @@ class Plugins(object):
                 self.errors.append("Plugin %s failed to load" % (plugin))
                 return
 
-            tangelo.log_success("Plugin %s loaded" % (plugin))
+            tangelo.log_info("Plugin %s loaded" % (plugin))
 
     def good(self):
         return len(self.errors) == 0
@@ -692,26 +729,25 @@ class Plugins(object):
         # Check for a "python" directory, and place all modules found
         # there in a virtual submodule of tangelo.plugin.
         python = os.path.join(path, "python")
-        if os.path.exists(python):
+        if os.path.exists(python) or os.path.exists(python + ".py"):
             tangelo.log_info("PLUGIN", "\t...loading python module content")
 
-            init = os.path.join(python, "__init__.py")
-            if not os.path.exists(init):
+            try:
+                find_mod_results = imp.find_module("python", [path])
+            except ImportError:
                 self.errors.append("'python' directory of plugin %s is missing __init.py__" % (plugin_name))
                 return False
-            else:
-                module_name = "%s.%s" % (self.base_package, plugin_name)
-                plugin.module = module_name
-                old_path = sys.path
-                sys.path.append(python)
-                try:
-                    exec('%s = sys.modules[module_name] = self.modules.get(init)' % (module_name))
-                except:
-                    self.errors.append("Could not import python module content for plugin %s:\n%s" % (plugin_name, traceback.format_exc()))
-                    sys.path = old_path
-                    return False
-                finally:
-                    sys.path = old_path
+            module_name = "%s.%s" % (self.base_package, plugin_name)
+            plugin.module = module_name
+            try:
+                new_module = imp.load_module(module_name, *list(find_mod_results))
+            except Exception:
+                self.errors.append("Could not import python module content for plugin %s:\n%s" % (plugin_name, traceback.format_exc()))
+                return False
+            finally:
+                if find_mod_results[0]:
+                    find_mod_results[0].close()
+            setattr(sys.modules[self.base_package], plugin_name, new_module)
 
         # Check for any setup that needs to be done, including any apps
         # that need to be mounted.
@@ -763,7 +799,6 @@ class Plugins(object):
         if plugin.module is not None:
             tangelo.log_info("PLUGIN", "\t...removing module %s" % (plugin.module))
             del sys.modules[plugin.module]
-            exec("del %s" % (plugin.module))
 
         for app_path in plugin.apps:
             tangelo.log_info("PLUGIN", "\t...unmounting app at %s" % (app_path))
@@ -777,7 +812,7 @@ class Plugins(object):
                 tangelo.log_warning("PLUGIN", "Could not run teardown:\n%s", (traceback.format_exc()))
 
         del self.plugins[plugin_name]
-        tangelo.log_success("plugin %s unloaded" % (plugin_name))
+        tangelo.log_info("plugin %s unloaded" % (plugin_name))
 
     def unload_all(self):
         for plugin_name in self.plugins.keys():

@@ -1,7 +1,8 @@
 (function (tangelo, $, _) {
     "use strict";
 
-    var streamPlugin = tangelo.getPlugin("stream");
+    tangelo.ensurePlugin("stream");
+    var streamPlugin = tangelo.plugin.stream;
 
     streamPlugin.streams = function (callback) {
         $.ajax({

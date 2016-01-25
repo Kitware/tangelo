@@ -2,6 +2,58 @@
 A list of per-release changes in the Tangelo codebase.  Tangelo uses [semantic
 versioning](http://semver.org).
 
+## [0.10] - 2016-01-25
+### Added
+- Traceback is logged when a service module can't be imported
+- Improvements to release cycle documentation
+- Configuration parameter for ``$.controlPanel`` to set height of open panel
+  explicitly
+- Documentation has an explicit "hello world" example in the Quick Start section
+- Quiet option reduces verbosity
+- "Watch" plugin controls whether services and dependent modules are
+  automatically reloaded when they change
+- ``tangelo.ensurePlugin()`` function that avoids JavaScript parsing problems
+- Service functions ``tangelo.redirect()`` and ``tangelo.internal_redirect()``
+  to allow services to redirect to other resources
+- Service function ``tangelo.file()`` to serve arbitrary files
+- Configuration file takes CherryPy configuration options to apply at startup in
+  ``server_settings`` property
+- ``tangelo.util.set_server_setting()`` can be used to update CherryPy settings
+  at runtime
+
+### Changed
+- Documentation introduction is more focused; tutorials are more
+  front-and-center
+- Updated bundled version of GeoJS
+- Support Travis containers for better automated testing
+- Verbose option can be specified multiple times to increase application
+  verbosity
+- ``--config`` option can now accept either a YAML filename or a raw JSON string
+- Tangelo no longer automatically reloads changed service modules, unless the
+  ``--watch`` option is specified to load the new watch plugin
+- Bundled Mongo plugin updated to use PyMongo 3.2
+
+### Deprecated
+- ``tangelo.getPlugin()`` - use ``tangelo.ensurePlugin()`` instead
+
+### Removed
+- "System Architecture" section in README
+
+### Fixed
+- ``tangelo.paths(".")`` hack no longer necessary to import modules in same
+  directory as service
+- Persistent store no longer cleared when reloading service
+- Verbose option (``-v``) properly increases application verbosity
+- Plugins are now imported using the ``imp`` module, eliminating some spurious
+  error messages
+
+### Security
+- ``Server`` response header now reads "Tangelo" instead of "CherryPy" with a
+  version string
+- Runtime exceptions no longer send tracebacks to the client; instead, an error
+  report code is sent, which can be matched up to a traceback appearing in the
+  server log
+
 ## [0.9] - 2015-03-03
 ### Added
 - This change log file

@@ -66,7 +66,13 @@ update:
 
     git commit -am "Bumping version number for release"
 
-then visit http://localhost:8080/plugin/tangelo/version to verify the version
+then launch Tangelo with
+
+.. code-block:: shell
+
+    ./venv/bin/tangelo --examples
+
+and visit http://localhost:8080/plugin/tangelo/version to verify the version
 number there.  Finally, load up any of the examples that uses *tangelo.js*
 (e.g., http://localhost:8080/plugin/vis/examples/barchart), and, in the console,
 issue ``tangelo.version()`` to verify the clientside version number as well.
@@ -92,6 +98,9 @@ branch into it:
     git merge --no-ff release-1.2
 
 Do not omit the ``--no-ff`` flag!  You can use the default merge commit message.
+
+If you run into merge conflicts, carefully fix them and conclude the merge, then
+make sure to run the tests again.
 
 **8. Tag the release.** Create a tag for the release as follows:
 
@@ -163,6 +172,14 @@ happened as well.
 
     git commit -am "Bumping version number"
 
+**14. Push.** Push both ``develop`` and ``master`` to origin to bring the local
+and remote branches up to date.
+
+**15. Update the documentation.** Log into https://readthedocs.org, go to the
+Tangelo documentation panel, go to the "version" link, and activate the
+documentation for v1.2.  Log out and verify that the new documentation appears
+at https://tangelo.readthedocs.org.
+
 Summary
 =======
 
@@ -179,3 +196,5 @@ You now have
 * a new commit on ``develop`` representing a starting point for further
   development.  Be sure to create topic branches off of ``develop`` to implement
   new features and bugfixes.
+
+* documentation for the new version, live on Read The Docs.

@@ -1,19 +1,24 @@
+import __builtin__
 import cherrypy
 import copy
 import functools
+import imp
 import inspect
 import os.path
+import logging
 import sys
 from types import StringTypes
 
 import tangelo.util
 
+builtin_import = __builtin__.__import__
+
 
 def content_type(t=None):
-    r = cherrypy.response.headers['Content-type']
+    r = cherrypy.response.headers["Content-type"]
 
     if t is not None:
-        cherrypy.response.headers['Content-type'] = t
+        cherrypy.response.headers["Content-type"] = t
 
     return r
 
@@ -35,7 +40,36 @@ def http_status(code, message=None):
     cherrypy.response.status = "%s%s" % (code, " %s" % (message) if message is not None else "")
 
 
-def log(section, message=None, color=None):
+class _Redirect(object):
+    def __init__(self, path, status):
+        self.path = path
+        self.status = status
+
+
+def redirect(path, status=303):
+    return _Redirect(path, status)
+
+
+class _InternalRedirect(object):
+    def __init__(self, path):
+        self.path = path
+
+
+def internal_redirect(path):
+    return _InternalRedirect(path)
+
+
+class _File(object):
+    def __init__(self, path, content_type):
+        self.path = path
+        self.content_type = content_type
+
+
+def file(path, content_type="application/octet-stream"):
+    return _File(os.path.abspath(path), content_type)
+
+
+def log(section, message=None, color=None, lvl=logging.INFO):
     if message is None:
         message = section
         section = "TANGELO"
@@ -44,23 +78,32 @@ def log(section, message=None, color=None):
         section = "%s%s" % (color, section)
         message = "%s%s" % (message, "\033[0m")
 
-    cherrypy.log(str(message), section)
+    # There is a subtle difference between cherrypy.log and cherrypy.log.error,
+    # even though one just calls the other via a __call__ method.  For reasons I
+    # don't understand, the cherrypy.log message seems to have an extra limit to
+    # log levels of logging.INFO, whereas cherrypy.log.error honors the log
+    # level that can be set.
+    cherrypy.log.error(str(message), section, lvl)
+
+
+def log_critical(section, message=None):
+    log(section, message, color="\033[1;91m", lvl=logging.CRITICAL)
 
 
 def log_error(section, message=None):
-    log(section, message, color="\033[1;91m")
-
-
-def log_success(section, message=None):
-    log(section, message, color="\033[32m")
+    log(section, message, color="\033[31m", lvl=logging.ERROR)
 
 
 def log_warning(section, message=None):
-    log(section, message, color="\033[1;33m")
+    log(section, message, color="\033[33m", lvl=logging.WARNING)
 
 
 def log_info(section, message=None):
-    log(section, message, color="\033[35m")
+    log(section, message, color="\033[35m", lvl=logging.INFO)
+
+
+def log_debug(section, message=None):
+    log(section, message, color="\033[1;34m", lvl=logging.DEBUG)
 
 
 def request_path():
@@ -115,7 +158,7 @@ def paths(runtimepaths):
         runtimepaths = [runtimepaths]
 
     home = os.path.expanduser("~").split(os.path.sep)[:-1]
-    root = cherrypy.config.get("webroot")
+    root = os.path.abspath(cherrypy.config.get("webroot"))
 
     # This function returns an absolute path if the path is allowed (i.e., in
     # someone's tangelo_html directory, or under the web root directory), or
@@ -126,9 +169,8 @@ def paths(runtimepaths):
             log("Illegal path (absolute): %s" % (orig), "SERVICE")
             return None
 
-        path = os.path.abspath(cherrypy.thread_data.modulepath + os.path.sep +
-                               path)
-        if len(path) >= len(root) and path[:len(root)] == root:
+        path = os.path.abspath(os.path.join(cherrypy.thread_data.modulepath, path))
+        if path == root or path.startswith(root + os.path.sep):
             return path
 
         comp = path.split(os.path.sep)
@@ -145,8 +187,13 @@ def paths(runtimepaths):
     # to Nones will have been logged).
     newpaths = filter(lambda x: x is not None, map(good, runtimepaths))
 
+    # Use the import lock to have some thread safety
+    imp.acquire_lock()
+    # Exclude paths we've already added to the system
+    newpaths = [path for path in newpaths if path not in sys.path]
     # Finally, augment the path list.
     sys.path = newpaths + sys.path
+    imp.release_lock()
 
 
 def config():
@@ -267,3 +314,43 @@ def return_type(rettype):
 
         return converter
     return wrap
+
+
+def tangelo_import(*args, **kwargs):
+    """
+    When we are asked to import a module, if we get an import error and the
+    calling script is one we are serving (not one in the python libraries), try
+    again in the same directory as the script that is calling import.
+        It seems like we should use sys.meta_path and combine our path with the
+    path sent to imp.find_module.  This requires duplicating a bunch of logic
+    from the imp module and is actually heavier than this technique.
+
+    :params: see __builtin__.__import__
+    """
+    try:
+        return builtin_import(*args, **kwargs)
+    except ImportError:
+        if not hasattr(cherrypy.thread_data, "modulepath"):
+            raise
+        path = os.path.abspath(cherrypy.thread_data.modulepath)
+        root = os.path.abspath(cherrypy.config.get("webroot"))
+        result = None
+        imp.acquire_lock()
+        oldpath = sys.path
+        try:
+            # If the module's path isn't in the system path but is in our
+            # serving area, temporarily add it and try the import again.
+            if path not in sys.path and (path == root or path.startswith(root + os.path.sep)):
+                sys.path = [path] + sys.path
+                result = builtin_import(*args, **kwargs)
+        finally:
+            sys.path = oldpath
+            imp.release_lock()
+        if result is not None:
+            return result
+        raise
+    # Any other exception will be raised, so we don't try to return anything.
+
+
+# Direct imports through our own function
+__builtin__.__import__ = tangelo_import

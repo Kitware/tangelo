@@ -256,7 +256,7 @@ def delete(key=None):
     proc = processes[key]
     proc["process"].terminate()
     proc["process"].wait()
-    tangelo.log_success("VTKWEB", "Process terminated")
+    tangelo.log_info("VTKWEB", "Process terminated")
 
     # Remove the process entry from the table.
     del processes[key]

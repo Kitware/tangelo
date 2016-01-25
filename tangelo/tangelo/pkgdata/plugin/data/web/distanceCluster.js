@@ -50,7 +50,8 @@
 (function (tangelo, _) {
     "use strict";
 
-    var dataPlugin = tangelo.getPlugin("data");
+    tangelo.ensurePlugin("data");
+    var dataPlugin = tangelo.plugin.data;
 
     // default metric: 2D euclidean metric
     function defaultMetric(xAcc, yAcc) {

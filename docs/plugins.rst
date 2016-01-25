@@ -11,6 +11,11 @@ behaviors.  Tangelo ships with several bundled plugins that implement useful
 features and provide examples of how the plugin system can add value to your
 Tangelo setup.
 
+Plugins are loaded in the order listed in the tangelo configuration.  If one
+plugin is dependent on another plugin being loaded before it can be
+initialized, be sure to place the dependent plugin after the plugin it
+requires.
+
 Structure and Content
 =====================
 
@@ -60,8 +65,11 @@ more information).
 Python Content
 --------------
 
-A plugin may also wish to export some Python code for use in web services.  In
-the foobar plugin example, such content appears in
+A plugin may also wish to export some Python code for use in web services.
+The ``python`` directory or a ``python.py`` file within a plugin is imported
+as a module in the ``tangelo.plugin`` namespace with the plugin's name.
+
+In the foobar plugin example, such content appears in
 ``foobar/python/__init__.py``.  This file, for example, might contain the
 following code:
 
@@ -80,7 +88,8 @@ functions as in the following example:
 .. code-block:: python
 
     import tangelo
-    import tangelo.plugin.foobar
+    # It isn't necessary to explicitly import tangelo.plugin.foobar, as it is
+    # added to the tangelo.plugin namespace when tangelo starts.
 
     def run(n):
         tangelo.content_type("text/plain")

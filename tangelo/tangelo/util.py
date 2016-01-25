@@ -5,7 +5,9 @@ import os
 import os.path
 import platform
 import md5
+import random
 import socket
+import string
 import threading
 import traceback
 import Queue
@@ -19,9 +21,15 @@ def windows():
 
 
 def yaml_safe_load(filename, type=None):
-    with open(filename) as f:
+    if os.path.exists(filename) or not filename.startswith("{"):
+        with open(filename) as f:
+            try:
+                data = yaml.safe_load(f.read())
+            except yaml.YAMLError as e:
+                raise ValueError(e)
+    else:
         try:
-            data = yaml.safe_load(f.read())
+            data = yaml.safe_load(filename)
         except yaml.YAMLError as e:
             raise ValueError(e)
 
@@ -37,6 +45,28 @@ def yaml_safe_load(filename, type=None):
 def traceback_report(**props):
     props["traceback"] = traceback.format_exc().split("\n")
     return props
+
+
+def log_traceback(tag, code, *msgs):
+    if not msgs:
+        raise TypeError("log_traceback() takes at least 3 arguments (2 given)")
+
+    tangelo.log_error(tag, "Error code: %s" % (code))
+    for msg in msgs[:-1]:
+        tangelo.log_error(tag, msg)
+    tangelo.log_error(tag, "%s:\n%s" % (msgs[-1], traceback.format_exc()))
+
+
+def generate_error_code():
+    return "".join(random.sample(string.ascii_uppercase, 6))
+
+
+def error_report(code):
+    return {"message": "Error code: %s (give this code to your system administrator for more information)" % (code)}
+
+
+def set_server_setting(key, value):
+    cherrypy.config.update({key: value})
 
 
 def get_free_port():
@@ -137,58 +167,58 @@ class NonBlockingReader(threading.Thread):
             self.pushline(line)
 
 
+def module_cache_get(cache, module):
+    """
+    Import a module with an optional yaml config file, but only if we haven't
+    imported it already.
+
+    :param cache: object which holds information on which modules and config
+                  files have been loaded and whether config files should be
+                  loaded.
+    :param module: the path of the module to load.
+    :returns: the loaded module.
+    """
+    if getattr(cache, "config", False):
+        config_file = module[:-2] + "yaml"
+        if config_file not in cache.config_files and os.path.exists(config_file):
+            try:
+                config = yaml_safe_load(config_file, type=dict)
+            except TypeError as e:
+                tangelo.log_warning("TANGELO", "Bad configuration in file %s: %s" % (config_file, e))
+                raise
+            except IOError:
+                tangelo.log_warning("TANGELO", "Could not open config file %s" % (config_file))
+                raise
+            except ValueError as e:
+                tangelo.log_warning("TANGELO", "Error reading config file %s: %s" % (config_file, e))
+                raise
+            cache.config_files[config_file] = True
+        else:
+            config = {}
+        cherrypy.config["module-config"][module] = config
+        cherrypy.config["module-store"].setdefault(module, {})
+    # If two threads are importing the same module nearly concurrently, we
+    # could load it twice unless we use the import lock.
+    imp.acquire_lock()
+    try:
+        if module not in cache.modules:
+            name = module[:-3]
+
+            # load the module.
+            service = imp.load_source(name, module)
+            cache.modules[module] = service
+        else:
+            service = cache.modules[module]
+    finally:
+        imp.release_lock()
+    return service
+
+
 class ModuleCache(object):
     def __init__(self, config=True):
         self.config = config
         self.modules = {}
+        self.config_files = {}
 
     def get(self, module):
-        # Import the module if not already imported previously (or if the module
-        # to import, or its configuration file, has been updated since the last
-        # import).
-        stamp = self.modules.get(module)
-        mtime = os.path.getmtime(module)
-
-        config_file = module[:-2] + "yaml"
-        config_mtime = None
-
-        if self.config:
-            if os.path.exists(config_file):
-                config_mtime = os.path.getmtime(config_file)
-
-        if (stamp is None or
-                mtime > stamp["mtime"] or
-                (config_mtime is not None and
-                 config_mtime > stamp["mtime"])):
-
-            # Load any configuration the module might carry with it.
-            if config_mtime is not None:
-                try:
-                    config = yaml_safe_load(config_file, type=dict)
-                except TypeError as e:
-                    tangelo.log_warning("TANGELO", "Bad configuration in file %s: %s" % (config_file, e))
-                    raise
-                except IOError:
-                    tangelo.log_warning("TANGELO", "Could not open config file %s" % (config_file))
-                    raise
-                except ValueError as e:
-                    tangelo.log_warning("TANGELO", "Error reading config file %s: %s" % (config_file, e))
-                    raise
-            else:
-                config = {}
-
-            if self.config:
-                cherrypy.config["module-config"][module] = config
-                cherrypy.config["module-store"][module] = {}
-
-            # Remove .py to get the module name
-            name = module[:-3]
-
-            # Load the module.
-            service = imp.load_source(name, module)
-            self.modules[module] = {"module": service,
-                                    "mtime": max(mtime, config_mtime)}
-        else:
-            service = stamp["module"]
-
-        return service
+        return module_cache_get(self, module)

@@ -513,6 +513,38 @@ as part of a web application.
     `cfg.legend`, mapping colors from the elements of `cfg.categories` through
     the function `cfg.cmap_func`.
 
+Watch
+-----
+
+The watch plugin monitors python files and will reload those files when they or
+any of their imported modules change based on file timestamps.  In addition to
+adding this plugin in the list of plugins, it can be enabled with the Tangelo
+command-line option ``--watch``, in which case it is the first plugin loaded.
+
+Any module import *after* the watch plugin has been enabled will be monitored
+for changes, including library-based modules (but not built-in python modules).
+
+When a Tangelo service is called, the plugin checks if that service script or
+any module it depends on has been changed.  All modules that depend on the
+changed module will be reloaded.
+
+Reloading modules is done via Python's ``reload()`` function.  The module's 
+dictionary of global variables is retained during a reload.  Redefinitions
+override old definitions.  This feature can be used to cache values between
+reloads.  For instance:
+
+.. code-block:: python
+
+    try:
+        cache
+    except NameError:
+        cache = {}
+
+The file times of python files are used to determine when a module has changed.
+For python files that are compiled or optimized into .pyc or .pyo files, if the
+uncompiled file exists (the .py file), then its time is used.
+
+
 Data Management and Processing
 ==============================
 

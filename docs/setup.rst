@@ -57,6 +57,12 @@ with the ``-c`` or ``--config`` option: ::
 
     tangelo -c ~/myconfig.yaml
 
+Alternately, instead of using a yaml file, the configuration can be specified as a JSON string ::
+
+    tangelo -c '{"plugins":[{"name":"ui"}]}'
+
+Strictly, if the value passed to the config option is *not* the name of an existing file *and* starts with a ``{``, then it is expected to be a valid YAML or JSON string.
+
 When the flag is omitted, Tangelo will use default values for all
 configuration options (see :ref:`config-options` below).
 
@@ -96,7 +102,9 @@ key              The path to the SSL key                                        
 
 cert             The path to the SSL certificate                                     ``None`` [#https]_ [#unset]_
 
-plugins          A list of plugins to load (see :ref:`plugin-config`)                ``None`` [#plugins]_ [#unset]_
+plugins          A list of plugins to load (see :ref:`plugin-config`)                ``None`` [#plugins_config]_ [#unset]_
+
+server-settings  A dictionary of server settings to apply when Tangelo starts.       ``None`` [#plugins_config]_ [#settings]_ [#unset]_
 ================ =================================================================   =================================
 
 .. rubric:: Footnotes
@@ -118,8 +126,19 @@ plugins          A list of plugins to load (see :ref:`plugin-config`)           
 .. [#unset] That is to say, the option is simply unset by default, the
     equivalent of not mentioning the option at all in a configuration file.
 
-.. [#plugins] This option can *only* appear in the configuration file; there is
+.. [#plugins_config] This option can *only* appear in the configuration file; there is
     no command line equivalent.
+
+.. [#settings] This option provides a method for specifying settings for the
+    server technology underlying Tangelo.  For instance, using
+
+    .. code-block:: yaml
+
+        server_settings:
+            server.thread_pool: 1000
+
+    would direct Tangelo's CherryPy instance to adjust the number of simultaneous
+    requests that can be processed to 1000.
 
 Administering a Tangelo Installation
 ====================================

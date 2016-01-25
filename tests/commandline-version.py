@@ -3,7 +3,7 @@ import fixture
 
 def test_commandline_version():
     (code, stdout, stderr) = fixture.run_tangelo("--version")
-    expected = "0.9.0"
+    expected = "0.10.0"
 
     print "Expected: %s" % (expected)
     print "Received: %s" % ("\n".join(stdout))

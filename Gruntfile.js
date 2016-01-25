@@ -24,7 +24,8 @@ module.exports = function (grunt) {
         pkgDataDir = "tangelo/tangelo/pkgdata/",
         pluginDir = pkgDataDir + "plugin/",
         webDir = pkgDataDir + "web/",
-        styleCheckFiles;
+        styleCheckFiles,
+        testingPort = "30047";
 
     tangeloCmdLine = function (hostname, port, root, cover) {
         var cmd,
@@ -41,7 +42,8 @@ module.exports = function (grunt) {
                 "stream/web",
                 "tangelo/web",
                 "vtkweb",
-                "vtkweb/web"
+                "vtkweb/web",
+                "watch"
             ].map(function (p) {
                 return "venv/lib/python2.7/site-packages/tangelo/pkgdata/plugin/" + p;
             });
@@ -167,7 +169,7 @@ module.exports = function (grunt) {
       blanket_qunit: {
           all: {
               options: {
-                  urls: ["http://localhost:50047/results/js/index.html?coverage=true&lights=4"],
+                  urls: ["http://127.0.0.1:" + testingPort + "/results/js/index.html?coverage=true&lights=4"],
                   threshold: 20,
                   verbose: true
               }
@@ -349,7 +351,7 @@ module.exports = function (grunt) {
 
         grunt.util.spawn({
             cmd: flake8,
-            args: this.filesSrc,
+            args: ["--config=setup.cfg"].concat(this.filesSrc),
             opts: {
                 stdio: "inherit"
             }
@@ -387,12 +389,17 @@ module.exports = function (grunt) {
 
         done = this.async();
 
-        // This is necessary to reconcile Python setuptools's notion of version
-        // numbers with npm's.  Both accept "foobar-0.8.1-dev" as a valid
-        // version number, but setuptools will "normalize" it to
+        // This is sometimes necessary to reconcile Python setuptools's notion
+        // of version numbers with npm's.  Both accept "foobar-0.8.1-dev" as a
+        // valid version number, but setuptools will "normalize" it to
         // "foobar-0.8.1.dev0", so we need to do the same in order to install
-        // the package created by the grunt package task.
-        pyversion = version.replace("-dev", ".dev0");
+        // the package created by the grunt package task.  Some versions of
+        // setuptools don't perform this normalization, so we check whether the
+        // file exists before doing the name conversion.
+        pyversion = version;
+        if (!grunt.file.exists("sdist/tangelo-" + pyversion + zipExt)) {
+            pyversion = version.replace("-dev", ".dev0");
+        }
 
         grunt.util.spawn({
             cmd: pip,
@@ -571,7 +578,7 @@ module.exports = function (grunt) {
         var done = this.async(),
             tangeloCmd;
 
-        tangeloCmd = tangeloCmdLine("localhost", "50047", "js/tests", false);
+        tangeloCmd = tangeloCmdLine("127.0.0.1", testingPort, "js/tests", false);
 
         grunt.util.spawn({
             cmd: tangeloCmd.cmd,
@@ -607,7 +614,7 @@ module.exports = function (grunt) {
 
                 done = this.async();
 
-                cmdline = tangeloCmdLine("localhost", "50047", "js/tests", !windows);
+                cmdline = tangeloCmdLine("127.0.0.1", testingPort, "js/tests", !windows);
 
                 console.log("Starting Tangelo server with: " + cmdline.cmd + " " + cmdline.args.join(" "));
                 process = grunt.util.spawn(cmdline, function () {});

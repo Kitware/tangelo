@@ -459,15 +459,15 @@ function getMinMaxDates(zoom) {
         });
 
         flickr.dots = flickr.map.createLayer("feature", {
-            renderer: "d3Renderer"
-            // renderer: "vglRenderer"
+            renderer: "d3"
         })
             .createFeature("point")
             .data([]);
 
         flickr.legend = flickr.map.createLayer("feature", {
-            renderer: "d3Renderer",
-            sticky: false
+            renderer: "d3",
+            sticky: false,
+            active: false
         })
             .canvas()
             .append("g")
