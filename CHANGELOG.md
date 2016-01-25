@@ -2,6 +2,19 @@
 A list of per-release changes in the Tangelo codebase.  Tangelo uses [semantic
 versioning](http://semver.org).
 
+## [Unreleased] - [unreleased]
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
 ## [0.10] - 2016-01-25
 ### Added
 - Traceback is logged when a service module can't be imported

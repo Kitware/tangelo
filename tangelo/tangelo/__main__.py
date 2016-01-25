@@ -15,7 +15,7 @@ import tangelo.server
 import tangelo.util
 import tangelo.websocket
 
-tangelo_version = "0.10.0"
+tangelo_version = "0.10.0-dev"
 
 
 def tangelo_pkgdata():
