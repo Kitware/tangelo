@@ -1,10 +1,10 @@
 .. image:: https://badge.fury.io/py/tangelo.svg
     :target: http://badge.fury.io/py/tangelo
     
-.. image:: https://pypip.in/d/tangelo/badge.svg
+.. image:: https://img.shields.io/pypi/dm/tangelo.svg
     :target: https://pypi.python.org/pypi/tangelo
 
-.. image:: https://pypip.in/license/tangelo/badge.svg
+.. image:: https://img.shields.io/pypi/l/tangelo.svg
     :target: http://www.apache.org/licenses/LICENSE-2.0.html
     :alt: License
 
